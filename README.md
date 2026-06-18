@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./assets/PromptJS-logo.svg" alt="PromptJS Logo" width="250">
+</div>
+
 # PromptJS
 
 > _A mini-DSL template engine that compiles to vanilla JS with zero dependencies._
