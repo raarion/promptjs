@@ -1,14 +1,20 @@
 <div align="center">
-  <img src="./assets/PromptJS-logo.svg" alt="PromptJS Logo" width="250">
+  <div>
+  <img src="./assets/PromptJS-logo.svg" alt="PromptJS Logo" width="300">
+  </div>
+  <div>
+  <img src="./assets/prompt-js.svg" alt="PromptJS Logo" width="200">
+  </div>
+  <p><strong>A mini-DSL template engine that compiles to vanilla JS with zero dependencies.</strong></p>
+  <hr>
+  <sub><strong>Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.</strong></sub>
 </div>
 
-# PromptJS
+---
 
-> _A mini-DSL template engine that compiles to vanilla JS with zero dependencies._
+## Apa itu PromptJS ?
 
 PromptJS adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompilasi template deklaratif menjadi JavaScript vanilla. Didesain dengan kata kunci bilingual (Indonesia & English), pipeline 5 tahap, dan output zero-runtime-dependency.
-
----
 
 ## Fitur Utama
 
