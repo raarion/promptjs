@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200" viewBox="0 0 600 200">
+  <text x="300" y="140" font-size="112" font-weight="900" text-anchor="middle" font-family="Arial">
+    <tspan fill="#a66fb5" dx='0'>Prompt</tspan><tspan fill="lightgreen">J</tspan><tspan fill="skyblue">S</tspan>
+  </text>
+</svg>
