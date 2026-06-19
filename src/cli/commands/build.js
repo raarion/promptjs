@@ -25,6 +25,7 @@ const {
   ensureDirForFile,
   formatSize,
   formatElapsed,
+  makeColors,
 } = require('../utils');
 
 function runBuild(argv) {
@@ -40,12 +41,7 @@ function runBuild(argv) {
     process.exit(1);
   }
 
-  const green = '\x1b[32m';
-  const cyan = '\x1b[36m';
-  const red = '\x1b[31m';
-  const gray = '\x1b[90m';
-  const bold = '\x1b[1m';
-  const reset = '\x1b[0m';
+  const { green, cyan, red, gray, bold, reset } = makeColors({ stream: process.stdout });
 
   const startTotal = process.hrtime();
 

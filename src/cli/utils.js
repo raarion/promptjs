@@ -41,16 +41,52 @@ function findPjsFiles(dir, ignoreDirs) {
 }
 
 /**
+ * Build an ANSI color palette, honoring the NO_COLOR / FORCE_COLOR conventions.
+ *
+ * Resolution order (highest priority first):
+ *   1. NO_COLOR (present and non-empty) -> always disabled.
+ *   2. FORCE_COLOR (present and non-empty) -> always enabled.
+ *   3. An explicit `enabled` boolean (e.g. `--stdout` turns color off).
+ *   4. A `stream`'s TTY status (auto-detect; piped output gets no color).
+ *   5. Default: enabled.
+ *
+ * Returns an object of escape codes (empty strings when disabled) plus the
+ * resolved `enabled` flag, so callers can both colorize and gate other output.
+ */
+function makeColors(opts) {
+  const { enabled, stream } = opts || {};
+  let on;
+  if (process.env.NO_COLOR != null && process.env.NO_COLOR !== '') {
+    on = false;
+  } else if (process.env.FORCE_COLOR != null && process.env.FORCE_COLOR !== '') {
+    on = true;
+  } else if (typeof enabled === 'boolean') {
+    on = enabled;
+  } else if (stream) {
+    on = Boolean(stream.isTTY);
+  } else {
+    on = true;
+  }
+
+  const c = (code) => (on ? code : '');
+  return {
+    enabled: on,
+    green: c('\x1b[32m'),
+    cyan: c('\x1b[36m'),
+    red: c('\x1b[31m'),
+    yellow: c('\x1b[33m'),
+    gray: c('\x1b[90m'),
+    bold: c('\x1b[1m'),
+    reset: c('\x1b[0m'),
+  };
+}
+
+/**
  * Format a compilation error/warning for terminal output.
  * Colors: red for errors, yellow for warnings, gray for info.
  */
 function formatDiagnostic(diag, colorize) {
-  const useColor = colorize !== false;
-  const red = useColor ? '\x1b[31m' : '';
-  const yellow = useColor ? '\x1b[33m' : '';
-  const gray = useColor ? '\x1b[90m' : '';
-  const bold = useColor ? '\x1b[1m' : '';
-  const reset = useColor ? '\x1b[0m' : '';
+  const { red, yellow, gray, bold, reset } = makeColors({ enabled: colorize !== false });
 
   const severity = diag.severity === 'error' ? 'error' : 'warning';
   const color = severity === 'error' ? red : yellow;
@@ -137,6 +173,7 @@ function formatElapsed(start) {
 
 module.exports = {
   findPjsFiles,
+  makeColors,
   formatDiagnostic,
   printDiagnostics,
   resolveOutputPath,

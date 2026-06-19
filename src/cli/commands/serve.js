@@ -23,7 +23,13 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const { PromptJSEngine } = require('../../engine/promptjs');
-const { findPjsFiles, printDiagnostics, formatElapsed, formatSize } = require('../utils');
+const {
+  findPjsFiles,
+  printDiagnostics,
+  formatElapsed,
+  formatSize,
+  makeColors,
+} = require('../utils');
 
 // Minimal WebSocket server for live-reload
 const LIVE_RELOAD_JS = `
@@ -76,11 +82,7 @@ function runServe(argv) {
     process.exit(1);
   }
 
-  const green = '\x1b[32m';
-  const cyan = '\x1b[36m';
-  const bold = '\x1b[1m';
-  const gray = '\x1b[90m';
-  const reset = '\x1b[0m';
+  const { green, cyan, bold, gray, reset } = makeColors({ stream: process.stdout });
 
   // WebSocket clients for live-reload
   const wsClients = new Set();
