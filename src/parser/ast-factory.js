@@ -18,7 +18,7 @@
  */
 var UNKNOWN_LOC = {
   start: { line: 0, column: 0 },
-  end: { line: 0, column: 0 }
+  end: { line: 0, column: 0 },
 };
 
 /**
@@ -59,7 +59,7 @@ function buatLoc(start, end) {
   if (!s) return UNKNOWN_LOC;
   return {
     start: { line: s.line, column: s.column },
-    end: { line: e.line, column: e.column }
+    end: { line: e.line, column: e.column },
   };
 }
 
@@ -82,12 +82,12 @@ function gabungLoc(locA, locB) {
   return {
     start: {
       line: Math.min(locA.start.line, locB.start.line),
-      column: locA.start.line <= locB.start.line ? locA.start.column : locB.start.column
+      column: locA.start.line <= locB.start.line ? locA.start.column : locB.start.column,
     },
     end: {
       line: Math.max(locA.end.line, locB.end.line),
-      column: locA.end.line >= locB.end.line ? locA.end.column : locB.end.column
-    }
+      column: locA.end.line >= locB.end.line ? locA.end.column : locB.end.column,
+    },
   };
 }
 
@@ -98,7 +98,7 @@ function buatProgramNode(body, loc, source) {
     type: 'Program',
     loc: ensureLoc(loc) || buatLoc({ line: 1, column: 1 }, { line: 1, column: 1 }),
     body: body || [],
-    source: source || undefined
+    source: source || undefined,
   };
 }
 
@@ -111,7 +111,7 @@ function buatDataDeclaration(name, typeHint, init, loc, docstring) {
     docstring: docstring || undefined,
     name: name,
     typeHint: typeHint || undefined,
-    init: init
+    init: init,
   };
 }
 
@@ -122,7 +122,7 @@ function buatTetapDeclaration(name, typeHint, init, loc, docstring) {
     docstring: docstring || undefined,
     name: name,
     typeHint: typeHint || undefined,
-    init: init
+    init: init,
   };
 }
 
@@ -133,7 +133,7 @@ function buatUbahDeclaration(name, typeHint, init, loc, docstring) {
     docstring: docstring || undefined,
     name: name,
     typeHint: typeHint || undefined,
-    init: init
+    init: init,
   };
 }
 
@@ -144,7 +144,7 @@ function buatTurunanDeclaration(name, typeHint, init, loc, docstring) {
     docstring: docstring || undefined,
     name: name,
     typeHint: typeHint || undefined,
-    init: init
+    init: init,
   };
 }
 
@@ -156,7 +156,7 @@ function buatKomponenDeclaration(name, params, body, loc, docstring, returnType)
     name: name,
     params: params || [],
     returnType: returnType || undefined,
-    body: body
+    body: body,
   };
 }
 
@@ -168,7 +168,7 @@ function buatFungsiDeclaration(name, params, body, loc, docstring, returnType) {
     name: name,
     params: params || [],
     returnType: returnType || undefined,
-    body: body
+    body: body,
   };
 }
 
@@ -178,7 +178,7 @@ function buatBlockStatement(body, loc) {
   return {
     type: 'BlockStatement',
     loc: ensureLoc(loc),
-    body: body || []
+    body: body || [],
   };
 }
 
@@ -187,7 +187,7 @@ function buatBuatStatement(selector, loc, docstring, properties, body, action) {
     type: 'BuatStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    selector: selector
+    selector: selector,
   };
   if (properties && properties.length > 0) {
     node.properties = properties;
@@ -206,7 +206,7 @@ function buatTampilkanStatement(target, loc, docstring, mountTarget, mode, messa
     type: 'TampilkanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    target: target
+    target: target,
   };
   if (mountTarget) node.mountTarget = mountTarget;
   if (mode) node.mode = mode;
@@ -219,7 +219,7 @@ function buatSembunyikanStatement(target, loc, docstring) {
     type: 'SembunyikanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    target: target
+    target: target,
   };
 }
 
@@ -228,7 +228,7 @@ function buatHapusStatement(target, loc, docstring) {
     type: 'HapusStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    target: target
+    target: target,
   };
 }
 
@@ -238,7 +238,7 @@ function buatHapusDariStatement(item, fromArray, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     item: item,
-    fromArray: fromArray
+    fromArray: fromArray,
   };
 }
 
@@ -247,7 +247,7 @@ function buatKosongkanStatement(target, loc, docstring) {
     type: 'KosongkanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    target: target
+    target: target,
   };
 }
 
@@ -258,7 +258,7 @@ function buatPerbaruiStatement(property, target, value, loc, docstring) {
     docstring: docstring || undefined,
     property: property,
     target: target,
-    value: value
+    value: value,
   };
 }
 
@@ -267,7 +267,7 @@ function buatKetikaStatement(event, loc, docstring, target, body, action) {
     type: 'KetikaStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    event: event
+    event: event,
   };
   if (target) node.target = target;
   if (body) node.body = body;
@@ -281,7 +281,7 @@ function buatSaatStatement(target, body, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     target: target,
-    body: body
+    body: body,
   };
 }
 
@@ -291,7 +291,7 @@ function buatLifecycleStatement(kind, body, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     kind: kind,
-    body: body
+    body: body,
   };
 }
 
@@ -300,7 +300,7 @@ function buatSetelahStatement(target, loc, docstring, body, action) {
     type: 'SetelahStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    target: target
+    target: target,
   };
   if (body) node.body = body;
   if (action) node.action = action;
@@ -313,7 +313,7 @@ function buatJikaStatement(condition, consequent, loc, docstring, alternate) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     condition: condition,
-    consequent: consequent
+    consequent: consequent,
   };
   if (alternate) node.alternate = alternate;
   return node;
@@ -327,7 +327,7 @@ function buatUlangiStatement(iteratorName, source, body, kind, loc, docstring, r
     iteratorName: iteratorName,
     source: source,
     body: body,
-    kind: kind
+    kind: kind,
   };
   if (rangeEnd !== undefined && rangeEnd !== null) node.rangeEnd = rangeEnd;
   return node;
@@ -339,7 +339,7 @@ function buatSelamaStatement(condition, body, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     condition: condition,
-    body: body
+    body: body,
   };
 }
 
@@ -364,7 +364,7 @@ function buatSimpanStatement(value, target, kind, loc, docstring) {
     docstring: docstring || undefined,
     value: value,
     target: target,
-    kind: kind
+    kind: kind,
   };
 }
 
@@ -374,7 +374,7 @@ function buatTambahkanStatement(value, target, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     value: value,
-    target: target
+    target: target,
   };
 }
 
@@ -383,7 +383,7 @@ function buatKurangiStatement(target, loc, docstring, value) {
     type: 'KurangiStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    target: target
+    target: target,
   };
   if (value) node.value = value;
   return node;
@@ -395,7 +395,7 @@ function buatSisipkanStatement(value, target, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     value: value,
-    target: target
+    target: target,
   };
 }
 
@@ -406,7 +406,7 @@ function buatAmbilDomStatement(kind, source, target, loc, docstring, attributeNa
     docstring: docstring || undefined,
     kind: kind,
     source: source,
-    target: target
+    target: target,
   };
   if (attributeName) node.attributeName = attributeName;
   return node;
@@ -418,7 +418,7 @@ function buatAmbilLuarStatement(url, branches, loc, docstring, options) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     url: url,
-    branches: branches || []
+    branches: branches || [],
   };
   if (options && options.length > 0) node.options = options;
   return node;
@@ -429,7 +429,7 @@ function buatGunakanStatement(componentName, loc, docstring, props, mountTarget)
     type: 'GunakanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    componentName: componentName
+    componentName: componentName,
   };
   if (props && props.length > 0) node.props = props;
   if (mountTarget) node.mountTarget = mountTarget;
@@ -441,7 +441,7 @@ function buatArahkanStatement(url, loc, docstring) {
     type: 'ArahkanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
-    url: url
+    url: url,
   };
 }
 
@@ -457,7 +457,7 @@ function buatLangsungBlock(content, loc) {
   return {
     type: 'LangsungBlock',
     loc: ensureLoc(loc),
-    content: content
+    content: content,
   };
 }
 
@@ -467,7 +467,7 @@ function buatJalankanExpression(callee, kind, loc, docstring, arguments_, withAr
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     callee: callee,
-    kind: kind
+    kind: kind,
   };
   if (arguments_ && arguments_.length > 0) node.arguments = arguments_;
   if (withArgs && withArgs.length > 0) node.withArgs = withArgs;
@@ -480,7 +480,7 @@ function buatPanggilNativeExpression(callee, arguments_, loc, docstring) {
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
     callee: callee,
-    arguments: arguments_ || []
+    arguments: arguments_ || [],
   };
 }
 
@@ -489,7 +489,7 @@ function buatRantaiAksi(first, chain, loc) {
     type: 'RantaiAksi',
     loc: ensureLoc(loc),
     first: first,
-    chain: chain
+    chain: chain,
   };
 }
 
@@ -500,7 +500,7 @@ function buatLiteral(value, kind, loc) {
     type: 'Literal',
     loc: ensureLoc(loc),
     value: value,
-    kind: kind
+    kind: kind,
   };
 }
 
@@ -508,7 +508,7 @@ function buatIdentifier(name, loc) {
   return {
     type: 'Identifier',
     loc: ensureLoc(loc),
-    name: name
+    name: name,
   };
 }
 
@@ -518,7 +518,7 @@ function buatBinaryExpression(operator, left, right, loc) {
     loc: ensureLoc(loc),
     operator: operator,
     left: left,
-    right: right
+    right: right,
   };
 }
 
@@ -528,7 +528,7 @@ function buatUnaryExpression(operator, operand, loc, prefix) {
     loc: ensureLoc(loc),
     operator: operator,
     operand: operand,
-    prefix: prefix !== false
+    prefix: prefix !== false,
   };
 }
 
@@ -537,7 +537,7 @@ function buatMemberExpression(object, property, loc) {
     type: 'MemberExpression',
     loc: ensureLoc(loc),
     object: object,
-    property: property
+    property: property,
   };
 }
 
@@ -546,7 +546,7 @@ function buatCallExpression(callee, arguments_, loc) {
     type: 'CallExpression',
     loc: ensureLoc(loc),
     callee: callee,
-    arguments: arguments_ || []
+    arguments: arguments_ || [],
   };
 }
 
@@ -554,7 +554,7 @@ function buatObjectLiteral(properties, loc) {
   return {
     type: 'ObjectLiteral',
     loc: ensureLoc(loc),
-    properties: properties || []
+    properties: properties || [],
   };
 }
 
@@ -562,7 +562,7 @@ function buatArrayLiteral(elements, loc) {
   return {
     type: 'ArrayLiteral',
     loc: ensureLoc(loc),
-    elements: elements || []
+    elements: elements || [],
   };
 }
 
@@ -575,7 +575,7 @@ function buatSelector(tag, loc, id, classes, attributes) {
     tag: tag,
     id: id || undefined,
     classes: classes || [],
-    attributes: attributes || []
+    attributes: attributes || [],
   };
 }
 
@@ -585,7 +585,7 @@ function buatPropertyNode(key, value, loc, shorthand) {
     loc: ensureLoc(loc),
     key: key,
     value: value,
-    shorthand: !!shorthand
+    shorthand: !!shorthand,
   };
 }
 
@@ -594,7 +594,7 @@ function buatAttributeNode(key, value, loc) {
     type: 'AttributeNode',
     loc: ensureLoc(loc),
     key: key,
-    value: value
+    value: value,
   };
 }
 
@@ -607,7 +607,7 @@ function buatErrorNode(code, message, loc, originalToken) {
     code: code,
     kode: code,
     message: message,
-    pesan: message
+    pesan: message,
   };
   if (originalToken) node.originalToken = originalToken;
   return node;
@@ -619,7 +619,7 @@ function buatParameter(name, loc, typeHint, defaultValue) {
   var param = {
     type: 'Parameter',
     loc: ensureLoc(loc),
-    name: name
+    name: name,
   };
   if (typeHint) param.typeHint = typeHint;
   if (defaultValue) param.defaultValue = defaultValue;
@@ -631,7 +631,7 @@ function buatFetchBranch(kind, action, loc) {
     type: 'FetchBranch',
     loc: ensureLoc(loc),
     kind: kind,
-    action: action
+    action: action,
   };
 }
 
@@ -640,7 +640,7 @@ function buatFetchOption(key, value, loc) {
     type: 'FetchOption',
     key: key,
     value: value,
-    loc: ensureLoc(loc)
+    loc: ensureLoc(loc),
   };
 }
 
@@ -703,5 +703,5 @@ module.exports = {
   buatErrorNode: buatErrorNode,
   buatParameter: buatParameter,
   buatFetchBranch: buatFetchBranch,
-  buatFetchOption: buatFetchOption
+  buatFetchOption: buatFetchOption,
 };

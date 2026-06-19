@@ -10,8 +10,6 @@ const Resolver = require('../resolver/promptjs-resolver');
 const Analyzer = require('../analyzer/promptjs-analyzer');
 const Compiler = require('../compiler/promptjs-compiler');
 
-const TT = Lexer.TT;
-
 // ===== TEST 1: Lexer only =====
 console.log('=== TEST 1: LEXER ===\n');
 
@@ -24,9 +22,17 @@ Buat halaman:
 `;
 
 const lexResult = Lexer.tokenize(testSource);
-console.log('Front matter:', JSON.stringify(Lexer.parseFrontMatter(lexResult.frontMatter), null, 2));
+console.log(
+  'Front matter:',
+  JSON.stringify(Lexer.parseFrontMatter(lexResult.frontMatter), null, 2)
+);
 console.log('Errors:', lexResult.errors.length === 0 ? 'None' : lexResult.errors);
-console.log('Tokens:', lexResult.tokens.map(t => `${t.type}(${typeof t.value === 'object' ? JSON.stringify(t.value) : t.value})`).join(' '));
+console.log(
+  'Tokens:',
+  lexResult.tokens
+    .map((t) => `${t.type}(${typeof t.value === 'object' ? JSON.stringify(t.value) : t.value})`)
+    .join(' ')
+);
 
 // ===== TEST 2: Parser only =====
 console.log('\n=== TEST 2: PARSER ===\n');
@@ -37,10 +43,17 @@ const parseResult = Parser.parse(lexResult.tokens, fm);
 if (parseResult.errors.length > 0) {
   console.log('Parse Errors:', parseResult.errors);
 } else {
-  console.log('AST:', JSON.stringify(parseResult.ast, (k, v) => {
-    if (k === 'loc') return undefined;
-    return v;
-  }, 2));
+  console.log(
+    'AST:',
+    JSON.stringify(
+      parseResult.ast,
+      (k, v) => {
+        if (k === 'loc') return undefined;
+        return v;
+      },
+      2
+    )
+  );
 }
 
 // ===== TEST 3: Full Pipeline (Lexer → Parser → Resolver → Compiler) =====
@@ -53,7 +66,7 @@ const simpleSource = `Buat ruang:
 `;
 
 const lex2 = Lexer.tokenize(simpleSource);
-console.log('Lexer tokens:', lex2.tokens.map(t => `${t.type}(${t.value})`).join(' '));
+console.log('Lexer tokens:', lex2.tokens.map((t) => `${t.type}(${t.value})`).join(' '));
 
 if (lex2.errors.length > 0) {
   console.log('Lexer errors:', lex2.errors);
@@ -65,13 +78,23 @@ if (lex2.errors.length > 0) {
     try {
       const resolver = new Resolver();
       const resolveResult = resolver.resolve(parse2.ast);
-      console.log('Resolve errors:', resolveResult.errors.length > 0 ? resolveResult.errors.map(e => e.message || e.pesan) : 'None');
+      console.log(
+        'Resolve errors:',
+        resolveResult.errors.length > 0
+          ? resolveResult.errors.map((e) => e.message || e.pesan)
+          : 'None'
+      );
 
       if (resolveResult.errors.length === 0) {
         try {
           const analyzer = new Analyzer();
           const analyzeResult = analyzer.analyze(resolveResult.ast);
-          console.log('Analyze errors:', analyzeResult.errors.length > 0 ? analyzeResult.errors.map(e => e.message || e.pesan) : 'None');
+          console.log(
+            'Analyze errors:',
+            analyzeResult.errors.length > 0
+              ? analyzeResult.errors.map((e) => e.message || e.pesan)
+              : 'None'
+          );
 
           if (analyzeResult.errors.length === 0) {
             try {
@@ -128,8 +151,15 @@ const extParse = Parser.parse(extLex.tokens, null);
 if (extParse.errors.length > 0) {
   console.log('Parse Errors:', extParse.errors);
 } else {
-  console.log('AST (no loc):', JSON.stringify(extParse.ast, (k, v) => {
-    if (k === 'loc') return undefined;
-    return v;
-  }, 2));
+  console.log(
+    'AST (no loc):',
+    JSON.stringify(
+      extParse.ast,
+      (k, v) => {
+        if (k === 'loc') return undefined;
+        return v;
+      },
+      2
+    )
+  );
 }

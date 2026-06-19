@@ -27,7 +27,7 @@ function PromptJSAnalyzer() {
   this.warnings = [];
   this._currentAst = null;
   this.options = {};
-  
+
   // Context stacks
   this.context = {
     inComponent: false,
@@ -35,14 +35,14 @@ function PromptJSAnalyzer() {
     loopDepth: 0,
     handlerDepth: 0,
     inTurunanExpr: false,
-    inBuatStatement: false  // PromptJS: allows pass/lewati inside Buat body
+    inBuatStatement: false, // PromptJS: allows pass/lewati inside Buat body
   };
 }
 
 PromptJSAnalyzer.prototype = Object.create(BaseVisitor.prototype);
 PromptJSAnalyzer.prototype.constructor = PromptJSAnalyzer;
 
-PromptJSAnalyzer.prototype.analyze = function(ast, options) {
+PromptJSAnalyzer.prototype.analyze = function (ast, options) {
   this.errors = [];
   this.warnings = [];
   this._currentAst = ast;
@@ -53,12 +53,14 @@ PromptJSAnalyzer.prototype.analyze = function(ast, options) {
   if (ast && ast.semantic && ast.semantic.symbols) {
     this._symbolMap = new Map();
     this._symbolsByName = new Map();
-    ast.semantic.symbols.forEach(function(sym) {
-      // Jangan overwrite symbol pertama: shadowing ditangani lewat node.resolved/targetSymbol.
-      if (!this._symbolMap.has(sym.name)) this._symbolMap.set(sym.name, sym);
-      if (!this._symbolsByName.has(sym.name)) this._symbolsByName.set(sym.name, []);
-      this._symbolsByName.get(sym.name).push(sym);
-    }.bind(this));
+    ast.semantic.symbols.forEach(
+      function (sym) {
+        // Jangan overwrite symbol pertama: shadowing ditangani lewat node.resolved/targetSymbol.
+        if (!this._symbolMap.has(sym.name)) this._symbolMap.set(sym.name, sym);
+        if (!this._symbolsByName.has(sym.name)) this._symbolsByName.set(sym.name, []);
+        this._symbolsByName.get(sym.name).push(sym);
+      }.bind(this)
+    );
   }
   accept(ast, this);
   this.buildSemanticGraph();
@@ -66,30 +68,34 @@ PromptJSAnalyzer.prototype.analyze = function(ast, options) {
   return {
     ast: ast,
     errors: this.errors,
-    warnings: this.warnings
+    warnings: this.warnings,
   };
 };
 
 // --- Helpers ---
 
-PromptJSAnalyzer.prototype.addError = function(code, pesan, loc, saran) {
-  this.errors.push(Err.createError(code, loc, {
-    message: pesan,
-    suggestion: saran || ''
-  }));
+PromptJSAnalyzer.prototype.addError = function (code, pesan, loc, saran) {
+  this.errors.push(
+    Err.createError(code, loc, {
+      message: pesan,
+      suggestion: saran || '',
+    })
+  );
 };
 
-PromptJSAnalyzer.prototype.addWarning = function(code, pesan, loc, saran) {
-  this.warnings.push(Err.createError(code, loc, {
-    message: pesan,
-    suggestion: saran || ''
-  }));
+PromptJSAnalyzer.prototype.addWarning = function (code, pesan, loc, saran) {
+  this.warnings.push(
+    Err.createError(code, loc, {
+      message: pesan,
+      suggestion: saran || '',
+    })
+  );
 };
 
 /**
  * Validasi Tipe Dasar (Section 7.3)
  */
-PromptJSAnalyzer.prototype.checkTypeHint = function(typeHint, valueNode) {
+PromptJSAnalyzer.prototype.checkTypeHint = function (typeHint, valueNode) {
   if (!typeHint || !valueNode || valueNode.type === 'ErrorNode') return;
 
   let actualType = '';
@@ -97,8 +103,7 @@ PromptJSAnalyzer.prototype.checkTypeHint = function(typeHint, valueNode) {
     if (typeof valueNode.value === 'number') actualType = 'angka';
     else if (typeof valueNode.value === 'string') actualType = 'teks';
     else if (typeof valueNode.value === 'boolean') actualType = 'benar-salah';
-  }
-  else if (valueNode.type === 'ObjectLiteral') actualType = 'objek';
+  } else if (valueNode.type === 'ObjectLiteral') actualType = 'objek';
   else if (valueNode.type === 'ArrayLiteral') actualType = 'array';
   else if (valueNode.type === 'CallExpression') {
     // Try to infer from callee name
@@ -108,8 +113,7 @@ PromptJSAnalyzer.prototype.checkTypeHint = function(typeHint, valueNode) {
       if (name && name.indexOf('ambil') === 0) actualType = 'teks';
       // Otherwise unknown — don't emit warning (too many false positives)
     }
-  }
-  else if (valueNode.type === 'BinaryExpression') {
+  } else if (valueNode.type === 'BinaryExpression') {
     var op = valueNode.operator;
     if (op === '+' || op === '-' || op === '*' || op === '/' || op === '%') {
       actualType = 'angka';
@@ -117,15 +121,13 @@ PromptJSAnalyzer.prototype.checkTypeHint = function(typeHint, valueNode) {
       // Comparison or logic operators -> boolean
       actualType = 'benar-salah';
     }
-  }
-  else if (valueNode.type === 'UnaryExpression') {
+  } else if (valueNode.type === 'UnaryExpression') {
     if (valueNode.operator === 'bukan') {
       actualType = 'benar-salah';
     } else if (valueNode.operator === '-') {
       actualType = 'angka';
     }
-  }
-  else if (valueNode.type === 'MemberExpression') {
+  } else if (valueNode.type === 'MemberExpression') {
     // .panjang/.length -> angka, otherwise unknown
     var prop = valueNode.property;
     if (prop && prop.type === 'Identifier' && (prop.name === 'panjang' || prop.name === 'length')) {
@@ -136,16 +138,18 @@ PromptJSAnalyzer.prototype.checkTypeHint = function(typeHint, valueNode) {
 
   // Both expected and actualType use PromptJS type names
   if (actualType && typeHint !== actualType) {
-    this.addWarning('W4001', 
-      `Type hint "${typeHint}" tidak cocok dengan nilai awal bertipe "${actualType}".`, 
-      valueNode.loc, 
-      `Gunakan nilai yang sesuai atau ubah type hint menjadi yang benar.`);
+    this.addWarning(
+      'W4001',
+      `Type hint "${typeHint}" tidak cocok dengan nilai awal bertipe "${actualType}".`,
+      valueNode.loc,
+      `Gunakan nilai yang sesuai atau ubah type hint menjadi yang benar.`
+    );
   }
 };
 
 // --- Symbol Lookup ---
 
-PromptJSAnalyzer.prototype.lookupSymbol = function(name) {
+PromptJSAnalyzer.prototype.lookupSymbol = function (name) {
   // [Bug 4 FIX] Lookup O(1) via Map, bukan O(n) linear scan
   if (this._symbolMap) {
     return this._symbolMap.get(name) || null;
@@ -167,44 +171,48 @@ PromptJSAnalyzer.prototype.lookupSymbol = function(name) {
  * Cek apakah target adalah data turunan (read-only).
  * Digunakan oleh simpan, tambahkan, kurangi, sisipkan, perbarui.
  */
-PromptJSAnalyzer.prototype.checkWriteToTurunan = function(node) {
+PromptJSAnalyzer.prototype.checkWriteToTurunan = function (node) {
   if (!node.target) return;
-  var targetName = (typeof node.target === 'string') ? node.target : (node.target.name || null);
+  var targetName = typeof node.target === 'string' ? node.target : node.target.name || null;
   if (!targetName) return;
   var symbol = node.targetSymbol || this.lookupSymbol(targetName);
   if (symbol && symbol.kind === 'turunan') {
-    this.addError('E4004', 
-      `Data turunan "${targetName}" bersifat read-only dan tidak boleh diubah.`, 
-      node.loc, 
-      'Gunakan data (var) biasa jika perlu mengubah nilainya.');
+    this.addError(
+      'E4004',
+      `Data turunan "${targetName}" bersifat read-only dan tidak boleh diubah.`,
+      node.loc,
+      'Gunakan data (var) biasa jika perlu mengubah nilainya.'
+    );
     return;
   }
   if (symbol && symbol.isWritable === false) {
-    this.addError('E4101',
+    this.addError(
+      'E4101',
       `Target "${targetName}" tidak dapat ditulis berdasarkan metadata semantic.`,
       node.loc,
-      'Gunakan target yang writable atau ubah deklarasi menjadi data/ubah sesuai kebutuhan.');
+      'Gunakan target yang writable atau ubah deklarasi menjadi data/ubah sesuai kebutuhan.'
+    );
   }
 };
 
 /**
  * Cek apakah statement berada di dalam ekspresi turunan (side-effect check).
  */
-PromptJSAnalyzer.prototype.checkSideEffectInTurunan = function(node) {
+PromptJSAnalyzer.prototype.checkSideEffectInTurunan = function (node) {
   if (this.context.inTurunanExpr) {
-    this.addError('E4002', 
-      'Ekspresi turunan tidak boleh mengandung aksi side-effect.', 
-      node.loc, 
-      'Hapus aksi simpan/tambahkan/kurangi/sisipkan dari ekspresi turunan.');
+    this.addError(
+      'E4002',
+      'Ekspresi turunan tidak boleh mengandung aksi side-effect.',
+      node.loc,
+      'Hapus aksi simpan/tambahkan/kurangi/sisipkan dari ekspresi turunan.'
+    );
   }
 };
-
-
 
 /**
  * Refinement lvl.2: bangun dependency graph static dan normalized semantic view.
  */
-PromptJSAnalyzer.prototype.buildSemanticGraph = function() {
+PromptJSAnalyzer.prototype.buildSemanticGraph = function () {
   if (!this._currentAst || !this._currentAst.semantic) return;
 
   var graph = DependencyGraph.buildDependencyGraph(this._currentAst);
@@ -215,19 +223,22 @@ PromptJSAnalyzer.prototype.buildSemanticGraph = function() {
     for (var i = 0; i < graph.cycles.length; i++) {
       var cycle = graph.cycles[i];
       var names = this._symbolNamesFromIds(cycle.symbolIds || []);
-      this.addError('E4201',
+      this.addError(
+        'E4201',
         'Dependency cycle pada data turunan: ' + names.join(' -> '),
         null,
-        'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.');
+        'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.'
+      );
     }
   }
 
   this._currentAst.semantic.normalized = DependencyGraph.normalizeSemantic(this._currentAst);
 };
 
-PromptJSAnalyzer.prototype._symbolNamesFromIds = function(ids) {
-  var symbols = this._currentAst && this._currentAst.semantic ? this._currentAst.semantic.symbols || [] : [];
-  return ids.map(function(id) {
+PromptJSAnalyzer.prototype._symbolNamesFromIds = function (ids) {
+  var symbols =
+    this._currentAst && this._currentAst.semantic ? this._currentAst.semantic.symbols || [] : [];
+  return ids.map(function (id) {
     for (var i = 0; i < symbols.length; i++) {
       if (symbols[i].id === id) return symbols[i].name;
     }
@@ -240,7 +251,7 @@ PromptJSAnalyzer.prototype._symbolNamesFromIds = function(ids) {
  * Rule ini sengaja konservatif: parameter tidak dilaporkan agar tidak bising,
  * dan declaration node tanpa loc valid dilewati.
  */
-PromptJSAnalyzer.prototype.emitUsageWarnings = function() {
+PromptJSAnalyzer.prototype.emitUsageWarnings = function () {
   if (!this._currentAst || !this._currentAst.semantic || !this._currentAst.semantic.symbols) return;
 
   var usageMode = this.options.usageWarnings || 'normal';
@@ -266,28 +277,34 @@ PromptJSAnalyzer.prototype.emitUsageWarnings = function() {
 
     // Deklarasi yang sama sekali tidak pernah dibaca atau ditulis setelah deklarasi.
     if (readCount === 0 && writeCount === 0) {
-      this.addWarning('W4101',
+      this.addWarning(
+        'W4101',
         `Simbol "${name}" dideklarasikan tetapi tidak pernah digunakan.`,
         loc,
-        'Hapus deklarasi jika tidak diperlukan, atau gunakan simbol tersebut.');
+        'Hapus deklarasi jika tidak diperlukan, atau gunakan simbol tersebut.'
+      );
       continue;
     }
 
     // Data reaktif yang dimutasi tetapi tidak pernah dibaca adalah dead reactive state.
     if (sym.isReactive && sym.kind === 'data' && writeCount > 0 && readCount === 0) {
-      this.addWarning('W4103',
+      this.addWarning(
+        'W4103',
         `Data reaktif "${name}" dimutasi ${writeCount} kali tetapi tidak pernah dibaca.`,
         loc,
-        'Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.');
+        'Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.'
+      );
       continue;
     }
 
     // Simbol dimutasi tetapi nilainya tidak pernah dibaca.
     if (writeCount > 0 && readCount === 0) {
-      this.addWarning('W4102',
+      this.addWarning(
+        'W4102',
         `Simbol "${name}" ditulis ${writeCount} kali tetapi tidak pernah dibaca.`,
         loc,
-        'Pastikan nilai yang ditulis benar-benar dibaca, atau hapus penulisan yang tidak perlu.');
+        'Pastikan nilai yang ditulis benar-benar dibaca, atau hapus penulisan yang tidak perlu.'
+      );
     }
   }
 };
@@ -297,7 +314,7 @@ PromptJSAnalyzer.prototype.emitUsageWarnings = function() {
 /**
  * Validasi Komponen (Section 8)
  */
-PromptJSAnalyzer.prototype.visitKomponenDeclaration = function(node) {
+PromptJSAnalyzer.prototype.visitKomponenDeclaration = function (node) {
   const prevInComponent = this.context.inComponent;
   this.context.inComponent = true;
 
@@ -306,10 +323,15 @@ PromptJSAnalyzer.prototype.visitKomponenDeclaration = function(node) {
   let foundDefault = false;
 
   if (node.params) {
-    node.params.forEach(p => {
+    node.params.forEach((p) => {
       // Duplicate check
       if (paramNames.has(p.name)) {
-        this.addError('E4005', `Parameter "${p.name}" duplikat dalam komponen "${node.name}".`, p.loc, "Hapus salah satu deklarasi parameter.");
+        this.addError(
+          'E4005',
+          `Parameter "${p.name}" duplikat dalam komponen "${node.name}".`,
+          p.loc,
+          'Hapus salah satu deklarasi parameter.'
+        );
       }
       paramNames.add(p.name);
 
@@ -317,7 +339,12 @@ PromptJSAnalyzer.prototype.visitKomponenDeclaration = function(node) {
       if (p.defaultValue) {
         foundDefault = true;
       } else if (foundDefault) {
-        this.addError('E4006', `Parameter tanpa nilai default tidak boleh diletakkan setelah parameter dengan default.`, p.loc, "Pindahkan parameter dengan default ke akhir daftar.");
+        this.addError(
+          'E4006',
+          `Parameter tanpa nilai default tidak boleh diletakkan setelah parameter dengan default.`,
+          p.loc,
+          'Pindahkan parameter dengan default ke akhir daftar.'
+        );
       }
 
       if (p.defaultValue) this.checkTypeHint(p.typeHint, p.defaultValue);
@@ -331,13 +358,22 @@ PromptJSAnalyzer.prototype.visitKomponenDeclaration = function(node) {
 /**
  * Validasi Lifecycle Hook (Section 5.4 / 8.5)
  */
-PromptJSAnalyzer.prototype.visitLifecycleStatement = function(node) {
+PromptJSAnalyzer.prototype.visitLifecycleStatement = function (node) {
   if (!this.context.inComponent) {
-    this.addError('E4001', `Lifecycle hook "saat komponen ${node.kind}" hanya valid di dalam komponen.`, node.loc, "Pindahkan blok ini ke dalam definisi komponen.");
+    this.addError(
+      'E4001',
+      `Lifecycle hook "saat komponen ${node.kind}" hanya valid di dalam komponen.`,
+      node.loc,
+      'Pindahkan blok ini ke dalam definisi komponen.'
+    );
   }
-  
+
   if (this.context.loopDepth > 0 || this.context.handlerDepth > 0) {
-    this.addWarning('W4002', `Lifecycle hook sebaiknya tidak diletakkan di dalam loop atau handler.`, node.loc);
+    this.addWarning(
+      'W4002',
+      `Lifecycle hook sebaiknya tidak diletakkan di dalam loop atau handler.`,
+      node.loc
+    );
   }
 
   this.genericVisit(node);
@@ -346,10 +382,10 @@ PromptJSAnalyzer.prototype.visitLifecycleStatement = function(node) {
 /**
  * Validasi Turunan (Section 7.4)
  */
-PromptJSAnalyzer.prototype.visitTurunanDeclaration = function(node) {
+PromptJSAnalyzer.prototype.visitTurunanDeclaration = function (node) {
   const prevInTurunan = this.context.inTurunanExpr;
   this.context.inTurunanExpr = true;
-  
+
   this.genericVisit(node);
   this.context.inTurunanExpr = prevInTurunan;
 };
@@ -357,25 +393,30 @@ PromptJSAnalyzer.prototype.visitTurunanDeclaration = function(node) {
 /**
  * Validasi Type Hint pada Deklarasi Data (Section 7.3)
  */
-PromptJSAnalyzer.prototype.visitDataDeclaration = function(node) {
+PromptJSAnalyzer.prototype.visitDataDeclaration = function (node) {
   if (node.typeHint && node.init) {
     this.checkTypeHint(node.typeHint, node.init);
   }
   this.genericVisit(node);
 };
 
-PromptJSAnalyzer.prototype.visitTetapDeclaration = function(node) {
+PromptJSAnalyzer.prototype.visitTetapDeclaration = function (node) {
   if (node.typeHint && node.init) {
     this.checkTypeHint(node.typeHint, node.init);
   }
   // W4003: tetap tanpa nilai awal
   if (!node.init) {
-    this.addWarning('W4003', `Deklarasi "tetap" untuk "${node.name}" tanpa nilai awal.`, node.loc, 'Berikan nilai awal untuk konstanta.');
+    this.addWarning(
+      'W4003',
+      `Deklarasi "tetap" untuk "${node.name}" tanpa nilai awal.`,
+      node.loc,
+      'Berikan nilai awal untuk konstanta.'
+    );
   }
   this.genericVisit(node);
 };
 
-PromptJSAnalyzer.prototype.visitUbahDeclaration = function(node) {
+PromptJSAnalyzer.prototype.visitUbahDeclaration = function (node) {
   if (node.typeHint && node.init) {
     this.checkTypeHint(node.typeHint, node.init);
   }
@@ -385,7 +426,7 @@ PromptJSAnalyzer.prototype.visitUbahDeclaration = function(node) {
 /**
  * Validasi Reaktivitas & Assignment (Section 7.5)
  */
-PromptJSAnalyzer.prototype.visitSimpanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitSimpanStatement = function (node) {
   // Cek side-effect dalam turunan
   this.checkSideEffectInTurunan(node);
   // Cek apakah target adalah turunan (read-only)
@@ -396,26 +437,26 @@ PromptJSAnalyzer.prototype.visitSimpanStatement = function(node) {
 
 // ─── Mutation Statements (C5/M1 FIX) ──────────────────────
 
-PromptJSAnalyzer.prototype.visitTambahkanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitTambahkanStatement = function (node) {
   this.checkSideEffectInTurunan(node);
   this.checkWriteToTurunan(node);
   this.genericVisit(node);
 };
 
-PromptJSAnalyzer.prototype.visitKurangiStatement = function(node) {
+PromptJSAnalyzer.prototype.visitKurangiStatement = function (node) {
   this.checkSideEffectInTurunan(node);
   this.checkWriteToTurunan(node);
   this.genericVisit(node);
 };
 
-PromptJSAnalyzer.prototype.visitSisipkanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitSisipkanStatement = function (node) {
   this.checkSideEffectInTurunan(node);
   this.checkWriteToTurunan(node);
   this.genericVisit(node);
 };
 
 // ─── PerbaruiStatement (C5 FIX) ────────────────────────────
-PromptJSAnalyzer.prototype.visitPerbaruiStatement = function(node) {
+PromptJSAnalyzer.prototype.visitPerbaruiStatement = function (node) {
   // Cek side-effect dalam turunan
   this.checkSideEffectInTurunan(node);
   // Cek apakah target adalah turunan (read-only)
@@ -424,57 +465,67 @@ PromptJSAnalyzer.prototype.visitPerbaruiStatement = function(node) {
 };
 
 // ─── GunakanStatement (H4 FIX) ─────────────────────────────
-PromptJSAnalyzer.prototype.visitGunakanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitGunakanStatement = function (node) {
   if (node.componentName) {
     var symbol = this.lookupSymbol(node.componentName);
     if (symbol && symbol.kind !== 'komponen') {
-      this.addError('E4010', `"${node.componentName}" bukan komponen, tidak dapat digunakan dengan "gunakan".`, node.loc, 'Pastikan nama yang direferensikan adalah komponen (PascalCase).');
+      this.addError(
+        'E4010',
+        `"${node.componentName}" bukan komponen, tidak dapat digunakan dengan "gunakan".`,
+        node.loc,
+        'Pastikan nama yang direferensikan adalah komponen (PascalCase).'
+      );
     }
   }
   this.genericVisit(node);
 };
 
 // ─── TampilkanStatement (H4 FIX) ───────────────────────────
-PromptJSAnalyzer.prototype.visitTampilkanStatement = function(node) {
-  const validModes = ["tambahkan", "ganti", "awalan", "sebelum", "sesudah"];
+PromptJSAnalyzer.prototype.visitTampilkanStatement = function (node) {
+  const validModes = ['tambahkan', 'ganti', 'awalan', 'sebelum', 'sesudah'];
   if (node.mode && validModes.indexOf(node.mode) === -1) {
-    this.addError('E4007', `Mode "${node.mode}" tidak dikenal.`, node.loc, `Mode yang valid: ${validModes.join(", ")}.`);
+    this.addError(
+      'E4007',
+      `Mode "${node.mode}" tidak dikenal.`,
+      node.loc,
+      `Mode yang valid: ${validModes.join(', ')}.`
+    );
   }
   this.genericVisit(node);
 };
 
 // ─── SembunyikanStatement (H4 FIX) ─────────────────────────
-PromptJSAnalyzer.prototype.visitSembunyikanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitSembunyikanStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── HapusStatement (H4 FIX) ───────────────────────────────
-PromptJSAnalyzer.prototype.visitHapusStatement = function(node) {
+PromptJSAnalyzer.prototype.visitHapusStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── KosongkanStatement (H4 FIX) ───────────────────────────
-PromptJSAnalyzer.prototype.visitKosongkanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitKosongkanStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── ArahkanStatement (H4 FIX) ─────────────────────────────
-PromptJSAnalyzer.prototype.visitArahkanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitArahkanStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── SetelahStatement (H4 FIX) ─────────────────────────────
-PromptJSAnalyzer.prototype.visitSetelahStatement = function(node) {
+PromptJSAnalyzer.prototype.visitSetelahStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── AmbilDomStatement (H4 FIX) ────────────────────────────
-PromptJSAnalyzer.prototype.visitAmbilDomStatement = function(node) {
+PromptJSAnalyzer.prototype.visitAmbilDomStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── AmbilLuarStatement (H4 FIX) ───────────────────────────
-PromptJSAnalyzer.prototype.visitAmbilLuarStatement = function(node) {
+PromptJSAnalyzer.prototype.visitAmbilLuarStatement = function (node) {
   this.genericVisit(node);
 };
 
@@ -482,52 +533,72 @@ PromptJSAnalyzer.prototype.visitAmbilLuarStatement = function(node) {
  * Validasi Kontrol Alur (Section 6.5)
  * [H6 FIX] E6xxx → E4xxx baru
  */
-PromptJSAnalyzer.prototype.visitBerhentiStatement = function(node) {
+PromptJSAnalyzer.prototype.visitBerhentiStatement = function (node) {
   const isValid = this.context.loopDepth > 0 || this.context.handlerDepth > 0;
   if (!isValid) {
-    this.addError('E4011', '"berhenti" tidak valid di luar loop atau event handler.', node.loc, '"berhenti" hanya valid di dalam loop atau event handler.');
+    this.addError(
+      'E4011',
+      '"berhenti" tidak valid di luar loop atau event handler.',
+      node.loc,
+      '"berhenti" hanya valid di dalam loop atau event handler.'
+    );
   }
   if (this.context.inFunction && this.context.loopDepth === 0 && this.context.handlerDepth === 0) {
-    this.addError('E4011', '"berhenti" di dalam fungsi (bukan loop/handler) tidak valid.', node.loc, 'Gunakan "kembalikan" untuk keluar dari fungsi.');
+    this.addError(
+      'E4011',
+      '"berhenti" di dalam fungsi (bukan loop/handler) tidak valid.',
+      node.loc,
+      'Gunakan "kembalikan" untuk keluar dari fungsi.'
+    );
   }
 };
 
-PromptJSAnalyzer.prototype.visitLewatiStatement = function(node) {
+PromptJSAnalyzer.prototype.visitLewatiStatement = function (node) {
   // PromptJS patch: "pass" in BuatStatement body is valid (empty element marker)
   // Only emit error if not inside a BuatStatement (i.e., standalone pass outside loop)
   if (this.context.loopDepth === 0 && !this.context.inBuatStatement) {
-    this.addError('E4012', '"lewati" tidak valid di luar loop.', node.loc, 'Gunakan "lewati" hanya di dalam "ulangi" atau "selama".');
+    this.addError(
+      'E4012',
+      '"lewati" tidak valid di luar loop.',
+      node.loc,
+      'Gunakan "lewati" hanya di dalam "ulangi" atau "selama".'
+    );
   }
 };
 
-PromptJSAnalyzer.prototype.visitKembalikanStatement = function(node) {
+PromptJSAnalyzer.prototype.visitKembalikanStatement = function (node) {
   if (!this.context.inFunction && !this.context.inComponent) {
-    this.addError('E4013', '"kembalikan" tidak valid di luar fungsi atau komponen.', node.loc, 'Gunakan "kembalikan" hanya di dalam fungsi atau komponen.');
+    this.addError(
+      'E4013',
+      '"kembalikan" tidak valid di luar fungsi atau komponen.',
+      node.loc,
+      'Gunakan "kembalikan" hanya di dalam fungsi atau komponen.'
+    );
   }
 };
 
 /**
  * Validasi Konteks Loop & Handler
  */
-PromptJSAnalyzer.prototype.visitUlangiStatement = function(node) {
+PromptJSAnalyzer.prototype.visitUlangiStatement = function (node) {
   this.context.loopDepth++;
   this.genericVisit(node);
   this.context.loopDepth--;
 };
 
-PromptJSAnalyzer.prototype.visitSelamaStatement = function(node) {
+PromptJSAnalyzer.prototype.visitSelamaStatement = function (node) {
   this.context.loopDepth++;
   this.genericVisit(node);
   this.context.loopDepth--;
 };
 
-PromptJSAnalyzer.prototype.visitKetikaStatement = function(node) {
+PromptJSAnalyzer.prototype.visitKetikaStatement = function (node) {
   this.context.handlerDepth++;
   this.genericVisit(node);
   this.context.handlerDepth--;
 };
 
-PromptJSAnalyzer.prototype.visitFungsiDeclaration = function(node) {
+PromptJSAnalyzer.prototype.visitFungsiDeclaration = function (node) {
   const prevInFunc = this.context.inFunction;
   this.context.inFunction = true;
   this.genericVisit(node);
@@ -537,7 +608,7 @@ PromptJSAnalyzer.prototype.visitFungsiDeclaration = function(node) {
 /**
  * PromptJS patch: Track BuatStatement context so pass/lewati is valid inside it.
  */
-PromptJSAnalyzer.prototype.visitBuatStatement = function(node) {
+PromptJSAnalyzer.prototype.visitBuatStatement = function (node) {
   const prevInBuat = this.context.inBuatStatement;
   this.context.inBuatStatement = true;
   this.genericVisit(node);
@@ -547,19 +618,21 @@ PromptJSAnalyzer.prototype.visitBuatStatement = function(node) {
 /**
  * Validasi Watcher (Section 7.6)
  */
-PromptJSAnalyzer.prototype.visitSaatStatement = function(node) {
+PromptJSAnalyzer.prototype.visitSaatStatement = function (node) {
   var symbol = node.targetSymbol || this.lookupSymbol(node.target);
   if (symbol && symbol.isReactive === false) {
-    this.addWarning('W4104',
+    this.addWarning(
+      'W4104',
       `Watcher target "${node.target}" bukan data reaktif menurut analyzer.`,
       node.loc,
-      'Gunakan data/turunan reaktif sebagai target watcher.');
+      'Gunakan data/turunan reaktif sebagai target watcher.'
+    );
   }
   this.genericVisit(node);
 };
 
 // ─── TextNode (PromptJS patch: pass-through) ───────────────────────────────
-PromptJSAnalyzer.prototype.visitTextNode = function(node) {
+PromptJSAnalyzer.prototype.visitTextNode = function (_node) {
   // TextNode is a leaf node — no semantic validation needed.
   // The value is a plain string that will become a DOM text node.
 };

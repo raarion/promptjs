@@ -34,48 +34,102 @@ const Err = require('../parser/error-codes');
 // ============================================================================
 const JS_GLOBALS = new Set([
   // Browser globals
-  'window', 'document', 'navigator', 'location', 'history', 'screen',
-  'localStorage', 'sessionStorage', 'console', 'alert', 'confirm', 'prompt',
-  'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval',
-  'requestAnimationFrame', 'cancelAnimationFrame',
-  'fetch', 'XMLHttpRequest', 'WebSocket',
-  'FormData', 'URL', 'URLSearchParams',
-  'MutationObserver', 'IntersectionObserver', 'ResizeObserver',
-  'Event', 'CustomEvent', 'MessageChannel',
+  'window',
+  'document',
+  'navigator',
+  'location',
+  'history',
+  'screen',
+  'localStorage',
+  'sessionStorage',
+  'console',
+  'alert',
+  'confirm',
+  'prompt',
+  'setTimeout',
+  'setInterval',
+  'clearTimeout',
+  'clearInterval',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'fetch',
+  'XMLHttpRequest',
+  'WebSocket',
+  'FormData',
+  'URL',
+  'URLSearchParams',
+  'MutationObserver',
+  'IntersectionObserver',
+  'ResizeObserver',
+  'Event',
+  'CustomEvent',
+  'MessageChannel',
   // JS built-in constructors
-  'Object', 'Array', 'String', 'Number', 'Boolean', 'Symbol',
-  'Function', 'Date', 'RegExp', 'Error', 'TypeError', 'RangeError',
-  'Map', 'Set', 'WeakMap', 'WeakSet', 'Promise',
-  'Proxy', 'Reflect', 'JSON', 'Math',
-  'Intl', 'AbortController',
-  'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURI', 'decodeURI',
-  'encodeURIComponent', 'decodeURIComponent',
-  'undefined', 'NaN', 'Infinity',
+  'Object',
+  'Array',
+  'String',
+  'Number',
+  'Boolean',
+  'Symbol',
+  'Function',
+  'Date',
+  'RegExp',
+  'Error',
+  'TypeError',
+  'RangeError',
+  'Map',
+  'Set',
+  'WeakMap',
+  'WeakSet',
+  'Promise',
+  'Proxy',
+  'Reflect',
+  'JSON',
+  'Math',
+  'Intl',
+  'AbortController',
+  'parseInt',
+  'parseFloat',
+  'isNaN',
+  'isFinite',
+  'encodeURI',
+  'decodeURI',
+  'encodeURIComponent',
+  'decodeURIComponent',
+  'undefined',
+  'NaN',
+  'Infinity',
   // Node.js globals (for SSR/build)
-  'global', 'process', 'Buffer', 'require', 'module', '__dirname', '__filename'
+  'global',
+  'process',
+  'Buffer',
+  'require',
+  'module',
+  '__dirname',
+  '__filename',
 ]);
 
 // ============================================================================
 // ALIAS PROPERTI (dari Tim A)
 // ============================================================================
 const ALIAS_PROPERTI = {
-  'panjang': 'length',
-  'nilai': 'value',
-  'teks': 'innerText',
-  'html': 'innerHTML',
-  'tipe': 'type',
-  'nama': 'name',
-  'ditandai': 'checked',
-  'nonaktif': 'disabled',
-  'anak': 'children',
-  'induk': 'parentElement',
-  'fokus': 'focus',
-  'atribut': 'getAttribute',
-  'sumber': 'src',
-  'tautan': 'href',
-  'kelas': 'className',
-  'gaya': 'style',
-  'placeholder': 'placeholder'
+  panjang: 'length',
+  nilai: 'value',
+  teks: 'innerText',
+  html: 'innerHTML',
+  tipe: 'type',
+  nama: 'name',
+  ditandai: 'checked',
+  nonaktif: 'disabled',
+  anak: 'children',
+  induk: 'parentElement',
+  fokus: 'focus',
+  atribut: 'getAttribute',
+  sumber: 'src',
+  tautan: 'href',
+  kelas: 'className',
+  gaya: 'style',
+  placeholder: 'placeholder',
 };
 
 // ============================================================================
@@ -83,33 +137,33 @@ const ALIAS_PROPERTI = {
 // Digunakan untuk akses method pada objek (arr.untukSetiap → arr.forEach)
 // ============================================================================
 const ALIAS_METHOD = {
-  'untukSetiap': 'forEach',
-  'untukSetiapItem': 'forEach',
-  'sisip': 'push',
-  'sisipAkhir': 'push',
-  'ambilAkhir': 'pop',
-  'ambilAwal': 'shift',
-  'sisipAwal': 'unshift',
-  'gabung': 'join',
-  'saring': 'filter',
-  'pilih': 'map',
-  'kurangi': 'reduce',
-  'temukan': 'find',
-  'temukanIndex': 'findIndex',
-  'apakahAda': 'includes',
-  'urutkan': 'sort',
-  'balik': 'reverse',
-  'potong': 'slice',
-  'sambung': 'splice',
-  'isi': 'fill',
-  'keTeks': 'toString',
-  'gabungTeks': 'join',
-  'setiap': 'every',
-  'beberapa': 'some',
-  'indeksDari': 'indexOf',
-  'indeksTerakhir': 'lastIndexOf',
-  'datar': 'flat',
-  'petakanDatar': 'flatMap'
+  untukSetiap: 'forEach',
+  untukSetiapItem: 'forEach',
+  sisip: 'push',
+  sisipAkhir: 'push',
+  ambilAkhir: 'pop',
+  ambilAwal: 'shift',
+  sisipAwal: 'unshift',
+  gabung: 'join',
+  saring: 'filter',
+  pilih: 'map',
+  kurangi: 'reduce',
+  temukan: 'find',
+  temukanIndex: 'findIndex',
+  apakahAda: 'includes',
+  urutkan: 'sort',
+  balik: 'reverse',
+  potong: 'slice',
+  sambung: 'splice',
+  isi: 'fill',
+  keTeks: 'toString',
+  gabungTeks: 'join',
+  setiap: 'every',
+  beberapa: 'some',
+  indeksDari: 'indexOf',
+  indeksTerakhir: 'lastIndexOf',
+  datar: 'flat',
+  petakanDatar: 'flatMap',
 };
 
 // ============================================================================
@@ -119,41 +173,74 @@ const ALIAS_METHOD = {
 // ============================================================================
 const BUILTIN_FUNCTIONS = {
   // Array/string utilities
-  'panjang': { jsName: '__promptjs_panjang', helper: true },
-  'tipeData': { jsName: 'typeof', helper: false, prefix: true },
-  'apakahArray': { jsName: 'Array.isArray', helper: false },
-  'keTeks': { jsName: 'String', helper: false },
-  'keAngka': { jsName: 'Number', helper: false },
-  'keTeksAngka': { jsName: 'parseInt', helper: false },
-  'keAngkaDesimal': { jsName: 'parseFloat', helper: false },
-  'apakahKosong': { jsName: '__promptjs_apakahKosong', helper: true },
-  'gabung': { jsName: '__promptjs_gabung', helper: true },
-  'saring': { jsName: '__promptjs_saring', helper: true },
-  'pilih': { jsName: '__promptjs_pilih', helper: true },
-  'urutkan': { jsName: '__promptjs_urutkan', helper: true },
-  'balik': { jsName: '__promptjs_balik', helper: true },
-  'temukan': { jsName: '__promptjs_temukan', helper: true },
-  'apakahAda': { jsName: '__promptjs_apakahAda', helper: true }
+  panjang: { jsName: '__promptjs_panjang', helper: true },
+  tipeData: { jsName: 'typeof', helper: false, prefix: true },
+  apakahArray: { jsName: 'Array.isArray', helper: false },
+  keTeks: { jsName: 'String', helper: false },
+  keAngka: { jsName: 'Number', helper: false },
+  keTeksAngka: { jsName: 'parseInt', helper: false },
+  keAngkaDesimal: { jsName: 'parseFloat', helper: false },
+  apakahKosong: { jsName: '__promptjs_apakahKosong', helper: true },
+  gabung: { jsName: '__promptjs_gabung', helper: true },
+  saring: { jsName: '__promptjs_saring', helper: true },
+  pilih: { jsName: '__promptjs_pilih', helper: true },
+  urutkan: { jsName: '__promptjs_urutkan', helper: true },
+  balik: { jsName: '__promptjs_balik', helper: true },
+  temukan: { jsName: '__promptjs_temukan', helper: true },
+  apakahAda: { jsName: '__promptjs_apakahAda', helper: true },
 };
 
 // ============================================================================
 // EVENT NAMES yang valid untuk ketika (dari spesifikasi PromptJS)
 // ============================================================================
 const VALID_EVENT_NAMES = new Set([
-  'diklik', 'diketik', 'ditekan', 'dilepas', 'dilewat', 'ditinggal',
-  'difokus', 'diblur', 'diubah', 'diseret', 'diubahukuran',
-  'dipindah', 'dikirim', 'direset', 'digulir', 'dikonteks',
-  'masuk', 'keluar', 'aktif', 'nonaktif', 'muat', 'salah',
-  'disubmit', 'dimuat', 'diarahkan', 'ditinggal-kursor',
-  'dipasang', 'dilepas-dari-dom'
+  'diklik',
+  'diketik',
+  'ditekan',
+  'dilepas',
+  'dilewat',
+  'ditinggal',
+  'difokus',
+  'diblur',
+  'diubah',
+  'diseret',
+  'diubahukuran',
+  'dipindah',
+  'dikirim',
+  'direset',
+  'digulir',
+  'dikonteks',
+  'masuk',
+  'keluar',
+  'aktif',
+  'nonaktif',
+  'muat',
+  'salah',
+  'disubmit',
+  'dimuat',
+  'diarahkan',
+  'ditinggal-kursor',
+  'dipasang',
+  'dilepas-dari-dom',
 ]);
 
 // ============================================================================
 // PROPERTI PERBARUI yang valid
 // ============================================================================
 const VALID_PERBARUI_PROPERTIES = new Set([
-  'teks', 'html', 'kelas', 'src', 'href', 'nilai', 'tipe',
-  'nama', 'ditandai', 'nonaktif', 'placeholder', 'gaya', 'atribut'
+  'teks',
+  'html',
+  'kelas',
+  'src',
+  'href',
+  'nilai',
+  'tipe',
+  'nama',
+  'ditandai',
+  'nonaktif',
+  'placeholder',
+  'gaya',
+  'atribut',
 ]);
 
 // ============================================================================
@@ -161,26 +248,26 @@ const VALID_PERBARUI_PROPERTIES = new Set([
 // ============================================================================
 function SemanticSymbol(name, kind, node, scope, metadata = {}) {
   this.name = name;
-  this.kind = kind;          // 'data','tetap','ubah','turunan','fungsi','komponen','parameter'
+  this.kind = kind; // 'data','tetap','ubah','turunan','fungsi','komponen','parameter'
   this.id = metadata.id || null;
   this.declarationNode = node;
   this.scope = scope;
   this.scopeId = metadata.scopeId || null;
 
   // Properti dari Tim B
-  this.isReactive  = metadata.isReactive  || false;
-  this.isWritable  = metadata.isWritable  || false;
-  this.isComputed  = (kind === 'turunan');
-  this.isParameter = (kind === 'parameter');
-  this.isComponent = (kind === 'komponen');
-  this.isFunction  = (kind === 'fungsi');
+  this.isReactive = metadata.isReactive || false;
+  this.isWritable = metadata.isWritable || false;
+  this.isComputed = kind === 'turunan';
+  this.isParameter = kind === 'parameter';
+  this.isComponent = kind === 'komponen';
+  this.isFunction = kind === 'fungsi';
 
   // Shadowing (Tim B)
   this.shadowedSymbol = metadata.shadowedSymbol || null;
 
   // Usage tracking (Tim B)
   this.references = [];
-  this.readCount  = 0;
+  this.readCount = 0;
   this.writeCount = 0;
 }
 
@@ -188,18 +275,18 @@ function SemanticSymbol(name, kind, node, scope, metadata = {}) {
 // SCOPE (dari Tim B, sedikit penyesuaian)
 // ============================================================================
 function Scope(type, parent) {
-  this.id = 'scope_' + (++Scope._nextId);
-  this.type = type;   // 'global','blok','komponen','iterasi','watcher'
+  this.id = 'scope_' + ++Scope._nextId;
+  this.type = type; // 'global','blok','komponen','iterasi','watcher'
   this.parent = parent;
   this.symbols = new Map();
 }
 Scope._nextId = 0;
 
-Scope.prototype.define = function(name, symbol) {
+Scope.prototype.define = function (name, symbol) {
   this.symbols.set(name, symbol);
 };
 
-Scope.prototype.lookup = function(name) {
+Scope.prototype.lookup = function (name) {
   if (this.symbols.has(name)) return this.symbols.get(name);
   if (this.parent) return this.parent.lookup(name);
   return null;
@@ -223,7 +310,7 @@ PromptJSResolver.prototype = Object.create(BaseVisitor.prototype);
 PromptJSResolver.prototype.constructor = PromptJSResolver;
 
 // ─── Entry Point ───────────────────────────────────────────
-PromptJSResolver.prototype.resolve = function(ast) {
+PromptJSResolver.prototype.resolve = function (ast) {
   this.errors = [];
   this.warnings = [];
   Scope._nextId = 0;
@@ -240,45 +327,52 @@ PromptJSResolver.prototype.resolve = function(ast) {
   // Tempelkan metadata untuk Analyzer (Tim B)
   ast.semantic = {
     symbols: this.allSymbols,
-    globalScope: this.currentScope
+    globalScope: this.currentScope,
   };
 
   return { ast, errors: this.errors, warnings: this.warnings };
 };
 
 // ─── Utility: menambah simbol (dari Tim B) ─────────────────
-PromptJSResolver.prototype.addSymbol = function(name, kind, node, metadata = {}) {
+PromptJSResolver.prototype.addSymbol = function (name, kind, node, metadata = {}) {
   // Deteksi duplikat (E3002 - Tim B)
   const existing = this.currentScope.symbols.get(name);
   if (existing) {
-    this.errors.push(Err.createError('E3002', node.loc, {
-      message: `Simbol "${name}" sudah dideklarasikan dalam scope yang sama.`,
-      suggestion: `Deklarasi pertama ada di Baris ${existing.declarationNode.loc.start.line}.`
-    }));
+    this.errors.push(
+      Err.createError('E3002', node.loc, {
+        message: `Simbol "${name}" sudah dideklarasikan dalam scope yang sama.`,
+        suggestion: `Deklarasi pertama ada di Baris ${existing.declarationNode.loc.start.line}.`,
+      })
+    );
     return null;
   }
 
   // Shadowing (Tim B) → W3002
-  const shadowed = this.currentScope.parent 
-    ? this.currentScope.parent.lookup(name) 
-    : null;
+  const shadowed = this.currentScope.parent ? this.currentScope.parent.lookup(name) : null;
 
   if (shadowed) {
-    this.warnings.push(Err.createError('W3002', node.loc, {
-      message: `Variabel "${name}" menyembunyikan variabel dengan nama sama di scope luar.`,
-      suggestion: 'Gunakan nama yang berbeda untuk menghindari kebingungan.',
-      relatedInformation: [{
-        message: `Deklarasi yang disembunyikan: "${name}" (${shadowed.kind}).`,
-        loc: shadowed.declarationNode && shadowed.declarationNode.loc ? shadowed.declarationNode.loc : null
-      }]
-    }));
+    this.warnings.push(
+      Err.createError('W3002', node.loc, {
+        message: `Variabel "${name}" menyembunyikan variabel dengan nama sama di scope luar.`,
+        suggestion: 'Gunakan nama yang berbeda untuk menghindari kebingungan.',
+        relatedInformation: [
+          {
+            message: `Deklarasi yang disembunyikan: "${name}" (${shadowed.kind}).`,
+            loc:
+              shadowed.declarationNode && shadowed.declarationNode.loc
+                ? shadowed.declarationNode.loc
+                : null,
+          },
+        ],
+      })
+    );
   }
 
   const symbol = new SemanticSymbol(name, kind, node, this.currentScope.type, {
     ...metadata,
-    id: 'sym_' + (++this._symbolIdCounter),
+    id: 'sym_' + ++this._symbolIdCounter,
     scopeId: this.currentScope.id,
-    shadowedSymbol: shadowed
+    shadowedSymbol: shadowed,
   });
 
   this.currentScope.define(name, symbol);
@@ -290,20 +384,20 @@ PromptJSResolver.prototype.addSymbol = function(name, kind, node, metadata = {})
 };
 
 // ─── Global Hoisting (modifikasi dari Tim B) ───────────────
-PromptJSResolver.prototype.gatherGlobals = function(ast) {
+PromptJSResolver.prototype.gatherGlobals = function (ast) {
   if (!ast.body) return;
-  ast.body.forEach(node => {
-    if (node.type === 'DataDeclaration') 
+  ast.body.forEach((node) => {
+    if (node.type === 'DataDeclaration')
       this.addSymbol(node.name, 'data', node, { isReactive: true, isWritable: true });
-    else if (node.type === 'TetapDeclaration') 
+    else if (node.type === 'TetapDeclaration')
       this.addSymbol(node.name, 'tetap', node, { isWritable: false });
-    else if (node.type === 'UbahDeclaration') 
+    else if (node.type === 'UbahDeclaration')
       this.addSymbol(node.name, 'ubah', node, { isWritable: true });
-    else if (node.type === 'TurunanDeclaration') 
+    else if (node.type === 'TurunanDeclaration')
       this.addSymbol(node.name, 'turunan', node, { isReactive: true, isWritable: false });
-    else if (node.type === 'FungsiDeclaration') 
+    else if (node.type === 'FungsiDeclaration')
       this.addSymbol(node.name, 'fungsi', node, { isWritable: false });
-    else if (node.type === 'KomponenDeclaration') 
+    else if (node.type === 'KomponenDeclaration')
       this.addSymbol(node.name, 'komponen', node, { isWritable: false });
   });
 };
@@ -313,10 +407,9 @@ PromptJSResolver.prototype.gatherGlobals = function(ast) {
 // ============================================================================
 
 // ─── Identifier (gabungan) ─────────────────────────────────
-PromptJSResolver.prototype.visitIdentifier = function(node) {
+PromptJSResolver.prototype.visitIdentifier = function (node) {
   // Abaikan jika ini adalah nama callee dari "jalankan"
-  if (node.isCalleeJS || 
-      (this.currentJalankanCallee && node.name === this.currentJalankanCallee)) {
+  if (node.isCalleeJS || (this.currentJalankanCallee && node.name === this.currentJalankanCallee)) {
     return;
   }
 
@@ -356,15 +449,17 @@ PromptJSResolver.prototype.visitIdentifier = function(node) {
     }
 
     node.isUndefined = true;
-    this.errors.push(Err.createError('E3001', node.loc, {
-      message: `Identifier "${node.name}" tidak dideklarasikan.`,
-      suggestion: 'Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.'
-    }));
+    this.errors.push(
+      Err.createError('E3001', node.loc, {
+        message: `Identifier "${node.name}" tidak dideklarasikan.`,
+        suggestion: 'Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.',
+      })
+    );
   }
 };
 
 // ─── MemberExpression (dari Tim A: alias properti) ─────────
-PromptJSResolver.prototype.visitMemberExpression = function(node) {
+PromptJSResolver.prototype.visitMemberExpression = function (node) {
   // Visit object (kiri)
   accept(node.object, this);
 
@@ -389,19 +484,28 @@ PromptJSResolver.prototype.visitMemberExpression = function(node) {
       node.property.name = ALIAS_METHOD[propName];
       node.isTranslatedMethodAlias = true;
       // Tandai jika method ini bermutasi array (perlu trigger reaktivitas)
-      const MUTATING_METHODS = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill']);
+      const MUTATING_METHODS = new Set([
+        'push',
+        'pop',
+        'shift',
+        'unshift',
+        'splice',
+        'sort',
+        'reverse',
+        'fill',
+      ]);
       node.isMutatingMethod = MUTATING_METHODS.has(ALIAS_METHOD[propName]);
     }
   }
 };
 
-PromptJSResolver.prototype.visitCallExpression = function(node) {
+PromptJSResolver.prototype.visitCallExpression = function (node) {
   // Visit callee
   accept(node.callee, this);
 
   // Visit arguments
   if (node.arguments && node.arguments.length > 0) {
-    node.arguments.forEach(arg => accept(arg, this));
+    node.arguments.forEach((arg) => accept(arg, this));
   }
 
   // Cek apakah callee adalah Identifier yang cocok dengan fungsi bawaan
@@ -433,24 +537,24 @@ PromptJSResolver.prototype.visitCallExpression = function(node) {
 };
 
 // ─── JalankanExpression (Tim A: JS Interop) ───────────────
-PromptJSResolver.prototype.visitJalankanExpression = function(node) {
+PromptJSResolver.prototype.visitJalankanExpression = function (node) {
   // Simpan nama fungsi yang dipanggil (callee)
   const prevCallee = this.currentJalankanCallee;
   this.currentJalankanCallee = node.callee; // node.callee adalah string
 
   // [C2 FIX] node.args → node.arguments (sesuai AST factory)
   if (node.arguments && node.arguments.length > 0) {
-    node.arguments.forEach(arg => accept(arg, this));
+    node.arguments.forEach((arg) => accept(arg, this));
   }
   if (node.withArgs && node.withArgs.length > 0) {
-    node.withArgs.forEach(arg => accept(arg, this));
+    node.withArgs.forEach((arg) => accept(arg, this));
   }
 
   // Kembalikan ke nilai sebelumnya (null jika tidak ada nested jalankan)
   this.currentJalankanCallee = prevCallee;
 };
 
-PromptJSResolver.prototype.markAsJSExternal = function(node) {
+PromptJSResolver.prototype.markAsJSExternal = function (node) {
   if (node.type === 'Identifier') {
     node.isCalleeJS = true;
   } else if (node.type === 'MemberExpression') {
@@ -463,25 +567,27 @@ PromptJSResolver.prototype.markAsJSExternal = function(node) {
  * Melacak penulisan ke variabel dan memvalidasi isWritable.
  * Digunakan oleh simpan, tambahkan, kurangi, sisipkan, perbarui.
  */
-PromptJSResolver.prototype._trackWrite = function(targetName, node) {
+PromptJSResolver.prototype._trackWrite = function (targetName, node) {
   if (!targetName) return;
   const symbol = this.currentScope.lookup(targetName);
   if (symbol) {
     symbol.writeCount++;
-    node.targetSymbol = symbol;  // untuk Analyzer (proteksi read-only)
+    node.targetSymbol = symbol; // untuk Analyzer (proteksi read-only)
 
     // [C4 FIX] Emit E3003 jika menulis ke variabel tetap (const)
     if (!symbol.isWritable) {
-      this.errors.push(Err.createError('E3003', node.loc, {
-        message: `Variabel tetap "${targetName}" tidak dapat diubah setelah inisialisasi.`,
-        suggestion: 'Gunakan "ubah" jika variabel perlu diubah, bukan "tetap".'
-      }));
+      this.errors.push(
+        Err.createError('E3003', node.loc, {
+          message: `Variabel tetap "${targetName}" tidak dapat diubah setelah inisialisasi.`,
+          suggestion: 'Gunakan "ubah" jika variabel perlu diubah, bukan "tetap".',
+        })
+      );
     }
   }
 };
 
 // ─── SimpanStatement (Tim B: write tracking) ──────────────
-PromptJSResolver.prototype.visitSimpanStatement = function(node) {
+PromptJSResolver.prototype.visitSimpanStatement = function (node) {
   // Catat penulisan jika target berupa identifier (node.target adalah string nama)
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
@@ -492,7 +598,7 @@ PromptJSResolver.prototype.visitSimpanStatement = function(node) {
 };
 
 // ─── Mutation Statements: Write Tracking (M2 FIX) ─────────
-PromptJSResolver.prototype.visitTambahkanStatement = function(node) {
+PromptJSResolver.prototype.visitTambahkanStatement = function (node) {
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
   } else if (node.target && node.target.type === 'Identifier') {
@@ -501,7 +607,7 @@ PromptJSResolver.prototype.visitTambahkanStatement = function(node) {
   this.genericVisit(node);
 };
 
-PromptJSResolver.prototype.visitKurangiStatement = function(node) {
+PromptJSResolver.prototype.visitKurangiStatement = function (node) {
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
   } else if (node.target && node.target.type === 'Identifier') {
@@ -510,7 +616,7 @@ PromptJSResolver.prototype.visitKurangiStatement = function(node) {
   this.genericVisit(node);
 };
 
-PromptJSResolver.prototype.visitSisipkanStatement = function(node) {
+PromptJSResolver.prototype.visitSisipkanStatement = function (node) {
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
   } else if (node.target && node.target.type === 'Identifier') {
@@ -520,7 +626,7 @@ PromptJSResolver.prototype.visitSisipkanStatement = function(node) {
 };
 
 // ─── PerbaruiStatement (H3 FIX: visitor baru) ──────────────
-PromptJSResolver.prototype.visitPerbaruiStatement = function(node) {
+PromptJSResolver.prototype.visitPerbaruiStatement = function (node) {
   // Resolve target jika berupa identifier
   if (node.target) {
     if (typeof node.target === 'string') {
@@ -540,37 +646,43 @@ PromptJSResolver.prototype.visitPerbaruiStatement = function(node) {
   // Validasi properti perbarui
   if (node.property && typeof node.property === 'string') {
     if (!VALID_PERBARUI_PROPERTIES.has(node.property)) {
-      this.warnings.push(Err.createError('E4008', node.loc, {
-        message: `Properti perbarui "${node.property}" mungkin tidak didukung.`,
-        suggestion: 'Gunakan properti yang didukung: teks, html, kelas, src, href, nilai, dll.'
-      }));
+      this.warnings.push(
+        Err.createError('E4008', node.loc, {
+          message: `Properti perbarui "${node.property}" mungkin tidak didukung.`,
+          suggestion: 'Gunakan properti yang didukung: teks, html, kelas, src, href, nilai, dll.',
+        })
+      );
     }
   }
 };
 
 // ─── GunakanStatement (H3 FIX: visitor baru) ───────────────
-PromptJSResolver.prototype.visitGunakanStatement = function(node) {
+PromptJSResolver.prototype.visitGunakanStatement = function (node) {
   // Validasi bahwa nama komponen terdaftar
   if (node.componentName) {
     const symbol = this.currentScope.lookup(node.componentName);
     if (!symbol) {
       // [E3004] Komponen tidak dideklarasikan
-      this.errors.push(Err.createError('E3004', node.loc, {
-        message: `Komponen "${node.componentName}" digunakan sebelum dideklarasi.`,
-        suggestion: 'Pindahkan deklarasi komponen sebelum penggunaannya.'
-      }));
+      this.errors.push(
+        Err.createError('E3004', node.loc, {
+          message: `Komponen "${node.componentName}" digunakan sebelum dideklarasi.`,
+          suggestion: 'Pindahkan deklarasi komponen sebelum penggunaannya.',
+        })
+      );
     } else if (symbol.kind !== 'komponen') {
       // [E4010] gunakan untuk non-komponen
-      this.errors.push(Err.createError('E4010', node.loc, {
-        message: `"${node.componentName}" bukan komponen, tidak dapat digunakan dengan "gunakan".`,
-        suggestion: 'Pastikan nama yang direferensikan adalah komponen (PascalCase).'
-      }));
+      this.errors.push(
+        Err.createError('E4010', node.loc, {
+          message: `"${node.componentName}" bukan komponen, tidak dapat digunakan dengan "gunakan".`,
+          suggestion: 'Pastikan nama yang direferensikan adalah komponen (PascalCase).',
+        })
+      );
     }
   }
 
   // Resolve props jika ada
   if (node.props) {
-    node.props.forEach(prop => {
+    node.props.forEach((prop) => {
       if (prop.value) accept(prop.value, this);
     });
   }
@@ -579,50 +691,50 @@ PromptJSResolver.prototype.visitGunakanStatement = function(node) {
 };
 
 // ─── TampilkanStatement (H3 FIX) ───────────────────────────
-PromptJSResolver.prototype.visitTampilkanStatement = function(node) {
+PromptJSResolver.prototype.visitTampilkanStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
 // ─── SembunyikanStatement (H3 FIX) ─────────────────────────
-PromptJSResolver.prototype.visitSembunyikanStatement = function(node) {
+PromptJSResolver.prototype.visitSembunyikanStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
 // ─── HapusStatement (H3 FIX) ───────────────────────────────
-PromptJSResolver.prototype.visitHapusStatement = function(node) {
+PromptJSResolver.prototype.visitHapusStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
-PromptJSResolver.prototype.visitHapusDariStatement = function(node) {
+PromptJSResolver.prototype.visitHapusDariStatement = function (node) {
   // Resolve the item expression
   if (node.item) accept(node.item, this);
   // Resolve the array identifier and attach metadata
   var symbol = this.currentScope.lookup(node.fromArray);
   if (symbol) {
     node.fromArraySymbol = symbol;
-    node.fromArrayReactive = (symbol.kind === 'data' || symbol.kind === 'turunan');
+    node.fromArrayReactive = symbol.kind === 'data' || symbol.kind === 'turunan';
   } else {
     this.addError('E3001', 'Identifier "' + node.fromArray + '" tidak dideklarasikan', node.loc);
   }
 };
 
 // ─── KosongkanStatement (H3 FIX) ───────────────────────────
-PromptJSResolver.prototype.visitKosongkanStatement = function(node) {
+PromptJSResolver.prototype.visitKosongkanStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
 // ─── ArahkanStatement (H3 FIX) ─────────────────────────────
-PromptJSResolver.prototype.visitArahkanStatement = function(node) {
+PromptJSResolver.prototype.visitArahkanStatement = function (node) {
   if (node.url) accept(node.url, this);
   this.genericVisit(node);
 };
 
 // ─── SetelahStatement (H3 FIX + Bug 3 FIX) ─────────────────
-PromptJSResolver.prototype.visitSetelahStatement = function(node) {
+PromptJSResolver.prototype.visitSetelahStatement = function (node) {
   // [Bug 3 FIX] Resolve target symbol dan lampirkan ke node,
   // supaya compiler bisa membedakan fungsi PromptJS vs external variable.
   if (node.target) {
@@ -635,13 +747,13 @@ PromptJSResolver.prototype.visitSetelahStatement = function(node) {
 };
 
 // ─── AmbilDomStatement (H3 FIX) ────────────────────────────
-PromptJSResolver.prototype.visitAmbilDomStatement = function(node) {
+PromptJSResolver.prototype.visitAmbilDomStatement = function (node) {
   if (node.source) accept(node.source, this);
   this.genericVisit(node);
 };
 
 // ─── AmbilLuarStatement (H3 FIX) ───────────────────────────
-PromptJSResolver.prototype.visitAmbilLuarStatement = function(node) {
+PromptJSResolver.prototype.visitAmbilLuarStatement = function (node) {
   if (node.url) accept(node.url, this);
 
   // Buat scope untuk callback
@@ -657,7 +769,7 @@ PromptJSResolver.prototype.visitAmbilLuarStatement = function(node) {
 };
 
 // ─── SelamaStatement (H3 FIX: scope untuk loop body) ───────
-PromptJSResolver.prototype.visitSelamaStatement = function(node) {
+PromptJSResolver.prototype.visitSelamaStatement = function (node) {
   // Resolve kondisi di scope sekarang
   if (node.condition) accept(node.condition, this);
 
@@ -668,19 +780,19 @@ PromptJSResolver.prototype.visitSelamaStatement = function(node) {
 };
 
 // ─── Scope: Blok, Fungsi, Komponen, Ulangi (Tim B, disempurnakan) ──
-PromptJSResolver.prototype.visitBlockStatement = function(node) {
+PromptJSResolver.prototype.visitBlockStatement = function (node) {
   const prevScope = this.currentScope;
   this.currentScope = new Scope('blok', prevScope);
   this.genericVisit(node);
   this.currentScope = prevScope;
 };
 
-PromptJSResolver.prototype.visitFungsiDeclaration = function(node) {
+PromptJSResolver.prototype.visitFungsiDeclaration = function (node) {
   const prevScope = this.currentScope;
   this.currentScope = new Scope('blok', prevScope);
 
   if (node.params) {
-    node.params.forEach(p => 
+    node.params.forEach((p) =>
       this.addSymbol(p.name, 'parameter', p, { isReactive: false, isWritable: true })
     );
   }
@@ -689,12 +801,12 @@ PromptJSResolver.prototype.visitFungsiDeclaration = function(node) {
   this.currentScope = prevScope;
 };
 
-PromptJSResolver.prototype.visitKomponenDeclaration = function(node) {
+PromptJSResolver.prototype.visitKomponenDeclaration = function (node) {
   const prevScope = this.currentScope;
   this.currentScope = new Scope('komponen', prevScope);
 
   if (node.params) {
-    node.params.forEach(p => 
+    node.params.forEach((p) =>
       this.addSymbol(p.name, 'parameter', p, { isReactive: true, isWritable: true })
     );
   }
@@ -707,7 +819,7 @@ PromptJSResolver.prototype.visitKomponenDeclaration = function(node) {
   this.currentScope = prevScope;
 };
 
-PromptJSResolver.prototype.visitUlangiStatement = function(node) {
+PromptJSResolver.prototype.visitUlangiStatement = function (node) {
   // Resolve source di scope sekarang (Tim B sudah benar)
   accept(node.source, this);
 
@@ -723,14 +835,14 @@ PromptJSResolver.prototype.visitUlangiStatement = function(node) {
 };
 
 // ─── BuatStatement (Tim A: untuk self-reference "ketika") ──
-PromptJSResolver.prototype.visitBuatStatement = function(node) {
+PromptJSResolver.prototype.visitBuatStatement = function (node) {
   this.buatStack.push(node);
   this.genericVisit(node);
   this.buatStack.pop();
 };
 
 // ─── KetikaStatement (Tim A: self-reference) ──────────────
-PromptJSResolver.prototype.visitKetikaStatement = function(node) {
+PromptJSResolver.prototype.visitKetikaStatement = function (node) {
   // Tangani target kosong (self-reference)
   if (!node.target) {
     if (this.buatStack.length > 0) {
@@ -738,14 +850,18 @@ PromptJSResolver.prototype.visitKetikaStatement = function(node) {
       node.target = {
         type: 'SelfReference',
         referencedNode: parentNode,
-        loc: node.loc
+        loc: node.loc,
       };
     } else {
       // [H1 FIX] E5001 → E3005 (kode error resolver, bukan compiler)
-      this.errors.push(Err.createError('E3005', node.loc, {
-        message: 'Event listener "ketika" tanpa target hanya boleh di dalam blok "buat" atau "komponen".',
-        suggestion: 'Tambahkan target pada "ketika" atau letakkan di dalam blok "buat"/"komponen".'
-      }));
+      this.errors.push(
+        Err.createError('E3005', node.loc, {
+          message:
+            'Event listener "ketika" tanpa target hanya boleh di dalam blok "buat" atau "komponen".',
+          suggestion:
+            'Tambahkan target pada "ketika" atau letakkan di dalam blok "buat"/"komponen".',
+        })
+      );
     }
   } else {
     accept(node.target, this);
@@ -753,10 +869,12 @@ PromptJSResolver.prototype.visitKetikaStatement = function(node) {
 
   // Validasi event name jika tersedia
   if (node.event && typeof node.event === 'string' && !VALID_EVENT_NAMES.has(node.event)) {
-    this.warnings.push(Err.createError('E4009', node.loc, {
-      message: `Event name "${node.event}" mungkin tidak dikenali.`,
-      suggestion: 'Gunakan nama event yang valid: diklik, diketik, ditekan, dll.'
-    }));
+    this.warnings.push(
+      Err.createError('E4009', node.loc, {
+        message: `Event name "${node.event}" mungkin tidak dikenali.`,
+        suggestion: 'Gunakan nama event yang valid: diklik, diketik, ditekan, dll.',
+      })
+    );
   }
 
   // Watcher-like scope (Tim A)
@@ -768,22 +886,26 @@ PromptJSResolver.prototype.visitKetikaStatement = function(node) {
 };
 
 // ─── SaatStatement (Tim B, dilengkapi) ────────────────────
-PromptJSResolver.prototype.visitSaatStatement = function(node) {
+PromptJSResolver.prototype.visitSaatStatement = function (node) {
   // Resolve target reaktif
   const binding = this.currentScope.lookup(node.target);
   if (!binding) {
     // Emit E3001 untuk watcher target yang tidak dideklarasikan
     node.isUndefined = true;
-    this.errors.push(Err.createError('E3001', node.loc, {
-      message: `Identifier "${node.target}" tidak dideklarasikan.`,
-      suggestion: 'Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.'
-    }));
+    this.errors.push(
+      Err.createError('E3001', node.loc, {
+        message: `Identifier "${node.target}" tidak dideklarasikan.`,
+        suggestion: 'Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.',
+      })
+    );
   } else if (!binding.isReactive) {
     // [M4 FIX] W3001 → W3003 (kode baru khusus: watcher target non-reaktif)
-    this.warnings.push(Err.createError('W3003', node.loc, {
-      message: `Variabel "${node.target}" bukan data reaktif. Watcher mungkin tidak akan pernah terpicu.`,
-      suggestion: 'Gunakan "data" (var) reaktif sebagai target watcher.'
-    }));
+    this.warnings.push(
+      Err.createError('W3003', node.loc, {
+        message: `Variabel "${node.target}" bukan data reaktif. Watcher mungkin tidak akan pernah terpicu.`,
+        suggestion: 'Gunakan "data" (var) reaktif sebagai target watcher.',
+      })
+    );
   }
 
   const prevScope = this.currentScope;
@@ -793,14 +915,14 @@ PromptJSResolver.prototype.visitSaatStatement = function(node) {
 };
 
 // ─── Deklarasi Lokal (Tim B, pengecekan agar tidak duplikasi global) ──
-PromptJSResolver.prototype.visitDataDeclaration = function(node) {
+PromptJSResolver.prototype.visitDataDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     this.addSymbol(node.name, 'data', node, { isReactive: true, isWritable: true });
   }
   this.genericVisit(node);
 };
 
-PromptJSResolver.prototype.visitTetapDeclaration = function(node) {
+PromptJSResolver.prototype.visitTetapDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     // PromptJS patch: external data from front-matter
     const isExternal = node._isExternal || false;
@@ -809,22 +931,24 @@ PromptJSResolver.prototype.visitTetapDeclaration = function(node) {
   // [W4003] Warning: tetap tanpa nilai awal
   // PromptJS patch: suppress for external data (value loaded at build/runtime time)
   if (!node.init && !node._isExternal) {
-    this.warnings.push(Err.createError('W4003', node.loc, {
-      message: `Deklarasi "tetap" untuk "${node.name}" tanpa nilai awal.`,
-      suggestion: 'Berikan nilai awal untuk konstanta.'
-    }));
+    this.warnings.push(
+      Err.createError('W4003', node.loc, {
+        message: `Deklarasi "tetap" untuk "${node.name}" tanpa nilai awal.`,
+        suggestion: 'Berikan nilai awal untuk konstanta.',
+      })
+    );
   }
   this.genericVisit(node);
 };
 
-PromptJSResolver.prototype.visitUbahDeclaration = function(node) {
+PromptJSResolver.prototype.visitUbahDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     this.addSymbol(node.name, 'ubah', node, { isWritable: true });
   }
   this.genericVisit(node);
 };
 
-PromptJSResolver.prototype.visitTurunanDeclaration = function(node) {
+PromptJSResolver.prototype.visitTurunanDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     this.addSymbol(node.name, 'turunan', node, { isReactive: true, isWritable: false });
   }
@@ -833,23 +957,27 @@ PromptJSResolver.prototype.visitTurunanDeclaration = function(node) {
 
 // ─── Error Helper ──────────────────────────────────────────
 // ─── TextNode (PromptJS patch: pass-through) ───────────────────────────────
-PromptJSResolver.prototype.visitTextNode = function(node) {
+PromptJSResolver.prototype.visitTextNode = function (_node) {
   // TextNode has no identifiers to resolve — it's a pure text value.
   // Just traverse in case there are embedded expressions in the future.
 };
 
-PromptJSResolver.prototype.addError = function(code, message, loc, suggestion) {
-  this.errors.push(Err.createError(code, loc, {
-    message: message,
-    suggestion: suggestion || ''
-  }));
+PromptJSResolver.prototype.addError = function (code, message, loc, suggestion) {
+  this.errors.push(
+    Err.createError(code, loc, {
+      message: message,
+      suggestion: suggestion || '',
+    })
+  );
 };
 
-PromptJSResolver.prototype.addWarning = function(code, message, loc, suggestion) {
-  this.warnings.push(Err.createError(code, loc, {
-    message: message,
-    suggestion: suggestion || ''
-  }));
+PromptJSResolver.prototype.addWarning = function (code, message, loc, suggestion) {
+  this.warnings.push(
+    Err.createError(code, loc, {
+      message: message,
+      suggestion: suggestion || '',
+    })
+  );
 };
 
 module.exports = PromptJSResolver;

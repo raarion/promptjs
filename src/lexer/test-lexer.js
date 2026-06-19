@@ -69,7 +69,7 @@ console.log('\n--- Errors ---');
 if (result.errors.length === 0) {
   console.log('No errors!');
 } else {
-  result.errors.forEach(e => console.log(`  [${e.code}] Line ${e.line}: ${e.message}`));
+  result.errors.forEach((e) => console.log(`  [${e.code}] Line ${e.line}: ${e.message}`));
 }
 
 console.log('\n--- Tokens (first 60) ---');

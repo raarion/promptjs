@@ -22,10 +22,9 @@ const { PromptJSEngine } = require('../../engine/promptjs');
 const {
   findPjsFiles,
   printDiagnostics,
-  resolveOutputPath,
   ensureDirForFile,
   formatSize,
-  formatElapsed
+  formatElapsed,
 } = require('../utils');
 
 function runBuild(argv) {
@@ -41,7 +40,6 @@ function runBuild(argv) {
     process.exit(1);
   }
 
-  const useColor = true;
   const green = '\x1b[32m';
   const cyan = '\x1b[36m';
   const red = '\x1b[31m';
@@ -83,7 +81,7 @@ function runBuild(argv) {
       dev: false,
       loadDataFiles: true,
       dataDir: path.dirname(filePath),
-      source: path.basename(filePath)
+      source: path.basename(filePath),
     });
 
     const elapsed = formatElapsed(start);
@@ -96,7 +94,9 @@ function runBuild(argv) {
     }
 
     if (!result.success) {
-      process.stderr.write(`  ${red}✗${reset} ${path.relative(rootDir, filePath)} ${gray}(${elapsed})${reset}\n`);
+      process.stderr.write(
+        `  ${red}✗${reset} ${path.relative(rootDir, filePath)} ${gray}(${elapsed})${reset}\n`
+      );
       failed++;
       continue;
     }
@@ -140,8 +140,10 @@ function runBuild(argv) {
 
       for (const { filePath, js, htmlOutPath } of compiledResults) {
         try {
-          const dom = new JSDOM(`<!DOCTYPE html><html><body><div id="app"></div><script>${js}</script></body></html>`,
-            { runScripts: 'dangerously', resources: 'usable' });
+          const dom = new JSDOM(
+            `<!DOCTYPE html><html><body><div id="app"></div><script>${js}</script></body></html>`,
+            { runScripts: 'dangerously', resources: 'usable' }
+          );
           const rendered = dom.window.document.getElementById('app').innerHTML;
 
           // Write prerendered HTML
@@ -150,20 +152,28 @@ function runBuild(argv) {
           process.stderr.write(`  ${green}✓${reset} ${path.basename(htmlOutPath)} (prerendered)\n`);
           dom.window.close();
         } catch (e) {
-          process.stderr.write(`  ${red}✗${reset} ${path.basename(htmlOutPath)} prerender failed: ${e.message}\n`);
+          process.stderr.write(
+            `  ${red}✗${reset} ${path.basename(htmlOutPath)} prerender failed: ${e.message}\n`
+          );
         }
       }
-    } catch (e) {
-      process.stderr.write(`  ${red}jsdom not available${reset} — install with: npm install jsdom\n`);
+    } catch {
+      process.stderr.write(
+        `  ${red}jsdom not available${reset} — install with: npm install jsdom\n`
+      );
       process.stderr.write(`  ${gray}Falling back to client-side rendering${reset}\n`);
     }
   }
 
   // Summary
   const totalElapsed = formatElapsed(startTotal);
-  process.stderr.write(`\n${bold}${green}Build complete${reset} ${gray}(${totalElapsed})${reset}\n`);
+  process.stderr.write(
+    `\n${bold}${green}Build complete${reset} ${gray}(${totalElapsed})${reset}\n`
+  );
   process.stderr.write(`  ${compiled} compiled, ${failed} failed, ${staticFiles} assets\n`);
-  process.stderr.write(`  Output: ${cyan}${distDir}${reset} ${gray}(${formatSize(totalJsSize + staticFiles * 500)})${reset}\n\n`);
+  process.stderr.write(
+    `  Output: ${cyan}${distDir}${reset} ${gray}(${formatSize(totalJsSize + staticFiles * 500)})${reset}\n\n`
+  );
 
   process.exit(failed > 0 ? 1 : 0);
 }
@@ -171,7 +181,7 @@ function runBuild(argv) {
 /**
  * Build an HTML page wrapping the compiled JS.
  */
-function buildHtml(jsCode, filePath, options) {
+function buildHtml(jsCode, filePath, _options) {
   const title = path.basename(filePath, '.pjs');
   return `<!DOCTYPE html>
 <html lang="id">
@@ -213,12 +223,12 @@ function buildPrerenderedHtml(renderedContent, filePath) {
  */
 function minifyJs(code) {
   return code
-    .replace(/\/\/.*$/gm, '')           // Strip single-line comments
-    .replace(/\/\*[\s\S]*?\*\//g, '')   // Strip multi-line comments
-    .replace(/\n\s*\n/g, '\n')          // Collapse blank lines
-    .replace(/^\s+/gm, '')              // Strip leading whitespace
-    .replace(/\s+$/gm, '')              // Strip trailing whitespace
-    .replace(/\n+/g, '\n')              // Collapse multiple newlines
+    .replace(/\/\/.*$/gm, '') // Strip single-line comments
+    .replace(/\/\*[\s\S]*?\*\//g, '') // Strip multi-line comments
+    .replace(/\n\s*\n/g, '\n') // Collapse blank lines
+    .replace(/^\s+/gm, '') // Strip leading whitespace
+    .replace(/\s+$/gm, '') // Strip trailing whitespace
+    .replace(/\n+/g, '\n') // Collapse multiple newlines
     .trim();
 }
 
@@ -235,7 +245,7 @@ function copyStaticAssets(srcDir, distDir) {
     let entries;
     try {
       entries = fs.readdirSync(currentSrc, { withFileTypes: true });
-    } catch (e) {
+    } catch {
       return;
     }
 

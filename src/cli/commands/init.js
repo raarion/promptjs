@@ -69,7 +69,7 @@ pjs compile index.pjs
 │   └── produk.json   — Data source
 └── README.md
 \`\`\`
-`
+`,
   },
 
   counter: {
@@ -96,7 +96,7 @@ pjs serve
 
 The counter displays a value that can be incremented and decremented.
 Event handlers will be added as the language evolves.
-`
+`,
   },
 
   gallery: {
@@ -148,8 +148,8 @@ pjs serve
 \`\`\`
 
 The gallery renders products from \`data/produk.json\` using the Ulangi (loop) construct.
-`
-  }
+`,
+  },
 };
 
 function runInit(argv) {
@@ -157,7 +157,6 @@ function runInit(argv) {
   const template = argv.template || argv.t || 'basic';
   const force = argv.force || false;
 
-  const useColor = true;
   const green = '\x1b[32m';
   const cyan = '\x1b[36m';
   const bold = '\x1b[1m';
@@ -173,9 +172,7 @@ function runInit(argv) {
   }
 
   // Determine target directory
-  const targetDir = projectName
-    ? path.join(process.cwd(), projectName)
-    : process.cwd();
+  const targetDir = projectName ? path.join(process.cwd(), projectName) : process.cwd();
 
   // Check if directory already has files
   if (projectName && fs.existsSync(targetDir)) {
@@ -183,16 +180,14 @@ function runInit(argv) {
     if (entries.length > 0 && !force) {
       process.stderr.write(
         `Error: Directory '${projectName}' already exists and is not empty.\n` +
-        `  Use --force to overwrite.\n`
+          `  Use --force to overwrite.\n`
       );
       process.exit(1);
     }
   } else if (!projectName) {
-    const entries = fs.readdirSync(targetDir).filter(e => !e.startsWith('.'));
+    const entries = fs.readdirSync(targetDir).filter((e) => !e.startsWith('.'));
     if (entries.length > 0 && !force) {
-      process.stderr.write(
-        `Warning: Current directory is not empty. Use --force to overwrite.\n`
-      );
+      process.stderr.write(`Warning: Current directory is not empty. Use --force to overwrite.\n`);
     }
   }
 

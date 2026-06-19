@@ -34,7 +34,7 @@ function PromptJSEngine() {
     source: 'promptjs',
     dev: false,
     dataDir: null,
-    loadDataFiles: true
+    loadDataFiles: true,
   };
 }
 
@@ -99,7 +99,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
       code: 'E0000',
       severity: 'error',
       message: `Resolver error: ${resolveErr.message}`,
-      suggestion: ''
+      suggestion: '',
     });
     return this._makeResult(null, this.errors, []);
   }
@@ -113,14 +113,14 @@ PromptJSEngine.prototype.compile = function (source, options) {
   let analyzeResult;
   try {
     analyzeResult = analyzer.analyze(resolveResult.ast, {
-      usageWarnings: 'normal'
+      usageWarnings: 'normal',
     });
   } catch (analyzeErr) {
     this.errors.push({
       code: 'E0000',
       severity: 'error',
       message: `Analyzer error: ${analyzeErr.message}`,
-      suggestion: ''
+      suggestion: '',
     });
     return this._makeResult(null, this.errors, []);
   }
@@ -133,7 +133,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
   }
 
   // Stop if there are fatal errors (don't compile invalid code)
-  const hasFatalErrors = this.errors.some(e => e.severity === 'error');
+  const hasFatalErrors = this.errors.some((e) => e.severity === 'error');
   if (hasFatalErrors) {
     return this._makeResult(null, this.errors, this.warnings);
   }
@@ -148,7 +148,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
       code: 'E5001',
       severity: 'error',
       message: `Compiler error: ${compileErr.message}`,
-      suggestion: 'Sederhanakan kode atau gunakan tag HTML langsung'
+      suggestion: 'Sederhanakan kode atau gunakan tag HTML langsung',
     });
     return this._makeResult(null, this.errors, this.warnings);
   }
@@ -176,12 +176,18 @@ PromptJSEngine.prototype.compileFile = function (filePath, options) {
   try {
     source = fs.readFileSync(filePath, 'utf-8');
   } catch (readErr) {
-    return this._makeResult(null, [{
-      code: 'E0000',
-      severity: 'error',
-      message: `Cannot read file: ${filePath} — ${readErr.message}`,
-      suggestion: 'Pastikan file ada dan dapat dibaca'
-    }], []);
+    return this._makeResult(
+      null,
+      [
+        {
+          code: 'E0000',
+          severity: 'error',
+          message: `Cannot read file: ${filePath} — ${readErr.message}`,
+          suggestion: 'Pastikan file ada dan dapat dibaca',
+        },
+      ],
+      []
+    );
   }
 
   return this.compile(source, opts);
@@ -208,11 +214,13 @@ PromptJSEngine.prototype._loadDataFiles = function (frontMatterData) {
         } else if (ext === '.csv') {
           // Basic CSV parsing: split lines, split commas, first line = headers
           const lines = content.trim().split('\n');
-          const headers = lines[0].split(',').map(h => h.trim());
-          const rows = lines.slice(1).map(line => {
-            const vals = line.split(',').map(v => v.trim());
+          const headers = lines[0].split(',').map((h) => h.trim());
+          const rows = lines.slice(1).map((line) => {
+            const vals = line.split(',').map((v) => v.trim());
             const obj = {};
-            headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+            headers.forEach((h, i) => {
+              obj[h] = vals[i] || '';
+            });
             return obj;
           });
           result[name] = { type: 'inline', value: rows };
@@ -229,7 +237,7 @@ PromptJSEngine.prototype._loadDataFiles = function (frontMatterData) {
             code: 'W0000',
             severity: 'warning',
             message: `Cannot load data file: ${info.path} — ${loadErr.message}`,
-            suggestion: 'Pastikan file data ada di path yang benar'
+            suggestion: 'Pastikan file data ada di path yang benar',
           });
           result[name] = { type: 'inline', value: null };
         }
@@ -251,7 +259,7 @@ PromptJSEngine.prototype._makeResult = function (js, errors, warnings, ast) {
     errors: errors || [],
     warnings: warnings || [],
     ast: ast || null,
-    success: js !== null && (!errors || errors.every(e => e.severity !== 'error'))
+    success: js !== null && (!errors || errors.every((e) => e.severity !== 'error')),
   };
 };
 
@@ -268,5 +276,5 @@ module.exports = {
   compileFile(filePath, options) {
     const engine = new PromptJSEngine();
     return engine.compileFile(filePath, options);
-  }
+  },
 };

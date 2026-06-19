@@ -20,7 +20,7 @@ function findPjsFiles(dir, ignoreDirs) {
     let entries;
     try {
       entries = fs.readdirSync(current, { withFileTypes: true });
-    } catch (e) {
+    } catch {
       return; // Skip unreadable dirs
     }
 
@@ -76,8 +76,6 @@ function formatDiagnostic(diag, colorize) {
 function printDiagnostics(diagnostics, label, colorize) {
   if (!diagnostics || diagnostics.length === 0) return;
   const useColor = colorize !== false;
-  const gray = useColor ? '\x1b[90m' : '';
-  const reset = useColor ? '\x1b[0m' : '';
 
   for (const d of diagnostics) {
     process.stderr.write(formatDiagnostic(d, useColor) + '\n');
@@ -144,5 +142,5 @@ module.exports = {
   resolveOutputPath,
   ensureDirForFile,
   formatSize,
-  formatElapsed
+  formatElapsed,
 };

@@ -24,5 +24,5 @@ function escapeString(value) {
 module.exports = {
   emit,
   genVar,
-  escapeString
+  escapeString,
 };
