@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Statement Emitters
+ * PromptJS v0.2 — Statement Emitters
  * ============================================================================
  * Statement visitor emitters dipisah dari compiler utama.
  */

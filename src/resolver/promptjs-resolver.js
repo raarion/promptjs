@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — RESOLVER (Merged)
+ * PromptJS v0.2 — RESOLVER (Merged)
  * ============================================================================
  * Menggabungkan kelebihan Tim A & Tim B:
  *   - Model SemanticSymbol lengkap (B)

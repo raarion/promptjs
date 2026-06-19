@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — PARSER (Tahap 2)
+ * PromptJS v0.2 — PARSER (Tahap 2)
  * ============================================================================
  * Produces AST nodes compatible with PromptJS's ast-factory.js shapes.
  */

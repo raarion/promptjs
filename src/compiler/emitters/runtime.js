@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Runtime Helper Emitter
+ * PromptJS v0.2 — Runtime Helper Emitter
  * ============================================================================
  * Runtime helper emitter dipisah dari compiler utama.
  */

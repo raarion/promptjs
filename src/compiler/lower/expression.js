@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Expression Lowering
+ * PromptJS v0.2 — Expression Lowering
  * ============================================================================
  * Expression lowering dipisah dari compiler utama.
  *

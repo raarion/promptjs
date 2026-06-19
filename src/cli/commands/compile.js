@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — CLI `compile` Command
+ * PromptJS v0.2 — CLI `compile` Command
  * ============================================================================
  * Compiles .pjs file(s) to vanilla JS.
  *

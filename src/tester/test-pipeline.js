@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — End-to-end Pipeline Test
+ * PromptJS v0.2 — End-to-end Pipeline Test
  * ============================================================================
  * Tests: Lexer → Parser → (Resolver → Analyzer → Compiler from PromptJS)
  */

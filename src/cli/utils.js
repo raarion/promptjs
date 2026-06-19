@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — CLI Utility Functions
+ * PromptJS v0.2 — CLI Utility Functions
  * ============================================================================
  * Shared helpers for the CLI commands: formatting, file discovery, etc.
  */

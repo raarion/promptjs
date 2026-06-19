@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Unified Error Code Registry
+ * PromptJS v0.2 — Unified Error Code Registry
  * ============================================================================
  * Mendaftarkan semua kode error dan warning lintas tahap pipeline PromptJS.
  * Konvensi penomoran:

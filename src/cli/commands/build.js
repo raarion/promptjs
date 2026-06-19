@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — CLI `build` Command
+ * PromptJS v0.2 — CLI `build` Command
  * ============================================================================
  * Compiles .pjs files and produces a dist/ folder with:
  *   - Compiled JS files

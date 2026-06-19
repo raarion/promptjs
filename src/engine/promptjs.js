@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Engine (Pipeline Orchestrator)
+ * PromptJS v0.2 — Engine (Pipeline Orchestrator)
  * ============================================================================
  * Wires: Lexer → Parser → Resolver → Analyzer → Compiler
  * Adapted from promptjs/engine/promptjs.js but with PromptJS-specific pipeline.

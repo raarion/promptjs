@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * PromptJS v0.1 — CLI Main Entry Point
+ * PromptJS v0.2 — CLI Main Entry Point
  * ============================================================================
  * Command-line interface for the PromptJS template engine.
  *
@@ -37,9 +37,9 @@ const path = require('path');
 function getVersion() {
   try {
     const pkg = require(path.resolve(__dirname, '../../../package.json'));
-    return pkg.version || '0.1.0';
+    return pkg.version || '0.2.0';
   } catch (e) {
-    return '0.1.0';
+    return '0.2.0';
   }
 }
 

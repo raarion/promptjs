@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Compiler Codegen Utilities
+ * PromptJS v0.2 — Compiler Codegen Utilities
  * ============================================================================
  * Utilitas codegen dasar dipisah dari compiler utama.
  */

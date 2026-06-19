@@ -1,15 +1,18 @@
 {
   "name": "promptjs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "PromptJS — a mini-DSL template engine that compiles to vanilla JS with zero dependencies",
   "main": "src/engine/promptjs.js",
   "bin": {
     "pjs": "src/cli/index.js"
   },
   "scripts": {
-    "test": "node src/test-all.js && node src/test-extended.js",
+    "test": "node src/tester/test-all.js && node src/tester/test-extended.js",
     "pjs": "node src/cli/index.js"
   },
   "keywords": ["dsl", "template", "compiler", "indonesian", "promptjs"],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
 }

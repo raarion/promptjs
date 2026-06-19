@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — LEXER (Tahap 1)
+ * PromptJS v0.2 — LEXER (Tahap 1)
  * ============================================================================
  * Mengkonversi stream karakter mentah PromptJS (.pjs) menjadi stream token.
  *

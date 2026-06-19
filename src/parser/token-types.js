@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Konstanta Tipe Token
+ * PromptJS v0.2 — Konstanta Tipe Token
  * ============================================================================
  *
  * Daftar lengkap tipe token yang dikenali Parser PromptJS.

@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — CLI `serve` Command
+ * PromptJS v0.2 — CLI `serve` Command
  * ============================================================================
  * Dev server: serves compiled .pjs files as HTML pages with embedded JS,
  * with file watching and WebSocket live-reload on changes.

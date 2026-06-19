@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Extended Pipeline Tests
+ * PromptJS v0.2 — Extended Pipeline Tests
  * ============================================================================
  */
 'use strict';

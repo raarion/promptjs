@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Dependency Graph Utilities
+ * PromptJS v0.2 — Dependency Graph Utilities
  * ============================================================================
  * Membangun dependency graph static sederhana dari metadata resolver,
  * terutama untuk `turunan` dan watcher `saat`.

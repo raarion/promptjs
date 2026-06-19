@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — AST Node Factory
+ * PromptJS v0.2 — AST Node Factory
  * ============================================================================
  *
  * Fungsi pembuatan node AST yang menjamin:

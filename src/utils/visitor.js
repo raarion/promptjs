@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Visitor Pattern
+ * PromptJS v0.2 — Visitor Pattern
  * ============================================================================
  *
  * Implementasi visitor untuk traversing AST PromptJS.

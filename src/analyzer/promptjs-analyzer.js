@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — ANALYZER (Tahap 4)
+ * PromptJS v0.2 — ANALYZER (Tahap 4)
  * ============================================================================
  * Melakukan validasi semantik: tipe, reaktivitas, kontrol alur, dan lifecycle.
  *

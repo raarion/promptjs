@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — Lexer Test
+ * PromptJS v0.2 — Lexer Test
  * ============================================================================
 
 const Lexer = require('./promptjs-lexer');

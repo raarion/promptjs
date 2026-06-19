@@ -1,5 +1,5 @@
 /**
- * PromptJS v0.1 — CLI `init` Command
+ * PromptJS v0.2 — CLI `init` Command
  * ============================================================================
  * Scaffolds a new PromptJS project with sample files.
  *
