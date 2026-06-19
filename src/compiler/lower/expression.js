@@ -75,6 +75,12 @@ function lowerExpression(compiler, node) {
       }
       return `(${lowerExpression(compiler, node.operand)}${uop})`;
     }
+    case 'ConditionalExpression': {
+      const test = lowerExpression(compiler, node.test);
+      const cons = lowerExpression(compiler, node.consequent);
+      const alt = lowerExpression(compiler, node.alternate);
+      return `(${test} ? ${cons} : ${alt})`;
+    }
     case 'MemberExpression': {
       const prop = node.property.name;
       const objCode = lowerExpression(compiler, node.object);

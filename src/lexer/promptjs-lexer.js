@@ -69,6 +69,7 @@
     TK_AND: 'TK_AND', // &&
     TK_OR: 'TK_OR', // ||
     TK_NOT: 'TK_NOT', // !
+    TK_QUESTION: 'TK_QUESTION', // ? (ternary)
     TK_DOT: 'TK_DOT', // .
     TK_HASH: 'TK_HASH', // #
     TK_LPAREN: 'TK_LPAREN', // (
@@ -1057,6 +1058,10 @@
           continue;
         case ':':
           this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '?':
+          this.tokens.push(new Token(TT.TK_QUESTION, '?', lineNum, baseCol + pos + 1));
           pos++;
           continue;
         case ',':

@@ -106,6 +106,8 @@ function getChildKeys(nodeType) {
       return ['left', 'right'];
     case 'UnaryExpression':
       return ['operand'];
+    case 'ConditionalExpression':
+      return ['test', 'consequent', 'alternate'];
     case 'MemberExpression':
       return ['object', 'property'];
     case 'CallExpression':
@@ -226,6 +228,7 @@ const nodeTypes = [
   'Identifier',
   'BinaryExpression',
   'UnaryExpression',
+  'ConditionalExpression',
   'MemberExpression',
   'CallExpression',
   'ObjectLiteral',

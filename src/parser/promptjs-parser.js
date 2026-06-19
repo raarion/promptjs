@@ -568,7 +568,18 @@ PromptJSParser.prototype._parseReturnStatement = function () {
 
 // --- Expression parsing (Pratt-style, simplified) ---
 PromptJSParser.prototype._parseExpression = function () {
-  return this._parseBinaryExpression(0);
+  const test = this._parseBinaryExpression(0);
+
+  // Ternary conditional: test ? consequent : alternate (right-associative).
+  if (this._peek().type === TT.TK_QUESTION) {
+    const qTok = this._advance(); // consume "?"
+    const consequent = this._parseExpression();
+    this._expect(TT.TK_COLON, 'Expected ":" in ternary expression');
+    const alternate = this._parseExpression();
+    return AST.buatConditionalExpression(test, consequent, alternate, this._makeLoc(qTok));
+  }
+
+  return test;
 };
 
 PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {

@@ -67,3 +67,35 @@ describe('C4.1 — word operators', () => {
     expect(r.js).toContain('for');
   });
 });
+
+describe('C4.2 — ternary conditional', () => {
+  const wrapVal = (expr) => `tetap r = ${expr}\nBuat ruang:\n    "x"`;
+
+  it('compiles a simple ternary', () => {
+    const r = Engine.compile(wrapVal('1 lebih dari 0 ? "ya" : "tidak"'));
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('((1 > 0) ? "ya" : "tidak")');
+  });
+
+  it('is right-associative when nested', () => {
+    const r = Engine.compile(
+      wrapVal('2 sama dengan 1 ? "satu" : 2 sama dengan 2 ? "dua" : "lain"')
+    );
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('((2 === 1) ? "satu" : ((2 === 2) ? "dua" : "lain"))');
+  });
+
+  it('resolves reactive data inside the ternary (appends .value)', () => {
+    const r = Engine.compile(
+      'data x = 5\ntetap msg = x lebih dari 0 ? "pos" : "neg"\nBuat ruang:\n    "x"'
+    );
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('((x.value > 0) ? "pos" : "neg")');
+  });
+
+  it('works with symbol conditions and parentheses', () => {
+    const r = Engine.compile(wrapVal('(3 > 1) ? 10 : 20'));
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('((3 > 1) ? 10 : 20)');
+  });
+});

@@ -532,6 +532,16 @@ function buatUnaryExpression(operator, operand, loc, prefix) {
   };
 }
 
+function buatConditionalExpression(test, consequent, alternate, loc) {
+  return {
+    type: 'ConditionalExpression',
+    loc: ensureLoc(loc),
+    test: test,
+    consequent: consequent,
+    alternate: alternate,
+  };
+}
+
 function buatMemberExpression(object, property, loc) {
   return {
     type: 'MemberExpression',
@@ -693,6 +703,7 @@ module.exports = {
   buatIdentifier: buatIdentifier,
   buatBinaryExpression: buatBinaryExpression,
   buatUnaryExpression: buatUnaryExpression,
+  buatConditionalExpression: buatConditionalExpression,
   buatMemberExpression: buatMemberExpression,
   buatCallExpression: buatCallExpression,
   buatObjectLiteral: buatObjectLiteral,
