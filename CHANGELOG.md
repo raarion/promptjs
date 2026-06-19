@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This entry tracks the **Level 1 maturation effort** (merge of roadmap phases 0–2).
 See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full ordered plan.
 
+### Added — Wave C4 (Expressions)
+
+- **Word operators**: `dan`/`atau` (→ `&&`/`||`), word comparators (`lebih dari`,
+  `kurang dari`, `sama dengan`, `tidak sama dengan`, `paling sedikit`,
+  `paling banyak`) and word arithmetic (`tambah`, `kurang`, `kali`, `bagi`,
+  `mod`, `pangkat`). Symbol operators keep working; the counted-loop suffix
+  `kali`/`times` is still parsed correctly (e.g. `Ulangi 2 kali 3 kali:`).
+- **Ternary conditional** `test ? consequent : alternate` (right-associative);
+  the resolver traverses all three branches so reactive `.value` is appended.
+- **Object literals** `{ ... }` as expression values: identifier **and**
+  string/number keys, values may be any C4 expression and reactive data.
+- 16 new tests in `tests/c4-expressions.test.js` (52 total).
+
 ### Changed — Pre-C4 refining pass
 
 - Centralized CLI color handling in a single `makeColors()` helper

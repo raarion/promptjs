@@ -99,3 +99,37 @@ describe('C4.2 — ternary conditional', () => {
     expect(r.js).toContain('((3 > 1) ? 10 : 20)');
   });
 });
+
+describe('C4.3 — object literals', () => {
+  const wrapVal = (expr) => `tetap o = ${expr}\nBuat ruang:\n    "x"`;
+
+  it('compiles identifier-keyed objects', () => {
+    const r = Engine.compile(wrapVal('{nama: "Budi", umur: 30}'));
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('const o = { "nama": "Budi", "umur": 30 }');
+  });
+
+  it('supports empty, nested and trailing-comma objects', () => {
+    expect(Engine.compile(wrapVal('{}')).js).toContain('const o = {}');
+    expect(Engine.compile(wrapVal('{a: 1, b: {c: 2}}')).js).toContain(
+      'const o = { "a": 1, "b": { "c": 2 } }'
+    );
+    expect(Engine.compile(wrapVal('{a: 1, b: 2,}')).js).toContain('const o = { "a": 1, "b": 2 }');
+  });
+
+  it('supports string keys (the original E2001 gap)', () => {
+    const r = Engine.compile(wrapVal('{"a-b": 1, normal: 2}'));
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('const o = { "a-b": 1, "normal": 2 }');
+  });
+
+  it('allows C4 expressions (word ops, ternary) and reactive data as values', () => {
+    const r = Engine.compile(
+      'data n = 5\ntetap o = {total: 3 kali 2, label: n lebih dari 0 ? "p" : "q", next: n tambah 1}\nBuat ruang:\n    "x"'
+    );
+    expect(r.success).toBe(true);
+    expect(r.js).toContain('"total": (3 * 2)');
+    expect(r.js).toContain('"label": ((n.value > 0) ? "p" : "q")');
+    expect(r.js).toContain('"next": (n.value + 1)');
+  });
+});

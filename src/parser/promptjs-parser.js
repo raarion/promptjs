@@ -738,10 +738,29 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     this._advance();
     const props = [];
     while (this._peek().type !== TT.TK_RBRACE && !this._atEnd()) {
-      const keyTok = this._expect(TT.TK_IDENT, 'Expected property key');
+      // Keys may be identifiers, string literals ("a-b") or numbers.
+      const keyPeek = this._peek();
+      let keyTok;
+      if (
+        keyPeek.type === TT.TK_IDENT ||
+        keyPeek.type === TT.TK_STRING ||
+        keyPeek.type === TT.TK_NUMBER
+      ) {
+        keyTok = this._advance();
+      } else {
+        this.errors.push({
+          code: 'E2001',
+          severity: 'error',
+          message: `Expected property key (identifier or string), got ${keyPeek.type}`,
+          line: keyPeek.line,
+          column: keyPeek.col,
+          suggestion: 'Gunakan nama properti atau string sebagai kunci objek.',
+        });
+        break;
+      }
       if (!this._match(TT.TK_COLON) && !this._match(TT.TK_ASSIGN)) break;
       const val = this._parseExpression();
-      if (keyTok) props.push(AST.buatPropertyNode(keyTok.value, val, null, false));
+      if (keyTok) props.push(AST.buatPropertyNode(String(keyTok.value), val, null, false));
       if (!this._match(TT.TK_COMMA)) break;
     }
     this._expect(TT.TK_RBRACE, 'Expected "}"');

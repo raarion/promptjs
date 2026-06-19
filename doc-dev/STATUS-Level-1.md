@@ -2,7 +2,7 @@
 
 > Snapshot cepat: apa yang **sudah** dan **belum** dikerjakan di Level 1.
 > Detail lengkap & urutan: `ROADMAP-Level-1.md`. Keputusan desain: `ADR-001-level1-decisions.md`.
-> Per snapshot ini: **36 tes lulus**, lint 0 error, smoke-compile OK.
+> Per snapshot ini: **52 tes lulus**, lint 0 error/0 warning, smoke-compile OK.
 
 ## ✅ Sudah selesai
 
@@ -22,14 +22,12 @@
 - [x] **C1** Loop: counted loop `Ulangi N kali` / `Loop N times`; alias separator `in`/`dari`/`from`
 - [x] **C2** Halaman bernama: `Halaman Beranda:` → `id="beranda"` (anonim tetap jalan)
 - [x] **C3** Sistem Komponen (rebuild): `Komponen Nama(props):` + `Buat Nama(k: v)`; factory props-object; bilingual; alias `Definisikan`; error `E3004`
+- [x] **C4** Ekspresi (3 sub-fitur — **selesai**):
+  - [x] Operator kata `dan`/`atau` + pembanding kata (`lebih dari`, `kurang dari`, `sama dengan`, `tidak sama dengan`, `paling sedikit`, `paling banyak`) + aritmetika kata (`tambah`/`kurang`/`kali`/`bagi`/`mod`/`pangkat`). Simbol tetap jalan; sufiks counted-loop `kali`/`times` tetap aman.
+  - [x] Ternary `? :` (TK_QUESTION, right-assoc, resolver menelusuri reaktif `.value`)
+  - [x] Literal objek `{...}` — key identifier **& string/number**; nilai boleh ekspresi C4 + data reaktif
 
 ## ⏳ Belum dikerjakan
-
-### Wave C — sisa
-- [ ] **C4** Ekspresi (3 sub-fitur tersisa):
-  - [ ] Operator kata `dan`/`atau` (+ pembanding kata) — parser belum kenal (`&&`/`||` simbol sudah jalan)
-  - [ ] Ternary `? :` — `?` belum ditokenisasi (E1005)
-  - [ ] Literal objek `{...}` sebagai nilai ekspresi (E2001) — *catatan: else-if & list literal sudah jalan*
 
 ### Wave D — Pengujian komprehensif
 - [ ] Snapshot/golden test codegen per statement
@@ -47,4 +45,5 @@
 - [ ] JSDoc + `checkJs` di titik panas; integrasi ke lint CI
 
 ## 🐞 Known issues (terlacak)
-- Operator kata (`kali`/`tambah`/`dan`/`sama dengan`…) ada di lowering compiler tapi belum dikenali parser (mis. `3 kali 2` → E3001). Masuk lingkup C4.
+- ~~Operator kata belum dikenali parser (`3 kali 2` → E3001)~~ — **resolved di C4**:
+  operator kata kini ditokenisasi langsung ke token operator yang sesuai.
