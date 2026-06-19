@@ -49,12 +49,12 @@ PromptJSCompiler.prototype.compile = function (ast) {
   // Start visit — emit return values dari top-level expressions
   // (contoh: JalankanExpression mengembalikan string kode, bukan emit langsung)
   if (ast.body && ast.body.length > 0) {
-    for (var i = 0; i < ast.body.length; i++) {
-      var node = ast.body[i];
+    for (let i = 0; i < ast.body.length; i++) {
+      const node = ast.body[i];
       if (node && node.loc && node.loc.start) {
         this.emit(`// @source ${node.loc.start.line}:${node.loc.start.column} ${node.type}`);
       }
-      var result = accept(node, this);
+      const result = accept(node, this);
       // Jika visitor mengembalikan string kode (expression-style), emit sebagai statement
       if (typeof result === 'string' && result.length > 0) {
         this.emit(result + ';');

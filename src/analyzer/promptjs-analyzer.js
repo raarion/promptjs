@@ -107,14 +107,14 @@ PromptJSAnalyzer.prototype.checkTypeHint = function (typeHint, valueNode) {
   else if (valueNode.type === 'ArrayLiteral') actualType = 'array';
   else if (valueNode.type === 'CallExpression') {
     // Try to infer from callee name
-    var callee = valueNode.callee;
+    const callee = valueNode.callee;
     if (callee && callee.type === 'Identifier') {
-      var name = callee.name;
+      const name = callee.name;
       if (name && name.indexOf('ambil') === 0) actualType = 'teks';
       // Otherwise unknown — don't emit warning (too many false positives)
     }
   } else if (valueNode.type === 'BinaryExpression') {
-    var op = valueNode.operator;
+    const op = valueNode.operator;
     if (op === '+' || op === '-' || op === '*' || op === '/' || op === '%') {
       actualType = 'angka';
     } else {
@@ -129,7 +129,7 @@ PromptJSAnalyzer.prototype.checkTypeHint = function (typeHint, valueNode) {
     }
   } else if (valueNode.type === 'MemberExpression') {
     // .panjang/.length -> angka, otherwise unknown
-    var prop = valueNode.property;
+    const prop = valueNode.property;
     if (prop && prop.type === 'Identifier' && (prop.name === 'panjang' || prop.name === 'length')) {
       actualType = 'angka';
     }
@@ -158,8 +158,8 @@ PromptJSAnalyzer.prototype.lookupSymbol = function (name) {
   if (!this._currentAst || !this._currentAst.semantic || !this._currentAst.semantic.symbols) {
     return null;
   }
-  var symbols = this._currentAst.semantic.symbols;
-  for (var i = 0; i < symbols.length; i++) {
+  const symbols = this._currentAst.semantic.symbols;
+  for (let i = 0; i < symbols.length; i++) {
     if (symbols[i].name === name) {
       return symbols[i];
     }
@@ -173,9 +173,9 @@ PromptJSAnalyzer.prototype.lookupSymbol = function (name) {
  */
 PromptJSAnalyzer.prototype.checkWriteToTurunan = function (node) {
   if (!node.target) return;
-  var targetName = typeof node.target === 'string' ? node.target : node.target.name || null;
+  const targetName = typeof node.target === 'string' ? node.target : node.target.name || null;
   if (!targetName) return;
-  var symbol = node.targetSymbol || this.lookupSymbol(targetName);
+  const symbol = node.targetSymbol || this.lookupSymbol(targetName);
   if (symbol && symbol.kind === 'turunan') {
     this.addError(
       'E4004',
@@ -215,14 +215,14 @@ PromptJSAnalyzer.prototype.checkSideEffectInTurunan = function (node) {
 PromptJSAnalyzer.prototype.buildSemanticGraph = function () {
   if (!this._currentAst || !this._currentAst.semantic) return;
 
-  var graph = DependencyGraph.buildDependencyGraph(this._currentAst);
+  const graph = DependencyGraph.buildDependencyGraph(this._currentAst);
   this._currentAst.semantic.dependencies = graph.dependencies;
   this._currentAst.semantic.dependencyCycles = graph.cycles;
 
   if (graph.cycles && graph.cycles.length > 0) {
-    for (var i = 0; i < graph.cycles.length; i++) {
-      var cycle = graph.cycles[i];
-      var names = this._symbolNamesFromIds(cycle.symbolIds || []);
+    for (let i = 0; i < graph.cycles.length; i++) {
+      const cycle = graph.cycles[i];
+      const names = this._symbolNamesFromIds(cycle.symbolIds || []);
       this.addError(
         'E4201',
         'Dependency cycle pada data turunan: ' + names.join(' -> '),
@@ -236,10 +236,10 @@ PromptJSAnalyzer.prototype.buildSemanticGraph = function () {
 };
 
 PromptJSAnalyzer.prototype._symbolNamesFromIds = function (ids) {
-  var symbols =
+  const symbols =
     this._currentAst && this._currentAst.semantic ? this._currentAst.semantic.symbols || [] : [];
   return ids.map(function (id) {
-    for (var i = 0; i < symbols.length; i++) {
+    for (let i = 0; i < symbols.length; i++) {
       if (symbols[i].id === id) return symbols[i].name;
     }
     return id;
@@ -254,13 +254,13 @@ PromptJSAnalyzer.prototype._symbolNamesFromIds = function (ids) {
 PromptJSAnalyzer.prototype.emitUsageWarnings = function () {
   if (!this._currentAst || !this._currentAst.semantic || !this._currentAst.semantic.symbols) return;
 
-  var usageMode = this.options.usageWarnings || 'normal';
+  const usageMode = this.options.usageWarnings || 'normal';
   if (usageMode === false || usageMode === 'off') return;
-  var strictUsage = usageMode === 'strict';
+  const strictUsage = usageMode === 'strict';
 
-  var symbols = this._currentAst.semantic.symbols;
-  for (var i = 0; i < symbols.length; i++) {
-    var sym = symbols[i];
+  const symbols = this._currentAst.semantic.symbols;
+  for (let i = 0; i < symbols.length; i++) {
+    const sym = symbols[i];
     if (!sym || !sym.name || sym.kind === 'parameter') continue;
 
     // Mode normal sengaja tidak memperingatkan fungsi/komponen top-level agar
@@ -270,10 +270,10 @@ PromptJSAnalyzer.prototype.emitUsageWarnings = function () {
     // Hindari warning turunan jika sudah ada error fatal pada declaration node.
     if (sym.declarationNode && sym.declarationNode.type === 'ErrorNode') continue;
 
-    var loc = sym.declarationNode && sym.declarationNode.loc ? sym.declarationNode.loc : null;
-    var name = sym.name;
-    var readCount = sym.readCount || 0;
-    var writeCount = sym.writeCount || 0;
+    const loc = sym.declarationNode && sym.declarationNode.loc ? sym.declarationNode.loc : null;
+    const name = sym.name;
+    const readCount = sym.readCount || 0;
+    const writeCount = sym.writeCount || 0;
 
     // Deklarasi yang sama sekali tidak pernah dibaca atau ditulis setelah deklarasi.
     if (readCount === 0 && writeCount === 0) {
@@ -467,7 +467,7 @@ PromptJSAnalyzer.prototype.visitPerbaruiStatement = function (node) {
 // ─── GunakanStatement (H4 FIX) ─────────────────────────────
 PromptJSAnalyzer.prototype.visitGunakanStatement = function (node) {
   if (node.componentName) {
-    var symbol = this.lookupSymbol(node.componentName);
+    const symbol = this.lookupSymbol(node.componentName);
     if (symbol && symbol.kind !== 'komponen') {
       this.addError(
         'E4010',
@@ -619,7 +619,7 @@ PromptJSAnalyzer.prototype.visitBuatStatement = function (node) {
  * Validasi Watcher (Section 7.6)
  */
 PromptJSAnalyzer.prototype.visitSaatStatement = function (node) {
-  var symbol = node.targetSymbol || this.lookupSymbol(node.target);
+  const symbol = node.targetSymbol || this.lookupSymbol(node.target);
   if (symbol && symbol.isReactive === false) {
     this.addWarning(
       'W4104',

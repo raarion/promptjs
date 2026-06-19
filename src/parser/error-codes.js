@@ -16,131 +16,131 @@
 // LEXER (E1xxx / W1xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E1001 = 'E1001'; // Indentasi ganjil (bukan kelipatan 2)
-var E1002 = 'E1002'; // Karakter TAB ditemukan di indentasi
-var E1003 = 'E1003'; // DEDENT tidak cocok dengan level manapun
-var E1004 = 'E1004'; // String tidak ditutup
-var E1005 = 'E1005'; // Karakter tidak dikenali
-var E1006 = 'E1006'; // Komentar blok [[ tidak ditutup ]]
-var E1007 = 'E1007'; // Blok DocString [[ tidak ditutup ]]
-var E1008 = 'E1008'; // Angka literal tidak valid
-var E1009 = 'E1009'; // Selector CSS tidak valid
+const E1001 = 'E1001'; // Indentasi ganjil (bukan kelipatan 2)
+const E1002 = 'E1002'; // Karakter TAB ditemukan di indentasi
+const E1003 = 'E1003'; // DEDENT tidak cocok dengan level manapun
+const E1004 = 'E1004'; // String tidak ditutup
+const E1005 = 'E1005'; // Karakter tidak dikenali
+const E1006 = 'E1006'; // Komentar blok [[ tidak ditutup ]]
+const E1007 = 'E1007'; // Blok DocString [[ tidak ditutup ]]
+const E1008 = 'E1008'; // Angka literal tidak valid
+const E1009 = 'E1009'; // Selector CSS tidak valid
 
-var W1001 = 'W1001'; // DocString tidak menempel ke node manapun
+const W1001 = 'W1001'; // DocString tidak menempel ke node manapun
 
 // ═══════════════════════════════════════════════════════════════
 // PARSER (E2xxx / W2xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E2001 = 'E2001'; // Token tidak sesuai yang diharapkan
-var E2002 = 'E2002'; // Selector tidak valid
-var E2003 = 'E2003'; // Nama komponen harus diawali huruf kapital
-var E2004 = 'E2004'; // Blok aksi diharapkan setelah ':'
-var E2005 = 'E2005'; // Kurung tutup ')' tidak ditemukan
-var E2006 = 'E2006'; // Kurung kurawal tutup '}' tidak ditemukan
-var E2007 = 'E2007'; // Kurung siku tutup ']' tidak ditemukan
-var E2008 = 'E2008'; // Nilai awal diharapkan setelah '='
-var E2009 = 'E2009'; // Kondisi tidak valid
-var E2010 = 'E2010'; // Keyword tidak dikenali di posisi statement
-var E2011 = 'E2011'; // Operator tidak didukung
-var E2012 = 'E2012'; // Argumen fungsi tidak valid
-var E2013 = 'E2013'; // Parameter komponen/fungsi tidak valid
-var E2014 = 'E2014'; // Properti objek literal tidak valid
-var E2015 = 'E2015'; // Selector CSS tidak valid
-var E2016 = 'E2016'; // Token '->' diharapkan
-var E2017 = 'E2017'; // Target event tidak valid
-var E2018 = 'E2018'; // Nama event tidak valid
-var E2019 = 'E2019'; // 'jika tidak' hanya valid di akhir rantai jika/kalau
-var E2020 = 'E2020'; // Indentasi tidak konsisten
-var E2021 = 'E2021'; // Sumber data ulangi tidak valid
-var E2022 = 'E2022'; // Target tampilkan tidak valid
-var E2023 = 'E2023'; // Token tidak terduga di akhir file
-var E2024 = 'E2024'; // ambil tanpa konteks yang jelas
-var E2025 = 'E2025'; // Daftar props gunakan tidak valid
-var E2026 = 'E2026'; // Ekspresi kosong tidak valid
-var E2027 = 'E2027'; // Properti perbarui tidak dikenali
-var E2028 = 'E2028'; // Body komponen/fungsi kosong
+const E2001 = 'E2001'; // Token tidak sesuai yang diharapkan
+const E2002 = 'E2002'; // Selector tidak valid
+const E2003 = 'E2003'; // Nama komponen harus diawali huruf kapital
+const E2004 = 'E2004'; // Blok aksi diharapkan setelah ':'
+const E2005 = 'E2005'; // Kurung tutup ')' tidak ditemukan
+const E2006 = 'E2006'; // Kurung kurawal tutup '}' tidak ditemukan
+const E2007 = 'E2007'; // Kurung siku tutup ']' tidak ditemukan
+const E2008 = 'E2008'; // Nilai awal diharapkan setelah '='
+const E2009 = 'E2009'; // Kondisi tidak valid
+const E2010 = 'E2010'; // Keyword tidak dikenali di posisi statement
+const E2011 = 'E2011'; // Operator tidak didukung
+const E2012 = 'E2012'; // Argumen fungsi tidak valid
+const E2013 = 'E2013'; // Parameter komponen/fungsi tidak valid
+const E2014 = 'E2014'; // Properti objek literal tidak valid
+const E2015 = 'E2015'; // Selector CSS tidak valid
+const E2016 = 'E2016'; // Token '->' diharapkan
+const E2017 = 'E2017'; // Target event tidak valid
+const E2018 = 'E2018'; // Nama event tidak valid
+const E2019 = 'E2019'; // 'jika tidak' hanya valid di akhir rantai jika/kalau
+const E2020 = 'E2020'; // Indentasi tidak konsisten
+const E2021 = 'E2021'; // Sumber data ulangi tidak valid
+const E2022 = 'E2022'; // Target tampilkan tidak valid
+const E2023 = 'E2023'; // Token tidak terduga di akhir file
+const E2024 = 'E2024'; // ambil tanpa konteks yang jelas
+const E2025 = 'E2025'; // Daftar props gunakan tidak valid
+const E2026 = 'E2026'; // Ekspresi kosong tidak valid
+const E2027 = 'E2027'; // Properti perbarui tidak dikenali
+const E2028 = 'E2028'; // Body komponen/fungsi kosong
 
-var W2001 = 'W2001'; // DocString tidak menempel ke node manapun
-var W2002 = 'W2002'; // Blok kosong terdeteksi
-var W2003 = 'W2003'; // Rantai jika tanpa cabang jika tidak
-var W2004 = 'W2004'; // Jumlah argumen mungkin tidak sesuai
+const W2001 = 'W2001'; // DocString tidak menempel ke node manapun
+const W2002 = 'W2002'; // Blok kosong terdeteksi
+const W2003 = 'W2003'; // Rantai jika tanpa cabang jika tidak
+const W2004 = 'W2004'; // Jumlah argumen mungkin tidak sesuai
 
 // ═══════════════════════════════════════════════════════════════
 // RESOLVER (E3xxx / W3xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E3001 = 'E3001'; // Identifier tidak dideklarasikan (undefined)
-var E3002 = 'E3002'; // Simbol sudah dideklarasikan dalam scope yang sama (duplikat)
-var E3003 = 'E3003'; // Menulis ke variabel tetap (const)
-var E3004 = 'E3004'; // Menggunakan komponen sebelum dideklarasi
-var E3005 = 'E3005'; // "ketika" tanpa target di luar blok buat/komponen
+const E3001 = 'E3001'; // Identifier tidak dideklarasikan (undefined)
+const E3002 = 'E3002'; // Simbol sudah dideklarasikan dalam scope yang sama (duplikat)
+const E3003 = 'E3003'; // Menulis ke variabel tetap (const)
+const E3004 = 'E3004'; // Menggunakan komponen sebelum dideklarasi
+const E3005 = 'E3005'; // "ketika" tanpa target di luar blok buat/komponen
 
-var W3001 = 'W3001'; // Variabel dideklarasikan tapi tidak pernah digunakan
-var W3002 = 'W3002'; // Variabel shadowing variabel di scope luar
-var W3003 = 'W3003'; // Watcher target bukan data reaktif
+const W3001 = 'W3001'; // Variabel dideklarasikan tapi tidak pernah digunakan
+const W3002 = 'W3002'; // Variabel shadowing variabel di scope luar
+const W3003 = 'W3003'; // Watcher target bukan data reaktif
 
 // ═══════════════════════════════════════════════════════════════
 // ANALYZER (E4xxx / W4xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E4001 = 'E4001'; // Lifecycle hook di luar komponen
-var E4002 = 'E4002'; // Aksi side-effect di dalam ekspresi turunan
-var E4003 = 'E4003'; // Tipe data tidak kompatibel
-var E4004 = 'E4004'; // Menulis ke data turunan (read-only)
-var E4005 = 'E4005'; // Parameter duplikat dalam komponen
-var E4006 = 'E4006'; // Parameter tanpa default setelah parameter dengan default
-var E4007 = 'E4007'; // Mode tampilkan tidak valid
-var E4008 = 'E4008'; // Properti perbarui tidak didukung
-var E4009 = 'E4009'; // Event name tidak dikenali
-var E4010 = 'E4010'; // Penggunaan gunakan untuk non-komponen
-var E4011 = 'E4011'; // berhenti di luar konteks loop/handler
-var E4012 = 'E4012'; // lewati di luar konteks loop
-var E4013 = 'E4013'; // kembalikan di luar fungsi/komponen
+const E4001 = 'E4001'; // Lifecycle hook di luar komponen
+const E4002 = 'E4002'; // Aksi side-effect di dalam ekspresi turunan
+const E4003 = 'E4003'; // Tipe data tidak kompatibel
+const E4004 = 'E4004'; // Menulis ke data turunan (read-only)
+const E4005 = 'E4005'; // Parameter duplikat dalam komponen
+const E4006 = 'E4006'; // Parameter tanpa default setelah parameter dengan default
+const E4007 = 'E4007'; // Mode tampilkan tidak valid
+const E4008 = 'E4008'; // Properti perbarui tidak didukung
+const E4009 = 'E4009'; // Event name tidak dikenali
+const E4010 = 'E4010'; // Penggunaan gunakan untuk non-komponen
+const E4011 = 'E4011'; // berhenti di luar konteks loop/handler
+const E4012 = 'E4012'; // lewati di luar konteks loop
+const E4013 = 'E4013'; // kembalikan di luar fungsi/komponen
 
-var W4001 = 'W4001'; // Type hint tidak cocok dengan nilai
-var W4002 = 'W4002'; // Lifecycle hook di dalam loop/handler
-var W4003 = 'W4003'; // Deklarasi tetap tanpa nilai awal
-var W4004 = 'W4004'; // Potensi bug: perbandingan assignment
-var W4101 = 'W4101'; // Simbol dideklarasikan tetapi tidak pernah digunakan
-var W4102 = 'W4102'; // Simbol ditulis tetapi tidak pernah dibaca
-var E4101 = 'E4101'; // Target tidak dapat ditulis berdasarkan metadata isWritable
-var W4103 = 'W4103'; // Data reaktif dimutasi tetapi tidak pernah dibaca
-var W4104 = 'W4104'; // Watcher target bukan data reaktif menurut analyzer
-var E4201 = 'E4201'; // Dependency cycle pada data turunan
+const W4001 = 'W4001'; // Type hint tidak cocok dengan nilai
+const W4002 = 'W4002'; // Lifecycle hook di dalam loop/handler
+const W4003 = 'W4003'; // Deklarasi tetap tanpa nilai awal
+const W4004 = 'W4004'; // Potensi bug: perbandingan assignment
+const W4101 = 'W4101'; // Simbol dideklarasikan tetapi tidak pernah digunakan
+const W4102 = 'W4102'; // Simbol ditulis tetapi tidak pernah dibaca
+const E4101 = 'E4101'; // Target tidak dapat ditulis berdasarkan metadata isWritable
+const W4103 = 'W4103'; // Data reaktif dimutasi tetapi tidak pernah dibaca
+const W4104 = 'W4104'; // Watcher target bukan data reaktif menurut analyzer
+const E4201 = 'E4201'; // Dependency cycle pada data turunan
 
 // ═══════════════════════════════════════════════════════════════
 // COMPILER (E5xxx / W5xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E5001 = 'E5001'; // Node AST tidak didukung oleh compiler
-var E5002 = 'E5002'; // Gagal menurunkan ekspresi ke JavaScript
-var E5003 = 'E5003'; // Selector tidak dapat dikompilasi
+const E5001 = 'E5001'; // Node AST tidak didukung oleh compiler
+const E5002 = 'E5002'; // Gagal menurunkan ekspresi ke JavaScript
+const E5003 = 'E5003'; // Selector tidak dapat dikompilasi
 
-var W5001 = 'W5001'; // Kode yang dihasilkan mungkin tidak berjalan sesuai harapan
-var W5002 = 'W5002'; // Fitur eksperimental digunakan
+const W5001 = 'W5001'; // Kode yang dihasilkan mungkin tidak berjalan sesuai harapan
+const W5002 = 'W5002'; // Fitur eksperimental digunakan
 
 // ═══════════════════════════════════════════════════════════════
 // RUNTIME / ENGINE (E6xxx / W6xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E6001 = 'E6001'; // berhenti di luar konteks loop/handler
-var E6002 = 'E6002'; // lewati di luar konteks loop
-var E6003 = 'E6003'; // kembalikan di luar fungsi/komponen
-var E6004 = 'E6004'; // Pipeline gagal (system error)
+const E6001 = 'E6001'; // berhenti di luar konteks loop/handler
+const E6002 = 'E6002'; // lewati di luar konteks loop
+const E6003 = 'E6003'; // kembalikan di luar fungsi/komponen
+const E6004 = 'E6004'; // Pipeline gagal (system error)
 
 // ═══════════════════════════════════════════════════════════════
 // SYSTEM (E0xxx)
 // ═══════════════════════════════════════════════════════════════
 
-var E0000 = 'E0000'; // System error (unhandled exception)
-var W0000 = 'W0000'; // System warning (fallback untuk warning tanpa kode spesifik)
+const E0000 = 'E0000'; // System error (unhandled exception)
+const W0000 = 'W0000'; // System warning (fallback untuk warning tanpa kode spesifik)
 
 // ═══════════════════════════════════════════════════════════════
 // ERROR MESSAGES (unified registry)
 // ═══════════════════════════════════════════════════════════════
 
-var ERROR_MESSAGES = {};
+const ERROR_MESSAGES = {};
 
 // -- Lexer --
 ERROR_MESSAGES[E1001] =
@@ -232,7 +232,7 @@ ERROR_MESSAGES[W0000] = 'Peringatan sistem';
 // SUGGESTIONS (unified registry)
 // ═══════════════════════════════════════════════════════════════
 
-var ERROR_SUGGESTIONS = {};
+const ERROR_SUGGESTIONS = {};
 
 // -- Lexer --
 ERROR_SUGGESTIONS[E1001] = 'Gunakan 2, 4, 6, atau 8 spasi (kelipatan 2)';
@@ -346,7 +346,7 @@ function getSeverity(code) {
  */
 function getStage(code) {
   if (!code || code.length < 2) return 'System';
-  var stageNum = code.charAt(1);
+  const stageNum = code.charAt(1);
   switch (stageNum) {
     case '1':
       return 'Lexer';
@@ -373,10 +373,10 @@ function getStage(code) {
  * @returns {object} Objek error terformat
  */
 function createError(code, loc, overrides) {
-  var severity = getSeverity(code);
-  var msg = ERROR_MESSAGES[code] || 'Error tidak dikenal';
-  var saran = ERROR_SUGGESTIONS[code] || '';
-  var err = {
+  const severity = getSeverity(code);
+  const msg = ERROR_MESSAGES[code] || 'Error tidak dikenal';
+  const saran = ERROR_SUGGESTIONS[code] || '';
+  const err = {
     code: code,
     kode: code,
     severity: severity,
@@ -388,7 +388,7 @@ function createError(code, loc, overrides) {
     loc: loc,
   };
   if (overrides) {
-    for (var key in overrides) {
+    for (const key in overrides) {
       if (Object.prototype.hasOwnProperty.call(overrides, key)) {
         err[key] = overrides[key];
       }
@@ -422,14 +422,14 @@ function buatParseError(code, loc, overrides) {
  * @returns {string} Pesan yang diformat
  */
 function formatError(err) {
-  var locStr = '';
+  let locStr = '';
   if (err.loc && err.loc.start) {
     locStr = 'Baris ' + err.loc.start.line + ', Kolom ' + err.loc.start.column;
   } else if (err.baris !== undefined) {
     locStr = 'Baris ' + err.baris + ', Kolom ' + err.kolom;
   }
-  var prefix = err.severity === 'warning' ? '⚠' : '✗';
-  var stageStr = err.stage ? ' [' + err.stage + ']' : '';
+  const prefix = err.severity === 'warning' ? '⚠' : '✗';
+  const stageStr = err.stage ? ' [' + err.stage + ']' : '';
   return (
     prefix +
     ' ' +

@@ -16,7 +16,7 @@
 function accept(node, visitor) {
   if (!node || !node.type) return undefined;
 
-  var methodName = 'visit' + node.type;
+  const methodName = 'visit' + node.type;
 
   if (typeof visitor[methodName] === 'function') {
     return visitor[methodName](node);
@@ -154,12 +154,12 @@ function getChildKeys(nodeType) {
 function BaseVisitor() {}
 
 BaseVisitor.prototype.genericVisit = function (node) {
-  var childKeys = getChildKeys(node.type);
-  for (var i = 0; i < childKeys.length; i++) {
-    var key = childKeys[i];
-    var child = node[key];
+  const childKeys = getChildKeys(node.type);
+  for (let i = 0; i < childKeys.length; i++) {
+    const key = childKeys[i];
+    const child = node[key];
     if (Array.isArray(child)) {
-      for (var j = 0; j < child.length; j++) {
+      for (let j = 0; j < child.length; j++) {
         if (child[j] && typeof child[j] === 'object' && child[j].type) {
           accept(child[j], this);
         }
@@ -170,9 +170,9 @@ BaseVisitor.prototype.genericVisit = function (node) {
     } else if (child && typeof child === 'object' && !child.type) {
       // Container object (e.g. docstring: { teks: <AST node> })
       // Traverse its values to find AST child nodes
-      for (var subKey in child) {
+      for (const subKey in child) {
         if (Object.prototype.hasOwnProperty.call(child, subKey)) {
-          var subChild = child[subKey];
+          const subChild = child[subKey];
           if (subChild && typeof subChild === 'object' && subChild.type) {
             accept(subChild, this);
           }
@@ -183,7 +183,7 @@ BaseVisitor.prototype.genericVisit = function (node) {
 };
 
 // Buat metode visit untuk setiap tipe node yang meneruskan ke genericVisit
-var nodeTypes = [
+const nodeTypes = [
   'Program',
   'BlockStatement',
   'DataDeclaration',
@@ -264,12 +264,12 @@ CollectingVisitor.prototype.genericVisit = function (node) {
   }
   // Jangan traverse lagi — BaseVisitor.prototype.genericVisit sudah dipanggil
   // oleh metode visit* yang mewarisi dari BaseVisitor
-  var childKeys = getChildKeys(node.type);
-  for (var i = 0; i < childKeys.length; i++) {
-    var key = childKeys[i];
-    var child = node[key];
+  const childKeys = getChildKeys(node.type);
+  for (let i = 0; i < childKeys.length; i++) {
+    const key = childKeys[i];
+    const child = node[key];
     if (Array.isArray(child)) {
-      for (var j = 0; j < child.length; j++) {
+      for (let j = 0; j < child.length; j++) {
         if (child[j] && typeof child[j] === 'object' && child[j].type) {
           accept(child[j], this);
         }
@@ -287,21 +287,21 @@ function formatAST(node, indent) {
   if (!indent) indent = 0;
   if (!node) return 'null';
 
-  var pad = '';
-  for (var i = 0; i < indent; i++) pad += '  ';
+  let pad = '';
+  for (let i = 0; i < indent; i++) pad += '  ';
 
   if (typeof node !== 'object') return String(node);
 
-  var result = pad + node.type;
+  let result = pad + node.type;
   if (node.loc) {
     result += ' @' + node.loc.start.line + ':' + node.loc.start.column;
   }
 
-  var childKeys = getChildKeys(node.type);
-  var scalarProps = [];
+  const childKeys = getChildKeys(node.type);
+  const scalarProps = [];
 
   // Tampilkan properti skalar
-  for (var key in node) {
+  for (const key in node) {
     if (
       Object.prototype.hasOwnProperty.call(node, key) &&
       key !== 'type' &&
@@ -321,11 +321,11 @@ function formatAST(node, indent) {
   result += '\n';
 
   // Tampilkan anak-anak
-  for (var c = 0; c < childKeys.length; c++) {
-    var ckey = childKeys[c];
-    var child = node[ckey];
+  for (let c = 0; c < childKeys.length; c++) {
+    const ckey = childKeys[c];
+    const child = node[ckey];
     if (Array.isArray(child)) {
-      for (var j = 0; j < child.length; j++) {
+      for (let j = 0; j < child.length; j++) {
         result += formatAST(child[j], indent + 1);
       }
     } else if (child && typeof child === 'object') {
