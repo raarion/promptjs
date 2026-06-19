@@ -142,6 +142,21 @@ PromptJSParser.prototype._parseBuatStatement = function () {
   // Parse selector: tag[.class]*[#id]
   const selector = this._parseSelector();
 
+  // Component invocation: "Buat Kartu(judul: "Hai", isi: ...)" — named args, no block.
+  if (this._peek().type === TT.TK_LPAREN) {
+    this._advance(); // consume (
+    const props = [];
+    while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
+      const keyTok = this._expect(TT.TK_IDENT, 'Expected argument name in component call');
+      this._expect(TT.TK_COLON, 'Expected ":" after argument name');
+      const valExpr = this._parseExpression();
+      if (keyTok) props.push({ key: keyTok.value, value: valExpr });
+      if (!this._match(TT.TK_COMMA)) break;
+    }
+    this._expect(TT.TK_RPAREN, 'Expected ")" to close component arguments');
+    return AST.buatGunakanStatement(selector.tag, this._makeLoc(startTok), null, props, null);
+  }
+
   // Expect colon
   this._expect(TT.TK_COLON, 'Expected ":" after block opener');
 
@@ -291,13 +306,24 @@ PromptJSParser.prototype._parseJikaStatement = function () {
 PromptJSParser.prototype._parseUlangiStatement = function () {
   const startTok = this._advance(); // consume Ulangi/Loop
 
-  // Expect "untuk/for"
+  // Counted loop: "Ulangi N kali:" / "Loop N times:" (kind = 'kali').
   if (this._peek().type !== TT.TK_UNTUK) {
+    const countExpr = this._parseExpression();
+    if (countExpr && this._peek().type === TT.TK_KALI) {
+      this._advance(); // consume kali/times
+      this._expect(TT.TK_COLON, 'Expected ":" after counted loop');
+      const countLoc = this._makeLoc(startTok);
+      const countBody = this._parseBlock();
+      return AST.buatUlangiStatement(null, countExpr, countBody, 'kali', countLoc, null, null);
+    }
+    // Neither "untuk/for" nor a valid "N kali/times" counted loop.
     this.errors.push({
-      code: 'E2010', severity: 'error',
+      code: 'E2010',
+      severity: 'error',
       message: 'Expected "untuk/for" after "ulangi/loop"',
-      line: startTok.line, column: startTok.col,
-      suggestion: 'Syntax: Ulangi untuk item in $collection:'
+      line: startTok.line,
+      column: startTok.col,
+      suggestion: 'Syntax: Ulangi untuk item in $collection:  (atau: Ulangi N kali:)',
     });
     return null;
   }

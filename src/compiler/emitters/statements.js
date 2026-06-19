@@ -46,25 +46,31 @@ function install(PromptJSCompiler, accept) {
   };
 
   PromptJSCompiler.prototype.visitKomponenDeclaration = function(node) {
-    // Component = factory function yang mengembalikan DOM element
-    const params = node.params.map(p => p.name).join(', ');
+    // Component = factory function that takes a single named-props object and
+    // returns a DOM element. Props are destructured into locals so the body can
+    // reference them by name (e.g. `judul`).
     const componentVar = `__komp_${node.name}`;
 
-    this.emit(`function ${componentVar}(${params}) {`);
+    this.emit(`function ${componentVar}(props) {`);
     this.indent++;
+    this.emit(`props = props || {};`);
     this.emit(`// Component: ${node.name}`);
+    if (node.params && node.params.length > 0) {
+      node.params.forEach(p => {
+        this.emit(`const ${p.name} = props.${p.name};`);
+      });
+    }
     this.emit(`const __root = document.createElement("div");`);
 
-    // Set currentParent agar child elements di-append ke __root
+    // Set currentParent so child elements append to __root
     const prevParent = this.currentParent;
     this.currentParent = '__root';
 
-    // Visit body (berisi buat, ketika, dll)
+    // Visit body (buat, ketika, etc.)
     if (node.body) accept(node.body, this);
 
     this.currentParent = prevParent;
 
-    // Register lifecycle hooks jika ada
     this.emit(`return __root;`);
     this.indent--;
     this.emit(`}`);

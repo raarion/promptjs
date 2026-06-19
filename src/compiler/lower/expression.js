@@ -37,7 +37,7 @@ function lowerExpression(compiler, node) {
         return node.name; // fallback for unresolved external
       }
       return node.name;
-    case 'BinaryExpression':
+    case 'BinaryExpression': {
       const ops = { 
         'sama dengan': '===', 
         'tidak sama dengan': '!==', 
@@ -56,7 +56,8 @@ function lowerExpression(compiler, node) {
       };
       const op = ops[node.operator] || node.operator;
       return `(${lowerExpression(compiler, node.left)} ${op} ${lowerExpression(compiler, node.right)})`;
-    case 'UnaryExpression':
+    }
+    case 'UnaryExpression': {
       const unaryOps = {
         'tidak': '!',
         'negatif': '-'
@@ -66,10 +67,12 @@ function lowerExpression(compiler, node) {
         return `(${uop}${lowerExpression(compiler, node.operand)})`;
       }
       return `(${lowerExpression(compiler, node.operand)}${uop})`;
-    case 'MemberExpression':
+    }
+    case 'MemberExpression': {
       let prop = node.property.name;
       const objCode = lowerExpression(compiler, node.object);
       return `${objCode}.${prop}`;
+    }
     case 'CallExpression':
       return lowerCallExpression(compiler, node);
     case 'ObjectLiteral':

@@ -35,6 +35,7 @@
     TK_ULANGI: 'TK_ULANGI',       // Ulangi / Loop
     TK_UNTUK: 'TK_UNTUK',         // Untuk / For
     TK_IN: 'TK_IN',               // in
+    TK_KALI: 'TK_KALI',           // kali / times (counted-loop suffix)
     TK_PASS: 'TK_PASS',           // pass / Lewati
     TK_DEFINSIKAN: 'TK_DEFINSIKAN', // Definisikan / Define
     TK_DATA: 'TK_DATA',           // Data / State
@@ -114,17 +115,20 @@
     'kembalikan': TT.TK_KEMBALIKAN,
     'in': TT.TK_IN,
     'dari': TT.TK_IN,
+    'kali': TT.TK_KALI,
     'halaman': TT.TK_BUAT,    // Page root — synonym for Buat halaman
-    'komponen': TT.TK_BUAT,   // Component — synonym for Buat komponen
+    'komponen': TT.TK_DEFINSIKAN, // Component declaration (alias of Definisikan)
 
     // English
     'create': TT.TK_BUAT,
     'page': TT.TK_BUAT,       // Page root — synonym for Create page
-    'component': TT.TK_BUAT,  // Component — synonym for Create component
+    'component': TT.TK_DEFINSIKAN, // Component declaration (alias of Define)
     'if': TT.TK_JIKA,
     'else': TT.TK_LAINNYA,
     'loop': TT.TK_ULANGI,
     'for': TT.TK_UNTUK,
+    'from': TT.TK_IN,
+    'times': TT.TK_KALI,
     'define': TT.TK_DEFINSIKAN,
     'state': TT.TK_DATA,
     'const': TT.TK_TETAP,
@@ -209,7 +213,7 @@
     'ol': 'ol', 'daftarterurut': 'ol',
     'li': 'li', 'item': 'li',
     'span': 'span', 'rentang': 'span',
-    'label': 'label', 'label': 'label',
+    'label': 'label',
     'h3': 'h3', 'h4': 'h4', 'h5': 'h5', 'h6': 'h6',
     'video': 'video', 'audio': 'audio',
     'iframe': 'iframe', 'bingkai': 'iframe',
@@ -490,7 +494,7 @@
   // --- Block opener tokenization ---
   // Keywords that ARE the element name (not just a prefix like Buat)
   const SELF_NAMED_KEYWORDS = new Set([
-    'halaman', 'page', 'komponen', 'component'
+    'halaman', 'page'
   ]);
 
   PromptJSLexer.prototype._tokenizeBlockOpener = function (content, lineNum, baseCol, keyword) {
@@ -507,21 +511,111 @@
     // or opens a block body (e.g. Buat div:)
     let afterKeyword;
     if (isSelfNamed) {
-      // Emit the keyword as the selector tag name
-      const selectorTag = kwLower; // 'halaman' or 'page'
-      this.tokens.push(new Token(TT.TK_IDENT, selectorTag, lineNum, baseCol + keyword.length + 1, {
-        type: 'Selector',
-        tag: selectorTag,
-        classes: [],
-        id: null
-      }));
-      afterKeyword = content.substring(keyword.length).trim();
-      // Skip any selector that matches the tag name itself (already handled)
-      if (afterKeyword.startsWith(selectorTag)) {
-        afterKeyword = afterKeyword.substring(selectorTag.length).trim();
+      // === Self-named block opener: pages (and the component synonym) ===
+      // "Halaman:" / "Page:"          -> anonymous page (no id)
+      // "Halaman Beranda:" / "Page Home:" -> named page; the name becomes the
+      //                                   root element's id (e.g. id="beranda").
+      const selectorTag = kwLower; // 'halaman' | 'page' | 'komponen' | 'component'
+      let rest = content.substring(keyword.length).trim();
+      // Tolerate a repeated tag, e.g. "Halaman halaman:".
+      if (rest.toLowerCase().startsWith(selectorTag)) {
+        rest = rest.substring(selectorTag.length).trim();
       }
+      let namePart = rest;
+      const restColon = rest.indexOf(':');
+      if (restColon >= 0) namePart = rest.slice(0, restColon);
+      namePart = namePart.trim();
+      const pageId = namePart ? namePart.replace(/^#/, '').toLowerCase() : null;
+
+      this.tokens.push(
+        new Token(TT.TK_IDENT, selectorTag, lineNum, baseCol + keyword.length + 1, {
+          type: 'Selector',
+          tag: selectorTag,
+          classes: [],
+          id: pageId,
+        })
+      );
+
+      const sColon = content.indexOf(':', keyword.length);
+      if (sColon >= 0) {
+        this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + sColon + 1));
+        const inlineContent = content.substring(sColon + 1).trim();
+        if (inlineContent) {
+          this._tokenizeExpression(inlineContent, lineNum, baseCol + sColon + 2);
+        }
+      } else {
+        this.errors.push(
+          createError(
+            'E1004',
+            `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
+            lineNum,
+            baseCol + 1,
+            'Tambahkan : di akhir baris untuk membuka blok. Contoh: Halaman Beranda:'
+          )
+        );
+      }
+      return;
     } else {
       afterKeyword = content.substring(keyword.length).trim();
+    }
+
+    // === Component declaration: "Komponen Name(p1, p2):" / "Definisikan Name(p1):" ===
+    if (kwToken === TT.TK_DEFINSIKAN) {
+      const declNameMatch = afterKeyword.match(/^([A-Za-z_]\w*)/);
+      const declName = declNameMatch ? declNameMatch[1] : '';
+      let nameCol = baseCol + keyword.length + 2;
+      this.tokens.push(new Token(TT.TK_IDENT, declName, lineNum, nameCol));
+      let declRest = afterKeyword.substring(declName.length).trim();
+      if (declRest.startsWith('(')) {
+        const closeIdx = declRest.indexOf(')');
+        const paramStr = closeIdx >= 0 ? declRest.substring(1, closeIdx) : declRest.substring(1);
+        const parenCol = nameCol + declName.length;
+        this.tokens.push(new Token(TT.TK_LPAREN, '(', lineNum, parenCol));
+        if (paramStr.trim()) {
+          this._tokenizeExpression(paramStr, lineNum, parenCol + 1);
+        }
+        this.tokens.push(new Token(TT.TK_RPAREN, ')', lineNum, parenCol + paramStr.length + 1));
+      }
+      const declColon = content.indexOf(':', keyword.length);
+      if (declColon >= 0) {
+        this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + declColon + 1));
+      } else {
+        this.errors.push(
+          createError(
+            'E1004',
+            `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
+            lineNum,
+            baseCol + 1,
+            'Tambahkan : di akhir baris. Contoh: Komponen Kartu(judul):'
+          )
+        );
+      }
+      return;
+    }
+
+    // === Component invocation: "Buat Name(arg: val, ...)" (no colon, no body) ===
+    if (kwToken === TT.TK_BUAT) {
+      const invMatch = afterKeyword.match(/^([A-Za-z_]\w*)\s*\((.*)\)$/);
+      if (invMatch) {
+        const invName = invMatch[1];
+        const invArgs = invMatch[2];
+        const invNameCol = baseCol + keyword.length + 2;
+        this.tokens.push(
+          new Token(TT.TK_IDENT, invName, lineNum, invNameCol, {
+            type: 'Selector',
+            tag: invName,
+            classes: [],
+            id: null,
+          })
+        );
+        const invParenCol = invNameCol + invName.length;
+        this.tokens.push(new Token(TT.TK_LPAREN, '(', lineNum, invParenCol));
+        if (invArgs.trim()) {
+          this._tokenizeExpression(invArgs, lineNum, invParenCol + 1);
+        }
+        this.tokens.push(new Token(TT.TK_RPAREN, ')', lineNum, invParenCol + invArgs.length + 1));
+        return;
+      }
     }
 
     // Find the first colon that is NOT inside a string literal

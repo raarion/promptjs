@@ -125,7 +125,7 @@ BaseVisitor.prototype.genericVisit = function (node) {
       // Container object (e.g. docstring: { teks: <AST node> })
       // Traverse its values to find AST child nodes
       for (var subKey in child) {
-        if (child.hasOwnProperty(subKey)) {
+        if (Object.prototype.hasOwnProperty.call(child, subKey)) {
           var subChild = child[subKey];
           if (subChild && typeof subChild === 'object' && subChild.type) {
             accept(subChild, this);
@@ -220,7 +220,7 @@ function formatAST(node, indent) {
 
   // Tampilkan properti skalar
   for (var key in node) {
-    if (node.hasOwnProperty(key) &&
+    if (Object.prototype.hasOwnProperty.call(node, key) &&
         key !== 'type' && key !== 'loc' && key !== 'docstring' &&
         childKeys.indexOf(key) === -1 &&
         typeof node[key] !== 'object') {

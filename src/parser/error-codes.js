@@ -373,7 +373,7 @@ function createError(code, loc, overrides) {
   };
   if (overrides) {
     for (var key in overrides) {
-      if (overrides.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(overrides, key)) {
         err[key] = overrides[key];
       }
     }

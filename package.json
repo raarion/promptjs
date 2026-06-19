@@ -7,12 +7,35 @@
     "pjs": "src/cli/index.js"
   },
   "scripts": {
-    "test": "node src/tester/test-all.js && node src/tester/test-extended.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "node src/cli/index.js build --minify",
     "pjs": "node src/cli/index.js"
   },
-  "keywords": ["dsl", "template", "compiler", "indonesian", "promptjs"],
+  "keywords": [
+    "dsl",
+    "template",
+    "compiler",
+    "indonesian",
+    "promptjs"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "license": "MIT",
   "devDependencies": {
-    "jsdom": "^24.0.0"
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.6.0",
+    "jsdom": "^24.0.0",
+    "prettier": "^3.8.4",
+    "vitest": "^4.1.9"
   }
 }
