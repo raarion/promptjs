@@ -16,7 +16,7 @@
  * Lokasi default untuk node yang tidak memiliki informasi posisi.
  * Digunakan sebagai fallback ketika parser tidak menyediakan loc.
  */
-var UNKNOWN_LOC = {
+const UNKNOWN_LOC = {
   start: { line: 0, column: 0 },
   end: { line: 0, column: 0 },
 };
@@ -42,8 +42,8 @@ function buatLoc(start, end) {
   // Jika keduanya tidak ada, kembalikan UNKNOWN_LOC
   if (!start && !end) return UNKNOWN_LOC;
 
-  var s = start;
-  var e = end;
+  let s = start;
+  let e = end;
   // Jika start adalah token, ambil posisinya
   if (start && start.baris !== undefined) {
     s = { line: start.baris, column: start.kolom };
@@ -183,7 +183,7 @@ function buatBlockStatement(body, loc) {
 }
 
 function buatBuatStatement(selector, loc, docstring, properties, body, action) {
-  var node = {
+  const node = {
     type: 'BuatStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -202,7 +202,7 @@ function buatBuatStatement(selector, loc, docstring, properties, body, action) {
 }
 
 function buatTampilkanStatement(target, loc, docstring, mountTarget, mode, messageKind) {
-  var node = {
+  const node = {
     type: 'TampilkanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -263,7 +263,7 @@ function buatPerbaruiStatement(property, target, value, loc, docstring) {
 }
 
 function buatKetikaStatement(event, loc, docstring, target, body, action) {
-  var node = {
+  const node = {
     type: 'KetikaStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -296,7 +296,7 @@ function buatLifecycleStatement(kind, body, loc, docstring) {
 }
 
 function buatSetelahStatement(target, loc, docstring, body, action) {
-  var node = {
+  const node = {
     type: 'SetelahStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -308,7 +308,7 @@ function buatSetelahStatement(target, loc, docstring, body, action) {
 }
 
 function buatJikaStatement(condition, consequent, loc, docstring, alternate) {
-  var node = {
+  const node = {
     type: 'JikaStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -320,7 +320,7 @@ function buatJikaStatement(condition, consequent, loc, docstring, alternate) {
 }
 
 function buatUlangiStatement(iteratorName, source, body, kind, loc, docstring, rangeEnd) {
-  var node = {
+  const node = {
     type: 'UlangiStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -352,7 +352,7 @@ function buatLewatiStatement(loc) {
 }
 
 function buatKembalikanStatement(loc, value) {
-  var node = { type: 'KembalikanStatement', loc: ensureLoc(loc) };
+  const node = { type: 'KembalikanStatement', loc: ensureLoc(loc) };
   if (value) node.value = value;
   return node;
 }
@@ -379,7 +379,7 @@ function buatTambahkanStatement(value, target, loc, docstring) {
 }
 
 function buatKurangiStatement(target, loc, docstring, value) {
-  var node = {
+  const node = {
     type: 'KurangiStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -400,7 +400,7 @@ function buatSisipkanStatement(value, target, loc, docstring) {
 }
 
 function buatAmbilDomStatement(kind, source, target, loc, docstring, attributeName) {
-  var node = {
+  const node = {
     type: 'AmbilDomStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -413,7 +413,7 @@ function buatAmbilDomStatement(kind, source, target, loc, docstring, attributeNa
 }
 
 function buatAmbilLuarStatement(url, branches, loc, docstring, options) {
-  var node = {
+  const node = {
     type: 'AmbilLuarStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -425,7 +425,7 @@ function buatAmbilLuarStatement(url, branches, loc, docstring, options) {
 }
 
 function buatGunakanStatement(componentName, loc, docstring, props, mountTarget) {
-  var node = {
+  const node = {
     type: 'GunakanStatement',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -462,7 +462,7 @@ function buatLangsungBlock(content, loc) {
 }
 
 function buatJalankanExpression(callee, kind, loc, docstring, arguments_, withArgs) {
-  var node = {
+  const node = {
     type: 'JalankanExpression',
     loc: ensureLoc(loc),
     docstring: docstring || undefined,
@@ -601,7 +601,7 @@ function buatAttributeNode(key, value, loc) {
 // ─── Special Nodes ─────────────────────────────────────────
 
 function buatErrorNode(code, message, loc, originalToken) {
-  var node = {
+  const node = {
     type: 'ErrorNode',
     loc: ensureLoc(loc),
     code: code,
@@ -616,7 +616,7 @@ function buatErrorNode(code, message, loc, originalToken) {
 // ─── Shared Types ──────────────────────────────────────────
 
 function buatParameter(name, loc, typeHint, defaultValue) {
-  var param = {
+  const param = {
     type: 'Parameter',
     loc: ensureLoc(loc),
     name: name,

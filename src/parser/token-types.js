@@ -8,143 +8,143 @@
  */
 
 // ─── Struktur ──────────────────────────────────────────────
-var TK_BUAT = 'TK_BUAT';
-var TK_TAMPILKAN = 'TK_TAMPILKAN';
-var TK_SEMBUNYIKAN = 'TK_SEMBUNYIKAN';
-var TK_HAPUS = 'TK_HAPUS';
-var TK_KOSONGKAN = 'TK_KOSONGKAN';
-var TK_PERBARUI = 'TK_PERBARUI';
+const TK_BUAT = 'TK_BUAT';
+const TK_TAMPILKAN = 'TK_TAMPILKAN';
+const TK_SEMBUNYIKAN = 'TK_SEMBUNYIKAN';
+const TK_HAPUS = 'TK_HAPUS';
+const TK_KOSONGKAN = 'TK_KOSONGKAN';
+const TK_PERBARUI = 'TK_PERBARUI';
 
 // ─── Event / Perilaku ──────────────────────────────────────
-var TK_KETIKA = 'TK_KETIKA';
-var TK_DIKLIK = 'TK_DIKLIK';
-var TK_DIKETIK = 'TK_DIKETIK';
-var TK_DISUBMIT = 'TK_DISUBMIT';
-var TK_DIMUAT = 'TK_DIMUAT';
-var TK_DIUBAH = 'TK_DIUBAH';
-var TK_DIFOKUS = 'TK_DIFOKUS';
-var TK_DITINGGAL = 'TK_DITINGGAL';
-var TK_DITEKAN = 'TK_DITEKAN';
-var TK_DILEPAS = 'TK_DILEPAS';
-var TK_DIARAHKAN = 'TK_DIARAHKAN';
-var TK_DITINGGAL_KURSOR = 'TK_DITINGGAL_KURSOR';
-var TK_DIGULIR = 'TK_DIGULIR';
-var TK_DIPASANG = 'TK_DIPASANG';
-var TK_DILEPAS_DARI_DOM = 'TK_DILEPAS_DARI_DOM';
+const TK_KETIKA = 'TK_KETIKA';
+const TK_DIKLIK = 'TK_DIKLIK';
+const TK_DIKETIK = 'TK_DIKETIK';
+const TK_DISUBMIT = 'TK_DISUBMIT';
+const TK_DIMUAT = 'TK_DIMUAT';
+const TK_DIUBAH = 'TK_DIUBAH';
+const TK_DIFOKUS = 'TK_DIFOKUS';
+const TK_DITINGGAL = 'TK_DITINGGAL';
+const TK_DITEKAN = 'TK_DITEKAN';
+const TK_DILEPAS = 'TK_DILEPAS';
+const TK_DIARAHKAN = 'TK_DIARAHKAN';
+const TK_DITINGGAL_KURSOR = 'TK_DITINGGAL_KURSOR';
+const TK_DIGULIR = 'TK_DIGULIR';
+const TK_DIPASANG = 'TK_DIPASANG';
+const TK_DILEPAS_DARI_DOM = 'TK_DILEPAS_DARI_DOM';
 
 // ─── Alur ──────────────────────────────────────────────────
-var TK_LALU = 'TK_LALU';
-var TK_SETELAH = 'TK_SETELAH';
+const TK_LALU = 'TK_LALU';
+const TK_SETELAH = 'TK_SETELAH';
 
 // ─── Logika ────────────────────────────────────────────────
-var TK_JIKA = 'TK_JIKA';
-var TK_KALAU = 'TK_KALAU';
-var TK_JIKA_TIDAK = 'TK_JIKA_TIDAK';
-var TK_ULANGI = 'TK_ULANGI';
-var TK_SELAMA = 'TK_SELAMA';
-var TK_BERHENTI = 'TK_BERHENTI';
-var TK_LEWATI = 'TK_LEWATI';
-var TK_KEMBALIKAN = 'TK_KEMBALIKAN';
+const TK_JIKA = 'TK_JIKA';
+const TK_KALAU = 'TK_KALAU';
+const TK_JIKA_TIDAK = 'TK_JIKA_TIDAK';
+const TK_ULANGI = 'TK_ULANGI';
+const TK_SELAMA = 'TK_SELAMA';
+const TK_BERHENTI = 'TK_BERHENTI';
+const TK_LEWATI = 'TK_LEWATI';
+const TK_KEMBALIKAN = 'TK_KEMBALIKAN';
 
 // ─── Data / Reaktif ────────────────────────────────────────
-var TK_DATA = 'TK_DATA';
-var TK_TURUNAN = 'TK_TURUNAN';
-var TK_SIMPAN = 'TK_SIMPAN';
-var TK_AMBIL = 'TK_AMBIL';
-var TK_TETAP = 'TK_TETAP';
-var TK_UBAH = 'TK_UBAH';
-var TK_TAMBAHKAN = 'TK_TAMBAHKAN';
-var TK_SISIPKAN = 'TK_SISIPKAN';
-var TK_KURANGI = 'TK_KURANGI';
-var TK_SAAT = 'TK_SAAT';
-var TK_BERUBAH = 'TK_BERUBAH';
+const TK_DATA = 'TK_DATA';
+const TK_TURUNAN = 'TK_TURUNAN';
+const TK_SIMPAN = 'TK_SIMPAN';
+const TK_AMBIL = 'TK_AMBIL';
+const TK_TETAP = 'TK_TETAP';
+const TK_UBAH = 'TK_UBAH';
+const TK_TAMBAHKAN = 'TK_TAMBAHKAN';
+const TK_SISIPKAN = 'TK_SISIPKAN';
+const TK_KURANGI = 'TK_KURANGI';
+const TK_SAAT = 'TK_SAAT';
+const TK_BERUBAH = 'TK_BERUBAH';
 
 // ─── Komponen / Fungsi ─────────────────────────────────────
-var TK_KOMPONEN = 'TK_KOMPONEN';
-var TK_GUNAKAN = 'TK_GUNAKAN';
-var TK_DENGAN = 'TK_DENGAN';
-var TK_DI = 'TK_DI';
-var TK_DARI = 'TK_DARI';
-var TK_KE = 'TK_KE';
-var TK_FUNGSI = 'TK_FUNGSI';
-var TK_JALANKAN = 'TK_JALANKAN';
+const TK_KOMPONEN = 'TK_KOMPONEN';
+const TK_GUNAKAN = 'TK_GUNAKAN';
+const TK_DENGAN = 'TK_DENGAN';
+const TK_DI = 'TK_DI';
+const TK_DARI = 'TK_DARI';
+const TK_KE = 'TK_KE';
+const TK_FUNGSI = 'TK_FUNGSI';
+const TK_JALANKAN = 'TK_JALANKAN';
 
 // ─── Jaringan / Navigasi ───────────────────────────────────
-var TK_BERHASIL = 'TK_BERHASIL';
-var TK_GAGAL = 'TK_GAGAL';
-var TK_SELALU = 'TK_SELALU';
-var TK_ARAHKAN = 'TK_ARAHKAN';
-var TK_MUAT_ULANG = 'TK_MUAT_ULANG';
-var TK_KEMBALI = 'TK_KEMBALI';
+const TK_BERHASIL = 'TK_BERHASIL';
+const TK_GAGAL = 'TK_GAGAL';
+const TK_SELALU = 'TK_SELALU';
+const TK_ARAHKAN = 'TK_ARAHKAN';
+const TK_MUAT_ULANG = 'TK_MUAT_ULANG';
+const TK_KEMBALI = 'TK_KEMBALI';
 
 // ─── Literal ───────────────────────────────────────────────
-var TK_BENAR = 'TK_BENAR';
-var TK_SALAH = 'TK_SALAH';
-var TK_KOSONG = 'TK_KOSONG';
-var TK_LITERAL_TEKS = 'TK_LITERAL_TEKS';
-var TK_LITERAL_ANGKA = 'TK_LITERAL_ANGKA';
+const TK_BENAR = 'TK_BENAR';
+const TK_SALAH = 'TK_SALAH';
+const TK_KOSONG = 'TK_KOSONG';
+const TK_LITERAL_TEKS = 'TK_LITERAL_TEKS';
+const TK_LITERAL_ANGKA = 'TK_LITERAL_ANGKA';
 
 // ─── Operator Kata ─────────────────────────────────────────
-var TK_DAN = 'TK_DAN';
-var TK_ATAU = 'TK_ATAU';
-var TK_BUKAN = 'TK_BUKAN';
-var TK_SAMA_DENGAN = 'TK_SAMA_DENGAN';
-var TK_TIDAK_SAMA_DENGAN = 'TK_TIDAK_SAMA_DENGAN';
-var TK_LEBIH_DARI = 'TK_LEBIH_DARI';
-var TK_KURANG_DARI = 'TK_KURANG_DARI';
-var TK_PALING_SEDIKIT = 'TK_PALING_SEDIKIT';
-var TK_PALING_BANYAK = 'TK_PALING_BANYAK';
-var TK_ADA_DI = 'TK_ADA_DI';
-var TK_TIDAK_ADA_DI = 'TK_TIDAK_ADA_DI';
+const TK_DAN = 'TK_DAN';
+const TK_ATAU = 'TK_ATAU';
+const TK_BUKAN = 'TK_BUKAN';
+const TK_SAMA_DENGAN = 'TK_SAMA_DENGAN';
+const TK_TIDAK_SAMA_DENGAN = 'TK_TIDAK_SAMA_DENGAN';
+const TK_LEBIH_DARI = 'TK_LEBIH_DARI';
+const TK_KURANG_DARI = 'TK_KURANG_DARI';
+const TK_PALING_SEDIKIT = 'TK_PALING_SEDIKIT';
+const TK_PALING_BANYAK = 'TK_PALING_BANYAK';
+const TK_ADA_DI = 'TK_ADA_DI';
+const TK_TIDAK_ADA_DI = 'TK_TIDAK_ADA_DI';
 
 // ─── Operator Aritmatika Kata ──────────────────────────────────────────────
-var TK_MOD = 'TK_MOD';
-var TK_PANGKAT = 'TK_PANGKAT';
+const TK_MOD = 'TK_MOD';
+const TK_PANGKAT = 'TK_PANGKAT';
 
 // ─── Operator Simbol ───────────────────────────────────────
-var TK_PANAH = 'TK_PANAH';
-var TK_TITIK_DUA = 'TK_TITIK_DUA';
-var TK_KOMA = 'TK_KOMA';
-var TK_TITIK = 'TK_TITIK';
-var TK_PLUS = 'TK_PLUS';
-var TK_MINUS = 'TK_MINUS';
-var TK_BINTANG = 'TK_BINTANG';
-var TK_GARIS_MIRING = 'TK_GARIS_MIRING';
-var TK_TANDA_SAMA = 'TK_TANDA_SAMA';
+const TK_PANAH = 'TK_PANAH';
+const TK_TITIK_DUA = 'TK_TITIK_DUA';
+const TK_KOMA = 'TK_KOMA';
+const TK_TITIK = 'TK_TITIK';
+const TK_PLUS = 'TK_PLUS';
+const TK_MINUS = 'TK_MINUS';
+const TK_BINTANG = 'TK_BINTANG';
+const TK_GARIS_MIRING = 'TK_GARIS_MIRING';
+const TK_TANDA_SAMA = 'TK_TANDA_SAMA';
 
 // ─── Kurung ────────────────────────────────────────────────
-var TK_KURUNG_BUKA = 'TK_KURUNG_BUKA';
-var TK_KURUNG_TUTUP = 'TK_KURUNG_TUTUP';
-var TK_KURAWAL_BUKA = 'TK_KURAWAL_BUKA';
-var TK_KURAWAL_TUTUP = 'TK_KURAWAL_TUTUP';
-var TK_KURUNG_SIKU_BUKA = 'TK_KURUNG_SIKU_BUKA';
-var TK_KURUNG_SIKU_TUTUP = 'TK_KURUNG_SIKU_TUTUP';
+const TK_KURUNG_BUKA = 'TK_KURUNG_BUKA';
+const TK_KURUNG_TUTUP = 'TK_KURUNG_TUTUP';
+const TK_KURAWAL_BUKA = 'TK_KURAWAL_BUKA';
+const TK_KURAWAL_TUTUP = 'TK_KURAWAL_TUTUP';
+const TK_KURUNG_SIKU_BUKA = 'TK_KURUNG_SIKU_BUKA';
+const TK_KURUNG_SIKU_TUTUP = 'TK_KURUNG_SIKU_TUTUP';
 
 // ─── Selektor ──────────────────────────────────────────────
-var TK_ID = 'TK_ID';
-var TK_CLASS = 'TK_CLASS';
-var TK_ATRIBUT = 'TK_ATRIBUT';
+const TK_ID = 'TK_ID';
+const TK_CLASS = 'TK_CLASS';
+const TK_ATRIBUT = 'TK_ATRIBUT';
 
 // ─── Identifier ────────────────────────────────────────────
-var TK_IDENTIFIER = 'TK_IDENTIFIER';
+const TK_IDENTIFIER = 'TK_IDENTIFIER';
 
 // ─── Komentar ──────────────────────────────────────────────
-var TK_KOMENTAR_BIASA = 'TK_KOMENTAR_BIASA';
-var TK_KOMENTAR_DOC = 'TK_KOMENTAR_DOC';
+const TK_KOMENTAR_BIASA = 'TK_KOMENTAR_BIASA';
+const TK_KOMENTAR_DOC = 'TK_KOMENTAR_DOC';
 
 // ─── Interop / Node ────────────────────────────────────────
-var TK_LANGSUNG = 'TK_LANGSUNG';
-var TK_BLOK_LANGSUNG = 'TK_BLOK_LANGSUNG';
-var TK_FRAGMEN = 'TK_FRAGMEN';
+const TK_LANGSUNG = 'TK_LANGSUNG';
+const TK_BLOK_LANGSUNG = 'TK_BLOK_LANGSUNG';
+const TK_FRAGMEN = 'TK_FRAGMEN';
 
 // ─── Kontrol Whitespace & EOF ──────────────────────────────
-var TK_INDENT = 'TK_INDENT';
-var TK_DEDENT = 'TK_DEDENT';
-var TK_BARIS_BARU = 'TK_BARIS_BARU';
-var TK_EOF = 'TK_EOF';
+const TK_INDENT = 'TK_INDENT';
+const TK_DEDENT = 'TK_DEDENT';
+const TK_BARIS_BARU = 'TK_BARIS_BARU';
+const TK_EOF = 'TK_EOF';
 
 // ─── Event Token Set ───────────────────────────────────────
-var EVENT_TOKENS = [
+const EVENT_TOKENS = [
   TK_DIKLIK,
   TK_DIKETIK,
   TK_DISUBMIT,
@@ -162,7 +162,7 @@ var EVENT_TOKENS = [
 ];
 
 // ─── Keyword Statement Dispatch Map ────────────────────────
-var STATEMENT_KEYWORD_TOKENS = [
+const STATEMENT_KEYWORD_TOKENS = [
   TK_BUAT,
   TK_TAMPILKAN,
   TK_SEMBUNYIKAN,
@@ -198,10 +198,10 @@ var STATEMENT_KEYWORD_TOKENS = [
 ];
 
 // ─── Sinkronisasi Kontekstual ──────────────────────────────
-var SYNC_STATEMENT_TOKENS = STATEMENT_KEYWORD_TOKENS.slice();
+const SYNC_STATEMENT_TOKENS = STATEMENT_KEYWORD_TOKENS.slice();
 
 // Ekspresi infix operator tokens
-var INFIX_OPERATOR_TOKENS = [
+const INFIX_OPERATOR_TOKENS = [
   TK_PLUS,
   TK_MINUS,
   TK_BINTANG,

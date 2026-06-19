@@ -76,7 +76,7 @@ function lowerExpression(compiler, node) {
       return `(${lowerExpression(compiler, node.operand)}${uop})`;
     }
     case 'MemberExpression': {
-      let prop = node.property.name;
+      const prop = node.property.name;
       const objCode = lowerExpression(compiler, node.object);
       return `${objCode}.${prop}`;
     }

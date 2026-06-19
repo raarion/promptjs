@@ -47,7 +47,7 @@ function collectIdentifierReferences(node, out, seen) {
     ) {
       return;
     }
-    var value = node[key];
+    const value = node[key];
     if (Array.isArray(value)) {
       value.forEach(function (item) {
         if (isAstNode(item) || (item && typeof item === 'object'))
@@ -87,7 +87,7 @@ function traverseAst(node, visit, seen) {
     ) {
       return;
     }
-    var value = node[key];
+    const value = node[key];
     if (Array.isArray(value))
       value.forEach(function (item) {
         traverseAst(item, visit, seen);
@@ -97,14 +97,14 @@ function traverseAst(node, visit, seen) {
 }
 
 function buildDependencyGraph(ast) {
-  var semantic = ast && ast.semantic ? ast.semantic : null;
-  var symbols = semantic && semantic.symbols ? semantic.symbols : [];
-  var dependencies = [];
+  const semantic = ast && ast.semantic ? ast.semantic : null;
+  const symbols = semantic && semantic.symbols ? semantic.symbols : [];
+  const dependencies = [];
 
   symbols.forEach(function (sym) {
     if (!sym || sym.kind !== 'turunan' || !sym.declarationNode) return;
-    var init = sym.declarationNode.init;
-    var refs = collectIdentifierReferences(init, []);
+    const init = sym.declarationNode.init;
+    const refs = collectIdentifierReferences(init, []);
     refs.forEach(function (ref) {
       if (!ref.symbol || !ref.symbol.id || ref.symbol.id === sym.id) return;
       dependencies.push({
@@ -120,9 +120,9 @@ function buildDependencyGraph(ast) {
 
   traverseAst(ast, function (node) {
     if (node.type !== 'SaatStatement') return;
-    var targetSymbol = null;
+    let targetSymbol = null;
     if (node.target && typeof node.target === 'string') {
-      for (var i = 0; i < symbols.length; i++) {
+      for (let i = 0; i < symbols.length; i++) {
         if (symbols[i].name === node.target) {
           targetSymbol = symbols[i];
           break;
@@ -140,7 +140,7 @@ function buildDependencyGraph(ast) {
       });
     }
 
-    var bodyRefs = collectIdentifierReferences(node.body, []);
+    const bodyRefs = collectIdentifierReferences(node.body, []);
     bodyRefs.forEach(function (ref) {
       if (!ref.symbol) return;
       dependencies.push({
@@ -154,7 +154,7 @@ function buildDependencyGraph(ast) {
     });
   });
 
-  var cycles = detectCycles(dependencies);
+  const cycles = detectCycles(dependencies);
   return {
     dependencies: dependencies,
     cycles: cycles,
@@ -162,7 +162,7 @@ function buildDependencyGraph(ast) {
 }
 
 function detectCycles(edges) {
-  var graph = new Map();
+  const graph = new Map();
   edges.forEach(function (edge) {
     // Cycle detection hanya untuk symbol-to-symbol computed dependencies.
     if (edge.kind !== 'computed' || !edge.fromSymbolId || !edge.toSymbolId) return;
@@ -170,26 +170,26 @@ function detectCycles(edges) {
     graph.get(edge.fromSymbolId).push(edge.toSymbolId);
   });
 
-  var visited = new Set();
-  var active = new Set();
-  var stack = [];
-  var cycles = [];
-  var seenCycleKeys = new Set();
+  const visited = new Set();
+  const active = new Set();
+  const stack = [];
+  const cycles = [];
+  const seenCycleKeys = new Set();
 
   function dfs(node) {
     visited.add(node);
     active.add(node);
     stack.push(node);
 
-    var nexts = graph.get(node) || [];
-    for (var i = 0; i < nexts.length; i++) {
-      var next = nexts[i];
+    const nexts = graph.get(node) || [];
+    for (let i = 0; i < nexts.length; i++) {
+      const next = nexts[i];
       if (!visited.has(next)) {
         dfs(next);
       } else if (active.has(next)) {
-        var startIndex = stack.indexOf(next);
-        var cycle = stack.slice(startIndex).concat([next]);
-        var key = cycle.join('>');
+        const startIndex = stack.indexOf(next);
+        const cycle = stack.slice(startIndex).concat([next]);
+        const key = cycle.join('>');
         if (!seenCycleKeys.has(key)) {
           seenCycleKeys.add(key);
           cycles.push({ symbolIds: cycle });
@@ -209,12 +209,12 @@ function detectCycles(edges) {
 }
 
 function normalizeSemantic(ast) {
-  var semantic = ast && ast.semantic ? ast.semantic : null;
-  var symbols = semantic && semantic.symbols ? semantic.symbols : [];
-  var deps = semantic && semantic.dependencies ? semantic.dependencies : [];
-  var cycles = semantic && semantic.dependencyCycles ? semantic.dependencyCycles : [];
+  const semantic = ast && ast.semantic ? ast.semantic : null;
+  const symbols = semantic && semantic.symbols ? semantic.symbols : [];
+  const deps = semantic && semantic.dependencies ? semantic.dependencies : [];
+  const cycles = semantic && semantic.dependencyCycles ? semantic.dependencyCycles : [];
 
-  var publicSymbols = symbols.map(function (sym) {
+  const publicSymbols = symbols.map(function (sym) {
     return {
       id: sym.id || null,
       name: sym.name,
@@ -234,7 +234,7 @@ function normalizeSemantic(ast) {
     };
   });
 
-  var references = [];
+  const references = [];
   symbols.forEach(function (sym) {
     (sym.references || []).forEach(function (ref) {
       references.push({

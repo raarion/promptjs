@@ -31,6 +31,9 @@ module.exports = [
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-console': 'off',
       'no-empty': ['warn', { allowEmptyCatch: true }],
+      // Modernize the Node >= 20 source: no legacy `var`, prefer immutable bindings.
+      'no-var': 'error',
+      'prefer-const': 'error',
     },
   },
   {

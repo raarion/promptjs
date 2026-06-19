@@ -452,7 +452,7 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
   const name = nameTok ? nameTok.value : '_';
 
   // Optional type hint
-  let typeHint = null;
+  const typeHint = null;
   // (PromptJS v0.1 doesn't support type hints yet)
 
   // Expect =

@@ -488,7 +488,7 @@
   // --- String line tokenization ---
   PromptJSLexer.prototype._tokenizeStringLine = function (content, lineNum, baseCol) {
     const quote = content[0];
-    let endIdx = content.length - 1;
+    const endIdx = content.length - 1;
     // Find matching closing quote
     if (content[endIdx] === quote) {
       const text = content.substring(1, endIdx);
@@ -612,9 +612,9 @@
     if (kwToken === TT.TK_DEFINSIKAN) {
       const declNameMatch = afterKeyword.match(/^([A-Za-z_]\w*)/);
       const declName = declNameMatch ? declNameMatch[1] : '';
-      let nameCol = baseCol + keyword.length + 2;
+      const nameCol = baseCol + keyword.length + 2;
       this.tokens.push(new Token(TT.TK_IDENT, declName, lineNum, nameCol));
-      let declRest = afterKeyword.substring(declName.length).trim();
+      const declRest = afterKeyword.substring(declName.length).trim();
       if (declRest.startsWith('(')) {
         const closeIdx = declRest.indexOf(')');
         const paramStr = closeIdx >= 0 ? declRest.substring(1, closeIdx) : declRest.substring(1);
