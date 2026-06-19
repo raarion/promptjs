@@ -65,6 +65,7 @@
     TK_STAR: 'TK_STAR', // *
     TK_SLASH: 'TK_SLASH', // /
     TK_MOD: 'TK_MOD', // %
+    TK_POW: 'TK_POW', // **
     TK_AND: 'TK_AND', // &&
     TK_OR: 'TK_OR', // ||
     TK_NOT: 'TK_NOT', // !
@@ -139,6 +140,37 @@
     return: TT.TK_KEMBALIKAN,
     skip: TT.TK_PASS,
   };
+
+  /* ==========================================================================
+   * WORD OPERATORS (bilingual prose operators -> token type + JS symbol)
+   * Ordered longest-first so multi-word phrases win over their prefixes
+   * (e.g. "tidak sama dengan" before "tidak", "lebih dari" before "kurang").
+   * Recognized only inside expression tokenization.
+   * ========================================================================== */
+  const WORD_OPERATORS = [
+    { phrase: 'tidak sama dengan', type: TT.TK_NEQ, symbol: '!==' },
+    { phrase: 'sama dengan', type: TT.TK_EQ, symbol: '===' },
+    { phrase: 'paling sedikit', type: TT.TK_GTE, symbol: '>=' },
+    { phrase: 'paling banyak', type: TT.TK_LTE, symbol: '<=' },
+    { phrase: 'lebih dari', type: TT.TK_GT, symbol: '>' },
+    { phrase: 'kurang dari', type: TT.TK_LT, symbol: '<' },
+    { phrase: 'dan', type: TT.TK_AND, symbol: '&&' },
+    { phrase: 'atau', type: TT.TK_OR, symbol: '||' },
+    { phrase: 'tidak', type: TT.TK_NOT, symbol: '!' },
+    { phrase: 'negatif', type: TT.TK_MINUS, symbol: '-' },
+    { phrase: 'tambah', type: TT.TK_PLUS, symbol: '+' },
+    { phrase: 'kurang', type: TT.TK_MINUS, symbol: '-' },
+    { phrase: 'kali', type: TT.TK_STAR, symbol: '*' },
+    { phrase: 'bagi', type: TT.TK_SLASH, symbol: '/' },
+    { phrase: 'mod', type: TT.TK_MOD, symbol: '%' },
+    { phrase: 'pangkat', type: TT.TK_POW, symbol: '**' },
+  ].map(function (w) {
+    return {
+      type: w.type,
+      symbol: w.symbol,
+      re: new RegExp('^' + w.phrase.replace(/ /g, '\\s+') + '(?![A-Za-z0-9_])', 'i'),
+    };
+  });
 
   /* ==========================================================================
    * 3. EVENT ALIAS MAP (PromptJS on_x → PromptJS native event name)
@@ -793,9 +825,31 @@
 
     // Jika/If/Ulangi/Loop with condition
     if (afterKeyword.endsWith(':')) {
-      const condition = afterKeyword.substring(0, afterKeyword.length - 1).trim();
+      let condition = afterKeyword.substring(0, afterKeyword.length - 1).trim();
+      // Counted loop: the trailing `kali`/`times` is the loop suffix (TK_KALI),
+      // not the multiply operator. Peel it off before tokenizing the count, so
+      // the rest may still use `kali` as multiply (e.g. "Ulangi 2 kali 3 kali:").
+      const isLoop = keyword.toLowerCase() === 'ulangi' || keyword.toLowerCase() === 'loop';
+      let countSuffix = null;
+      if (isLoop) {
+        const suffixMatch = condition.match(/\s+(kali|times)$/i);
+        if (suffixMatch) {
+          countSuffix = suffixMatch[1];
+          condition = condition.substring(0, condition.length - suffixMatch[0].length).trim();
+        }
+      }
       if (condition) {
         this._tokenizeExpression(condition, lineNum, baseCol + keyword.length + 1);
+      }
+      if (countSuffix) {
+        this.tokens.push(
+          new Token(
+            TT.TK_KALI,
+            countSuffix,
+            lineNum,
+            baseCol + content.lastIndexOf(countSuffix) + 1
+          )
+        );
       }
       this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + content.indexOf(':') + 1));
     } else {
@@ -920,7 +974,14 @@
       }
       if (pos + 1 < len) {
         const pair = expr.substring(pos, pos + 2);
-        if (pair === '>=' || pair === '<=' || pair === '&&' || pair === '||' || pair === '=>') {
+        if (
+          pair === '>=' ||
+          pair === '<=' ||
+          pair === '&&' ||
+          pair === '||' ||
+          pair === '=>' ||
+          pair === '**'
+        ) {
           let ttype;
           switch (pair) {
             case '>=':
@@ -937,6 +998,9 @@
               break;
             case '=>':
               ttype = TT.TK_ARROW;
+              break;
+            case '**':
+              ttype = TT.TK_POW;
               break;
           }
           this.tokens.push(new Token(ttype, pair, lineNum, baseCol + pos + 1));
@@ -1023,6 +1087,24 @@
           this.tokens.push(new Token(TT.TK_RBRACE, '}', lineNum, baseCol + pos + 1));
           pos++;
           continue;
+      }
+
+      // Word operators (dan, atau, lebih dari, kali, pangkat, ...)
+      if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+        const rest = expr.slice(pos);
+        let wop = null;
+        for (let wi = 0; wi < WORD_OPERATORS.length; wi++) {
+          const m = WORD_OPERATORS[wi].re.exec(rest);
+          if (m) {
+            wop = { op: WORD_OPERATORS[wi], len: m[0].length };
+            break;
+          }
+        }
+        if (wop) {
+          this.tokens.push(new Token(wop.op.type, wop.op.symbol, lineNum, baseCol + pos + 1));
+          pos += wop.len;
+          continue;
+        }
       }
 
       // Identifier or keyword

@@ -588,6 +588,7 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
     [TT.TK_STAR]: 6,
     [TT.TK_SLASH]: 6,
     [TT.TK_MOD]: 6,
+    [TT.TK_POW]: 7,
   };
 
   while (true) {
@@ -596,7 +597,9 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
     if (!prec || prec < minPrec) break;
 
     this._advance(); // consume operator
-    const right = this._parseBinaryExpression(prec + 1);
+    // `**` is right-associative; everything else is left-associative.
+    const nextMin = opTok.type === TT.TK_POW ? prec : prec + 1;
+    const right = this._parseBinaryExpression(nextMin);
 
     // Map operator token to JS operator string
     const opMap = {
@@ -605,6 +608,7 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
       [TT.TK_STAR]: '*',
       [TT.TK_SLASH]: '/',
       [TT.TK_MOD]: '%',
+      [TT.TK_POW]: '**',
       [TT.TK_GT]: '>',
       [TT.TK_GTE]: '>=',
       [TT.TK_LT]: '<',
