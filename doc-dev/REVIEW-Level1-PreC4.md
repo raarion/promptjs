@@ -49,7 +49,11 @@ codebase grows further.
      `eslint . --fix` (both rules are auto-fixable). Tests + smoke verify safety.
    - **Risk:** low (mechanical, auto-fixed) but the diff is large (~284 lines).
      Best as its own dedicated commit/PR so review stays readable.
-2. **Centralize color handling + honor `NO_COLOR`.** Color is handled
+> **Status update:** #1 (var→const) done in PR #2; #2 (color helper) done in
+> PR #3; #3 (CLI output) was already satisfied — the only `console.*` calls are
+> inside the emitted live-reload browser script, not CLI output.
+
+2. **[DONE — PR #3]** **Centralize color handling + honor `NO_COLOR`.** Color is handled
    inconsistently across CLI commands: `compile.js` correctly gates on
    `useColor = !stdout`, but `build.js` / `init.js` / `serve.js` emitted ANSI
    codes unconditionally (the dead `useColor = true` locals removed in this pass

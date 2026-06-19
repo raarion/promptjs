@@ -12,6 +12,11 @@ See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full orde
 
 ### Changed — Pre-C4 refining pass
 
+- Centralized CLI color handling in a single `makeColors()` helper
+  (`src/cli/utils.js`) that honors the `NO_COLOR` and `FORCE_COLOR` conventions
+  and auto-detects TTYs. Previously `build`/`init`/`serve` emitted ANSI codes
+  unconditionally and no command respected `NO_COLOR`; now every command does.
+
 - Formatted all source files with Prettier (23 files that the rushed Waves A–C3
   had left unformatted).
 - Eliminated all 33 `no-unused-vars` lint warnings (unused catch bindings,

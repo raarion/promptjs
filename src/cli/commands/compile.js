@@ -23,6 +23,7 @@ const {
   ensureDirForFile,
   formatSize,
   formatElapsed,
+  makeColors,
 } = require('../utils');
 
 function runCompile(argv) {
@@ -75,12 +76,7 @@ function runCompile(argv) {
   const succeeded = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
   const totalJs = results.reduce((sum, r) => sum + (r.jsSize || 0), 0);
-  const useColor = !stdout;
-  const green = useColor ? '\x1b[32m' : '';
-  const red = useColor ? '\x1b[31m' : '';
-  const gray = useColor ? '\x1b[90m' : '';
-  const bold = useColor ? '\x1b[1m' : '';
-  const reset = useColor ? '\x1b[0m' : '';
+  const { green, red, gray, bold, reset } = makeColors({ enabled: !stdout });
 
   if (!stdout) {
     if (failed > 0) {
@@ -128,12 +124,16 @@ function compileFiles(files, options) {
  */
 function compileOne(filePath, options) {
   const start = process.hrtime();
-  const useColor = !options.stdout;
-  const cyan = useColor ? '\x1b[36m' : '';
-  const green = useColor ? '\x1b[32m' : '';
-  const red = useColor ? '\x1b[31m' : '';
-  const gray = useColor ? '\x1b[90m' : '';
-  const reset = useColor ? '\x1b[0m' : '';
+  const {
+    enabled: useColor,
+    cyan,
+    green,
+    red,
+    gray,
+    reset,
+  } = makeColors({
+    enabled: !options.stdout,
+  });
 
   const engine = new PromptJSEngine();
   const compileResult = engine.compileFile(filePath, {
@@ -189,9 +189,7 @@ function compileOne(filePath, options) {
  * Start watch mode — recompile files on change.
  */
 function startWatch(files, options) {
-  const gray = '\x1b[90m';
-  const cyan = '\x1b[36m';
-  const reset = '\x1b[0m';
+  const { gray, cyan, reset } = makeColors({ stream: process.stdout });
 
   process.stderr.write(`\n${gray}Watching ${files.length} file(s) for changes...${reset}\n`);
 

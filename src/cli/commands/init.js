@@ -18,6 +18,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { makeColors } = require('../utils');
 
 // ── Template definitions ──────────────────────────────────────────────────
 
@@ -157,11 +158,7 @@ function runInit(argv) {
   const template = argv.template || argv.t || 'basic';
   const force = argv.force || false;
 
-  const green = '\x1b[32m';
-  const cyan = '\x1b[36m';
-  const bold = '\x1b[1m';
-  const gray = '\x1b[90m';
-  const reset = '\x1b[0m';
+  const { green, cyan, bold, gray, reset } = makeColors({ stream: process.stdout });
 
   // Validate template
   if (!TEMPLATES[template]) {
