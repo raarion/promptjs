@@ -23,7 +23,6 @@
  *   --prerender       Pre-render HTML with jsdom (build)
  *   --minify          Minify output JS (build)
  *   --no-reload       Disable live reload (serve)
- *   --open            Open browser (serve)
  *   --force           Overwrite existing files (init)
  *   --no-data         Skip data file loading (compile)
  */
@@ -38,7 +37,7 @@ function getVersion() {
   try {
     const pkg = require(path.resolve(__dirname, '../../../package.json'));
     return pkg.version || '0.2.0';
-  } catch (e) {
+  } catch {
     return '0.2.0';
   }
 }
@@ -70,7 +69,6 @@ Compile options:
 Serve options:
   -p, --port <num>     Server port (default: 3000)
   --no-reload          Disable live reload
-  --open               Open browser on start
 
 Build options:
   --out-dir <dir>      Output directory (default: dist)
@@ -96,8 +94,8 @@ Examples:
 
 function parseArgs(argv) {
   const args = {
-    _: [],      // Positional arguments
-    command: null
+    _: [], // Positional arguments
+    command: null,
   };
 
   let i = 2; // Skip 'node' and script path
@@ -167,13 +165,13 @@ function parseArgs(argv) {
 
 function shortToLong(flag) {
   const map = {
-    'o': 'output',
-    'p': 'port',
-    't': 'template',
-    'w': 'watch',
-    'v': 'version',
-    'h': 'help',
-    'f': 'force'
+    o: 'output',
+    p: 'port',
+    t: 'template',
+    w: 'watch',
+    v: 'version',
+    h: 'help',
+    f: 'force',
   };
   return map[flag] || flag;
 }

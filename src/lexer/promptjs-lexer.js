@@ -29,59 +29,59 @@
    * ========================================================================== */
   const TT = {
     // Struktur
-    TK_BUAT: 'TK_BUAT',           // Buat / Create
-    TK_JIKA: 'TK_JIKA',           // Jika / If
-    TK_LAINNYA: 'TK_LAINNYA',     // Lainnya / Else
-    TK_ULANGI: 'TK_ULANGI',       // Ulangi / Loop
-    TK_UNTUK: 'TK_UNTUK',         // Untuk / For
-    TK_IN: 'TK_IN',               // in
-    TK_KALI: 'TK_KALI',           // kali / times (counted-loop suffix)
-    TK_PASS: 'TK_PASS',           // pass / Lewati
+    TK_BUAT: 'TK_BUAT', // Buat / Create
+    TK_JIKA: 'TK_JIKA', // Jika / If
+    TK_LAINNYA: 'TK_LAINNYA', // Lainnya / Else
+    TK_ULANGI: 'TK_ULANGI', // Ulangi / Loop
+    TK_UNTUK: 'TK_UNTUK', // Untuk / For
+    TK_IN: 'TK_IN', // in
+    TK_KALI: 'TK_KALI', // kali / times (counted-loop suffix)
+    TK_PASS: 'TK_PASS', // pass / Lewati
     TK_DEFINSIKAN: 'TK_DEFINSIKAN', // Definisikan / Define
-    TK_DATA: 'TK_DATA',           // Data / State
-    TK_TETAP: 'TK_TETAP',         // Tetap / Const
-    TK_UBAH: 'TK_UBAH',           // Ubah / Let
-    TK_TURUNAN: 'TK_TURUNAN',     // Turunan / Derived
-    TK_FUNGSI: 'TK_FUNGSI',       // Fungsi / Func
-    TK_SAAT: 'TK_SAAT',           // Saat / When
+    TK_DATA: 'TK_DATA', // Data / State
+    TK_TETAP: 'TK_TETAP', // Tetap / Const
+    TK_UBAH: 'TK_UBAH', // Ubah / Let
+    TK_TURUNAN: 'TK_TURUNAN', // Turunan / Derived
+    TK_FUNGSI: 'TK_FUNGSI', // Fungsi / Func
+    TK_SAAT: 'TK_SAAT', // Saat / When
     TK_KEMBALIKAN: 'TK_KEMBALIKAN', // Kembalikan / Return
 
     // Literals & Identifiers
     TK_STRING: 'TK_STRING',
     TK_NUMBER: 'TK_NUMBER',
     TK_IDENT: 'TK_IDENT',
-    TK_EXT_REF: 'TK_EXT_REF',     // $nama.path (external data reference)
+    TK_EXT_REF: 'TK_EXT_REF', // $nama.path (external data reference)
 
     // Operators
-    TK_ASSIGN: 'TK_ASSIGN',       // =
-    TK_EQ: 'TK_EQ',               // ===
-    TK_NEQ: 'TK_NEQ',             // !==
-    TK_GT: 'TK_GT',               // >
-    TK_GTE: 'TK_GTE',             // >=
-    TK_LT: 'TK_LT',               // <
-    TK_LTE: 'TK_LTE',             // <=
-    TK_PLUS: 'TK_PLUS',           // +
-    TK_MINUS: 'TK_MINUS',         // -
-    TK_STAR: 'TK_STAR',           // *
-    TK_SLASH: 'TK_SLASH',         // /
-    TK_MOD: 'TK_MOD',             // %
-    TK_AND: 'TK_AND',             // &&
-    TK_OR: 'TK_OR',               // ||
-    TK_NOT: 'TK_NOT',             // !
-    TK_DOT: 'TK_DOT',             // .
-    TK_HASH: 'TK_HASH',           // #
-    TK_LPAREN: 'TK_LPAREN',       // (
-    TK_RPAREN: 'TK_RPAREN',       // )
-    TK_LBRACKET: 'TK_LBRACKET',   // [
-    TK_RBRACKET: 'TK_RBRACKET',   // ]
-    TK_LBRACE: 'TK_LBRACE',       // {
-    TK_RBRACE: 'TK_RBRACE',       // }
-    TK_COMMA: 'TK_COMMA',         // ,
-    TK_COLON: 'TK_COLON',         // :
-    TK_ARROW: 'TK_ARROW',         // =>
+    TK_ASSIGN: 'TK_ASSIGN', // =
+    TK_EQ: 'TK_EQ', // ===
+    TK_NEQ: 'TK_NEQ', // !==
+    TK_GT: 'TK_GT', // >
+    TK_GTE: 'TK_GTE', // >=
+    TK_LT: 'TK_LT', // <
+    TK_LTE: 'TK_LTE', // <=
+    TK_PLUS: 'TK_PLUS', // +
+    TK_MINUS: 'TK_MINUS', // -
+    TK_STAR: 'TK_STAR', // *
+    TK_SLASH: 'TK_SLASH', // /
+    TK_MOD: 'TK_MOD', // %
+    TK_AND: 'TK_AND', // &&
+    TK_OR: 'TK_OR', // ||
+    TK_NOT: 'TK_NOT', // !
+    TK_DOT: 'TK_DOT', // .
+    TK_HASH: 'TK_HASH', // #
+    TK_LPAREN: 'TK_LPAREN', // (
+    TK_RPAREN: 'TK_RPAREN', // )
+    TK_LBRACKET: 'TK_LBRACKET', // [
+    TK_RBRACKET: 'TK_RBRACKET', // ]
+    TK_LBRACE: 'TK_LBRACE', // {
+    TK_RBRACE: 'TK_RBRACE', // }
+    TK_COMMA: 'TK_COMMA', // ,
+    TK_COLON: 'TK_COLON', // :
+    TK_ARROW: 'TK_ARROW', // =>
 
     // Event binding
-    TK_ON_EVENT: 'TK_ON_EVENT',   // on_klik, on_mouseover, dll
+    TK_ON_EVENT: 'TK_ON_EVENT', // on_klik, on_mouseover, dll
 
     // Struktur
     TK_INDENT: 'TK_INDENT',
@@ -98,46 +98,46 @@
    * ========================================================================== */
   const KEYWORDS = {
     // Indonesia
-    'buat': TT.TK_BUAT,
-    'jika': TT.TK_JIKA,
-    'lainnya': TT.TK_LAINNYA,
-    'ulangi': TT.TK_ULANGI,
-    'untuk': TT.TK_UNTUK,
-    'pass': TT.TK_PASS,
-    'lewati': TT.TK_PASS,
-    'definisikan': TT.TK_DEFINSIKAN,
-    'data': TT.TK_DATA,
-    'tetap': TT.TK_TETAP,
-    'ubah': TT.TK_UBAH,
-    'turunan': TT.TK_TURUNAN,
-    'fungsi': TT.TK_FUNGSI,
-    'saat': TT.TK_SAAT,
-    'kembalikan': TT.TK_KEMBALIKAN,
-    'in': TT.TK_IN,
-    'dari': TT.TK_IN,
-    'kali': TT.TK_KALI,
-    'halaman': TT.TK_BUAT,    // Page root — synonym for Buat halaman
-    'komponen': TT.TK_DEFINSIKAN, // Component declaration (alias of Definisikan)
+    buat: TT.TK_BUAT,
+    jika: TT.TK_JIKA,
+    lainnya: TT.TK_LAINNYA,
+    ulangi: TT.TK_ULANGI,
+    untuk: TT.TK_UNTUK,
+    pass: TT.TK_PASS,
+    lewati: TT.TK_PASS,
+    definisikan: TT.TK_DEFINSIKAN,
+    data: TT.TK_DATA,
+    tetap: TT.TK_TETAP,
+    ubah: TT.TK_UBAH,
+    turunan: TT.TK_TURUNAN,
+    fungsi: TT.TK_FUNGSI,
+    saat: TT.TK_SAAT,
+    kembalikan: TT.TK_KEMBALIKAN,
+    in: TT.TK_IN,
+    dari: TT.TK_IN,
+    kali: TT.TK_KALI,
+    halaman: TT.TK_BUAT, // Page root — synonym for Buat halaman
+    komponen: TT.TK_DEFINSIKAN, // Component declaration (alias of Definisikan)
 
     // English
-    'create': TT.TK_BUAT,
-    'page': TT.TK_BUAT,       // Page root — synonym for Create page
-    'component': TT.TK_DEFINSIKAN, // Component declaration (alias of Define)
-    'if': TT.TK_JIKA,
-    'else': TT.TK_LAINNYA,
-    'loop': TT.TK_ULANGI,
-    'for': TT.TK_UNTUK,
-    'from': TT.TK_IN,
-    'times': TT.TK_KALI,
-    'define': TT.TK_DEFINSIKAN,
-    'state': TT.TK_DATA,
-    'const': TT.TK_TETAP,
-    'let': TT.TK_UBAH,
-    'derived': TT.TK_TURUNAN,
-    'func': TT.TK_FUNGSI,
-    'when': TT.TK_SAAT,
-    'return': TT.TK_KEMBALIKAN,
-    'skip': TT.TK_PASS,
+    create: TT.TK_BUAT,
+    page: TT.TK_BUAT, // Page root — synonym for Create page
+    component: TT.TK_DEFINSIKAN, // Component declaration (alias of Define)
+    if: TT.TK_JIKA,
+    else: TT.TK_LAINNYA,
+    loop: TT.TK_ULANGI,
+    for: TT.TK_UNTUK,
+    from: TT.TK_IN,
+    times: TT.TK_KALI,
+    define: TT.TK_DEFINSIKAN,
+    state: TT.TK_DATA,
+    const: TT.TK_TETAP,
+    let: TT.TK_UBAH,
+    derived: TT.TK_TURUNAN,
+    func: TT.TK_FUNGSI,
+    when: TT.TK_SAAT,
+    return: TT.TK_KEMBALIKAN,
+    skip: TT.TK_PASS,
   };
 
   /* ==========================================================================
@@ -145,78 +145,109 @@
    * ========================================================================== */
   const EVENT_ALIASES = {
     // Indonesia style
-    'on_klik': 'diklik',
-    'on_diklik': 'diklik',
-    'on_diketik': 'diketik',
-    'on_ditekan': 'ditekan',
-    'on_dilepas': 'dilepas',
-    'on_diubah': 'diubah',
-    'on_disubmit': 'disubmit',
-    'on_difokus': 'difokus',
-    'on_ditinggal': 'ditinggal',
-    'on_diarahkan': 'diarahkan',
-    'on_dimuat': 'dimuat',
-    'on_digulir': 'digulir',
+    on_klik: 'diklik',
+    on_diklik: 'diklik',
+    on_diketik: 'diketik',
+    on_ditekan: 'ditekan',
+    on_dilepas: 'dilepas',
+    on_diubah: 'diubah',
+    on_disubmit: 'disubmit',
+    on_difokus: 'difokus',
+    on_ditinggal: 'ditinggal',
+    on_diarahkan: 'diarahkan',
+    on_dimuat: 'dimuat',
+    on_digulir: 'digulir',
 
     // English style
-    'on_click': 'diklik',
-    'on_input': 'diketik',
-    'on_keydown': 'ditekan',
-    'on_keyup': 'dilepas',
-    'on_change': 'diubah',
-    'on_submit': 'disubmit',
-    'on_focus': 'difokus',
-    'on_blur': 'ditinggal',
-    'on_mouseover': 'diarahkan',
-    'on_mouseout': 'ditinggal-kursor',
-    'on_load': 'dimuat',
-    'on_scroll': 'digulir',
-    'on_dragstart': 'diseret',
-    'on_contextmenu': 'dikonteks',
-    'on_paste': 'dilewat',
-    'on_mouseenter': 'masuk',
-    'on_mouseleave': 'keluar',
-    'on_resize': 'diubahukuran',
-    'on_error': 'salah',
+    on_click: 'diklik',
+    on_input: 'diketik',
+    on_keydown: 'ditekan',
+    on_keyup: 'dilepas',
+    on_change: 'diubah',
+    on_submit: 'disubmit',
+    on_focus: 'difokus',
+    on_blur: 'ditinggal',
+    on_mouseover: 'diarahkan',
+    on_mouseout: 'ditinggal-kursor',
+    on_load: 'dimuat',
+    on_scroll: 'digulir',
+    on_dragstart: 'diseret',
+    on_contextmenu: 'dikonteks',
+    on_paste: 'dilewat',
+    on_mouseenter: 'masuk',
+    on_mouseleave: 'keluar',
+    on_resize: 'diubahukuran',
+    on_error: 'salah',
   };
 
   /* ==========================================================================
    * 4. TAG ALIASES (PromptJS tag → HTML tag, merged with PromptJS's)
    * ========================================================================== */
   const TAG_ALIASES = {
-    'tombol': 'button', 'button': 'button',
-    'ruang': 'div', 'div': 'div',
-    'judul': 'h1', 'h1': 'h1',
-    'subjudul': 'h2', 'h2': 'h2',
-    'paragraf': 'p', 'p': 'p',
-    'gambar': 'img', 'img': 'img',
-    'tautan': 'a', 'a': 'a',
-    'masukan': 'input', 'input': 'input',
-    'pilihan': 'select', 'select': 'select',
-    'kolom': 'textarea', 'textarea': 'textarea',
-    'tabel': 'table', 'table': 'table',
-    'artikel': 'article', 'article': 'article',
-    'kanvas': 'canvas', 'canvas': 'canvas',
-    'opsi': 'option', 'option': 'option',
-    'fragmen': 'fragment', 'fragment': 'fragment',
-    'wadah': 'div',
-    'pemisah': 'hr',
-    'hr': 'hr',
-    'form': 'form', 'frm': 'form',
-    'nav': 'nav', 'navigasi': 'nav',
-    'header': 'header', 'kepala': 'header',
-    'footer': 'footer', 'kaki': 'footer',
-    'section': 'section', 'bagian': 'section',
-    'main': 'main', 'utama': 'main',
-    'aside': 'aside', 'samping': 'aside',
-    'ul': 'ul', 'daftar': 'ul',
-    'ol': 'ol', 'daftarterurut': 'ol',
-    'li': 'li', 'item': 'li',
-    'span': 'span', 'rentang': 'span',
-    'label': 'label',
-    'h3': 'h3', 'h4': 'h4', 'h5': 'h5', 'h6': 'h6',
-    'video': 'video', 'audio': 'audio',
-    'iframe': 'iframe', 'bingkai': 'iframe',
+    tombol: 'button',
+    button: 'button',
+    ruang: 'div',
+    div: 'div',
+    judul: 'h1',
+    h1: 'h1',
+    subjudul: 'h2',
+    h2: 'h2',
+    paragraf: 'p',
+    p: 'p',
+    gambar: 'img',
+    img: 'img',
+    tautan: 'a',
+    a: 'a',
+    masukan: 'input',
+    input: 'input',
+    pilihan: 'select',
+    select: 'select',
+    kolom: 'textarea',
+    textarea: 'textarea',
+    tabel: 'table',
+    table: 'table',
+    artikel: 'article',
+    article: 'article',
+    kanvas: 'canvas',
+    canvas: 'canvas',
+    opsi: 'option',
+    option: 'option',
+    fragmen: 'fragment',
+    fragment: 'fragment',
+    wadah: 'div',
+    pemisah: 'hr',
+    hr: 'hr',
+    form: 'form',
+    frm: 'form',
+    nav: 'nav',
+    navigasi: 'nav',
+    header: 'header',
+    kepala: 'header',
+    footer: 'footer',
+    kaki: 'footer',
+    section: 'section',
+    bagian: 'section',
+    main: 'main',
+    utama: 'main',
+    aside: 'aside',
+    samping: 'aside',
+    ul: 'ul',
+    daftar: 'ul',
+    ol: 'ol',
+    daftarterurut: 'ol',
+    li: 'li',
+    item: 'li',
+    span: 'span',
+    rentang: 'span',
+    label: 'label',
+    h3: 'h3',
+    h4: 'h4',
+    h5: 'h5',
+    h6: 'h6',
+    video: 'video',
+    audio: 'audio',
+    iframe: 'iframe',
+    bingkai: 'iframe',
   };
 
   /* ==========================================================================
@@ -309,11 +340,15 @@
       // --- Indentation handling ---
       const indent = this._measureIndent(rawLine);
       if (indent < 0) {
-        this.errors.push(createError('E1001',
-          `Indentasi ganjil di baris ${lineNum}: ${indent} spasi (harus kelipatan 2)`,
-          lineNum, 1,
-          'Gunakan kelipatan 2 spasi untuk indentasi.'
-        ));
+        this.errors.push(
+          createError(
+            'E1001',
+            `Indentasi ganjil di baris ${lineNum}: ${indent} spasi (harus kelipatan 2)`,
+            lineNum,
+            1,
+            'Gunakan kelipatan 2 spasi untuk indentasi.'
+          )
+        );
         continue;
       }
       if (indent > rawLine.length) continue; // all-whitespace line
@@ -359,16 +394,23 @@
       this.indentStack.push(indent);
       this.tokens.push(new Token(TT.TK_INDENT, '', lineNum, 1));
     } else if (indent < current) {
-      while (this.indentStack.length > 1 && this.indentStack[this.indentStack.length - 1] > indent) {
+      while (
+        this.indentStack.length > 1 &&
+        this.indentStack[this.indentStack.length - 1] > indent
+      ) {
         this.indentStack.pop();
         this.tokens.push(new Token(TT.TK_DEDENT, '', lineNum, 1));
       }
       if (this.indentStack[this.indentStack.length - 1] !== indent) {
-        this.errors.push(createError('E1002',
-          `Indentasi tidak konsisten di baris ${lineNum}: expected ${this.indentStack[this.indentStack.length - 1]}, got ${indent}`,
-          lineNum, 1,
-          'Pastikan setiap blok menggunakan indentasi yang konsisten (kelipatan 2 spasi).'
-        ));
+        this.errors.push(
+          createError(
+            'E1002',
+            `Indentasi tidak konsisten di baris ${lineNum}: expected ${this.indentStack[this.indentStack.length - 1]}, got ${indent}`,
+            lineNum,
+            1,
+            'Pastikan setiap blok menggunakan indentasi yang konsisten (kelipatan 2 spasi).'
+          )
+        );
       }
     }
   };
@@ -401,21 +443,27 @@
     }
 
     // 5. Block openers: Buat/Create/Definisikan/Define/Halaman/Page/Komponen/Component keyword
-    const blockMatch = trimmed.match(/^(Buat|buat|Create|create|Definisikan|definisikan|Define|define|Halaman|halaman|Page|page|Komponen|komponen|Component|component)\b/);
+    const blockMatch = trimmed.match(
+      /^(Buat|buat|Create|create|Definisikan|definisikan|Define|define|Halaman|halaman|Page|page|Komponen|komponen|Component|component)\b/
+    );
     if (blockMatch) {
       this._tokenizeBlockOpener(trimmed, lineNum, baseCol, blockMatch[1]);
       return;
     }
 
     // 6. Control flow: Jika/If, Lainnya/Else, Ulangi/Loop
-    const ctrlMatch = trimmed.match(/^(Jika|jika|If|if|Lainnya|lainnya|Else|else|Ulangi|ulangi|Loop|loop)\b/);
+    const ctrlMatch = trimmed.match(
+      /^(Jika|jika|If|if|Lainnya|lainnya|Else|else|Ulangi|ulangi|Loop|loop)\b/
+    );
     if (ctrlMatch) {
       this._tokenizeControlFlow(trimmed, lineNum, baseCol, ctrlMatch[1]);
       return;
     }
 
     // 7. Data declarations: Data/State, Tetap/Const, Ubah/Let, Turunan/Derived, Fungsi/Func
-    const declMatch = trimmed.match(/^(Data|data|State|state|Tetap|tetap|Const|const|Ubah|ubah|Let|let|Turunan|turunan|Derived|derived|Fungsi|fungsi|Func|func|Saat|saat|When|when|Kembalikan|kembalikan|Return|return)\b/);
+    const declMatch = trimmed.match(
+      /^(Data|data|State|state|Tetap|tetap|Const|const|Ubah|ubah|Let|let|Turunan|turunan|Derived|derived|Fungsi|fungsi|Func|func|Saat|saat|When|when|Kembalikan|kembalikan|Return|return)\b/
+    );
     if (declMatch) {
       this._tokenizeDeclaration(trimmed, lineNum, baseCol, declMatch[1]);
       return;
@@ -449,11 +497,15 @@
       // Unterminated string
       const text = content.substring(1);
       this.tokens.push(new Token(TT.TK_STRING, text, lineNum, baseCol + 1, content));
-      this.errors.push(createError('E1003',
-        `String tidak tertutup di baris ${lineNum}`,
-        lineNum, baseCol + 1,
-        `Pastikan string diakhiri dengan ${quote}.`
-      ));
+      this.errors.push(
+        createError(
+          'E1003',
+          `String tidak tertutup di baris ${lineNum}`,
+          lineNum,
+          baseCol + 1,
+          `Pastikan string diakhiri dengan ${quote}.`
+        )
+      );
     }
   };
 
@@ -466,7 +518,6 @@
     this.tokens.push(new Token(TT.TK_ON_EVENT, eventName, lineNum, baseCol + 1));
 
     // Look up PromptJS event name
-    const promptjsEvent = EVENT_ALIASES[eventName] || eventName;
     this.tokens.push(new Token(TT.TK_ASSIGN, '=', lineNum, baseCol + eqIdx + 1));
 
     // Tokenize the expression part
@@ -493,9 +544,7 @@
 
   // --- Block opener tokenization ---
   // Keywords that ARE the element name (not just a prefix like Buat)
-  const SELF_NAMED_KEYWORDS = new Set([
-    'halaman', 'page'
-  ]);
+  const SELF_NAMED_KEYWORDS = new Set(['halaman', 'page']);
 
   PromptJSLexer.prototype._tokenizeBlockOpener = function (content, lineNum, baseCol, keyword) {
     const kwToken = KEYWORDS[keyword.toLowerCase()] || TT.TK_BUAT;
@@ -657,11 +706,15 @@
     } else if (afterKeyword) {
       // No colon at all — this is an error for block openers
       this._tokenizeSelector(afterKeyword, lineNum, baseCol + keyword.length + 1);
-      this.errors.push(createError('E1004',
-        `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
-        lineNum, baseCol + 1,
-        'Tambahkan : di akhir baris untuk membuka blok. Contoh: Buat card:'
-      ));
+      this.errors.push(
+        createError(
+          'E1004',
+          `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
+          lineNum,
+          baseCol + 1,
+          'Tambahkan : di akhir baris untuk membuka blok. Contoh: Buat card:'
+        )
+      );
     }
   };
 
@@ -703,12 +756,14 @@
     }
 
     // Emit selector as structured token value
-    this.tokens.push(new Token(TT.TK_IDENT, tag, lineNum, baseCol, {
-      type: 'Selector',
-      tag: tag,
-      classes: classes,
-      id: id
-    }));
+    this.tokens.push(
+      new Token(TT.TK_IDENT, tag, lineNum, baseCol, {
+        type: 'Selector',
+        tag: tag,
+        classes: classes,
+        id: id,
+      })
+    );
 
     // Also emit class and id tokens for parser convenience
     for (const cls of classes) {
@@ -815,13 +870,22 @@
       }
 
       // Number literal
-      if ((ch >= '0' && ch <= '9') || (ch === '-' && pos + 1 < len && expr[pos + 1] >= '0' && expr[pos + 1] <= '9')) {
+      if (
+        (ch >= '0' && ch <= '9') ||
+        (ch === '-' && pos + 1 < len && expr[pos + 1] >= '0' && expr[pos + 1] <= '9')
+      ) {
         let num = '';
-        if (ch === '-') { num += '-'; pos++; }
-        while (pos < len && ((expr[pos] >= '0' && expr[pos] <= '9') || expr[pos] === '.')) {
-          num += expr[pos]; pos++;
+        if (ch === '-') {
+          num += '-';
+          pos++;
         }
-        this.tokens.push(new Token(TT.TK_NUMBER, parseFloat(num), lineNum, baseCol + pos - num.length));
+        while (pos < len && ((expr[pos] >= '0' && expr[pos] <= '9') || expr[pos] === '.')) {
+          num += expr[pos];
+          pos++;
+        }
+        this.tokens.push(
+          new Token(TT.TK_NUMBER, parseFloat(num), lineNum, baseCol + pos - num.length)
+        );
         continue;
       }
 
@@ -829,11 +893,16 @@
       if (ch === '$') {
         let ref = '$';
         pos++;
-        while (pos < len && (expr[pos] === '_' || expr[pos] === '.' ||
-               (expr[pos] >= 'a' && expr[pos] <= 'z') ||
-               (expr[pos] >= 'A' && expr[pos] <= 'Z') ||
-               (expr[pos] >= '0' && expr[pos] <= '9'))) {
-          ref += expr[pos]; pos++;
+        while (
+          pos < len &&
+          (expr[pos] === '_' ||
+            expr[pos] === '.' ||
+            (expr[pos] >= 'a' && expr[pos] <= 'z') ||
+            (expr[pos] >= 'A' && expr[pos] <= 'Z') ||
+            (expr[pos] >= '0' && expr[pos] <= '9'))
+        ) {
+          ref += expr[pos];
+          pos++;
         }
         this.tokens.push(new Token(TT.TK_EXT_REF, ref, lineNum, baseCol + pos - ref.length + 1));
         continue;
@@ -845,7 +914,8 @@
         if (triple === '===' || triple === '!==' || triple === '...') {
           const ttype = triple === '===' ? TT.TK_EQ : triple === '!==' ? TT.TK_NEQ : TT.TK_IDENT;
           this.tokens.push(new Token(ttype, triple, lineNum, baseCol + pos + 1));
-          pos += 3; continue;
+          pos += 3;
+          continue;
         }
       }
       if (pos + 1 < len) {
@@ -853,48 +923,120 @@
         if (pair === '>=' || pair === '<=' || pair === '&&' || pair === '||' || pair === '=>') {
           let ttype;
           switch (pair) {
-            case '>=': ttype = TT.TK_GTE; break;
-            case '<=': ttype = TT.TK_LTE; break;
-            case '&&': ttype = TT.TK_AND; break;
-            case '||': ttype = TT.TK_OR; break;
-            case '=>': ttype = TT.TK_ARROW; break;
+            case '>=':
+              ttype = TT.TK_GTE;
+              break;
+            case '<=':
+              ttype = TT.TK_LTE;
+              break;
+            case '&&':
+              ttype = TT.TK_AND;
+              break;
+            case '||':
+              ttype = TT.TK_OR;
+              break;
+            case '=>':
+              ttype = TT.TK_ARROW;
+              break;
           }
           this.tokens.push(new Token(ttype, pair, lineNum, baseCol + pos + 1));
-          pos += 2; continue;
+          pos += 2;
+          continue;
         }
       }
 
       // Single-char operators & symbols
       switch (ch) {
-        case '=': this.tokens.push(new Token(TT.TK_ASSIGN, '=', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '>': this.tokens.push(new Token(TT.TK_GT, '>', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '<': this.tokens.push(new Token(TT.TK_LT, '<', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '+': this.tokens.push(new Token(TT.TK_PLUS, '+', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '-': this.tokens.push(new Token(TT.TK_MINUS, '-', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '*': this.tokens.push(new Token(TT.TK_STAR, '*', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '/': this.tokens.push(new Token(TT.TK_SLASH, '/', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '%': this.tokens.push(new Token(TT.TK_MOD, '%', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '!': this.tokens.push(new Token(TT.TK_NOT, '!', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '.': this.tokens.push(new Token(TT.TK_DOT, '.', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '#': this.tokens.push(new Token(TT.TK_HASH, '#', lineNum, baseCol + pos + 1)); pos++; continue;
-        case ':': this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + pos + 1)); pos++; continue;
-        case ',': this.tokens.push(new Token(TT.TK_COMMA, ',', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '(': this.tokens.push(new Token(TT.TK_LPAREN, '(', lineNum, baseCol + pos + 1)); pos++; continue;
-        case ')': this.tokens.push(new Token(TT.TK_RPAREN, ')', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '[': this.tokens.push(new Token(TT.TK_LBRACKET, '[', lineNum, baseCol + pos + 1)); pos++; continue;
-        case ']': this.tokens.push(new Token(TT.TK_RBRACKET, ']', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '{': this.tokens.push(new Token(TT.TK_LBRACE, '{', lineNum, baseCol + pos + 1)); pos++; continue;
-        case '}': this.tokens.push(new Token(TT.TK_RBRACE, '}', lineNum, baseCol + pos + 1)); pos++; continue;
+        case '=':
+          this.tokens.push(new Token(TT.TK_ASSIGN, '=', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '>':
+          this.tokens.push(new Token(TT.TK_GT, '>', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '<':
+          this.tokens.push(new Token(TT.TK_LT, '<', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '+':
+          this.tokens.push(new Token(TT.TK_PLUS, '+', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '-':
+          this.tokens.push(new Token(TT.TK_MINUS, '-', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '*':
+          this.tokens.push(new Token(TT.TK_STAR, '*', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '/':
+          this.tokens.push(new Token(TT.TK_SLASH, '/', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '%':
+          this.tokens.push(new Token(TT.TK_MOD, '%', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '!':
+          this.tokens.push(new Token(TT.TK_NOT, '!', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '.':
+          this.tokens.push(new Token(TT.TK_DOT, '.', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '#':
+          this.tokens.push(new Token(TT.TK_HASH, '#', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case ':':
+          this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case ',':
+          this.tokens.push(new Token(TT.TK_COMMA, ',', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '(':
+          this.tokens.push(new Token(TT.TK_LPAREN, '(', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case ')':
+          this.tokens.push(new Token(TT.TK_RPAREN, ')', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '[':
+          this.tokens.push(new Token(TT.TK_LBRACKET, '[', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case ']':
+          this.tokens.push(new Token(TT.TK_RBRACKET, ']', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '{':
+          this.tokens.push(new Token(TT.TK_LBRACE, '{', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
+        case '}':
+          this.tokens.push(new Token(TT.TK_RBRACE, '}', lineNum, baseCol + pos + 1));
+          pos++;
+          continue;
       }
 
       // Identifier or keyword
       if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch === '_') {
         let ident = '';
-        while (pos < len && (expr[pos] === '_' ||
-               (expr[pos] >= 'a' && expr[pos] <= 'z') ||
-               (expr[pos] >= 'A' && expr[pos] <= 'Z') ||
-               (expr[pos] >= '0' && expr[pos] <= '9'))) {
-          ident += expr[pos]; pos++;
+        while (
+          pos < len &&
+          (expr[pos] === '_' ||
+            (expr[pos] >= 'a' && expr[pos] <= 'z') ||
+            (expr[pos] >= 'A' && expr[pos] <= 'Z') ||
+            (expr[pos] >= '0' && expr[pos] <= '9'))
+        ) {
+          ident += expr[pos];
+          pos++;
         }
 
         // Check if it's a keyword
@@ -902,17 +1044,23 @@
         if (kwType) {
           this.tokens.push(new Token(kwType, ident, lineNum, baseCol + pos - ident.length + 1));
         } else {
-          this.tokens.push(new Token(TT.TK_IDENT, ident, lineNum, baseCol + pos - ident.length + 1));
+          this.tokens.push(
+            new Token(TT.TK_IDENT, ident, lineNum, baseCol + pos - ident.length + 1)
+          );
         }
         continue;
       }
 
       // Unknown character
-      this.errors.push(createError('E1005',
-        `Karakter tidak dikenali di baris ${lineNum}: '${ch}'`,
-        lineNum, baseCol + pos + 1,
-        `Hapus atau ganti karakter '${ch}'.`
-      ));
+      this.errors.push(
+        createError(
+          'E1005',
+          `Karakter tidak dikenali di baris ${lineNum}: '${ch}'`,
+          lineNum,
+          baseCol + pos + 1,
+          `Hapus atau ganti karakter '${ch}'.`
+        )
+      );
       pos++;
     }
   };
@@ -938,12 +1086,12 @@
         // Try strict JSON first; if fails, try lenient (unquoted keys)
         try {
           result[key] = { type: 'inline', value: JSON.parse(value) };
-        } catch (e) {
+        } catch {
           try {
             // Lenient: wrap keys in quotes for unquoted YAML-like objects
             const fixed = value.replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":');
             result[key] = { type: 'inline', value: JSON.parse(fixed) };
-          } catch (e2) {
+          } catch {
             result[key] = { type: 'inline', value: value };
           }
         }
@@ -954,7 +1102,7 @@
         try {
           const parsed = JSON.parse(value);
           result[key] = { type: 'inline', value: parsed };
-        } catch (e) {
+        } catch {
           result[key] = { type: 'inline', value: value };
         }
       }

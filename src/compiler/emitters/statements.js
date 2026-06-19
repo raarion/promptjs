@@ -11,12 +11,12 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — DECLARATIONS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitDataDeclaration = function(node) {
+  PromptJSCompiler.prototype.visitDataDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
     this.emit(`const ${node.name} = __createReactive(${initVal});`);
   };
 
-  PromptJSCompiler.prototype.visitTetapDeclaration = function(node) {
+  PromptJSCompiler.prototype.visitTetapDeclaration = function (node) {
     // PromptJS patch: handle external data from front-matter
     if (node._isExternal && node._externalInfo) {
       const info = node._externalInfo;
@@ -25,7 +25,9 @@ function install(PromptJSCompiler, accept) {
       } else if (info.type === 'file') {
         // File reference: at build time, the engine should have loaded the data.
         // If not loaded (dev mode), emit a placeholder that loads at runtime.
-        this.emit(`const ${node.name} = window.__DATA__ && window.__DATA__.${node.name} || ${JSON.stringify(info.value || null)};`);
+        this.emit(
+          `const ${node.name} = window.__DATA__ && window.__DATA__.${node.name} || ${JSON.stringify(info.value || null)};`
+        );
       } else {
         this.emit(`const ${node.name} = ${JSON.stringify(info.value || null)};`);
       }
@@ -35,17 +37,17 @@ function install(PromptJSCompiler, accept) {
     this.emit(`const ${node.name} = ${initVal};`);
   };
 
-  PromptJSCompiler.prototype.visitUbahDeclaration = function(node) {
+  PromptJSCompiler.prototype.visitUbahDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
     this.emit(`let ${node.name} = ${initVal};`);
   };
 
-  PromptJSCompiler.prototype.visitTurunanDeclaration = function(node) {
+  PromptJSCompiler.prototype.visitTurunanDeclaration = function (node) {
     const expr = this.lowerExpression(node.init);
     this.emit(`const ${node.name} = __createComputed(() => ${expr});`);
   };
 
-  PromptJSCompiler.prototype.visitKomponenDeclaration = function(node) {
+  PromptJSCompiler.prototype.visitKomponenDeclaration = function (node) {
     // Component = factory function that takes a single named-props object and
     // returns a DOM element. Props are destructured into locals so the body can
     // reference them by name (e.g. `judul`).
@@ -56,7 +58,7 @@ function install(PromptJSCompiler, accept) {
     this.emit(`props = props || {};`);
     this.emit(`// Component: ${node.name}`);
     if (node.params && node.params.length > 0) {
-      node.params.forEach(p => {
+      node.params.forEach((p) => {
         this.emit(`const ${p.name} = props.${p.name};`);
       });
     }
@@ -79,92 +81,97 @@ function install(PromptJSCompiler, accept) {
     this.emit(`window.${node.name} = ${componentVar};`);
   };
 
-  PromptJSCompiler.prototype.visitFungsiDeclaration = function(node) {
-    const params = node.params.map(p => p.name).join(', ');
+  PromptJSCompiler.prototype.visitFungsiDeclaration = function (node) {
+    const params = node.params.map((p) => p.name).join(', ');
     this.emit(`function ${node.name}(${params}) {`);
     this.indent++;
     accept(node.body, this);
     this.indent--;
-    this.emit("}");
+    this.emit('}');
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // VISITOR IMPLEMENTATIONS — DOM STRUCTURE
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitBuatStatement = function(node) {
+  PromptJSCompiler.prototype.visitBuatStatement = function (node) {
     const varName = this.genVar('el');
     node.compiledVarName = varName; // Simpan untuk child reference
 
     // Tag alias mapping
     const tagAliases = {
       // Original aliases
-      'tombol': 'button',
-      'ruang': 'div',
-      'judul': 'h1',
-      'subjudul': 'h2',
-      'paragraf': 'p',
-      'gambar': 'img',
-      'tautan': 'a',
-      'masukan': 'input',
-      'pilihan': 'select',
-      'kolom': 'textarea',
-      'tabel': 'table',
-      'artikel': 'article',
-      'kanvas': 'canvas',
-      'opsi': 'option',
-      'fragmen': 'fragment',
-      'wadjud': 'h1',
-      'wadah': 'div',
-      'kotak': 'div',
-      'frm': 'form',
-      'frmMasuk': 'form',
+      tombol: 'button',
+      ruang: 'div',
+      judul: 'h1',
+      subjudul: 'h2',
+      paragraf: 'p',
+      gambar: 'img',
+      tautan: 'a',
+      masukan: 'input',
+      pilihan: 'select',
+      kolom: 'textarea',
+      tabel: 'table',
+      artikel: 'article',
+      kanvas: 'canvas',
+      opsi: 'option',
+      fragmen: 'fragment',
+      wadjud: 'h1',
+      wadah: 'div',
+      kotak: 'div',
+      frm: 'form',
+      frmMasuk: 'form',
       // PromptJS extended aliases (bilingual + additional)
-      'halaman': 'div',
-      'card': 'div',
-      'page': 'div',
-      'pemisah': 'hr',
-      'container': 'div',
-      'button': 'button',
-      'div': 'div',
-      'h1': 'h1', 'h2': 'h2', 'h3': 'h3', 'h4': 'h4', 'h5': 'h5', 'h6': 'h6',
-      'p': 'p',
-      'img': 'img',
-      'a': 'a',
-      'input': 'input',
-      'select': 'select',
-      'textarea': 'textarea',
-      'table': 'table',
-      'article': 'article',
-      'canvas': 'canvas',
-      'option': 'option',
-      'fragment': 'fragment',
-      'form': 'form',
-      'hr': 'hr',
-      'nav': 'nav',
-      'header': 'header',
-      'footer': 'footer',
-      'section': 'section',
-      'main': 'main',
-      'aside': 'aside',
-      'ul': 'ul',
-      'ol': 'ol',
-      'li': 'li',
-      'span': 'span',
-      'label': 'label',
-      'video': 'video',
-      'audio': 'audio',
-      'iframe': 'iframe',
-      'navigasi': 'nav',
-      'kepala': 'header',
-      'kaki': 'footer',
-      'bagian': 'section',
-      'utama': 'main',
-      'samping': 'aside',
-      'daftar': 'ul',
-      'item': 'li',
-      'rentang': 'span',
-      'bingkai': 'iframe',
+      halaman: 'div',
+      card: 'div',
+      page: 'div',
+      pemisah: 'hr',
+      container: 'div',
+      button: 'button',
+      div: 'div',
+      h1: 'h1',
+      h2: 'h2',
+      h3: 'h3',
+      h4: 'h4',
+      h5: 'h5',
+      h6: 'h6',
+      p: 'p',
+      img: 'img',
+      a: 'a',
+      input: 'input',
+      select: 'select',
+      textarea: 'textarea',
+      table: 'table',
+      article: 'article',
+      canvas: 'canvas',
+      option: 'option',
+      fragment: 'fragment',
+      form: 'form',
+      hr: 'hr',
+      nav: 'nav',
+      header: 'header',
+      footer: 'footer',
+      section: 'section',
+      main: 'main',
+      aside: 'aside',
+      ul: 'ul',
+      ol: 'ol',
+      li: 'li',
+      span: 'span',
+      label: 'label',
+      video: 'video',
+      audio: 'audio',
+      iframe: 'iframe',
+      navigasi: 'nav',
+      kepala: 'header',
+      kaki: 'footer',
+      bagian: 'section',
+      utama: 'main',
+      samping: 'aside',
+      daftar: 'ul',
+      item: 'li',
+      rentang: 'span',
+      bingkai: 'iframe',
     };
 
     const tag = tagAliases[node.selector.tag] || node.selector.tag;
@@ -193,7 +200,7 @@ function install(PromptJSCompiler, accept) {
 
     // Attributes dari selector
     if (node.selector.attributes && node.selector.attributes.length > 0) {
-      node.selector.attributes.forEach(attr => {
+      node.selector.attributes.forEach((attr) => {
         const attrVal = attr.value ? this.lowerExpression(attr.value) : '""';
         this.emit(`${varName}.setAttribute("${attr.key}", ${attrVal});`);
       });
@@ -201,7 +208,7 @@ function install(PromptJSCompiler, accept) {
 
     // Properti
     if (node.properties) {
-      node.properties.forEach(p => {
+      node.properties.forEach((p) => {
         const val = this.lowerExpression(p.value);
         if (p.key === 'teks') this.emit(`${varName}.innerText = ${val};`);
         else if (p.key === 'html') this.emit(`${varName}.innerHTML = ${val};`);
@@ -237,7 +244,7 @@ function install(PromptJSCompiler, accept) {
   };
 
   // ── PromptJS patch: TextNode emitter ──────────────────────────────────────────
-  PromptJSCompiler.prototype.visitTextNode = function(node) {
+  PromptJSCompiler.prototype.visitTextNode = function (node) {
     const varName = this.genVar('txt');
     this.emit(`const ${varName} = document.createTextNode(${JSON.stringify(node.value)});`);
     if (!this.currentParent) {
@@ -247,7 +254,7 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitTampilkanStatement = function(node) {
+  PromptJSCompiler.prototype.visitTampilkanStatement = function (node) {
     // Handle message kinds: pesan, pesan-error, notifikasi
     if (node.messageKind) {
       const msgVal = this.lowerExpression(node.target);
@@ -256,7 +263,9 @@ function install(PromptJSCompiler, accept) {
       } else if (node.messageKind === 'pesan-error') {
         this.emit(`console.error(${msgVal});`);
       } else if (node.messageKind === 'notifikasi') {
-        this.emit(`if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { new Notification(${msgVal}); } else { alert(${msgVal}); };`);
+        this.emit(
+          `if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { new Notification(${msgVal}); } else { alert(${msgVal}); };`
+        );
       }
       return;
     }
@@ -273,17 +282,19 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitSembunyikanStatement = function(node) {
+  PromptJSCompiler.prototype.visitSembunyikanStatement = function (node) {
     const target = this.resolveTarget(node.target);
     this.emit(`{ const __el = ${target}; if (__el) __el.style.display = 'none'; };`);
   };
 
-  PromptJSCompiler.prototype.visitHapusStatement = function(node) {
+  PromptJSCompiler.prototype.visitHapusStatement = function (node) {
     const target = this.resolveTarget(node.target);
-    this.emit(`{ const __el = ${target}; if (__el && __el.parentElement) __el.parentElement.removeChild(__el); };`);
+    this.emit(
+      `{ const __el = ${target}; if (__el && __el.parentElement) __el.parentElement.removeChild(__el); };`
+    );
   };
 
-  PromptJSCompiler.prototype.visitHapusDariStatement = function(node) {
+  PromptJSCompiler.prototype.visitHapusDariStatement = function (node) {
     const item = this.lowerExpression(node.item);
     const arr = node.fromArray;
     const isReactive = node.fromArrayReactive;
@@ -298,31 +309,31 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitKosongkanStatement = function(node) {
+  PromptJSCompiler.prototype.visitKosongkanStatement = function (node) {
     const target = this.resolveTarget(node.target);
     this.emit(`{ const __el = ${target}; if (__el) __el.innerHTML = ''; };`);
   };
 
-  PromptJSCompiler.prototype.visitPerbaruiStatement = function(node) {
+  PromptJSCompiler.prototype.visitPerbaruiStatement = function (node) {
     const val = this.lowerExpression(node.value);
     const target = this.resolveTarget(node.target);
 
     const propertyMap = {
-      'teks': 'innerText',
-      'html': 'innerHTML',
-      'nilai': 'value',
-      'kelas': 'className',
-      'gaya': 'style.cssText',
-      'sumber': 'src',
-      'src': 'src',
-      'tautan': 'href',
-      'href': 'href',
-      'tipe': 'type',
-      'nama': 'name',
-      'ditandai': 'checked',
-      'nonaktif': 'disabled',
-      'placeholder': 'placeholder',
-      'atribut': 'setAttribute'
+      teks: 'innerText',
+      html: 'innerHTML',
+      nilai: 'value',
+      kelas: 'className',
+      gaya: 'style.cssText',
+      sumber: 'src',
+      src: 'src',
+      tautan: 'href',
+      href: 'href',
+      tipe: 'type',
+      nama: 'name',
+      ditandai: 'checked',
+      nonaktif: 'disabled',
+      placeholder: 'placeholder',
+      atribut: 'setAttribute',
     };
 
     const jsProp = propertyMap[node.property];
@@ -337,36 +348,36 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — BEHAVIOR & EVENTS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitKetikaStatement = function(node) {
+  PromptJSCompiler.prototype.visitKetikaStatement = function (node) {
     const eventMap = {
-      'diklik': 'click',
-      'diketik': 'input',
-      'disubmit': 'submit',
-      'diubah': 'change',
-      'ditekan': 'keydown',
-      'dilepas': 'keyup',
-      'dimuat': 'DOMContentLoaded',
-      'difokus': 'focus',
-      'diblur': 'blur',
-      'ditinggal': 'blur',
-      'diarahkan': 'mouseover',
+      diklik: 'click',
+      diketik: 'input',
+      disubmit: 'submit',
+      diubah: 'change',
+      ditekan: 'keydown',
+      dilepas: 'keyup',
+      dimuat: 'DOMContentLoaded',
+      difokus: 'focus',
+      diblur: 'blur',
+      ditinggal: 'blur',
+      diarahkan: 'mouseover',
       'ditinggal-kursor': 'mouseout',
-      'digulir': 'scroll',
-      'diseret': 'dragstart',
-      'diubahukuran': 'resize',
-      'dipindah': 'drag',
-      'dikirim': 'submit',
-      'direset': 'reset',
-      'dikonteks': 'contextmenu',
-      'dilewat': 'paste',
-      'masuk': 'mouseenter',
-      'keluar': 'mouseleave',
-      'aktif': 'focus',
-      'nonaktif': 'blur',
-      'muat': 'load',
-      'salah': 'error',
-      'dipasang': '__promptjs_mounted',
-      'dilepas-dari-dom': '__promptjs_unmounted'
+      digulir: 'scroll',
+      diseret: 'dragstart',
+      diubahukuran: 'resize',
+      dipindah: 'drag',
+      dikirim: 'submit',
+      direset: 'reset',
+      dikonteks: 'contextmenu',
+      dilewat: 'paste',
+      masuk: 'mouseenter',
+      keluar: 'mouseleave',
+      aktif: 'focus',
+      nonaktif: 'blur',
+      muat: 'load',
+      salah: 'error',
+      dipasang: '__promptjs_mounted',
+      'dilepas-dari-dom': '__promptjs_unmounted',
     };
 
     const eventName = eventMap[node.event] || node.event;
@@ -399,7 +410,7 @@ function install(PromptJSCompiler, accept) {
     }
 
     this.indent++;
-    if (node.event === 'disubmit') this.emit("event.preventDefault();");
+    if (node.event === 'disubmit') this.emit('event.preventDefault();');
 
     if (node.body) accept(node.body, this);
     if (node.action) {
@@ -413,27 +424,20 @@ function install(PromptJSCompiler, accept) {
     }
 
     this.indent--;
-    this.emit("});");
+    this.emit('});');
   };
 
-  PromptJSCompiler.prototype.visitSaatStatement = function(node) {
+  PromptJSCompiler.prototype.visitSaatStatement = function (node) {
     this.emit(`__watch(${node.target}, (nilaiBaru, nilaiLama) => {`);
     this.indent++;
     accept(node.body, this);
     this.indent--;
-    this.emit("});");
+    this.emit('});');
   };
 
-  PromptJSCompiler.prototype.visitLifecycleStatement = function(node) {
-    // Lifecycle hooks: dipasang, dilepas, diperbarui
-    const lifecycleMap = {
-      'dipasang': '__promptjs_mounted',
-      'dilepas': '__promptjs_unmounted',
-      'diperbarui': '__promptjs_updated'
-    };
-    const hookName = lifecycleMap[node.kind] || node.kind;
-
-    // Emit as custom event dispatch or callback registration
+  PromptJSCompiler.prototype.visitLifecycleStatement = function (node) {
+    // Lifecycle hooks: dipasang, dilepas, diperbarui.
+    // Emitted directly via DOM event listeners based on node.kind below.
     this.emit(`// Lifecycle: saat komponen ${node.kind}`);
     if (node.kind === 'dipasang') {
       // mounted — schedule to run after DOM is ready
@@ -463,7 +467,7 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitSetelahStatement = function(node) {
+  PromptJSCompiler.prototype.visitSetelahStatement = function (node) {
     // "setelah X selesai" — X adalah nama operasi/fungsi async
     // Lower to: X().then(() => { ... }) atau callback setelah pemanggilan
     const target = node.target;
@@ -472,7 +476,9 @@ function install(PromptJSCompiler, accept) {
     // Jika ya, panggil langsung tanpa typeof check (fungsi lokal selalu ada).
     // Jika tidak, gunakan typeof check untuk keamanan (external/async).
     const isLocalFunction = node.targetSymbol && node.targetSymbol.isFunction;
-    const callExpr = isLocalFunction ? `${target}()` : `(typeof ${target} === 'function' ? ${target}() : ${target})`;
+    const callExpr = isLocalFunction
+      ? `${target}()`
+      : `(typeof ${target} === 'function' ? ${target}() : ${target})`;
 
     this.emit(`// setelah ${target} selesai`);
     if (node.body) {
@@ -494,22 +500,22 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — LOGIC & CONTROL FLOW
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitJikaStatement = function(node) {
+  PromptJSCompiler.prototype.visitJikaStatement = function (node) {
     const cond = this.lowerExpression(node.condition);
     this.emit(`if (${cond}) {`);
     this.indent++;
     accept(node.consequent, this);
     this.indent--;
     if (node.alternate) {
-      this.emit("} else {");
+      this.emit('} else {');
       this.indent++;
       accept(node.alternate, this);
       this.indent--;
     }
-    this.emit("}");
+    this.emit('}');
   };
 
-  PromptJSCompiler.prototype.visitUlangiStatement = function(node) {
+  PromptJSCompiler.prototype.visitUlangiStatement = function (node) {
     const source = this.lowerExpression(node.source);
 
     if (node.kind === 'kali') {
@@ -522,7 +528,9 @@ function install(PromptJSCompiler, accept) {
     } else if (node.kind === 'rentang') {
       // "ulangi item dari A sampai B:" → for range
       const rangeEnd = node.rangeEnd ? this.lowerExpression(node.rangeEnd) : source;
-      this.emit(`for (let ${node.iteratorName} = ${source}; ${node.iteratorName} <= ${rangeEnd}; ${node.iteratorName}++) {`);
+      this.emit(
+        `for (let ${node.iteratorName} = ${source}; ${node.iteratorName} <= ${rangeEnd}; ${node.iteratorName}++) {`
+      );
       this.indent++;
       accept(node.body, this);
       this.indent--;
@@ -533,24 +541,24 @@ function install(PromptJSCompiler, accept) {
       this.indent++;
       accept(node.body, this);
       this.indent--;
-      this.emit("});");
+      this.emit('});');
     }
   };
 
-  PromptJSCompiler.prototype.visitSelamaStatement = function(node) {
+  PromptJSCompiler.prototype.visitSelamaStatement = function (node) {
     const cond = this.lowerExpression(node.condition);
     this.emit(`while (${cond}) {`);
     this.indent++;
     accept(node.body, this);
     this.indent--;
-    this.emit("}");
+    this.emit('}');
   };
 
-  PromptJSCompiler.prototype.visitBerhentiStatement = function(node) {
+  PromptJSCompiler.prototype.visitBerhentiStatement = function (_node) {
     this.emit(`break;`);
   };
 
-  PromptJSCompiler.prototype.visitLewatiStatement = function(node) {
+  PromptJSCompiler.prototype.visitLewatiStatement = function (_node) {
     // PromptJS patch: "pass" inside a BuatStatement means "empty element body" — emit nothing.
     // "lewati" inside a loop means "skip this iteration" — emit continue.
     // We use a context flag set by visitBuatStatement.
@@ -561,7 +569,7 @@ function install(PromptJSCompiler, accept) {
     this.emit(`continue;`);
   };
 
-  PromptJSCompiler.prototype.visitKembalikanStatement = function(node) {
+  PromptJSCompiler.prototype.visitKembalikanStatement = function (node) {
     if (node.value) {
       const val = this.lowerExpression(node.value);
       this.emit(`return ${val};`);
@@ -582,7 +590,7 @@ function install(PromptJSCompiler, accept) {
    * - Biasa (ubah) → plain variable → gunakan assignment langsung
    * - Tidak diketahui → fallback ke __setState (aman untuk Proxy)
    */
-  PromptJSCompiler.prototype._isTargetReactive = function(node) {
+  PromptJSCompiler.prototype._isTargetReactive = function (node) {
     if (node.targetSymbol) {
       return node.targetSymbol.isReactive === true;
     }
@@ -591,7 +599,7 @@ function install(PromptJSCompiler, accept) {
     return true;
   };
 
-  PromptJSCompiler.prototype.visitSimpanStatement = function(node) {
+  PromptJSCompiler.prototype.visitSimpanStatement = function (node) {
     const target = node.target;
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
@@ -603,7 +611,7 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitTambahkanStatement = function(node) {
+  PromptJSCompiler.prototype.visitTambahkanStatement = function (node) {
     const target = node.target;
     const jumlah = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
@@ -615,7 +623,7 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitKurangiStatement = function(node) {
+  PromptJSCompiler.prototype.visitKurangiStatement = function (node) {
     const target = node.target;
     // Default ke 1 jika tidak ada value (kurangi counter → counter - 1)
     const jumlah = node.value ? this.lowerExpression(node.value) : '1';
@@ -628,7 +636,7 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitSisipkanStatement = function(node) {
+  PromptJSCompiler.prototype.visitSisipkanStatement = function (node) {
     const val = this.lowerExpression(node.value);
     const target = node.target;
     if (this._isTargetReactive(node)) {
@@ -642,18 +650,18 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitAmbilDomStatement = function(node) {
+  PromptJSCompiler.prototype.visitAmbilDomStatement = function (node) {
     // "ambil nilai/teks/html/dll dari sumber -> simpan ke target"
     const source = this.resolveTarget(node.source);
     const targetVar = node.target; // string nama variabel
 
     const kindMap = {
-      'nilai': 'value',
-      'teks': 'innerText',
-      'html': 'innerHTML',
-      'tinggi': 'offsetHeight',
-      'lebar': 'offsetWidth',
-      'atribut': null  // khusus — pakai getAttribute
+      nilai: 'value',
+      teks: 'innerText',
+      html: 'innerHTML',
+      tinggi: 'offsetHeight',
+      lebar: 'offsetWidth',
+      atribut: null, // khusus — pakai getAttribute
     };
 
     if (node.kind === 'atribut') {
@@ -665,14 +673,14 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitAmbilLuarStatement = function(node) {
+  PromptJSCompiler.prototype.visitAmbilLuarStatement = function (node) {
     // "ambil dari URL" → fetch API
     const url = this.lowerExpression(node.url);
 
     // Build fetch options
     let fetchOptions = '{}';
     if (node.options && node.options.length > 0) {
-      const optPairs = node.options.map(opt => {
+      const optPairs = node.options.map((opt) => {
         const val = this.lowerExpression(opt.value);
         return `"${opt.key}": ${val}`;
       });
@@ -684,7 +692,7 @@ function install(PromptJSCompiler, accept) {
 
     // Process branches (berhasil, gagal, selalu)
     if (node.branches && node.branches.length > 0) {
-      node.branches.forEach(branch => {
+      node.branches.forEach((branch) => {
         if (branch.kind === 'berhasil') {
           this.emit(`.then((__response) => {`);
           this.indent++;
@@ -726,14 +734,14 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — KOMPONEN & GUNAKAN
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitGunakanStatement = function(node) {
+  PromptJSCompiler.prototype.visitGunakanStatement = function (node) {
     // "gunakan NamaKomponen dengan props di target"
     const componentFactory = `__komp_${node.componentName}`;
 
     // Build props object
     let propsArg = '';
     if (node.props && node.props.length > 0) {
-      const propPairs = node.props.map(p => {
+      const propPairs = node.props.map((p) => {
         const val = this.lowerExpression(p.value);
         return `"${p.key}": ${val}`;
       });
@@ -758,17 +766,17 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — NAVIGASI
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitArahkanStatement = function(node) {
+  PromptJSCompiler.prototype.visitArahkanStatement = function (node) {
     // "arahkan ke URL" → window.location.href
     const url = this.lowerExpression(node.url);
     this.emit(`window.location.href = ${url};`);
   };
 
-  PromptJSCompiler.prototype.visitMuatUlangStatement = function(node) {
+  PromptJSCompiler.prototype.visitMuatUlangStatement = function (_node) {
     this.emit(`window.location.reload();`);
   };
 
-  PromptJSCompiler.prototype.visitKembaliStatement = function(node) {
+  PromptJSCompiler.prototype.visitKembaliStatement = function (_node) {
     this.emit(`window.history.back();`);
   };
 
@@ -776,29 +784,28 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — INTEROP & RANTAI AKSI
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  PromptJSCompiler.prototype.visitLangsungBlock = function(node) {
+  PromptJSCompiler.prototype.visitLangsungBlock = function (node) {
     this.emit(node.content);
   };
 
-  PromptJSCompiler.prototype.visitPanggilNativeExpression = function(node) {
-    const args = node.arguments.map(a => this.lowerExpression(a)).join(', ');
+  PromptJSCompiler.prototype.visitPanggilNativeExpression = function (node) {
+    const args = node.arguments.map((a) => this.lowerExpression(a)).join(', ');
     // Gunakan lowerExpression untuk callee, bukan .name langsung
     // Ini mendukung MemberExpression seperti console.log, document.querySelector
     const calleeCode = this.lowerExpression(node.callee);
     const code = `${calleeCode}(${args})`;
 
     if (this.currentParent) {
-        // Jika dipanggil sebagai statement di dalam blok 'buat'
-        this.emit(`${code};`);
+      // Jika dipanggil sebagai statement di dalam blok 'buat'
+      this.emit(`${code};`);
     } else {
-        return code;
+      return code;
     }
   };
 
-  PromptJSCompiler.prototype.visitJalankanExpression = function(node) {
+  PromptJSCompiler.prototype.visitJalankanExpression = function (node) {
     // Hanya gunakan node.arguments atau node.withArgs
-    const args = (node.arguments || node.withArgs || [])
-      .map(a => this.lowerExpression(a));
+    const args = (node.arguments || node.withArgs || []).map((a) => this.lowerExpression(a));
     const code = `${node.callee}(${args.join(', ')})`;
 
     // Jika dipakai sebagai statement di dalam blok 'buat' (ada currentParent),
@@ -810,7 +817,7 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
-  PromptJSCompiler.prototype.visitRantaiAksi = function(node) {
+  PromptJSCompiler.prototype.visitRantaiAksi = function (node) {
     // RantaiAksi: first statement diikuti chain of actions
     // "aksi1 lalu aksi2 lalu aksi3"
     // Lower: jalankan first, lalu chain secara berurutan
@@ -820,7 +827,7 @@ function install(PromptJSCompiler, accept) {
 
     // Visit each chained action
     if (node.chain && node.chain.length > 0) {
-      node.chain.forEach(chainedAction => {
+      node.chain.forEach((chainedAction) => {
         accept(chainedAction, this);
       });
     }
@@ -832,7 +839,7 @@ function install(PromptJSCompiler, accept) {
   // Without these, BaseVisitor.genericVisit would just traverse children
   // without producing any output.
 
-  PromptJSCompiler.prototype.visitCallExpression = function(node) {
+  PromptJSCompiler.prototype.visitCallExpression = function (node) {
     const code = this.lowerExpression(node);
     if (this.currentParent) {
       this.emit(code + ';');
@@ -840,42 +847,41 @@ function install(PromptJSCompiler, accept) {
     return code;
   };
 
-  PromptJSCompiler.prototype.visitIdentifier = function(node) {
+  PromptJSCompiler.prototype.visitIdentifier = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitLiteral = function(node) {
+  PromptJSCompiler.prototype.visitLiteral = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitBinaryExpression = function(node) {
+  PromptJSCompiler.prototype.visitBinaryExpression = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitUnaryExpression = function(node) {
+  PromptJSCompiler.prototype.visitUnaryExpression = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitMemberExpression = function(node) {
+  PromptJSCompiler.prototype.visitMemberExpression = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitObjectLiteral = function(node) {
+  PromptJSCompiler.prototype.visitObjectLiteral = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitArrayLiteral = function(node) {
+  PromptJSCompiler.prototype.visitArrayLiteral = function (node) {
     return this.lowerExpression(node);
   };
 
-  PromptJSCompiler.prototype.visitJalankanExpression = function(node) {
+  PromptJSCompiler.prototype.visitJalankanExpression = function (node) {
     const code = this.lowerExpression(node);
     if (this.currentParent) {
       this.emit(code + ';');
     }
     return code;
   };
-
 }
 
 module.exports = { install };

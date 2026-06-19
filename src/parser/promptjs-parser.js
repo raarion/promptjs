@@ -28,11 +28,15 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   // Pre-populate external data from front-matter as TetapDeclaration nodes
   if (frontMatterData) {
     for (const [name, info] of Object.entries(frontMatterData)) {
-      this.frontMatterDecls.push(AST.buatTetapDeclaration(
-        name, null,
-        AST.buatLiteral(info.type === 'inline' ? info.value : null, 'external', null),
-        null, null
-      ));
+      this.frontMatterDecls.push(
+        AST.buatTetapDeclaration(
+          name,
+          null,
+          AST.buatLiteral(info.type === 'inline' ? info.value : null, 'external', null),
+          null,
+          null
+        )
+      );
       // Mark as external for resolver patch
       this.frontMatterDecls[this.frontMatterDecls.length - 1]._isExternal = true;
       this.frontMatterDecls[this.frontMatterDecls.length - 1]._externalInfo = info;
@@ -56,7 +60,7 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
 
   return {
     ast: AST.buatProgramNode(fullBody, null, 'promptjs'),
-    errors: this.errors
+    errors: this.errors,
   };
 };
 
@@ -95,10 +99,12 @@ PromptJSParser.prototype._expect = function (type, errorMsg) {
   }
   const tok = this._peek();
   this.errors.push({
-    code: 'E2001', severity: 'error',
+    code: 'E2001',
+    severity: 'error',
     message: errorMsg || `Expected ${type}, got ${tok.type}`,
-    line: tok.line, column: tok.col,
-    suggestion: ''
+    line: tok.line,
+    column: tok.col,
+    suggestion: '',
   });
   return null;
 };
@@ -115,20 +121,35 @@ PromptJSParser.prototype._parseStatement = function () {
   const tok = this._peek();
 
   switch (tok.type) {
-    case TT.TK_BUAT: return this._parseBuatStatement();
-    case TT.TK_JIKA: return this._parseJikaStatement();
-    case TT.TK_LAINNYA: return null; // Handled by Jika parser
-    case TT.TK_ULANGI: return this._parseUlangiStatement();
-    case TT.TK_PASS: return this._parsePassStatement();
-    case TT.TK_DATA: case TT.TK_TETAP: case TT.TK_UBAH: case TT.TK_TURUNAN:
+    case TT.TK_BUAT:
+      return this._parseBuatStatement();
+    case TT.TK_JIKA:
+      return this._parseJikaStatement();
+    case TT.TK_LAINNYA:
+      return null; // Handled by Jika parser
+    case TT.TK_ULANGI:
+      return this._parseUlangiStatement();
+    case TT.TK_PASS:
+      return this._parsePassStatement();
+    case TT.TK_DATA:
+    case TT.TK_TETAP:
+    case TT.TK_UBAH:
+    case TT.TK_TURUNAN:
       return this._parseDataDeclaration();
-    case TT.TK_FUNGSI: return this._parseFungsiDeclaration();
-    case TT.TK_DEFINSIKAN: return this._parseDefineComponent();
-    case TT.TK_SAAT: return this._parseSaatStatement();
-    case TT.TK_KEMBALIKAN: return this._parseReturnStatement();
-    case TT.TK_STRING: return this._parseTextNode();
-    case TT.TK_ON_EVENT: return this._parseOnEventStatement();
-    case TT.TK_IDENT: return this._parsePropertyOrExpr();
+    case TT.TK_FUNGSI:
+      return this._parseFungsiDeclaration();
+    case TT.TK_DEFINSIKAN:
+      return this._parseDefineComponent();
+    case TT.TK_SAAT:
+      return this._parseSaatStatement();
+    case TT.TK_KEMBALIKAN:
+      return this._parseReturnStatement();
+    case TT.TK_STRING:
+      return this._parseTextNode();
+    case TT.TK_ON_EVENT:
+      return this._parseOnEventStatement();
+    case TT.TK_IDENT:
+      return this._parsePropertyOrExpr();
     default:
       this._advance(); // skip unknown
       return null;
@@ -178,7 +199,7 @@ PromptJSParser.prototype._parseBuatStatement = function () {
         const textNode = {
           type: 'TextNode',
           loc: inlineExpr.loc || loc,
-          value: inlineExpr.value
+          value: inlineExpr.value,
         };
         const blockBody = AST.buatBlockStatement([textNode], null);
         body = blockBody;
@@ -212,7 +233,12 @@ PromptJSParser.prototype._parseSelector = function () {
   let id = null;
 
   // If the IDENT token has raw selector metadata from lexer
-  if (tok.type === TT.TK_IDENT && tok.raw && typeof tok.raw === 'object' && tok.raw.type === 'Selector') {
+  if (
+    tok.type === TT.TK_IDENT &&
+    tok.raw &&
+    typeof tok.raw === 'object' &&
+    tok.raw.type === 'Selector'
+  ) {
     this._advance();
     const sel = tok.raw;
     tag = sel.tag;
@@ -270,7 +296,10 @@ PromptJSParser.prototype._parseBlock = function () {
   if (statements.length > 1) {
     const fragSelector = AST.buatSelector('fragment', null, null, [], []);
     const fragBody = AST.buatBlockStatement(statements, null);
-    return AST.buatBlockStatement([AST.buatBuatStatement(fragSelector, null, null, null, fragBody, null)], null);
+    return AST.buatBlockStatement(
+      [AST.buatBuatStatement(fragSelector, null, null, null, fragBody, null)],
+      null
+    );
   }
 
   return AST.buatBlockStatement(statements, null);
@@ -336,10 +365,12 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
   // Expect "in"
   if (this._peek().type !== TT.TK_IN) {
     this.errors.push({
-      code: 'E2011', severity: 'error',
+      code: 'E2011',
+      severity: 'error',
       message: 'Expected "in" after iterator name',
-      line: this._peek().line, column: this._peek().col,
-      suggestion: 'Syntax: Ulangi untuk item in $collection:'
+      line: this._peek().line,
+      column: this._peek().col,
+      suggestion: 'Syntax: Ulangi untuk item in $collection:',
     });
     return null;
   }
@@ -373,7 +404,7 @@ PromptJSParser.prototype._parseTextNode = function () {
   return {
     type: 'TextNode',
     loc: this._makeLoc(tok),
-    value: tok.value
+    value: tok.value,
   };
 };
 
@@ -433,13 +464,17 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
   const loc = this._makeLoc(kindTok);
 
   switch (keyword) {
-    case 'data': case 'state':
+    case 'data':
+    case 'state':
       return AST.buatDataDeclaration(name, typeHint, init, loc, null);
-    case 'tetap': case 'const':
+    case 'tetap':
+    case 'const':
       return AST.buatTetapDeclaration(name, typeHint, init, loc, null);
-    case 'ubah': case 'let':
+    case 'ubah':
+    case 'let':
       return AST.buatUbahDeclaration(name, typeHint, init, loc, null);
-    case 'turunan': case 'derived':
+    case 'turunan':
+    case 'derived':
       return AST.buatTurunanDeclaration(name, typeHint, init, loc, null);
     default:
       return AST.buatTetapDeclaration(name, typeHint, init, loc, null);
@@ -521,7 +556,11 @@ PromptJSParser.prototype._parseSaatStatement = function () {
 PromptJSParser.prototype._parseReturnStatement = function () {
   const startTok = this._advance(); // consume Kembalikan/Return
   let value = null;
-  if (this._peek().type !== TT.TK_COLON && this._peek().type !== TT.TK_INDENT && this._peek().type !== TT.TK_DEDENT) {
+  if (
+    this._peek().type !== TT.TK_COLON &&
+    this._peek().type !== TT.TK_INDENT &&
+    this._peek().type !== TT.TK_DEDENT
+  ) {
     value = this._parseExpression();
   }
   return AST.buatKembalikanStatement(this._makeLoc(startTok), value);
@@ -538,10 +577,17 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
   const PRECEDENCE = {
     [TT.TK_OR]: 1,
     [TT.TK_AND]: 2,
-    [TT.TK_EQ]: 3, [TT.TK_NEQ]: 3,
-    [TT.TK_GT]: 4, [TT.TK_GTE]: 4, [TT.TK_LT]: 4, [TT.TK_LTE]: 4,
-    [TT.TK_PLUS]: 5, [TT.TK_MINUS]: 5,
-    [TT.TK_STAR]: 6, [TT.TK_SLASH]: 6, [TT.TK_MOD]: 6,
+    [TT.TK_EQ]: 3,
+    [TT.TK_NEQ]: 3,
+    [TT.TK_GT]: 4,
+    [TT.TK_GTE]: 4,
+    [TT.TK_LT]: 4,
+    [TT.TK_LTE]: 4,
+    [TT.TK_PLUS]: 5,
+    [TT.TK_MINUS]: 5,
+    [TT.TK_STAR]: 6,
+    [TT.TK_SLASH]: 6,
+    [TT.TK_MOD]: 6,
   };
 
   while (true) {
@@ -554,11 +600,19 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
 
     // Map operator token to JS operator string
     const opMap = {
-      [TT.TK_PLUS]: '+', [TT.TK_MINUS]: '-',
-      [TT.TK_STAR]: '*', [TT.TK_SLASH]: '/', [TT.TK_MOD]: '%',
-      [TT.TK_GT]: '>', [TT.TK_GTE]: '>=', [TT.TK_LT]: '<', [TT.TK_LTE]: '<=',
-      [TT.TK_EQ]: '===', [TT.TK_NEQ]: '!==',
-      [TT.TK_AND]: '&&', [TT.TK_OR]: '||',
+      [TT.TK_PLUS]: '+',
+      [TT.TK_MINUS]: '-',
+      [TT.TK_STAR]: '*',
+      [TT.TK_SLASH]: '/',
+      [TT.TK_MOD]: '%',
+      [TT.TK_GT]: '>',
+      [TT.TK_GTE]: '>=',
+      [TT.TK_LT]: '<',
+      [TT.TK_LTE]: '<=',
+      [TT.TK_EQ]: '===',
+      [TT.TK_NEQ]: '!==',
+      [TT.TK_AND]: '&&',
+      [TT.TK_OR]: '||',
     };
     const opStr = opMap[opTok.type] || opTok.value;
 
@@ -682,10 +736,12 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
   // Fallback: skip and report
   this._advance();
   this.errors.push({
-    code: 'E2020', severity: 'error',
+    code: 'E2020',
+    severity: 'error',
     message: `Unexpected token: ${tok.type} ("${tok.value}")`,
-    line: tok.line, column: tok.col,
-    suggestion: ''
+    line: tok.line,
+    column: tok.col,
+    suggestion: '',
   });
   return AST.buatLiteral(null, 'null', null);
 };
@@ -696,5 +752,5 @@ module.exports = {
   parse(tokens, frontMatterData) {
     const parser = new PromptJSParser();
     return parser.parse(tokens, frontMatterData);
-  }
+  },
 };

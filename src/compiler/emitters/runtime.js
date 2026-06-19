@@ -141,12 +141,12 @@ function __promptjs_apakahAda(arr, item) {
 `;
 
 function emitRuntimeHelpers(compiler) {
-  compiler.emit("// === Runtime Helpers ===");
+  compiler.emit('// === Runtime Helpers ===');
   compiler.output.push(RUNTIME_HELPERS.trim());
-  compiler.emit("");
+  compiler.emit('');
 }
 
 module.exports = {
   RUNTIME_HELPERS,
-  emitRuntimeHelpers
+  emitRuntimeHelpers,
 };

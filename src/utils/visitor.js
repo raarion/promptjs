@@ -6,8 +6,6 @@
  * Berdasarkan: RFC-PARSER-001 §8
  */
 
-var TT = require('../parser/token-types');
-
 /**
  * Dispatch otomatis ke metode visit yang sesuai berdasarkan node.type.
  *
@@ -50,54 +48,102 @@ function traverse(node, visitor) {
  */
 function getChildKeys(nodeType) {
   switch (nodeType) {
-    case 'Program': return ['body'];
-    case 'BlockStatement': return ['body'];
-    case 'BuatStatement': return ['selector', 'properties', 'docstring', 'body', 'action'];
-    case 'TampilkanStatement': return ['target', 'mountTarget'];
-    case 'SembunyikanStatement': return ['target'];
-    case 'HapusStatement': return ['target'];
-    case 'KosongkanStatement': return ['target'];
-    case 'PerbaruiStatement': return ['target', 'value'];
-    case 'KetikaStatement': return ['target', 'body', 'action'];
-    case 'SaatStatement': return ['body'];
-    case 'LifecycleStatement': return ['body'];
-    case 'SetelahStatement': return ['body', 'action'];
-    case 'JikaStatement': return ['condition', 'consequent', 'alternate'];
-    case 'UlangiStatement': return ['source', 'body', 'rangeEnd'];
-    case 'SelamaStatement': return ['condition', 'body'];
-    case 'KembalikanStatement': return ['value'];
-    case 'SimpanStatement': return ['value'];
-    case 'TambahkanStatement': return ['value'];
-    case 'KurangiStatement': return ['value'];
-    case 'SisipkanStatement': return ['value'];
-    case 'AmbilDomStatement': return ['source'];
-    case 'AmbilLuarStatement': return ['url', 'options', 'branches'];
-    case 'KomponenDeclaration': return ['params', 'body'];
-    case 'FungsiDeclaration': return ['params', 'body'];
-    case 'GunakanStatement': return ['props', 'mountTarget'];
-    case 'JalankanExpression': return ['arguments', 'withArgs'];
-    case 'RantaiAksi': return ['first', 'chain'];
-    case 'BinaryExpression': return ['left', 'right'];
-    case 'UnaryExpression': return ['operand'];
-    case 'MemberExpression': return ['object', 'property'];
-    case 'CallExpression': return ['callee', 'arguments'];
-    case 'PanggilNativeExpression': return ['callee', 'arguments'];
-    case 'ObjectLiteral': return ['properties'];
-    case 'ArrayLiteral': return ['elements'];
-    case 'Selector': return ['attributes'];
-    case 'PropertyNode': return ['value'];
-    case 'AttributeNode': return ['value'];
-    case 'Parameter': return ['defaultValue'];
-    case 'SelfReference': return [];
-    case 'DataDeclaration': return ['init'];
-    case 'TetapDeclaration': return ['init'];
-    case 'UbahDeclaration': return ['init'];
-    case 'TurunanDeclaration': return ['init'];
-    case 'ArahkanStatement': return ['url'];
-    case 'FetchBranch': return ['action'];
-    case 'FetchOption': return ['value'];
-    case 'TextNode': return [];  // PromptJS: no child keys, value is a string
-    default: return [];
+    case 'Program':
+      return ['body'];
+    case 'BlockStatement':
+      return ['body'];
+    case 'BuatStatement':
+      return ['selector', 'properties', 'docstring', 'body', 'action'];
+    case 'TampilkanStatement':
+      return ['target', 'mountTarget'];
+    case 'SembunyikanStatement':
+      return ['target'];
+    case 'HapusStatement':
+      return ['target'];
+    case 'KosongkanStatement':
+      return ['target'];
+    case 'PerbaruiStatement':
+      return ['target', 'value'];
+    case 'KetikaStatement':
+      return ['target', 'body', 'action'];
+    case 'SaatStatement':
+      return ['body'];
+    case 'LifecycleStatement':
+      return ['body'];
+    case 'SetelahStatement':
+      return ['body', 'action'];
+    case 'JikaStatement':
+      return ['condition', 'consequent', 'alternate'];
+    case 'UlangiStatement':
+      return ['source', 'body', 'rangeEnd'];
+    case 'SelamaStatement':
+      return ['condition', 'body'];
+    case 'KembalikanStatement':
+      return ['value'];
+    case 'SimpanStatement':
+      return ['value'];
+    case 'TambahkanStatement':
+      return ['value'];
+    case 'KurangiStatement':
+      return ['value'];
+    case 'SisipkanStatement':
+      return ['value'];
+    case 'AmbilDomStatement':
+      return ['source'];
+    case 'AmbilLuarStatement':
+      return ['url', 'options', 'branches'];
+    case 'KomponenDeclaration':
+      return ['params', 'body'];
+    case 'FungsiDeclaration':
+      return ['params', 'body'];
+    case 'GunakanStatement':
+      return ['props', 'mountTarget'];
+    case 'JalankanExpression':
+      return ['arguments', 'withArgs'];
+    case 'RantaiAksi':
+      return ['first', 'chain'];
+    case 'BinaryExpression':
+      return ['left', 'right'];
+    case 'UnaryExpression':
+      return ['operand'];
+    case 'MemberExpression':
+      return ['object', 'property'];
+    case 'CallExpression':
+      return ['callee', 'arguments'];
+    case 'PanggilNativeExpression':
+      return ['callee', 'arguments'];
+    case 'ObjectLiteral':
+      return ['properties'];
+    case 'ArrayLiteral':
+      return ['elements'];
+    case 'Selector':
+      return ['attributes'];
+    case 'PropertyNode':
+      return ['value'];
+    case 'AttributeNode':
+      return ['value'];
+    case 'Parameter':
+      return ['defaultValue'];
+    case 'SelfReference':
+      return [];
+    case 'DataDeclaration':
+      return ['init'];
+    case 'TetapDeclaration':
+      return ['init'];
+    case 'UbahDeclaration':
+      return ['init'];
+    case 'TurunanDeclaration':
+      return ['init'];
+    case 'ArahkanStatement':
+      return ['url'];
+    case 'FetchBranch':
+      return ['action'];
+    case 'FetchOption':
+      return ['value'];
+    case 'TextNode':
+      return []; // PromptJS: no child keys, value is a string
+    default:
+      return [];
   }
 }
 
@@ -138,25 +184,61 @@ BaseVisitor.prototype.genericVisit = function (node) {
 
 // Buat metode visit untuk setiap tipe node yang meneruskan ke genericVisit
 var nodeTypes = [
-  'Program', 'BlockStatement',
-  'DataDeclaration', 'TetapDeclaration', 'UbahDeclaration', 'TurunanDeclaration',
-  'KomponenDeclaration', 'FungsiDeclaration',
-  'BuatStatement', 'TampilkanStatement', 'SembunyikanStatement',
-  'HapusStatement', 'KosongkanStatement', 'PerbaruiStatement',
-  'KetikaStatement', 'SaatStatement', 'LifecycleStatement', 'SetelahStatement',
-  'JikaStatement', 'UlangiStatement', 'SelamaStatement',
-  'BerhentiStatement', 'LewatiStatement', 'KembalikanStatement',
-  'SimpanStatement', 'TambahkanStatement', 'KurangiStatement', 'SisipkanStatement',
-  'AmbilDomStatement', 'AmbilLuarStatement',
-  'GunakanStatement', 'ArahkanStatement', 'MuatUlangStatement', 'KembaliStatement',
-  'LangsungBlock', 'JalankanExpression', 'PanggilNativeExpression',
+  'Program',
+  'BlockStatement',
+  'DataDeclaration',
+  'TetapDeclaration',
+  'UbahDeclaration',
+  'TurunanDeclaration',
+  'KomponenDeclaration',
+  'FungsiDeclaration',
+  'BuatStatement',
+  'TampilkanStatement',
+  'SembunyikanStatement',
+  'HapusStatement',
+  'KosongkanStatement',
+  'PerbaruiStatement',
+  'KetikaStatement',
+  'SaatStatement',
+  'LifecycleStatement',
+  'SetelahStatement',
+  'JikaStatement',
+  'UlangiStatement',
+  'SelamaStatement',
+  'BerhentiStatement',
+  'LewatiStatement',
+  'KembalikanStatement',
+  'SimpanStatement',
+  'TambahkanStatement',
+  'KurangiStatement',
+  'SisipkanStatement',
+  'AmbilDomStatement',
+  'AmbilLuarStatement',
+  'GunakanStatement',
+  'ArahkanStatement',
+  'MuatUlangStatement',
+  'KembaliStatement',
+  'LangsungBlock',
+  'JalankanExpression',
+  'PanggilNativeExpression',
   'RantaiAksi',
-  'Literal', 'Identifier', 'BinaryExpression', 'UnaryExpression',
-  'MemberExpression', 'CallExpression', 'ObjectLiteral', 'ArrayLiteral',
-  'Selector', 'PropertyNode', 'AttributeNode', 'Parameter', 'TextNode',
-  'FetchBranch', 'FetchOption',
+  'Literal',
+  'Identifier',
+  'BinaryExpression',
+  'UnaryExpression',
+  'MemberExpression',
+  'CallExpression',
+  'ObjectLiteral',
+  'ArrayLiteral',
+  'Selector',
+  'PropertyNode',
+  'AttributeNode',
+  'Parameter',
+  'TextNode',
+  'FetchBranch',
+  'FetchOption',
   'SelfReference',
-  'ErrorNode'
+  'ErrorNode',
 ];
 
 nodeTypes.forEach(function (type) {
@@ -220,10 +302,14 @@ function formatAST(node, indent) {
 
   // Tampilkan properti skalar
   for (var key in node) {
-    if (Object.prototype.hasOwnProperty.call(node, key) &&
-        key !== 'type' && key !== 'loc' && key !== 'docstring' &&
-        childKeys.indexOf(key) === -1 &&
-        typeof node[key] !== 'object') {
+    if (
+      Object.prototype.hasOwnProperty.call(node, key) &&
+      key !== 'type' &&
+      key !== 'loc' &&
+      key !== 'docstring' &&
+      childKeys.indexOf(key) === -1 &&
+      typeof node[key] !== 'object'
+    ) {
       scalarProps.push(key + ': ' + JSON.stringify(node[key]));
     }
   }
@@ -257,5 +343,5 @@ module.exports = {
   BaseVisitor: BaseVisitor,
   CollectingVisitor: CollectingVisitor,
   formatAST: formatAST,
-  nodeTypes: nodeTypes
+  nodeTypes: nodeTypes,
 };

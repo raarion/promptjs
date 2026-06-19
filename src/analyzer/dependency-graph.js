@@ -26,24 +26,37 @@ function collectIdentifierReferences(node, out, seen) {
     out.push({
       name: node.name,
       symbol: node.resolved,
-      loc: node.loc || null
+      loc: node.loc || null,
     });
     return out;
   }
 
-  Object.keys(node).forEach(function(key) {
+  Object.keys(node).forEach(function (key) {
     // Hindari circular/internal metadata.
-    if (key === 'loc' || key === 'symbol' || key === 'resolved' || key === 'semantic' ||
-        key === 'targetSymbol' || key === 'declarationNode' || key === 'shadowedSymbol' ||
-        key === 'references' || key === 'scope' || key === 'parent') {
+    if (
+      key === 'loc' ||
+      key === 'symbol' ||
+      key === 'resolved' ||
+      key === 'semantic' ||
+      key === 'targetSymbol' ||
+      key === 'declarationNode' ||
+      key === 'shadowedSymbol' ||
+      key === 'references' ||
+      key === 'scope' ||
+      key === 'parent'
+    ) {
       return;
     }
     var value = node[key];
     if (Array.isArray(value)) {
-      value.forEach(function(item) {
-        if (isAstNode(item) || (item && typeof item === 'object')) collectIdentifierReferences(item, out, seen);
+      value.forEach(function (item) {
+        if (isAstNode(item) || (item && typeof item === 'object'))
+          collectIdentifierReferences(item, out, seen);
       });
-    } else if (isAstNode(value) || (value && typeof value === 'object' && !value.start && !value.end)) {
+    } else if (
+      isAstNode(value) ||
+      (value && typeof value === 'object' && !value.start && !value.end)
+    ) {
       collectIdentifierReferences(value, out, seen);
     }
   });
@@ -59,14 +72,26 @@ function traverseAst(node, visit, seen) {
 
   if (node.type) visit(node);
 
-  Object.keys(node).forEach(function(key) {
-    if (key === 'loc' || key === 'symbol' || key === 'resolved' || key === 'semantic' ||
-        key === 'targetSymbol' || key === 'declarationNode' || key === 'shadowedSymbol' ||
-        key === 'references' || key === 'scope' || key === 'parent') {
+  Object.keys(node).forEach(function (key) {
+    if (
+      key === 'loc' ||
+      key === 'symbol' ||
+      key === 'resolved' ||
+      key === 'semantic' ||
+      key === 'targetSymbol' ||
+      key === 'declarationNode' ||
+      key === 'shadowedSymbol' ||
+      key === 'references' ||
+      key === 'scope' ||
+      key === 'parent'
+    ) {
       return;
     }
     var value = node[key];
-    if (Array.isArray(value)) value.forEach(function(item) { traverseAst(item, visit, seen); });
+    if (Array.isArray(value))
+      value.forEach(function (item) {
+        traverseAst(item, visit, seen);
+      });
     else if (value && typeof value === 'object') traverseAst(value, visit, seen);
   });
 }
@@ -76,11 +101,11 @@ function buildDependencyGraph(ast) {
   var symbols = semantic && semantic.symbols ? semantic.symbols : [];
   var dependencies = [];
 
-  symbols.forEach(function(sym) {
+  symbols.forEach(function (sym) {
     if (!sym || sym.kind !== 'turunan' || !sym.declarationNode) return;
     var init = sym.declarationNode.init;
     var refs = collectIdentifierReferences(init, []);
-    refs.forEach(function(ref) {
+    refs.forEach(function (ref) {
       if (!ref.symbol || !ref.symbol.id || ref.symbol.id === sym.id) return;
       dependencies.push({
         from: sym.name,
@@ -88,12 +113,12 @@ function buildDependencyGraph(ast) {
         to: ref.symbol.name,
         toSymbolId: ref.symbol.id || null,
         kind: 'computed',
-        loc: ref.loc
+        loc: ref.loc,
       });
     });
   });
 
-  traverseAst(ast, function(node) {
+  traverseAst(ast, function (node) {
     if (node.type !== 'SaatStatement') return;
     var targetSymbol = null;
     if (node.target && typeof node.target === 'string') {
@@ -111,12 +136,12 @@ function buildDependencyGraph(ast) {
         to: targetSymbol.name,
         toSymbolId: targetSymbol.id || null,
         kind: 'watcher-target',
-        loc: node.loc || null
+        loc: node.loc || null,
       });
     }
 
     var bodyRefs = collectIdentifierReferences(node.body, []);
-    bodyRefs.forEach(function(ref) {
+    bodyRefs.forEach(function (ref) {
       if (!ref.symbol) return;
       dependencies.push({
         from: 'watcher@' + locKey(node.loc),
@@ -124,7 +149,7 @@ function buildDependencyGraph(ast) {
         to: ref.symbol.name,
         toSymbolId: ref.symbol.id || null,
         kind: 'watcher-body-read',
-        loc: ref.loc
+        loc: ref.loc,
       });
     });
   });
@@ -132,13 +157,13 @@ function buildDependencyGraph(ast) {
   var cycles = detectCycles(dependencies);
   return {
     dependencies: dependencies,
-    cycles: cycles
+    cycles: cycles,
   };
 }
 
 function detectCycles(edges) {
   var graph = new Map();
-  edges.forEach(function(edge) {
+  edges.forEach(function (edge) {
     // Cycle detection hanya untuk symbol-to-symbol computed dependencies.
     if (edge.kind !== 'computed' || !edge.fromSymbolId || !edge.toSymbolId) return;
     if (!graph.has(edge.fromSymbolId)) graph.set(edge.fromSymbolId, []);
@@ -176,7 +201,7 @@ function detectCycles(edges) {
     active.delete(node);
   }
 
-  Array.from(graph.keys()).forEach(function(node) {
+  Array.from(graph.keys()).forEach(function (node) {
     if (!visited.has(node)) dfs(node);
   });
 
@@ -189,7 +214,7 @@ function normalizeSemantic(ast) {
   var deps = semantic && semantic.dependencies ? semantic.dependencies : [];
   var cycles = semantic && semantic.dependencyCycles ? semantic.dependencyCycles : [];
 
-  var publicSymbols = symbols.map(function(sym) {
+  var publicSymbols = symbols.map(function (sym) {
     return {
       id: sym.id || null,
       name: sym.name,
@@ -205,17 +230,17 @@ function normalizeSemantic(ast) {
       isFunction: !!sym.isFunction,
       readCount: sym.readCount || 0,
       writeCount: sym.writeCount || 0,
-      shadowedSymbolId: sym.shadowedSymbol ? (sym.shadowedSymbol.id || null) : null
+      shadowedSymbolId: sym.shadowedSymbol ? sym.shadowedSymbol.id || null : null,
     };
   });
 
   var references = [];
-  symbols.forEach(function(sym) {
-    (sym.references || []).forEach(function(ref) {
+  symbols.forEach(function (sym) {
+    (sym.references || []).forEach(function (ref) {
       references.push({
         symbolId: sym.id || null,
         name: sym.name,
-        loc: ref.loc || null
+        loc: ref.loc || null,
       });
     });
   });
@@ -223,19 +248,19 @@ function normalizeSemantic(ast) {
   return {
     symbols: publicSymbols,
     references: references,
-    dependencies: deps.map(function(dep) {
+    dependencies: deps.map(function (dep) {
       return {
         from: dep.from,
         fromSymbolId: dep.fromSymbolId || null,
         to: dep.to,
         toSymbolId: dep.toSymbolId || null,
         kind: dep.kind,
-        loc: dep.loc || null
+        loc: dep.loc || null,
       };
     }),
-    cycles: cycles.map(function(cycle) {
+    cycles: cycles.map(function (cycle) {
       return { symbolIds: cycle.symbolIds ? cycle.symbolIds.slice() : [] };
-    })
+    }),
   };
 }
 
@@ -243,5 +268,5 @@ module.exports = {
   collectIdentifierReferences: collectIdentifierReferences,
   buildDependencyGraph: buildDependencyGraph,
   detectCycles: detectCycles,
-  normalizeSemantic: normalizeSemantic
+  normalizeSemantic: normalizeSemantic,
 };

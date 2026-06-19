@@ -68,7 +68,6 @@ function runServe(argv) {
   const inputDir = argv._[0] || '.';
   const port = argv.port || argv.p || 3000;
   const noReload = argv['no-reload'] || false;
-  const open = argv.open || false;
   const rootDir = path.resolve(inputDir);
 
   // Verify directory exists
@@ -77,7 +76,6 @@ function runServe(argv) {
     process.exit(1);
   }
 
-  const useColor = true;
   const green = '\x1b[32m';
   const cyan = '\x1b[36m';
   const bold = '\x1b[1m';
@@ -105,7 +103,7 @@ function runServe(argv) {
     '.woff': 'font/woff',
     '.woff2': 'font/woff2',
     '.ttf': 'font/ttf',
-    '.pjs': 'text/html; charset=utf-8' // Served as HTML
+    '.pjs': 'text/html; charset=utf-8', // Served as HTML
   };
 
   /**
@@ -118,7 +116,7 @@ function runServe(argv) {
       dev: true,
       loadDataFiles: true,
       dataDir: path.dirname(filePath),
-      source: path.basename(filePath)
+      source: path.basename(filePath),
     });
 
     const elapsed = formatElapsed(start);
@@ -136,15 +134,22 @@ function runServe(argv) {
 <html><head><meta charset="UTF-8"><title>Compile Error</title>
 <style>body{font-family:monospace;padding:2rem;background:#1e1e1e;color:#d4d4d4}
 .error{color:#f48771}.code{color:#dcdcaa}.suggestion{color:#608b4e}</style></head>
-<body><h1 class="error">Compile Error</h1><pre>${result.errors.map(e =>
-        `<span class="code">${e.code || 'E0000'}</span> <span class="error">${escapeHtml(e.message)}</span>` +
-        (e.suggestion ? `\n  <span class="suggestion">Saran: ${escapeHtml(e.suggestion)}</span>` : '')
-      ).join('\n')}</pre></body></html>`;
+<body><h1 class="error">Compile Error</h1><pre>${result.errors
+        .map(
+          (e) =>
+            `<span class="code">${e.code || 'E0000'}</span> <span class="error">${escapeHtml(e.message)}</span>` +
+            (e.suggestion
+              ? `\n  <span class="suggestion">Saran: ${escapeHtml(e.suggestion)}</span>`
+              : '')
+        )
+        .join('\n')}</pre></body></html>`;
       return { html: errorHtml, js: null, error: true, elapsed };
     }
 
     const html = wrapInHtml(result.js, filePath, { liveReload: !noReload });
-    process.stderr.write(`  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${green}✓${reset} ${gray}(${formatSize(result.js.length)} ${elapsed})${reset}\n`);
+    process.stderr.write(
+      `  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${green}✓${reset} ${gray}(${formatSize(result.js.length)} ${elapsed})${reset}\n`
+    );
 
     return { html, js: result.js, error: false, elapsed };
   }
@@ -156,8 +161,11 @@ function runServe(argv) {
     const urlPath = req.url.split('?')[0]; // Strip query string
 
     // WebSocket upgrade for live-reload
-    if (urlPath === '/__pjs_reload__' && req.headers.upgrade &&
-        req.headers.upgrade.toLowerCase() === 'websocket') {
+    if (
+      urlPath === '/__pjs_reload__' &&
+      req.headers.upgrade &&
+      req.headers.upgrade.toLowerCase() === 'websocket'
+    ) {
       // Handled in upgrade event
       return;
     }
@@ -224,14 +232,14 @@ function runServe(argv) {
         html: result.html,
         js: result.js,
         mtime: stat.mtime,
-        error: result.error
+        error: result.error,
       });
 
       res.writeHead(result.error ? 500 : 200, {
-        'Content-Type': 'text/html; charset=utf-8'
+        'Content-Type': 'text/html; charset=utf-8',
       });
       res.end(result.html);
-    } catch (e) {
+    } catch {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('404 Not Found: ' + path.basename(filePath));
     }
@@ -265,7 +273,7 @@ function runServe(argv) {
       const data = fs.readFileSync(filePath);
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(data);
-    } catch (e) {
+    } catch {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('404 Not Found');
     }
@@ -278,10 +286,10 @@ function runServe(argv) {
     try {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
       const items = entries
-        .filter(e => !e.name.startsWith('.') && e.name !== 'node_modules')
-        .map(e => {
+        .filter((e) => !e.name.startsWith('.') && e.name !== 'node_modules')
+        .map((e) => {
           const isDir = e.isDirectory();
-          const icon = isDir ? '📁' : (e.name.endsWith('.pjs') ? '📄' : '📑');
+          const icon = isDir ? '📁' : e.name.endsWith('.pjs') ? '📄' : '📑';
           const href = isDir ? e.name + '/' : e.name;
           return `<li>${icon} <a href="${escapeHtml(href)}">${escapeHtml(e.name)}</a></li>`;
         })
@@ -295,7 +303,7 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
 
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
-    } catch (e) {
+    } catch {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end('500 Internal Server Error');
     }
@@ -305,7 +313,7 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
   const server = http.createServer(handleRequest);
 
   // WebSocket upgrade handler for live-reload
-  server.on('upgrade', (req, socket, head) => {
+  server.on('upgrade', (req, socket, _head) => {
     const urlPath = req.url.split('?')[0];
     if (urlPath === '/__pjs_reload__') {
       // Minimal WebSocket handshake
@@ -316,16 +324,19 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
       }
 
       const crypto = require('crypto');
-      const accept = crypto.createHash('sha1')
+      const accept = crypto
+        .createHash('sha1')
         .update(key + '258EAFA5-E914-47DA-95CA-5AB5DC65B4C7')
         .digest('base64');
 
       socket.write(
         'HTTP/1.1 101 Switching Protocols\r\n' +
-        'Upgrade: websocket\r\n' +
-        'Connection: Upgrade\r\n' +
-        'Sec-WebSocket-Accept: ' + accept + '\r\n' +
-        '\r\n'
+          'Upgrade: websocket\r\n' +
+          'Connection: Upgrade\r\n' +
+          'Sec-WebSocket-Accept: ' +
+          accept +
+          '\r\n' +
+          '\r\n'
       );
 
       wsClients.add(socket);
@@ -338,7 +349,11 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
   function broadcastReload() {
     const msg = Buffer.from([0x81, 0x07, 0x72, 0x65, 0x6c, 0x6f, 0x61, 0x64]); // "reload"
     for (const client of wsClients) {
-      try { client.write(msg); } catch (e) { /* ignore */ }
+      try {
+        client.write(msg);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -348,7 +363,8 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
     try {
       watcher = fs.watch(rootDir, { recursive: true }, (eventType, filename) => {
         if (!filename) return;
-        if (!filename.endsWith('.pjs') && !filename.endsWith('.json') && !filename.endsWith('.css')) return;
+        if (!filename.endsWith('.pjs') && !filename.endsWith('.json') && !filename.endsWith('.css'))
+          return;
 
         const filePath = path.join(rootDir, filename);
         process.stderr.write(`  ${cyan}${filename}${reset} changed — recompiling...\n`);
@@ -391,7 +407,7 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
           html: result.html,
           js: result.js,
           mtime: stat.mtime,
-          error: result.error
+          error: result.error,
         });
       }
       process.stderr.write('\n');
@@ -403,7 +419,11 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
     process.stderr.write(`\n${gray}Shutting down...${reset}\n`);
     if (watcher) watcher.close();
     for (const client of wsClients) {
-      try { client.end(); } catch (e) { /* ignore */ }
+      try {
+        client.end();
+      } catch {
+        /* ignore */
+      }
     }
     server.close();
     process.exit(0);

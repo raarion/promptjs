@@ -22,7 +22,7 @@ const {
   resolveOutputPath,
   ensureDirForFile,
   formatSize,
-  formatElapsed
+  formatElapsed,
 } = require('../utils');
 
 function runCompile(argv) {
@@ -68,12 +68,12 @@ function runCompile(argv) {
     output,
     dev,
     noData,
-    rootDir
+    rootDir,
   });
 
   // Print summary
-  const succeeded = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
+  const succeeded = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
   const totalJs = results.reduce((sum, r) => sum + (r.jsSize || 0), 0);
   const useColor = !stdout;
   const green = useColor ? '\x1b[32m' : '';
@@ -84,9 +84,13 @@ function runCompile(argv) {
 
   if (!stdout) {
     if (failed > 0) {
-      process.stderr.write(`\n${red}${bold}${failed} failed${reset}, ${green}${succeeded} succeeded${reset} ${gray}(${formatSize(totalJs)} output)${reset}\n`);
+      process.stderr.write(
+        `\n${red}${bold}${failed} failed${reset}, ${green}${succeeded} succeeded${reset} ${gray}(${formatSize(totalJs)} output)${reset}\n`
+      );
     } else {
-      process.stderr.write(`\n${green}${bold}${succeeded} compiled${reset} ${gray}(${formatSize(totalJs)} output)${reset}\n`);
+      process.stderr.write(
+        `\n${green}${bold}${succeeded} compiled${reset} ${gray}(${formatSize(totalJs)} output)${reset}\n`
+      );
     }
   }
 
@@ -98,7 +102,7 @@ function runCompile(argv) {
       output,
       dev,
       noData,
-      rootDir
+      rootDir,
     });
   }
 
@@ -136,7 +140,7 @@ function compileOne(filePath, options) {
     dev: options.dev,
     loadDataFiles: !options.noData,
     dataDir: path.dirname(filePath),
-    source: path.basename(filePath)
+    source: path.basename(filePath),
   });
 
   const elapsed = formatElapsed(start);
@@ -147,7 +151,9 @@ function compileOne(filePath, options) {
 
   if (!compileResult.success) {
     if (!options.stdout) {
-      process.stderr.write(`  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${red}✗${reset} ${gray}(${elapsed})${reset}\n`);
+      process.stderr.write(
+        `  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${red}✗${reset} ${gray}(${elapsed})${reset}\n`
+      );
     }
     return { filePath, success: false, errors: compileResult.errors, elapsed };
   }
@@ -161,11 +167,13 @@ function compileOne(filePath, options) {
     const outPath = resolveOutputPath(filePath, {
       output: options.output,
       outDir: options.outDir,
-      rootDir: options.rootDir
+      rootDir: options.rootDir,
     });
     ensureDirForFile(outPath);
     fs.writeFileSync(outPath, js, 'utf-8');
-    process.stderr.write(`  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${green}→${reset} ${gray}${path.relative(process.cwd(), outPath)}${reset} ${gray}(${formatSize(js.length)} ${elapsed})${reset}\n`);
+    process.stderr.write(
+      `  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${green}→${reset} ${gray}${path.relative(process.cwd(), outPath)}${reset} ${gray}(${formatSize(js.length)} ${elapsed})${reset}\n`
+    );
   }
 
   return {
@@ -173,7 +181,7 @@ function compileOne(filePath, options) {
     success: true,
     js,
     jsSize: js.length,
-    elapsed
+    elapsed,
   };
 }
 
@@ -181,9 +189,7 @@ function compileOne(filePath, options) {
  * Start watch mode — recompile files on change.
  */
 function startWatch(files, options) {
-  const useColor = true;
   const gray = '\x1b[90m';
-  const green = '\x1b[32m';
   const cyan = '\x1b[36m';
   const reset = '\x1b[0m';
 
@@ -213,11 +219,16 @@ function startWatch(files, options) {
     const existing = debounceTimers.get(changedFile);
     if (existing) clearTimeout(existing);
 
-    debounceTimers.set(changedFile, setTimeout(() => {
-      debounceTimers.delete(changedFile);
-      process.stderr.write(`\n${cyan}${path.relative(process.cwd(), changedFile)}${reset} changed\n`);
-      compileOne(changedFile, options);
-    }, 100));
+    debounceTimers.set(
+      changedFile,
+      setTimeout(() => {
+        debounceTimers.delete(changedFile);
+        process.stderr.write(
+          `\n${cyan}${path.relative(process.cwd(), changedFile)}${reset} changed\n`
+        );
+        compileOne(changedFile, options);
+      }, 100)
+    );
   }
 
   for (const dir of watchedDirs) {

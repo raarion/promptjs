@@ -143,9 +143,11 @@ var W0000 = 'W0000'; // System warning (fallback untuk warning tanpa kode spesif
 var ERROR_MESSAGES = {};
 
 // -- Lexer --
-ERROR_MESSAGES[E1001] = 'Indentasi tidak valid: {n} spasi ditemukan, PromptJS memakai 2 spasi per level';
+ERROR_MESSAGES[E1001] =
+  'Indentasi tidak valid: {n} spasi ditemukan, PromptJS memakai 2 spasi per level';
 ERROR_MESSAGES[E1002] = 'Indentasi tidak valid: karakter TAB ditemukan';
-ERROR_MESSAGES[E1003] = 'Indentasi tidak konsisten: {n} spasi tidak cocok dengan level indentasi manapun';
+ERROR_MESSAGES[E1003] =
+  'Indentasi tidak konsisten: {n} spasi tidak cocok dengan level indentasi manapun';
 ERROR_MESSAGES[E1004] = 'String tidak ditutup: tanda kutip penutup tidak ditemukan';
 ERROR_MESSAGES[E1005] = 'Karakter tidak dikenali: "{char}"';
 ERROR_MESSAGES[E1006] = 'Komentar blok "[[" tidak ditutup dengan "]]"';
@@ -264,10 +266,12 @@ ERROR_SUGGESTIONS[E2017] = 'Periksa target dan nama event';
 ERROR_SUGGESTIONS[E2018] = 'Periksa nama event (diklik, diketik, dsb.)';
 ERROR_SUGGESTIONS[E2019] = 'Pastikan "jika tidak" mengikuti "jika" atau "kalau"';
 ERROR_SUGGESTIONS[E2020] = 'Periksa indentasi (2 spasi per level)';
-ERROR_SUGGESTIONS[E2021] = 'Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>:';
+ERROR_SUGGESTIONS[E2021] =
+  'Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>:';
 ERROR_SUGGESTIONS[E2022] = 'Periksa target tampilkan';
 ERROR_SUGGESTIONS[E2023] = 'Ini menandakan bug Lexer; laporkan ke tim';
-ERROR_SUGGESTIONS[E2024] = 'Gunakan: ambil <jenis> dari <sumber> -> simpan ke <nama> atau ambil dari <url>:';
+ERROR_SUGGESTIONS[E2024] =
+  'Gunakan: ambil <jenis> dari <sumber> -> simpan ke <nama> atau ambil dari <url>:';
 ERROR_SUGGESTIONS[E2025] = 'Gunakan: gunakan <Komponen> dengan <prop>: <nilai>';
 ERROR_SUGGESTIONS[E2026] = 'Tambahkan ekspresi yang valid';
 ERROR_SUGGESTIONS[E2027] = 'Gunakan properti yang didukung: teks, html, kelas, src, href, dll.';
@@ -278,7 +282,8 @@ ERROR_SUGGESTIONS[E3001] = 'Periksa ejaan identifier atau deklarasikan variabel 
 ERROR_SUGGESTIONS[E3002] = 'Gunakan nama yang berbeda atau hapus deklarasi duplikat';
 ERROR_SUGGESTIONS[E3003] = 'Gunakan "ubah" jika variabel perlu diubah, bukan "tetap"';
 ERROR_SUGGESTIONS[E3004] = 'Pindahkan deklarasi komponen sebelum penggunaannya';
-ERROR_SUGGESTIONS[E3005] = 'Tambahkan target pada "ketika" atau letakkan di dalam blok "buat"/"komponen"';
+ERROR_SUGGESTIONS[E3005] =
+  'Tambahkan target pada "ketika" atau letakkan di dalam blok "buat"/"komponen"';
 
 // -- Analyzer --
 ERROR_SUGGESTIONS[E4001] = 'Pindahkan lifecycle hook ke dalam definisi komponen';
@@ -295,11 +300,15 @@ ERROR_SUGGESTIONS[E4011] = '"berhenti" hanya valid di dalam loop atau event hand
 ERROR_SUGGESTIONS[E4012] = 'Gunakan "lewati" hanya di dalam "ulangi" atau "selama"';
 ERROR_SUGGESTIONS[E4013] = 'Gunakan "kembalikan" hanya di dalam fungsi atau komponen';
 ERROR_SUGGESTIONS[W4101] = 'Hapus deklarasi jika tidak diperlukan, atau gunakan simbol tersebut.';
-ERROR_SUGGESTIONS[W4102] = 'Pastikan nilai yang ditulis benar-benar dibaca, atau hapus penulisan yang tidak perlu.';
-ERROR_SUGGESTIONS[E4101] = 'Gunakan target yang writable atau ubah deklarasi menjadi data/ubah sesuai kebutuhan.';
-ERROR_SUGGESTIONS[W4103] = 'Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.';
+ERROR_SUGGESTIONS[W4102] =
+  'Pastikan nilai yang ditulis benar-benar dibaca, atau hapus penulisan yang tidak perlu.';
+ERROR_SUGGESTIONS[E4101] =
+  'Gunakan target yang writable atau ubah deklarasi menjadi data/ubah sesuai kebutuhan.';
+ERROR_SUGGESTIONS[W4103] =
+  'Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.';
 ERROR_SUGGESTIONS[W4104] = 'Gunakan data/turunan reaktif sebagai target watcher.';
-ERROR_SUGGESTIONS[E4201] = 'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.';
+ERROR_SUGGESTIONS[E4201] =
+  'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.';
 
 // -- Compiler --
 ERROR_SUGGESTIONS[E5001] = 'Periksa apakah node type sudah didukung oleh compiler';
@@ -339,13 +348,20 @@ function getStage(code) {
   if (!code || code.length < 2) return 'System';
   var stageNum = code.charAt(1);
   switch (stageNum) {
-    case '1': return 'Lexer';
-    case '2': return 'Parser';
-    case '3': return 'Resolver';
-    case '4': return 'Analyzer';
-    case '5': return 'Compiler';
-    case '6': return 'Runtime';
-    default: return 'System';
+    case '1':
+      return 'Lexer';
+    case '2':
+      return 'Parser';
+    case '3':
+      return 'Resolver';
+    case '4':
+      return 'Analyzer';
+    case '5':
+      return 'Compiler';
+    case '6':
+      return 'Runtime';
+    default:
+      return 'System';
   }
 }
 
@@ -369,7 +385,7 @@ function createError(code, loc, overrides) {
     pesan: msg,
     suggestion: saran,
     saran: saran,
-    loc: loc
+    loc: loc,
   };
   if (overrides) {
     for (var key in overrides) {
@@ -414,9 +430,18 @@ function formatError(err) {
   }
   var prefix = err.severity === 'warning' ? '⚠' : '✗';
   var stageStr = err.stage ? ' [' + err.stage + ']' : '';
-  return prefix + ' ' + locStr + stageStr + ' [' + err.code + ']\n' +
-    err.message + '\n' +
-    (err.suggestion || err.saran ? 'Saran: ' + (err.suggestion || err.saran) : '');
+  return (
+    prefix +
+    ' ' +
+    locStr +
+    stageStr +
+    ' [' +
+    err.code +
+    ']\n' +
+    err.message +
+    '\n' +
+    (err.suggestion || err.saran ? 'Saran: ' + (err.suggestion || err.saran) : '')
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -425,37 +450,98 @@ function formatError(err) {
 
 module.exports = {
   // Lexer errors
-  E1001: E1001, E1002: E1002, E1003: E1003, E1004: E1004,
-  E1005: E1005, E1006: E1006, E1007: E1007, E1008: E1008, E1009: E1009,
+  E1001: E1001,
+  E1002: E1002,
+  E1003: E1003,
+  E1004: E1004,
+  E1005: E1005,
+  E1006: E1006,
+  E1007: E1007,
+  E1008: E1008,
+  E1009: E1009,
   W1001: W1001,
 
   // Parser errors
-  E2001: E2001, E2002: E2002, E2003: E2003, E2004: E2004,
-  E2005: E2005, E2006: E2006, E2007: E2007, E2008: E2008,
-  E2009: E2009, E2010: E2010, E2011: E2011, E2012: E2012,
-  E2013: E2013, E2014: E2014, E2015: E2015, E2016: E2016,
-  E2017: E2017, E2018: E2018, E2019: E2019, E2020: E2020,
-  E2021: E2021, E2022: E2022, E2023: E2023, E2024: E2024,
-  E2025: E2025, E2026: E2026, E2027: E2027, E2028: E2028,
-  W2001: W2001, W2002: W2002, W2003: W2003, W2004: W2004,
+  E2001: E2001,
+  E2002: E2002,
+  E2003: E2003,
+  E2004: E2004,
+  E2005: E2005,
+  E2006: E2006,
+  E2007: E2007,
+  E2008: E2008,
+  E2009: E2009,
+  E2010: E2010,
+  E2011: E2011,
+  E2012: E2012,
+  E2013: E2013,
+  E2014: E2014,
+  E2015: E2015,
+  E2016: E2016,
+  E2017: E2017,
+  E2018: E2018,
+  E2019: E2019,
+  E2020: E2020,
+  E2021: E2021,
+  E2022: E2022,
+  E2023: E2023,
+  E2024: E2024,
+  E2025: E2025,
+  E2026: E2026,
+  E2027: E2027,
+  E2028: E2028,
+  W2001: W2001,
+  W2002: W2002,
+  W2003: W2003,
+  W2004: W2004,
 
   // Resolver errors
-  E3001: E3001, E3002: E3002, E3003: E3003, E3004: E3004, E3005: E3005,
-  W3001: W3001, W3002: W3002, W3003: W3003,
+  E3001: E3001,
+  E3002: E3002,
+  E3003: E3003,
+  E3004: E3004,
+  E3005: E3005,
+  W3001: W3001,
+  W3002: W3002,
+  W3003: W3003,
 
   // Analyzer errors
-  E4001: E4001, E4002: E4002, E4003: E4003, E4004: E4004,
-  E4005: E4005, E4006: E4006, E4007: E4007, E4008: E4008,
-  E4009: E4009, E4010: E4010, E4011: E4011, E4012: E4012, E4013: E4013,
-  W4001: W4001, W4002: W4002, W4003: W4003, W4004: W4004,
-  W4101: W4101, W4102: W4102, E4101: E4101, W4103: W4103, W4104: W4104, E4201: E4201,
+  E4001: E4001,
+  E4002: E4002,
+  E4003: E4003,
+  E4004: E4004,
+  E4005: E4005,
+  E4006: E4006,
+  E4007: E4007,
+  E4008: E4008,
+  E4009: E4009,
+  E4010: E4010,
+  E4011: E4011,
+  E4012: E4012,
+  E4013: E4013,
+  W4001: W4001,
+  W4002: W4002,
+  W4003: W4003,
+  W4004: W4004,
+  W4101: W4101,
+  W4102: W4102,
+  E4101: E4101,
+  W4103: W4103,
+  W4104: W4104,
+  E4201: E4201,
 
   // Compiler errors
-  E5001: E5001, E5002: E5002, E5003: E5003,
-  W5001: W5001, W5002: W5002,
+  E5001: E5001,
+  E5002: E5002,
+  E5003: E5003,
+  W5001: W5001,
+  W5002: W5002,
 
   // Runtime errors
-  E6001: E6001, E6002: E6002, E6003: E6003, E6004: E6004,
+  E6001: E6001,
+  E6002: E6002,
+  E6003: E6003,
+  E6004: E6004,
 
   // System errors
   E0000: E0000,
@@ -470,5 +556,5 @@ module.exports = {
   getStage: getStage,
   createError: createError,
   buatParseError: buatParseError,
-  formatError: formatError
+  formatError: formatError,
 };

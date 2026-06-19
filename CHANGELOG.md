@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This entry tracks the **Level 1 maturation effort** (merge of roadmap phases 0–2).
 See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full ordered plan.
 
+### Changed — Pre-C4 refining pass
+
+- Formatted all source files with Prettier (23 files that the rushed Waves A–C3
+  had left unformatted).
+- Eliminated all 33 `no-unused-vars` lint warnings (unused catch bindings,
+  unused params `_`-prefixed, dead locals/imports removed). No behavior change.
+- **CI hardened:** `lint` now runs with `--max-warnings=0`, and a `format:check`
+  step was added to the workflow so unformatted/warning-laden code can't merge.
+- Removed the `--open` serve flag from CLI help/JSDoc — it was advertised but
+  never implemented. Will be re-added when the feature actually lands.
+- Added [`doc-dev/REVIEW-Level1-PreC4.md`](doc-dev/REVIEW-Level1-PreC4.md)
+  documenting the pass and proposing larger follow-up refactors (`var`→`const`
+  migration, centralized `NO_COLOR`-aware color helper).
+
 ### Added — Wave A (Foundation & Safety Net)
 
 - **Vitest** test framework. The 24 hand-rolled assertion tests in

@@ -16,13 +16,20 @@
 
 // Method yang bermutasi array (tidak mengubah reference, jadi Proxy setter tidak terpicu)
 const MUTATING_ARRAY_METHODS = new Set([
-  'push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill'
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse',
+  'fill',
 ]);
 
 function lowerExpression(compiler, node) {
   if (!node) return 'undefined';
-  
-  switch(node.type) {
+
+  switch (node.type) {
     case 'Literal':
       return JSON.stringify(node.value);
     case 'Identifier':
@@ -38,29 +45,29 @@ function lowerExpression(compiler, node) {
       }
       return node.name;
     case 'BinaryExpression': {
-      const ops = { 
-        'sama dengan': '===', 
-        'tidak sama dengan': '!==', 
-        'dan': '&&', 
-        'atau': '||',
-        'paling sedikit': '>=',   
-        'paling banyak': '<=',      
-        'lebih dari': '>',       
+      const ops = {
+        'sama dengan': '===',
+        'tidak sama dengan': '!==',
+        dan: '&&',
+        atau: '||',
+        'paling sedikit': '>=',
+        'paling banyak': '<=',
+        'lebih dari': '>',
         'kurang dari': '<',
-        'tambah': '+',
-        'kurang': '-',
-        'kali': '*',
-        'bagi': '/',
-        'mod': '%',
-        'pangkat': '**'
+        tambah: '+',
+        kurang: '-',
+        kali: '*',
+        bagi: '/',
+        mod: '%',
+        pangkat: '**',
       };
       const op = ops[node.operator] || node.operator;
       return `(${lowerExpression(compiler, node.left)} ${op} ${lowerExpression(compiler, node.right)})`;
     }
     case 'UnaryExpression': {
       const unaryOps = {
-        'tidak': '!',
-        'negatif': '-'
+        tidak: '!',
+        negatif: '-',
       };
       const uop = unaryOps[node.operator] || node.operator;
       if (node.prefix !== false) {
@@ -77,7 +84,7 @@ function lowerExpression(compiler, node) {
       return lowerCallExpression(compiler, node);
     case 'ObjectLiteral':
       if (node.properties && node.properties.length > 0) {
-        const pairs = node.properties.map(p => {
+        const pairs = node.properties.map((p) => {
           const val = lowerExpression(compiler, p.value);
           return `"${p.key}": ${val}`;
         });
@@ -86,7 +93,7 @@ function lowerExpression(compiler, node) {
       return '{}';
     case 'ArrayLiteral':
       if (node.elements && node.elements.length > 0) {
-        const elems = node.elements.map(e => lowerExpression(compiler, e));
+        const elems = node.elements.map((e) => lowerExpression(compiler, e));
         return `[${elems.join(', ')}]`;
       }
       return '[]';
@@ -130,7 +137,7 @@ function lowerCallExpression(compiler, node) {
   }
 
   // ── Kasus 3: Panggilan fungsi biasa ──────────────────────────────────────────
-  const callArgs = node.arguments.map(a => lowerExpression(compiler, a)).join(', ');
+  const callArgs = node.arguments.map((a) => lowerExpression(compiler, a)).join(', ');
   const calleeCode = lowerExpression(compiler, node.callee);
   return `${calleeCode}(${callArgs})`;
 }
@@ -144,7 +151,7 @@ function lowerCallExpression(compiler, node) {
  */
 function lowerBuiltinCall(compiler, node) {
   const builtin = node.builtinInfo;
-  const args = node.arguments.map(a => lowerExpression(compiler, a));
+  const args = node.arguments.map((a) => lowerExpression(compiler, a));
 
   // Prefix operator (typeof)
   if (node.isPrefixBuiltin || builtin.prefix) {
@@ -209,7 +216,7 @@ function lowerBuiltinCall(compiler, node) {
  *   - Non-mutating methods: langsung panggil
  */
 function lowerMethodCall(compiler, node) {
-  const callArgs = node.arguments.map(a => lowerExpression(compiler, a)).join(', ');
+  const callArgs = node.arguments.map((a) => lowerExpression(compiler, a)).join(', ');
   const calleeCode = lowerExpression(compiler, node.callee);
   const methodName = node.callee.property.name;
 
