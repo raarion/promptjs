@@ -23,6 +23,10 @@ See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full orde
 - Added [`doc-dev/REVIEW-Level1-PreC4.md`](doc-dev/REVIEW-Level1-PreC4.md)
   documenting the pass and proposing larger follow-up refactors (`var`→`const`
   migration, centralized `NO_COLOR`-aware color helper).
+- Migrated the source off legacy `var`: enabled `no-var` + `prefer-const` in
+  ESLint and auto-fixed ~298 declarations to `const`/`let`. Remaining `var`
+  tokens live only inside emitted-code strings and error messages. No behavior
+  change.
 
 ### Added — Wave A (Foundation & Safety Net)
 

@@ -712,7 +712,7 @@ PromptJSResolver.prototype.visitHapusDariStatement = function (node) {
   // Resolve the item expression
   if (node.item) accept(node.item, this);
   // Resolve the array identifier and attach metadata
-  var symbol = this.currentScope.lookup(node.fromArray);
+  const symbol = this.currentScope.lookup(node.fromArray);
   if (symbol) {
     node.fromArraySymbol = symbol;
     node.fromArrayReactive = symbol.kind === 'data' || symbol.kind === 'turunan';
