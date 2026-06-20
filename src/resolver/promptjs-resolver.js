@@ -1,7 +1,11 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — RESOLVER (Merged)
+ * PromptJS v0.2 — RESOLVER (Merged) / Resolver Terpadu
  * ============================================================================
- * Menggabungkan kelebihan Tim A & Tim B:
+ *
+ * Merges the best of Team A & Team B resolver implementations.
+ * Menggabungkan kelebihan implementasi resolver Tim A & Tim B:
  *   - Model SemanticSymbol lengkap (B)
  *   - Scope management, deteksi duplikat & shadowing (B)
  *   - Usage tracking: read/write count, references (B)
@@ -246,6 +250,17 @@ const VALID_PERBARUI_PROPERTIES = new Set([
 // ============================================================================
 // SEMANTIC SYMBOL (dari Tim B)
 // ============================================================================
+/**
+ * Constructor SemanticSymbol — representasi simbol dalam symbol table.
+ *
+ * @constructor
+ * @param {string} name - Nama simbol
+ * @param {string} kind - Jenis simbol ('data','tetap','ubah','turunan','fungsi','komponen','parameter')
+ * @param {Object} node - AST node deklarasi
+ * @param {Scope} scope - Scope tempat simbol didefinisikan
+ * @param {Object} [metadata] - Metadata tambahan (isReactive, isWritable, id, scopeId, shadowedSymbol)
+ * @this {SemanticSymbol}
+ */
 function SemanticSymbol(name, kind, node, scope, metadata = {}) {
   this.name = name;
   this.kind = kind; // 'data','tetap','ubah','turunan','fungsi','komponen','parameter'
@@ -274,6 +289,14 @@ function SemanticSymbol(name, kind, node, scope, metadata = {}) {
 // ============================================================================
 // SCOPE (dari Tim B, sedikit penyesuaian)
 // ============================================================================
+/**
+ * Constructor Scope — representasi satu scope dalam scope chain.
+ *
+ * @constructor
+ * @param {string} type - Jenis scope ('global','blok','komponen','iterasi','watcher')
+ * @param {Scope | null} parent - Scope parent (null untuk global scope)
+ * @this {Scope}
+ */
 function Scope(type, parent) {
   this.id = 'scope_' + ++Scope._nextId;
   this.type = type; // 'global','blok','komponen','iterasi','watcher'
@@ -282,10 +305,23 @@ function Scope(type, parent) {
 }
 Scope._nextId = 0;
 
+/**
+ * Definisikan simbol dalam scope ini.
+ *
+ * @param {string} name - Nama simbol
+ * @param {SemanticSymbol} symbol - Objek simbol
+ * @returns {void}
+ */
 Scope.prototype.define = function (name, symbol) {
   this.symbols.set(name, symbol);
 };
 
+/**
+ * Cari simbol di scope ini atau parent scope (recursive).
+ *
+ * @param {string} name - Nama simbol yang dicari
+ * @returns {SemanticSymbol | null} Simbol jika ditemukan, null jika tidak
+ */
 Scope.prototype.lookup = function (name) {
   if (this.symbols.has(name)) return this.symbols.get(name);
   if (this.parent) return this.parent.lookup(name);
@@ -295,6 +331,16 @@ Scope.prototype.lookup = function (name) {
 // ============================================================================
 // RESOLVER ENGINE (utama)
 // ============================================================================
+/**
+ * Constructor PromptJSResolver — resolver berbasis visitor pattern.
+ *
+ * Inherit dari BaseVisitor. Setiap `visit<NodeType>` method melakukan
+ * resolusi referensi, tracking read/write, dan emit error/warning sesuai
+ * aturan semantik PromptJS.
+ *
+ * @constructor
+ * @this {PromptJSResolver & { genericVisit: (node: Object) => void, accept: (node: Object, visitor: Object) => any }}
+ */
 function PromptJSResolver() {
   BaseVisitor.call(this);
   this.errors = [];
@@ -309,7 +355,28 @@ function PromptJSResolver() {
 PromptJSResolver.prototype = Object.create(BaseVisitor.prototype);
 PromptJSResolver.prototype.constructor = PromptJSResolver;
 
+// TypeScript hint: BaseVisitor.call(this) in the constructor inherits
+// genericVisit/visit* methods from BaseVisitor.prototype at runtime, but
+// TS cannot see this connection. Declare the aliases explicitly so method
+// bodies that call `this.genericVisit(node)` type-check cleanly.
+/** @type {(node: Object) => void} */
+PromptJSResolver.prototype.genericVisit;
+
+// Engine assigns this dynamically; declare so TS is aware.
+/** @type {Object | null} */
+PromptJSResolver.prototype._frontMatterData;
+
 // ─── Entry Point ───────────────────────────────────────────
+/**
+ * Entry point resolver — traverse AST, resolve references, build symbol table.
+ *
+ * Algoritma: inisialisasi global scope, gather global declarations, lalu
+ * traverse AST via `accept`. Hasil: AST yang sama (mungkin dimodifikasi
+ * dengan metadata), daftar errors, dan daftar warnings.
+ *
+ * @param {Object} ast - Root AST node (Program)
+ * @returns {{ ast: Object, errors: Object[], warnings: Object[] }} Hasil resolusi
+ */
 PromptJSResolver.prototype.resolve = function (ast) {
   this.errors = [];
   this.warnings = [];
@@ -334,6 +401,18 @@ PromptJSResolver.prototype.resolve = function (ast) {
 };
 
 // ─── Utility: menambah simbol (dari Tim B) ─────────────────
+/**
+ * Tambahkan simbol baru ke current scope.
+ *
+ * Memeriksa duplikasi dalam scope yang sama (E3002), shadowing (W3002),
+ * dan tracking ke `allSymbols` untuk usage analysis.
+ *
+ * @param {string} name - Nama simbol
+ * @param {string} kind - Jenis simbol
+ * @param {Object} node - AST node deklarasi
+ * @param {Object} [metadata] - Metadata tambahan
+ * @returns {SemanticSymbol} Simbol yang baru ditambahkan
+ */
 PromptJSResolver.prototype.addSymbol = function (name, kind, node, metadata = {}) {
   // Deteksi duplikat (E3002 - Tim B)
   const existing = this.currentScope.symbols.get(name);
@@ -384,6 +463,16 @@ PromptJSResolver.prototype.addSymbol = function (name, kind, node, metadata = {}
 };
 
 // ─── Global Hoisting (modifikasi dari Tim B) ───────────────
+/**
+ * Pre-scan top-level AST untuk mengumpulkan deklarasi global.
+ *
+ * Hoisting: semua deklarasi top-level (Data/Tetap/Ubah/Fungsi/Komponen)
+ * ditambahkan ke global scope SEBELUM traverse dimulai, sehingga
+ * referensi maju (forward reference) tetap valid.
+ *
+ * @param {Object} ast - Root AST node
+ * @returns {void}
+ */
 PromptJSResolver.prototype.gatherGlobals = function (ast) {
   if (!ast.body) return;
   ast.body.forEach((node) => {
@@ -407,6 +496,16 @@ PromptJSResolver.prototype.gatherGlobals = function (ast) {
 // ============================================================================
 
 // ─── Identifier (gabungan) ─────────────────────────────────
+/**
+ * Visitor untuk node Identifier — resolusi referensi + tracking read.
+ *
+ * Jika identifier tidak ditemukan di scope chain dan bukan JS_GLOBALS,
+ * emit E3001. Jika ditemukan, increment readCount dan tambahkan ke references.
+ *
+ * @param {Object} node - AST node Identifier
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitIdentifier = function (node) {
   // Abaikan jika ini adalah nama callee dari "jalankan"
   if (node.isCalleeJS || (this.currentJalankanCallee && node.name === this.currentJalankanCallee)) {
@@ -459,6 +558,16 @@ PromptJSResolver.prototype.visitIdentifier = function (node) {
 };
 
 // ─── MemberExpression (dari Tim A: alias properti) ─────────
+/**
+ * Visitor untuk node MemberExpression — akses properti `obj.prop` atau `obj[idx]`.
+ *
+ * Traverse `object` dan `property`. Untuk external ref `$name.path`, tandai
+ * sebagai JS external agar tidak dianggap undefined.
+ *
+ * @param {Object} node - AST node MemberExpression
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitMemberExpression = function (node) {
   // Visit object (kiri)
   accept(node.object, this);
@@ -499,6 +608,16 @@ PromptJSResolver.prototype.visitMemberExpression = function (node) {
   }
 };
 
+/**
+ * Visitor untuk node CallExpression — pemanggilan fungsi `callee(args)`.
+ *
+ * Traverse `callee` dan semua `arguments`. Cek apakah callee adalah
+ * BUILTIN_FUNCTIONS atau fungsi yang dideklarasikan.
+ *
+ * @param {Object} node - AST node CallExpression
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitCallExpression = function (node) {
   // Visit callee
   accept(node.callee, this);
@@ -537,6 +656,15 @@ PromptJSResolver.prototype.visitCallExpression = function (node) {
 };
 
 // ─── JalankanExpression (Tim A: JS Interop) ───────────────
+/**
+ * Visitor untuk node JalankanExpression — JS interop via `Jalankan name(args)`.
+ *
+ * Tandai callee sebagai JS external (bukan undefined), lalu traverse args.
+ *
+ * @param {Object} node - AST node JalankanExpression
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitJalankanExpression = function (node) {
   // Simpan nama fungsi yang dipanggil (callee)
   const prevCallee = this.currentJalankanCallee;
@@ -554,6 +682,13 @@ PromptJSResolver.prototype.visitJalankanExpression = function (node) {
   this.currentJalankanCallee = prevCallee;
 };
 
+/**
+ * Tandai node sebagai referensi JS external (bukan PromptJS symbol).
+ *
+ * @param {Object} node - AST node yang akan ditandai
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.markAsJSExternal = function (node) {
   if (node.type === 'Identifier') {
     node.isCalleeJS = true;
@@ -566,6 +701,14 @@ PromptJSResolver.prototype.markAsJSExternal = function (node) {
 /**
  * Melacak penulisan ke variabel dan memvalidasi isWritable.
  * Digunakan oleh simpan, tambahkan, kurangi, sisipkan, perbarui.
+ */
+/**
+ * Track write ke simbol — increment writeCount dan tambahkan ke references.
+ *
+ * @param {string} targetName - Nama simbol target
+ * @param {Object} node - AST node write
+ * @this {any}
+ * @returns {void}
  */
 PromptJSResolver.prototype._trackWrite = function (targetName, node) {
   if (!targetName) return;
@@ -587,6 +730,14 @@ PromptJSResolver.prototype._trackWrite = function (targetName, node) {
 };
 
 // ─── SimpanStatement (Tim B: write tracking) ──────────────
+/**
+ * Visitor untuk SimpanStatement — track write ke target. Emit E3003 bila
+ * menulis ke simbol `tetap` (const).
+ *
+ * @param {Object} node - AST node SimpanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitSimpanStatement = function (node) {
   // Catat penulisan jika target berupa identifier (node.target adalah string nama)
   if (typeof node.target === 'string') {
@@ -598,6 +749,13 @@ PromptJSResolver.prototype.visitSimpanStatement = function (node) {
 };
 
 // ─── Mutation Statements: Write Tracking (M2 FIX) ─────────
+/**
+ * Visitor untuk TambahkanStatement — track write ke target array.
+ *
+ * @param {Object} node - AST node TambahkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitTambahkanStatement = function (node) {
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
@@ -607,6 +765,13 @@ PromptJSResolver.prototype.visitTambahkanStatement = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk KurangiStatement — track write ke target.
+ *
+ * @param {Object} node - AST node KurangiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitKurangiStatement = function (node) {
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
@@ -616,6 +781,13 @@ PromptJSResolver.prototype.visitKurangiStatement = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk SisipkanStatement — track write ke target.
+ *
+ * @param {Object} node - AST node SisipkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitSisipkanStatement = function (node) {
   if (typeof node.target === 'string') {
     this._trackWrite(node.target, node);
@@ -626,6 +798,15 @@ PromptJSResolver.prototype.visitSisipkanStatement = function (node) {
 };
 
 // ─── PerbaruiStatement (H3 FIX: visitor baru) ──────────────
+/**
+ * Visitor untuk PerbaruiStatement — update properti elemen DOM.
+ *
+ * Cek `property` ada di VALID_PERBARUI_PROPERTIES, traverse target dan value.
+ *
+ * @param {Object} node - AST node PerbaruiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitPerbaruiStatement = function (node) {
   // Resolve target jika berupa identifier
   if (node.target) {
@@ -657,6 +838,16 @@ PromptJSResolver.prototype.visitPerbaruiStatement = function (node) {
 };
 
 // ─── GunakanStatement (H3 FIX: visitor baru) ───────────────
+/**
+ * Visitor untuk GunakanStatement — instansiasi komponen.
+ *
+ * Cek apakah `componentName` ada di symbol table (E3004 jika tidak ditemukan),
+ * lalu traverse props.
+ *
+ * @param {Object} node - AST node GunakanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitGunakanStatement = function (node) {
   // Validasi bahwa nama komponen terdaftar
   if (node.componentName) {
@@ -691,23 +882,51 @@ PromptJSResolver.prototype.visitGunakanStatement = function (node) {
 };
 
 // ─── TampilkanStatement (H3 FIX) ───────────────────────────
+/**
+ * Visitor untuk TampilkanStatement — traverse target dan mountTarget.
+ *
+ * @param {Object} node - AST node TampilkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitTampilkanStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
 // ─── SembunyikanStatement (H3 FIX) ─────────────────────────
+/**
+ * Visitor untuk SembunyikanStatement — traverse target.
+ *
+ * @param {Object} node - AST node SembunyikanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitSembunyikanStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
 // ─── HapusStatement (H3 FIX) ───────────────────────────────
+/**
+ * Visitor untuk HapusStatement — traverse target.
+ *
+ * @param {Object} node - AST node HapusStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitHapusStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk HapusDariStatement — traverse item dan fromArray.
+ *
+ * @param {Object} node - AST node HapusDariStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitHapusDariStatement = function (node) {
   // Resolve the item expression
   if (node.item) accept(node.item, this);
@@ -722,18 +941,39 @@ PromptJSResolver.prototype.visitHapusDariStatement = function (node) {
 };
 
 // ─── KosongkanStatement (H3 FIX) ───────────────────────────
+/**
+ * Visitor untuk KosongkanStatement — traverse target.
+ *
+ * @param {Object} node - AST node KosongkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitKosongkanStatement = function (node) {
   if (node.target) accept(node.target, this);
   this.genericVisit(node);
 };
 
 // ─── ArahkanStatement (H3 FIX) ─────────────────────────────
+/**
+ * Visitor untuk ArahkanStatement — traverse url.
+ *
+ * @param {Object} node - AST node ArahkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitArahkanStatement = function (node) {
   if (node.url) accept(node.url, this);
   this.genericVisit(node);
 };
 
 // ─── SetelahStatement (H3 FIX + Bug 3 FIX) ─────────────────
+/**
+ * Visitor untuk SetelahStatement — traverse target, body, dan action.
+ *
+ * @param {Object} node - AST node SetelahStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitSetelahStatement = function (node) {
   // [Bug 3 FIX] Resolve target symbol dan lampirkan ke node,
   // supaya compiler bisa membedakan fungsi PromptJS vs external variable.
@@ -747,12 +987,26 @@ PromptJSResolver.prototype.visitSetelahStatement = function (node) {
 };
 
 // ─── AmbilDomStatement (H3 FIX) ────────────────────────────
+/**
+ * Visitor untuk AmbilDomStatement — traverse source DOM.
+ *
+ * @param {Object} node - AST node AmbilDomStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitAmbilDomStatement = function (node) {
   if (node.source) accept(node.source, this);
   this.genericVisit(node);
 };
 
 // ─── AmbilLuarStatement (H3 FIX) ───────────────────────────
+/**
+ * Visitor untuk AmbilLuarStatement — traverse url, branches, dan options.
+ *
+ * @param {Object} node - AST node AmbilLuarStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitAmbilLuarStatement = function (node) {
   if (node.url) accept(node.url, this);
 
@@ -769,6 +1023,13 @@ PromptJSResolver.prototype.visitAmbilLuarStatement = function (node) {
 };
 
 // ─── SelamaStatement (H3 FIX: scope untuk loop body) ───────
+/**
+ * Visitor untuk SelamaStatement — traverse condition dan body.
+ *
+ * @param {Object} node - AST node SelamaStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitSelamaStatement = function (node) {
   // Resolve kondisi di scope sekarang
   if (node.condition) accept(node.condition, this);
@@ -780,6 +1041,13 @@ PromptJSResolver.prototype.visitSelamaStatement = function (node) {
 };
 
 // ─── Scope: Blok, Fungsi, Komponen, Ulangi (Tim B, disempurnakan) ──
+/**
+ * Visitor untuk BlockStatement — push scope blok, traverse body, pop scope.
+ *
+ * @param {Object} node - AST node BlockStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitBlockStatement = function (node) {
   const prevScope = this.currentScope;
   this.currentScope = new Scope('blok', prevScope);
@@ -787,6 +1055,14 @@ PromptJSResolver.prototype.visitBlockStatement = function (node) {
   this.currentScope = prevScope;
 };
 
+/**
+ * Visitor untuk FungsiDeclaration — push scope fungsi, tambahkan params sebagai
+ * simbol lokal, traverse body, pop scope.
+ *
+ * @param {Object} node - AST node FungsiDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitFungsiDeclaration = function (node) {
   const prevScope = this.currentScope;
   this.currentScope = new Scope('blok', prevScope);
@@ -801,6 +1077,14 @@ PromptJSResolver.prototype.visitFungsiDeclaration = function (node) {
   this.currentScope = prevScope;
 };
 
+/**
+ * Visitor untuk KomponenDeclaration — push scope komponen, tambahkan params,
+ * traverse body, pop scope.
+ *
+ * @param {Object} node - AST node KomponenDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitKomponenDeclaration = function (node) {
   const prevScope = this.currentScope;
   this.currentScope = new Scope('komponen', prevScope);
@@ -819,6 +1103,14 @@ PromptJSResolver.prototype.visitKomponenDeclaration = function (node) {
   this.currentScope = prevScope;
 };
 
+/**
+ * Visitor untuk UlangiStatement — push scope iterasi, tambahkan iterator sebagai
+ * simbol lokal, traverse source dan body, pop scope.
+ *
+ * @param {Object} node - AST node UlangiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitUlangiStatement = function (node) {
   // Resolve source di scope sekarang (Tim B sudah benar)
   accept(node.source, this);
@@ -835,6 +1127,14 @@ PromptJSResolver.prototype.visitUlangiStatement = function (node) {
 };
 
 // ─── BuatStatement (Tim A: untuk self-reference "ketika") ──
+/**
+ * Visitor untuk BuatStatement — push ke `buatStack` (untuk resolusi `ketika`
+ * tanpa target), traverse selector/properties/body/action, pop dari stack.
+ *
+ * @param {Object} node - AST node BuatStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitBuatStatement = function (node) {
   this.buatStack.push(node);
   this.genericVisit(node);
@@ -842,6 +1142,16 @@ PromptJSResolver.prototype.visitBuatStatement = function (node) {
 };
 
 // ─── KetikaStatement (Tim A: self-reference) ──────────────
+/**
+ * Visitor untuk KetikaStatement — event handler.
+ *
+ * Jika tanpa target dan tidak dalam blok Buat/Komponen, emit E3005.
+ * Jika dengan target, traverse target. Traverse body dan action.
+ *
+ * @param {Object} node - AST node KetikaStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitKetikaStatement = function (node) {
   // Tangani target kosong (self-reference)
   if (!node.target) {
@@ -886,6 +1196,15 @@ PromptJSResolver.prototype.visitKetikaStatement = function (node) {
 };
 
 // ─── SaatStatement (Tim B, dilengkapi) ────────────────────
+/**
+ * Visitor untuk SaatStatement — reactive watcher.
+ *
+ * Cek apakah target adalah data reaktif; jika tidak, emit W3003.
+ *
+ * @param {Object} node - AST node SaatStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitSaatStatement = function (node) {
   // Resolve target reaktif
   const binding = this.currentScope.lookup(node.target);
@@ -915,6 +1234,13 @@ PromptJSResolver.prototype.visitSaatStatement = function (node) {
 };
 
 // ─── Deklarasi Lokal (Tim B, pengecekan agar tidak duplikasi global) ──
+/**
+ * Visitor untuk DataDeclaration — tambahkan simbol data (isReactive, isWritable).
+ *
+ * @param {Object} node - AST node DataDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitDataDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     this.addSymbol(node.name, 'data', node, { isReactive: true, isWritable: true });
@@ -922,6 +1248,13 @@ PromptJSResolver.prototype.visitDataDeclaration = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk TetapDeclaration — tambahkan simbol tetap (isWritable = false).
+ *
+ * @param {Object} node - AST node TetapDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitTetapDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     // PromptJS patch: external data from front-matter
@@ -941,6 +1274,13 @@ PromptJSResolver.prototype.visitTetapDeclaration = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk UbahDeclaration — tambahkan simbol ubah (isWritable = true).
+ *
+ * @param {Object} node - AST node UbahDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitUbahDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     this.addSymbol(node.name, 'ubah', node, { isWritable: true });
@@ -948,6 +1288,13 @@ PromptJSResolver.prototype.visitUbahDeclaration = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk TurunanDeclaration — tambahkan simbol turunan (isComputed, isWritable = false).
+ *
+ * @param {Object} node - AST node TurunanDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitTurunanDeclaration = function (node) {
   if (!this.currentScope.symbols.has(node.name)) {
     this.addSymbol(node.name, 'turunan', node, { isReactive: true, isWritable: false });
@@ -957,11 +1304,28 @@ PromptJSResolver.prototype.visitTurunanDeclaration = function (node) {
 
 // ─── Error Helper ──────────────────────────────────────────
 // ─── TextNode (PromptJS patch: pass-through) ───────────────────────────────
+/**
+ * Visitor untuk TextNode — no-op (tidak ada simbol yang perlu diresolve).
+ *
+ * @param {Object} _node - AST node TextNode (unused)
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.visitTextNode = function (_node) {
   // TextNode has no identifiers to resolve — it's a pure text value.
   // Just traverse in case there are embedded expressions in the future.
 };
 
+/**
+ * Tambahkan error ke daftar `this.errors`.
+ *
+ * @param {string} code - Kode error
+ * @param {string} message - Pesan error
+ * @param {Object} loc - Source location
+ * @param {string} [suggestion] - Saran perbaikan (opsional)
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.addError = function (code, message, loc, suggestion) {
   this.errors.push(
     Err.createError(code, loc, {
@@ -971,6 +1335,16 @@ PromptJSResolver.prototype.addError = function (code, message, loc, suggestion) 
   );
 };
 
+/**
+ * Tambahkan warning ke daftar `this.warnings`.
+ *
+ * @param {string} code - Kode warning
+ * @param {string} message - Pesan warning
+ * @param {Object} loc - Source location
+ * @param {string} [suggestion] - Saran perbaikan (opsional)
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSResolver.prototype.addWarning = function (code, message, loc, suggestion) {
   this.warnings.push(
     Err.createError(code, loc, {

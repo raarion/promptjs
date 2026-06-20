@@ -32,6 +32,9 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      - name: Type check (JSDoc + checkJs per-file)
+        run: npm run typecheck
+
       - name: Lint
         run: npm run lint
 

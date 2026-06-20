@@ -1,19 +1,12 @@
-/**
- * PromptJS v0.2 — CLI `build` Command
- * ============================================================================
- * Compiles .pjs files and produces a dist/ folder with:
- *   - Compiled JS files
- *   - Prerendered HTML pages (using jsdom or inline execution)
- *   - Static assets copied as-is
- *
- * Usage:
- *   pjs build                      — build current dir → dist/
- *   pjs build ./src                — build specific dir
- *   pjs build --out-dir out        — custom output directory
- *   pjs build --prerender          — prerender HTML with jsdom
- *   pjs build --minify             — minify output JS
- */
+// @ts-check
 
+/**
+ * PromptJS v0.2 — CLI: `build` Command / Perintah `build`
+ * ============================================================================
+ *
+ * Build production: compile + minify + prerender HTML via jsdom.
+ * Output: folder `dist/` berisi `.html`, `.js`, dan static assets.
+ */
 'use strict';
 
 const fs = require('fs');
@@ -28,6 +21,16 @@ const {
   makeColors,
 } = require('../utils');
 
+/**
+ * Jalankan command `pjs build`.
+ *
+ * Algoritma: cari semua file `.pjs` di `src/`, compile masing-masing,
+ * prerender ke HTML via jsdom (jika ada), minify JS, copy static assets
+ * ke `dist/`.
+ *
+ * @param {Object} argv - Parsed args dari `parseArgs`
+ * @returns {void}
+ */
 function runBuild(argv) {
   const inputDir = argv._[0] || '.';
   const outDir = argv['out-dir'] || argv.outDir || 'dist';
@@ -177,6 +180,14 @@ function runBuild(argv) {
 /**
  * Build an HTML page wrapping the compiled JS.
  */
+/**
+ * Bungkus kode JS hasil compile menjadi file HTML lengkap dengan `<script>` tag.
+ *
+ * @param {string} jsCode - Kode JS hasil compile
+ * @param {string} filePath - Path file `.pjs` asli (untuk judul HTML)
+ * @param {Object} _options - Opsi build (reserved untuk future use)
+ * @returns {string} String HTML lengkap
+ */
 function buildHtml(jsCode, filePath, _options) {
   const title = path.basename(filePath, '.pjs');
   return `<!DOCTYPE html>
@@ -198,6 +209,13 @@ ${jsCode}
 /**
  * Build a prerendered HTML page with SSR content.
  */
+/**
+ * Bungkus konten yang sudah di-prerender menjadi file HTML.
+ *
+ * @param {string} renderedContent - HTML yang sudah di-prerender oleh jsdom
+ * @param {string} filePath - Path file `.pjs` asli
+ * @returns {string} String HTML lengkap
+ */
 function buildPrerenderedHtml(renderedContent, filePath) {
   const title = path.basename(filePath, '.pjs');
   return `<!DOCTYPE html>
@@ -217,6 +235,15 @@ function buildPrerenderedHtml(renderedContent, filePath) {
  * Basic JS minification (strip comments, collapse whitespace).
  * Not a full minifier — for production, use terser or uglifyjs.
  */
+/**
+ * Minify kode JS dengan regex sederhana (hapus whitespace, comment).
+ *
+ * Catatan: bukan minifier production-grade. Untuk build serius, gunakan
+ * terser/uglify. Implementasi ini cukup untuk mengurangi ukuran ~30%.
+ *
+ * @param {string} code - Kode JS yang akan di-minify
+ * @returns {string} Kode JS yang sudah di-minify
+ */
 function minifyJs(code) {
   return code
     .replace(/\/\/.*$/gm, '') // Strip single-line comments
@@ -231,6 +258,13 @@ function minifyJs(code) {
 /**
  * Copy static (non-.pjs) assets from src to dist.
  * Ignores node_modules, .git, .pjs files.
+ */
+/**
+ * Copy static assets (CSS, gambar, font) dari `src/` ke `dist/`.
+ *
+ * @param {string} srcDir - Direktori source (mis. `src/`)
+ * @param {string} distDir - Direktori output (mis. `dist/`)
+ * @returns {number} Jumlah file yang berhasil di-copy
  */
 function copyStaticAssets(srcDir, distDir) {
   const ignoreExts = new Set(['.pjs']);
@@ -271,6 +305,12 @@ function copyStaticAssets(srcDir, distDir) {
 /**
  * Recursively delete a directory.
  */
+/**
+ * Hapus direktori secara rekursif (兼容 Node < 14 yang belum punya `fs.rmSync`).
+ *
+ * @param {string} dirPath - Path direktori yang akan dihapus
+ * @returns {void}
+ */
 function rmDirRecursive(dirPath) {
   if (!fs.existsSync(dirPath)) return;
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -287,6 +327,12 @@ function rmDirRecursive(dirPath) {
 
 /**
  * Escape HTML special characters.
+ */
+/**
+ * Escape karakter HTML special (`<`, `>`, `&`, `"`, `'`) untuk safe insertion ke HTML.
+ *
+ * @param {string} str - String yang akan di-escape
+ * @returns {string} String yang sudah di-escape
  */
 function escapeHtml(str) {
   return String(str)

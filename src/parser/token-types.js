@@ -1,10 +1,15 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Konstanta Tipe Token
+ * PromptJS v0.2 — Konstanta Tipe Token / Token Type Constants
  * ============================================================================
  *
  * Daftar lengkap tipe token yang dikenali Parser PromptJS.
  * Konstanta ini wajib digunakan alih-alih string literal hard-coded.
  * Berdasarkan: RFC-PARSER-001 §2.3 dan PromptJS-grammar-spec_v0.3.1 §14
+ *
+ * File ini hanya berisi konstanta string dan array — tidak ada fungsi
+ * yang memerlukan JSDoc.
  */
 
 // ─── Struktur ──────────────────────────────────────────────

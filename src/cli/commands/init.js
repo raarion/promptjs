@@ -1,19 +1,14 @@
-/**
- * PromptJS v0.2 — CLI `init` Command
- * ============================================================================
- * Scaffolds a new PromptJS project with sample files.
- *
- * Usage:
- *   pjs init                    — create project in current directory
- *   pjs init my-project         — create project in new directory
- *   pjs init --template basic   — use specific template
- *
- * Templates:
- *   - basic:    Single page with front-matter data
- *   - counter:  Interactive counter with state and event handlers
- *   - gallery:  Data-driven gallery with loop rendering
- */
+// @ts-check
 
+/**
+ * PromptJS v0.2 — CLI: `init` Command / Perintah `init`
+ * ============================================================================
+ *
+ * Scaffold proyek PromptJS baru. Buat folder `src/`, `src/pages/`,
+ * `src/components/`, file contoh, dan `package.json` minimal.
+ *
+ * Template yang tersedia: `basic`, `gallery`, `landing`.
+ */
 'use strict';
 
 const fs = require('fs');
@@ -153,6 +148,12 @@ The gallery renders products from \`data/produk.json\` using the Ulangi (loop) c
   },
 };
 
+/**
+ * Jalankan command `pjs init`.
+ *
+ * @param {Object} argv - Parsed args dari `parseArgs` (field: `template`, `name`, `dir`)
+ * @returns {void}
+ */
 function runInit(argv) {
   const projectName = argv._[0] || null;
   const template = argv.template || argv.t || 'basic';

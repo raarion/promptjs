@@ -1,9 +1,13 @@
+// @ts-check
+
 /**
  * PromptJS v0.2 — LEXER (Tahap 1)
  * ============================================================================
+ *
+ * Converts raw PromptJS (.pjs) character stream into a stream of tokens.
  * Mengkonversi stream karakter mentah PromptJS (.pjs) menjadi stream token.
  *
- * Fitur:
+ * Features / Fitur:
  *   • Tokenisasi keyword bilingual (Buat/Create, Jika/If, Lainnya/Else, dll)
  *   • Indentasi 2-spasi → INDENT/DEDENT stack (adaptasi dari PromptJS)
  *   • Line-type detection: property, string, on_event, $external, block opener
@@ -12,6 +16,38 @@
  *   • Error reporting berkode dengan konteks baris:kolom + saran bilingual
  *
  * Murni JavaScript (ES2015), TANPA dependensi.
+ */
+
+/**
+ * Token yang dihasilkan oleh lexer.
+ *
+ * @typedef {Object} LexerToken
+ * @property {string} type - Jenis token (mis. 'TK_IDENT', 'TK_STRING', 'TK_INDENT')
+ * @property {*} value - Nilai token (string untuk ident/keyword, parsed value untuk literal)
+ * @property {number} line - Nomor baris (1-indexed)
+ * @property {number} col - Nomor kolom (1-indexed)
+ * @property {string | Object} raw - Raw source text token (untuk error reporting) atau objek selector untuk TK_IDENT selector
+ */
+
+/**
+ * Error yang dihasilkan oleh lexer.
+ *
+ * @typedef {Object} LexerError
+ * @property {string} code - Kode error (mis. 'E1001')
+ * @property {'error' | 'warning'} severity - Severity error
+ * @property {string} message - Pesan error
+ * @property {number} line - Nomor baris error
+ * @property {number} column - Nomor kolom error
+ * @property {string} suggestion - Saran perbaikan
+ */
+
+/**
+ * Hasil tokenisasi lexer.
+ *
+ * @typedef {Object} TokenizeResult
+ * @property {LexerToken[]} tokens - Daftar token
+ * @property {LexerError[]} errors - Daftar error yang terjadi selama tokenisasi
+ * @property {string[] | null} frontMatter - Baris front-matter (null jika tidak ada)
  */
 
 (function (root, factory) {
@@ -286,6 +322,16 @@
   /* ==========================================================================
    * 5. ERROR REPORTING
    * ========================================================================== */
+  /**
+   * Membuat objek error terformat (internal helper).
+   *
+   * @param {string} code - Kode error (mis. 'E1001')
+   * @param {string} message - Pesan error
+   * @param {number} line - Nomor baris error
+   * @param {number} col - Nomor kolom error
+   * @param {string} [suggestion] - Saran perbaikan (opsional)
+   * @returns {LexerError} Objek error terformat
+   */
   function createError(code, message, line, col, suggestion) {
     return {
       code: code,
@@ -300,6 +346,17 @@
   /* ==========================================================================
    * 6. TOKEN OBJECT
    * ========================================================================== */
+  /**
+   * Constructor Token — representasi satu token hasil lexer.
+   *
+   * @constructor
+   * @param {string} type - Jenis token (mis. 'TK_IDENT', 'TK_STRING')
+   * @param {*} value - Nilai token
+   * @param {number} line - Nomor baris (1-indexed)
+   * @param {number} col - Nomor kolom (1-indexed)
+   * @param {string | Object} [raw] - Raw source text atau objek selector (default: `value`)
+   * @this {LexerToken}
+   */
   function Token(type, value, line, col, raw) {
     this.type = type;
     this.value = value;
@@ -308,6 +365,11 @@
     this.raw = raw || value;
   }
 
+  /**
+   * Representasi string token untuk debugging.
+   *
+   * @returns {string} Format: `Token(TYPE, "value", line:col)`
+   */
   Token.prototype.toString = function () {
     return `Token(${this.type}, "${this.value}", ${this.line}:${this.col})`;
   };
@@ -315,6 +377,19 @@
   /* ==========================================================================
    * 7. LEXER ENGINE
    * ========================================================================== */
+  /**
+   * Constructor PromptJSLexer — tokenizer PromptJS.
+   *
+   * State lexer disimpan sebagai instance fields:
+   * - `source` — source code yang sedang di-tokenize
+   * - `tokens` — daftar token yang telah di-emit
+   * - `errors` — daftar error yang terjadi
+   * - `frontMatter` — baris front-matter (jika ada)
+   * - `indentStack` — stack level indentasi untuk INDENT/DEDENT emission
+   *
+   * @constructor
+   * @this {PromptJSLexer & LexerToken[] & LexerError[] & string[] & number[]}
+   */
   function PromptJSLexer() {
     this.source = '';
     this.tokens = [];
@@ -330,7 +405,20 @@
     this.inFrontMatter = false;
   }
 
-  // --- Entry Point ---
+  /**
+   * Tokenize source code PromptJS menjadi daftar token.
+   *
+   * Algoritma utama:
+   * 1. Reset state lexer (tokens, errors, pos, indent stack).
+   * 2. Deteksi front-matter block (`--- ... ---`) di awal file.
+   * 3. Untuk setiap baris non-kosong:
+   *    a. Hitung indentasi (emit INDENT/DEDENT sesuai kebutuhan).
+   *    b. Dispatch ke `_tokenizeLine` untuk klasifikasi jenis baris.
+   * 4. Pada EOF, emit DEDENT tersisa di stack, lalu emit TK_EOF.
+   *
+   * @param {string} source - Source code `.pjs`
+   * @returns {TokenizeResult} Hasil tokenisasi
+   */
   PromptJSLexer.prototype.tokenize = function (source) {
     this.source = source;
     this.tokens = [];
@@ -403,7 +491,15 @@
     return { tokens: this.tokens, errors: this.errors, frontMatter: this.frontMatter };
   };
 
-  // --- Indent measurement ---
+  /**
+   * Mengukur level indentasi baris (dalam spasi).
+   *
+   * PromptJS memakai 2 spasi per level. Karakter TAB dilarang; indentasi
+   * ganjil (bukan kelipatan 2) juga dilarang.
+   *
+   * @param {string} line - Baris source code
+   * @returns {number} Jumlah spasi indentasi (0, 2, 4, ...), atau `-1` jika error (TAB atau ganjil)
+   */
   PromptJSLexer.prototype._measureIndent = function (line) {
     let count = 0;
     for (let i = 0; i < line.length; i++) {
@@ -420,7 +516,19 @@
     return count;
   };
 
-  // --- INDENT/DEDENT emission ---
+  /**
+   * Emit token INDENT/DEDENT berdasarkan perubahan level indentasi.
+   *
+   * - Jika `indent` > level teratas stack: push ke stack, emit TK_INDENT.
+   * - Jika `indent` < level teratas stack: pop stack sampai level cocok,
+   *   emit TK_DEDENT untuk setiap pop. Jika tidak cocok dengan level manapun,
+   *   laporkan `E1002` (indentasi tidak konsisten).
+   * - Jika `indent` == level teratas stack: tidak emit apa-apa.
+   *
+   * @param {number} indent - Level indentasi baris saat ini
+   * @param {number} lineNum - Nomor baris
+   * @returns {void}
+   */
   PromptJSLexer.prototype._emitIndentDedent = function (indent, lineNum) {
     const current = this.indentStack[this.indentStack.length - 1];
     if (indent > current) {
@@ -448,7 +556,26 @@
     }
   };
 
-  // --- Line tokenization ---
+  /**
+   * Klasifikasi dan tokenize satu baris content (setelah indent di-strip).
+   *
+   * Urusan dispatch berdasarkan prefix baris:
+   * 1. Komentar (`--` / `//`) → skip.
+   * 2. String literal (`"..."` / `'...'`) → `_tokenizeStringLine`.
+   * 3. Event handler (`on_x = ...`) → `_tokenizeEventLine`.
+   * 4. External ref (`$name.path`) → `_tokenizeExternalRefLine`.
+   * 5. Block opener (`Buat`/`Halaman`/`Komponen`/...) → `_tokenizeBlockOpener`.
+   * 6. Control flow (`Jika`/`Lainnya`/`Ulangi`) → `_tokenizeControlFlow`.
+   * 7. Declaration (`Data`/`Tetap`/`Ubah`/`Fungsi`/`Saat`/`Kembalikan`) → `_tokenizeDeclaration`.
+   * 8. `pass` / `lewati` → emit TK_PASS.
+   * 9. Property line (`key = value`) → `_tokenizePropertyLine`.
+   * 10. Fallback → `_tokenizeExpression`.
+   *
+   * @param {string} content - Isi baris (tanpa indent)
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content (offset dari indent)
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeLine = function (content, lineNum, baseCol) {
     const trimmed = content.trim();
 
@@ -518,7 +645,17 @@
     this._tokenizeExpression(trimmed, lineNum, baseCol);
   };
 
-  // --- String line tokenization ---
+  /**
+   * Tokenize baris yang berisi hanya string literal (children text).
+   *
+   * Format: `"text"` atau `'text'`. Jika quote penutup tidak ditemukan,
+   * emit error `E1003` (string tidak tertutup) tapi tetap emit token string.
+   *
+   * @param {string} content - Isi baris dimulai dengan quote
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeStringLine = function (content, lineNum, baseCol) {
     const quote = content[0];
     const endIdx = content.length - 1;
@@ -542,7 +679,19 @@
     }
   };
 
-  // --- Event line tokenization ---
+  /**
+   * Tokenize baris event handler `on_nama_event = ekspresi`.
+   *
+   * Emit tiga kelompok token:
+   * 1. TK_ON_EVENT dengan nama event (mis. 'on_klik').
+   * 2. TK_ASSIGN ('=').
+   * 3. Hasil tokenisasi ekspresi kanan via `_tokenizeExpression`.
+   *
+   * @param {string} content - Isi baris `on_x = expr`
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeEventLine = function (content, lineNum, baseCol) {
     const eqIdx = content.indexOf('=');
     const eventName = content.substring(0, eqIdx).trim();
@@ -557,7 +706,18 @@
     this._tokenizeExpression(expr, lineNum, baseCol + eqIdx + 2);
   };
 
-  // --- External reference line tokenization ---
+  /**
+   * Tokenize baris yang berisi external reference `$nama.path`.
+   *
+   * Dua bentuk:
+   * - `key = $ext.ref` — property dengan external ref sebagai nilai.
+   * - `$ext.ref` (standalone) — langsung tokenize sebagai ekspresi.
+   *
+   * @param {string} content - Isi baris
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeExternalRefLine = function (content, lineNum, baseCol) {
     // Handle: $name.path = ... or just $name.path
     const eqIdx = content.indexOf('=');
@@ -575,7 +735,25 @@
     }
   };
 
-  // --- Block opener tokenization ---
+  /**
+   * Tokenize baris pembuka blok (`Buat`/`Create`/`Halaman`/`Page`/`Komponen`/`Component`/`Definisikan`/`Define`).
+   *
+   * Tiga varian:
+   * - Self-named (`Halaman:`/`Page:`): keyword itu sendiri jadi tag.
+   *   Named page (`Halaman Beranda:`) menghasilkan `id="beranda"`.
+   * - Component declaration (`Komponen Name(p1, p2):`/`Definisikan Name(...)`):
+   *   emit TK_IDENT untuk nama, TK_LPAREN/RPAREN untuk parameter.
+   * - Element creation (`Buat h1.class#id:`): emit TK_IDENT untuk selector.
+   *
+   * Setelah selector, jika ada `:`, emit TK_COLON lalu tokenize inline content
+   * setelahnya. Jika tidak ada `:`, emit error `E1004`.
+   *
+   * @param {string} content - Isi baris (mis. `Buat h1: "text"`)
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @param {string} keyword - Keyword yang cocok (mis. 'Buat', 'Halaman')
+   * @returns {void}
+   */
   // Keywords that ARE the element name (not just a prefix like Buat)
   const SELF_NAMED_KEYWORDS = new Set(['halaman', 'page']);
 
@@ -752,6 +930,20 @@
   };
 
   // --- Selector tokenization: tag.class1.class2#id ---
+  /**
+   * Tokenize selector CSS-style `tag.class#id[atr="val"]`.
+   *
+   * Emit satu token TK_IDENT dengan `value` berisi tag dan `raw` berisi objek
+   * Selector `{ type: 'Selector', tag, classes, id, attributes }`. Atribut
+   * dalam `[...]` ditokenisasi terpisah menjadi AttributeNode AST.
+   *
+   * Jika selector tidak valid (mis. tag kosong), emit error `E1009`.
+   *
+   * @param {string} selector - String selector (mis. `tombol.cta#daftar`)
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal selector
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeSelector = function (selector, lineNum, baseCol) {
     // Parse selector into components
     let pos = 0;
@@ -808,6 +1000,18 @@
   };
 
   // --- Control flow tokenization ---
+  /**
+   * Tokenize baris control flow (`Jika`/`If`, `Lainnya`/`Else`, `Ulangi`/`Loop`).
+   *
+   * Emit keyword token, lalu tokenize sisa baris sebagai ekspresi kondisi
+   * (untuk `Jika`/`Ulangi`) atau langsung `:` (untuk `Lainnya`).
+   *
+   * @param {string} content - Isi baris (mis. `Jika x > 5:`)
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @param {string} keyword - Keyword yang cocok (mis. 'Jika', 'Ulangi')
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeControlFlow = function (content, lineNum, baseCol, keyword) {
     const kwToken = KEYWORDS[keyword.toLowerCase()] || TT.TK_IDENT;
     this.tokens.push(new Token(kwToken, keyword, lineNum, baseCol + 1));
@@ -861,6 +1065,20 @@
   };
 
   // --- Declaration tokenization ---
+  /**
+   * Tokenize baris deklarasi (`Data`/`Tetap`/`Ubah`/`Turunan`/`Fungsi`/`Saat`/`Kembalikan`).
+   *
+   * Emit keyword token, lalu tokenize sisa baris:
+   * - Untuk deklarasi variabel: nama + opsional type hint + opsional `= expr`.
+   * - Untuk `Saat`/`When`: target watcher.
+   * - Untuk `Kembalikan`/`Return`: opsional ekspresi nilai return.
+   *
+   * @param {string} content - Isi baris (mis. `Data harga = 1000`)
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @param {string} keyword - Keyword yang cocok (mis. 'Data', 'Tetap')
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeDeclaration = function (content, lineNum, baseCol, keyword) {
     const kwToken = KEYWORDS[keyword.toLowerCase()] || TT.TK_IDENT;
     this.tokens.push(new Token(kwToken, keyword, lineNum, baseCol + 1));
@@ -872,6 +1090,17 @@
   };
 
   // --- Property line tokenization ---
+  /**
+   * Tokenize baris property `key = value` (atribut elemen).
+   *
+   * Emit TK_IDENT untuk `key`, TK_ASSIGN untuk `=`, lalu tokenize ekspresi
+   * nilai via `_tokenizeExpression`.
+   *
+   * @param {string} content - Isi baris (mis. `kelas = "tombol-utama"`)
+   * @param {number} lineNum - Nomor baris
+   * @param {number} baseCol - Kolom awal content
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizePropertyLine = function (content, lineNum, baseCol) {
     const eqIdx = content.indexOf('=');
     const key = content.substring(0, eqIdx).trim();
@@ -889,6 +1118,29 @@
   };
 
   // --- Expression tokenization (recursive descent for inline expressions) ---
+  /**
+   * Tokenize ekspresi kompleks (~300 baris, fungsi terbesar di lexer).
+   *
+   * Mendukung:
+   * - Literal: angka, string, boolean, null
+   * - Identifier dan external ref `$name.path`
+   * - Operator: aritmetika (`+`, `-`, `*`, `/`, `%`, `**`), pembanding
+   *   (`>`, `<`, `>=`, `<=`, `==`, `!=`, `===`, `!==`), logika (`&&`, `||`, `!`),
+   *   kata (`dan`/`atau`/`tidak`/`tambah`/`kurang`/`kali`/`bagi`/`mod`/`pangkat`/
+   *   `lebih dari`/`kurang dari`/`sama dengan`/`tidak sama dengan`/`paling sedikit`/`paling banyak`)
+   * - Ternary `? :` (right-associative)
+   * - Member access `.prop` dan `[index]`
+   * - Call `(...)` (dengan koma separator)
+   * - Object literal `{ k: v, ... }` (key identifier/string/number)
+   * - Array literal `[a, b, c]`
+   * - Grup `(expr)`
+   * - Native call `::name(...)` untuk JS interop
+   *
+   * @param {string} expr - String ekspresi (mis. `x + 5 * (y - 1)`)
+   * @param {number} lineNum - Nomor baris ekspresi
+   * @param {number} baseCol - Kolom awal ekspresi
+   * @returns {void}
+   */
   PromptJSLexer.prototype._tokenizeExpression = function (expr, lineNum, baseCol) {
     if (!expr || expr.trim() === '') return;
     expr = expr.trim();
@@ -1153,9 +1405,26 @@
   };
 
   // --- Front-matter parser (simple YAML-like) ---
+  /**
+   * Parse baris front-matter (YAML-like sederhana) menjadi objek.
+   *
+   * Format yang didukung per key:
+   * - File reference: `./path/file.json` atau `/abs/path.json` →
+   *   `{ type: 'file', path: '/path' }`
+   * - Inline JSON object: `{ "a": 1, ... }` →
+   *   `{ type: 'inline', value: { a: 1, ... } }`. Jika JSON strict gagal,
+   *   fallback ke lenient (unquoted keys).
+   * - Scalar (string/number/boolean): coba JSON.parse dulu; jika gagal,
+   *   simpan sebagai string mentah → `{ type: 'inline', value: ... }`.
+   *
+   * Baris kosong dan baris yang diawali `#` di-skip.
+   *
+   * @param {string[] | null} lines - Daftar baris front-matter (dari `tokenize()`)
+   * @returns {Object<string, any> | null} Objek front-matter dengan key-value pairs, atau `null` jika input kosong
+   */
   PromptJSLexer.parseFrontMatter = function (lines) {
     if (!lines || lines.length === 0) return null;
-    const result = {};
+    const result = /** @type {Object<string, any>} */ ({});
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) continue; // skip comments
@@ -1208,6 +1477,14 @@
   exports.PromptJSLexer = PromptJSLexer;
   exports.parseFrontMatter = PromptJSLexer.parseFrontMatter;
 
+  /**
+   * Convenience wrapper: buat instance PromptJSLexer baru dan tokenize source.
+   *
+   * Berguna untuk one-shot tokenization tanpa harus instantiate manual.
+   *
+   * @param {string} source - Source code `.pjs`
+   * @returns {TokenizeResult} Hasil tokenisasi
+   */
   exports.tokenize = function (source) {
     const lexer = new PromptJSLexer();
     return lexer.tokenize(source);

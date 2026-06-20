@@ -42,7 +42,7 @@
 - [ ] Pass final CHANGELOG untuk rilis v0.3
 
 ### Wave F — Typing
-- [ ] JSDoc + `checkJs` di titik panas; integrasi ke lint CI
+- [x] JSDoc + `checkJs` di titik panas; integrasi ke lint CI
 
 ## 🐞 Known issues (terlacak)
 - ~~Operator kata belum dikenali parser (`3 kali 2` → E3001)~~ — **resolved di C4**:

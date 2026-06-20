@@ -1,8 +1,13 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Unified Error Code Registry
+ * PromptJS v0.2 — Unified Error Code Registry / Registri Kode Error Terpadu
  * ============================================================================
+ *
+ * Registers all error and warning codes across the PromptJS pipeline stages.
  * Mendaftarkan semua kode error dan warning lintas tahap pipeline PromptJS.
- * Konvensi penomoran:
+ *
+ * Numbering convention / Konvensi penomoran:
  *   E1xxx / W1xxx — Lexer
  *   E2xxx / W2xxx — Parser
  *   E3xxx / W3xxx — Resolver
@@ -140,6 +145,7 @@ const W0000 = 'W0000'; // System warning (fallback untuk warning tanpa kode spes
 // ERROR MESSAGES (unified registry)
 // ═══════════════════════════════════════════════════════════════
 
+/** @type {Object<string, string>} */
 const ERROR_MESSAGES = {};
 
 // -- Lexer --
@@ -232,6 +238,7 @@ ERROR_MESSAGES[W0000] = 'Peringatan sistem';
 // SUGGESTIONS (unified registry)
 // ═══════════════════════════════════════════════════════════════
 
+/** @type {Object<string, string>} */
 const ERROR_SUGGESTIONS = {};
 
 // -- Lexer --
@@ -326,13 +333,49 @@ ERROR_SUGGESTIONS[E0000] = 'Periksa stack trace atau laporkan sebagai bug';
 ERROR_SUGGESTIONS[W0000] = 'Periksa detail peringatan untuk informasi lebih lanjut';
 
 // ═══════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Source location attached to error objects.
+ *
+ * @typedef {Object} ErrorLocation
+ * @property {{ line: number, column: number }} start - Posisi awal / Start position (1-indexed line)
+ * @property {{ line: number, column: number }} [end] - Posisi akhir / End position (opsional)
+ */
+
+/**
+ * Objek error/warning terformat yang dihasilkan oleh `createError`.
+ *
+ * Setiap field disediakan dalam dua alias (EN/ID) untuk kompatibilitas
+ * lintas konsumen — konsumen modern membaca `message`/`suggestion`/`code`,
+ * sementara kode lama PromptJS membaca `pesan`/`saran`/`kode`.
+ *
+ * @typedef {Object} PromptJSError
+ * @property {string} code - Kode error (mis. 'E1001', 'W4001')
+ * @property {string} kode - Alias ID untuk `code` (kompatibilitas mundur)
+ * @property {'error' | 'warning'} severity - Severity error
+ * @property {string} stage - Tahap pipeline tempat error terjadi ('Lexer', 'Parser', 'Resolver', 'Analyzer', 'Compiler', 'Runtime', 'System')
+ * @property {string} message - Pesan error (mungkin berisi placeholder `{name}`, `{n}`, dll. yang harus di-substitusi pemanggil)
+ * @property {string} pesan - Alias ID untuk `message`
+ * @property {string} suggestion - Saran perbaikan (boleh string kosong bila tidak ada saran)
+ * @property {string} saran - Alias ID untuk `suggestion`
+ * @property {ErrorLocation} loc - Lokasi source error
+ * @property {*} [relatedInformation] - Field bebas untuk metadata tambahan (mis. info node terkait untuk debugging)
+ */
+
+// ═══════════════════════════════════════════════════════════════
 // SEVERITY HELPER
 // ═══════════════════════════════════════════════════════════════
 
 /**
  * Mendapatkan severity berdasarkan kode error.
- * @param {string} code - Kode error (Exxxx atau Wxxxx)
- * @returns {string} 'error' atau 'warning'
+ *
+ * Konvensi: kode yang diawali `'W'` adalah warning, kode yang diawali
+ * `'E'` (atau kode lain / kosong) adalah error.
+ *
+ * @param {string} code - Kode error (format `Exxxx` atau `Wxxxx`)
+ * @returns {'error' | 'warning'} `'error'` atau `'warning'`
  */
 function getSeverity(code) {
   if (!code) return 'error';
@@ -341,8 +384,18 @@ function getSeverity(code) {
 
 /**
  * Mendapatkan tahap pipeline berdasarkan kode error.
- * @param {string} code - Kode error
- * @returns {string} Nama tahap: 'Lexer', 'Parser', 'Resolver', 'Analyzer', 'Compiler', 'Runtime', 'System'
+ *
+ * Digit kedua kode menentukan tahap:
+ * - `'1'` → Lexer
+ * - `'2'` → Parser
+ * - `'3'` → Resolver
+ * - `'4'` → Analyzer
+ * - `'5'` → Compiler
+ * - `'6'` → Runtime
+ * - lainnya → System
+ *
+ * @param {string} code - Kode error (format `Exxxx` atau `Wxxxx`)
+ * @returns {'Lexer' | 'Parser' | 'Resolver' | 'Analyzer' | 'Compiler' | 'Runtime' | 'System'} Nama tahap pipeline
  */
 function getStage(code) {
   if (!code || code.length < 2) return 'System';
@@ -367,10 +420,20 @@ function getStage(code) {
 
 /**
  * Membuat objek error terformat dari kode error.
- * @param {string} code - Kode error
- * @param {object} loc - SourceLocation { start, end }
- * @param {object} [overrides] - Properti opsional untuk override
- * @returns {object} Objek error terformat
+ *
+ * Mengambil pesan dan saran dari registri global (`ERROR_MESSAGES` dan
+ * `ERROR_SUGGESTIONS`), lalu menggabungkannya dengan severity, stage,
+ * dan lokasi. Setiap field disediakan dalam dua alias (EN/ID) untuk
+ * kompatibilitas lintas konsumen.
+ *
+ * Field dari `overrides` dapat mengganti field default. Setelah override
+ * diterapkan, alias `pesan`/`saran` disinkronkan ke `message`/`suggestion`
+ * agar keduanya tetap konsisten.
+ *
+ * @param {string} code - Kode error (mis. `E1001`, `W4001`)
+ * @param {ErrorLocation} loc - Source location error
+ * @param {Partial<PromptJSError>} [overrides] - Properti opsional untuk override field default
+ * @returns {PromptJSError} Objek error terformat
  */
 function createError(code, loc, overrides) {
   const severity = getSeverity(code);
@@ -401,25 +464,40 @@ function createError(code, loc, overrides) {
 }
 
 /**
- * Alias untuk createError — kompatibilitas mundur dengan parser.
- * Parser menggunakan Err.buatParseError(code, loc, overrides).
+ * Alias untuk `createError` — kompatibilitas mundur dengan parser.
+ * Parser menggunakan `Err.buatParseError(code, loc, overrides)`.
  *
- * Sejak v0.3.1-patch: createError() sudah menghasilkan field kode/pesan/saran
- * secara otomatis, sehingga fungsi ini hanya menjadi wrapper langsung.
+ * Sejak v0.3.1-patch: `createError()` sudah menghasilkan field
+ * `kode`/`pesan`/`saran` secara otomatis, sehingga fungsi ini hanya
+ * menjadi wrapper langsung.
  *
  * @param {string} code - Kode error
- * @param {object} loc - SourceLocation { start, end }
- * @param {object} [overrides] - Properti opsional untuk override
- * @returns {object} Objek error terformat (format: kode/pesan/saran/loc/severity)
+ * @param {ErrorLocation} loc - Source location error
+ * @param {Partial<PromptJSError>} [overrides] - Properti opsional untuk override field default
+ * @returns {PromptJSError} Objek error terformat
  */
 function buatParseError(code, loc, overrides) {
   return createError(code, loc, overrides);
 }
 
 /**
- * Format error untuk tampilan pengguna.
- * @param {object} err - Objek error
- * @returns {string} Pesan yang diformat
+ * Format error untuk tampilan pengguna (CLI / log).
+ *
+ * Format output:
+ * ```
+ * ✗ Baris 5, Kolom 12 [Lexer] [E1002]
+ * Indentasi tidak valid: karakter TAB ditemukan
+ * Saran: Ganti semua tab menjadi spasi (2, 4, 6, ...)
+ * ```
+ *
+ * Untuk warning, prefix `✗` diganti `⚠`. Baris saran hanya ditampilkan
+ * jika `err.suggestion` atau `err.saran` tidak kosong.
+ *
+ * Mendukung dua format lokasi: `err.loc.start.line/column` (modern)
+ * dan `err.baris`/`err.kolom` (legacy, kompatibilitas mundur).
+ *
+ * @param {Partial<PromptJSError> & { baris?: number, kolom?: number }} err - Objek error
+ * @returns {string} Pesan yang diformat (multi-baris)
  */
 function formatError(err) {
   let locStr = '';

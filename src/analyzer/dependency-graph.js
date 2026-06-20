@@ -1,21 +1,55 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Dependency Graph Utilities
+ * PromptJS v0.2 — Dependency Graph Utilities / Utilitas Dependency Graph
  * ============================================================================
- * Membangun dependency graph static sederhana dari metadata resolver,
+ *
+ * Builds a simple static dependency graph from resolver metadata,
+ * Membangun dependency graph statik sederhana dari metadata resolver,
  * terutama untuk `turunan` dan watcher `saat`.
+ *
+ * Berguna untuk deteksi dependency cycle (E4201) dan analisis reaktivitas.
  */
 
 'use strict';
 
+/**
+ * Generate key string unik untuk SourceLocation (untuk dipakai sebagai Map key).
+ *
+ * @param {Object | null | undefined} loc - Source location
+ * @returns {string} Key berformat `"line:column"`, atau `'unknown'` jika loc invalid
+ */
 function locKey(loc) {
   if (!loc || !loc.start) return 'unknown';
   return String(loc.start.line) + ':' + String(loc.start.column);
 }
 
+/**
+ * Cek apakah value adalah AST node (objek dengan `type` string).
+ *
+ * @param {*} value - Value yang akan dicek
+ * @returns {boolean} `true` jika value adalah AST node
+ */
 function isAstNode(value) {
   return value && typeof value === 'object' && typeof value.type === 'string';
 }
 
+/**
+ * Kumpulkan semua referensi Identifier dari sub-tree AST.
+ *
+ * Traverse node secara rekursif (dengan cycle detection via `seen` Set),
+ * dan untuk setiap Identifier yang memiliki metadata `resolved`, tambahkan
+ * ke array `out` dengan informasi `{ name, symbol, loc }`.
+ *
+ * Props yang di-skip (untuk hindari circular): `loc`, `symbol`, `resolved`,
+ * `semantic`, `targetSymbol`, `declarationNode`, `shadowedSymbol`,
+ * `references`, `scope`, `parent`.
+ *
+ * @param {Object | null} node - AST node akar traversal
+ * @param {Object[]} [out=[]] - Array output (akan diisi)
+ * @param {Set} [seen] - Set untuk cycle detection (internal)
+ * @returns {Object[]} Array referensi `{ name, symbol, loc }`
+ */
 function collectIdentifierReferences(node, out, seen) {
   if (!node || typeof node !== 'object') return out;
   if (!seen) seen = new Set();
@@ -64,6 +98,16 @@ function collectIdentifierReferences(node, out, seen) {
   return out;
 }
 
+/**
+ * Traverse AST secara rekursif dengan callback `visit(node)`.
+ *
+ * Cycle-safe via `seen` Set. Skip props metadata sama seperti `collectIdentifierReferences`.
+ *
+ * @param {Object | null} node - AST node akar traversal
+ * @param {(node: Object) => void} visit - Callback dipanggil untuk setiap AST node
+ * @param {Set} [seen] - Set untuk cycle detection (internal)
+ * @returns {void}
+ */
 function traverseAst(node, visit, seen) {
   if (!node || typeof node !== 'object') return;
   if (!seen) seen = new Set();
@@ -96,6 +140,18 @@ function traverseAst(node, visit, seen) {
   });
 }
 
+/**
+ * Bangun dependency graph dari AST yang sudah di-resolve.
+ *
+ * Ekstrak metadata `ast.semantic.symbols` (diisi oleh resolver), lalu untuk
+ * setiap simbol `turunan`, kumpulkan referensi Identifier dari `init`-nya
+ * dan catat edge dependency `from → to`.
+ *
+ * Hasil: `{ dependencies, cycles }`.
+ *
+ * @param {Object} ast - Root AST node (Program) dengan metadata `semantic`
+ * @returns {{ dependencies: Object[], cycles: Object[] }} Graph dependency + cycle yang terdeteksi
+ */
 function buildDependencyGraph(ast) {
   const semantic = ast && ast.semantic ? ast.semantic : null;
   const symbols = semantic && semantic.symbols ? semantic.symbols : [];
@@ -161,6 +217,15 @@ function buildDependencyGraph(ast) {
   };
 }
 
+/**
+ * Deteksi cycle dalam dependency graph menggunakan DFS.
+ *
+ * Algoritma: untuk setiap node, traverse edges; jika menemukan node yang
+ * sudah ada di current path, catat sebagai cycle.
+ *
+ * @param {Object[]} edges - Daftar edge `{ from, to, ... }`
+ * @returns {Object[]} Daftar cycle yang terdeteksi (setiap cycle adalah array node)
+ */
 function detectCycles(edges) {
   const graph = new Map();
   edges.forEach(function (edge) {
@@ -208,6 +273,15 @@ function detectCycles(edges) {
   return cycles;
 }
 
+/**
+ * Normalisasi struktur semantic AST menjadi format yang konsisten.
+ *
+ * Memastikan `ast.semantic` ada dan memiliki field `symbols` (array) dan
+ * `dependencies` (array). Jika tidak ada, inisialisasi dengan default.
+ *
+ * @param {Object} ast - Root AST node (Program)
+ * @returns {Object} Semantic yang sudah dinormalisasi
+ */
 function normalizeSemantic(ast) {
   const semantic = ast && ast.semantic ? ast.semantic : null;
   const symbols = semantic && semantic.symbols ? semantic.symbols : [];

@@ -1,17 +1,77 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Visitor Pattern
+ * PromptJS v0.2 — Visitor Pattern / Pola Visitor
  * ============================================================================
  *
- * Implementasi visitor untuk traversing AST PromptJS.
- * Berdasarkan: RFC-PARSER-001 §8
+ * Implements the visitor pattern for AST traversal.
+ * Implementasi pola visitor untuk traversing AST PromptJS.
+ *
+ * Based on / Berdasarkan: RFC-PARSER-001 §8
  */
 
 /**
- * Dispatch otomatis ke metode visit yang sesuai berdasarkan node.type.
+ * Lokasi source dalam source code PromptJS.
  *
- * @param {object} node - Node AST
- * @param {object} visitor - Objek visitor dengan metode visit*
- * @returns {*} Hasil dari metode visit
+ * @typedef {Object} SourceLocation
+ * @property {{ line: number, column: number }} start - Posisi awal / Start position (1-indexed line, 0-indexed column)
+ * @property {{ line: number, column: number }} end - Posisi akhir / End position
+ * @property {string} [source] - Nama file source / Source filename (opsional, hanya ada di node Program)
+ */
+
+/**
+ * Node AST generik. Setiap node memiliki properti `type` string; properti
+ * lainnya bergantung pada jenis node (lihat `getChildKeys` untuk daftar
+ * properti anak yang dapat di-traverse).
+ *
+ * @typedef {Object} ASTNode
+ * @property {string} type - Jenis node / Node type (mis. 'Program', 'BuatStatement', 'Identifier')
+ * @property {SourceLocation} [loc] - Lokasi source / Source location (opsional pada node sintetis)
+ */
+
+/**
+ * Objek visitor. Kontrak:
+ * - Untuk setiap AST node type T, visitor boleh mendefinisikan metode
+ *   `visit<T>(node)` yang dipanggil saat node T dikunjungi (mis. `visitProgram`,
+ *   `visitBuatStatement`). Daftar lengkap tipe yang didukung: lihat `nodeTypes`.
+ * - Jika metode `visit<T>` tidak ada, dispatch fallback ke `genericVisit`.
+ *
+ * Type ini sengaja longgar (`any`) karena dispatch `visit<NodeType>` bersifat
+ * dinamis berdasarkan string concatenation (`'visit' + node.type`). Type system
+ * tidak dapat menyatakan union dari 50+ nama metode yang mungkin secara efisien;
+ * validasi runtime (`typeof visitor[methodName] === 'function'`) adalah
+ * sumber kebenaran sebenarnya.
+ *
+ * @typedef {Object} Visitor
+ * @property {(node: ASTNode) => any} [genericVisit] - Default handler bila `visit<NodeType>` tidak didefinisikan
+ * @property {(node: ASTNode) => any} [visitProgram] - Handler untuk node Program
+ * @property {(node: ASTNode) => any} [visitBuatStatement] - Handler untuk BuatStatement
+ * @property {(node: ASTNode) => any} [visitJikaStatement] - Handler untuk JikaStatement
+ * @property {(node: ASTNode) => any} [visitUlangiStatement] - Handler untuk UlangiStatement
+ * @property {(node: ASTNode) => any} [visitKetikaStatement] - Handler untuk KetikaStatement
+ * @property {(node: ASTNode) => any} [visitBinaryExpression] - Handler untuk BinaryExpression
+ * @property {(node: ASTNode) => any} [visitCallExpression] - Handler untuk CallExpression
+ * @property {(node: ASTNode) => any} [visitIdentifier] - Handler untuk Identifier
+ * @property {(node: ASTNode) => any} [visitLiteral] - Handler untuk Literal
+ * @property {(node: ASTNode) => any} [visitMemberExpression] - Handler untuk MemberExpression
+ */
+
+/**
+ * Dispatch otomatis ke metode `visit*` yang sesuai berdasarkan `node.type`.
+ *
+ * Algoritma:
+ * 1. Jika `node` falsy atau tidak punya `type`, kembalikan `undefined`.
+ * 2. Cari metode `visit<NodeType>` pada `visitor`.
+ * 3. Jika ada, panggil dan kembalikan hasilnya.
+ * 4. Jika tidak, fallback ke `visitor.genericVisit` (jika ada).
+ * 5. Jika tidak ada keduanya, kembalikan `undefined`.
+ *
+ * Catatan: fungsi ini tidak melakukan recursi ke anak node — itu tanggung
+ * jawab `genericVisit` (atau handler kustom yang memanggilnya).
+ *
+ * @param {ASTNode} node - Node AST yang akan dikunjungi
+ * @param {Visitor | BaseVisitor | CollectingVisitorInstance} visitor - Objek visitor dengan metode `visit*`
+ * @returns {any} Hasil dari metode visit, atau `undefined` jika tidak ada handler
  */
 function accept(node, visitor) {
   if (!node || !node.type) return undefined;
@@ -31,10 +91,12 @@ function accept(node, visitor) {
 }
 
 /**
- * Melakukan traversing depth-first ke semua anak node.
+ * Traverse node dan dispatch ke visitor. Convenience wrapper untuk `accept`
+ * — disediakan agar call site membaca "akar traversal" lebih jelas.
  *
- * @param {object} node - Node AST
- * @param {object} visitor - Objek visitor
+ * @param {ASTNode} node - Node AST yang akan di-traverse
+ * @param {Visitor | BaseVisitor | CollectingVisitorInstance} visitor - Objek visitor
+ * @returns {void}
  */
 function traverse(node, visitor) {
   if (!node) return;
@@ -44,7 +106,14 @@ function traverse(node, visitor) {
 }
 
 /**
- * Mendapatkan nama properti anak untuk setiap tipe node.
+ * Mendapatkan nama properti anak yang dapat di-traverse untuk setiap tipe node.
+ *
+ * Hanya properti yang dikembalikan oleh fungsi ini yang akan dikunjungi saat
+ * traversing depth-first (lihat `BaseVisitor#genericVisit`). Properti skalar
+ * (mis. `node.value`, `node.name`) tidak termasuk.
+ *
+ * @param {string} nodeType - Tipe node AST (mis. 'Program', 'BuatStatement')
+ * @returns {string[]} Daftar nama properti yang berisi child node
  */
 function getChildKeys(nodeType) {
   switch (nodeType) {
@@ -150,11 +219,29 @@ function getChildKeys(nodeType) {
 }
 
 /**
- * Base Visitor: implementasi default yang melakukan traversing depth-first.
- * Visitor kustom bisa meng-extend ini dan meng-override metode tertentu.
+ * BaseVisitor: implementasi default yang melakukan traversing depth-first.
+ *
+ * Subclass dapat meng-extend ini (via `Object.create(BaseVisitor.prototype)`)
+ * dan meng-override metode `visit<NodeType>` tertentu untuk menambahkan logika
+ * kustom. Handler override dapat memanggil `this.genericVisit(node)` untuk
+ * melanjutkan traversing ke anak node.
+ *
+ * @constructor
  */
 function BaseVisitor() {}
 
+/**
+ * Traverse semua anak node secara depth-first.
+ *
+ * Untuk setiap key yang dikembalikan oleh `getChildKeys(node.type)`:
+ * - Jika anak adalah array, traverse setiap element yang merupakan AST node.
+ * - Jika anak adalah AST node langsung, traverse node tersebut.
+ * - Jika anak adalah container object (mis. `docstring: { teks: <ASTNode> }`),
+ *   traverse setiap value yang merupakan AST node.
+ *
+ * @param {ASTNode} node - Node AST yang anaknya akan di-traverse
+ * @returns {void}
+ */
 BaseVisitor.prototype.genericVisit = function (node) {
   const childKeys = getChildKeys(node.type);
   for (let i = 0; i < childKeys.length; i++) {
@@ -184,7 +271,13 @@ BaseVisitor.prototype.genericVisit = function (node) {
   }
 };
 
-// Buat metode visit untuk setiap tipe node yang meneruskan ke genericVisit
+/**
+ * Daftar semua tipe node AST yang dikenal oleh visitor. Setiap entry akan
+ * menghasilkan metode `visit<Type>` di `BaseVisitor.prototype` yang
+ * mendelegasikan ke `genericVisit`.
+ *
+ * @type {string[]}
+ */
 const nodeTypes = [
   'Program',
   'BlockStatement',
@@ -251,7 +344,23 @@ nodeTypes.forEach(function (type) {
 });
 
 /**
- * CollectingVisitor: mengumpulkan semua node bertipe tertentu.
+ * @typedef {Object} CollectingVisitorInstance
+ * @property {string} targetType - Tipe node yang akan dikumpulkan
+ * @property {ASTNode[]} results - Hasil pengumpulan node (terisi selama traversal)
+ * @property {(node: ASTNode) => void} genericVisit - Override untuk mengumpulkan node bertipe `targetType`
+ */
+
+/**
+ * CollectingVisitor: visitor yang mengumpulkan semua node bertipe tertentu
+ * ke array `this.results`. Traversal tetap dilanjutkan ke anak-anak node
+ * yang cocok, sehingga node bertipe sama di dalam juga ikut terkumpul.
+ *
+ * Dipanggil dengan `new CollectingVisitor(targetType)`. Instance yang dibuat
+ * mengikuti typedef {@link CollectingVisitorInstance} di atas.
+ *
+ * @constructor
+ * @param {string} targetType - Tipe node yang akan dikumpulkan (mis. 'Identifier')
+ * @this {CollectingVisitorInstance}
  */
 function CollectingVisitor(targetType) {
   this.targetType = targetType;
@@ -261,6 +370,13 @@ function CollectingVisitor(targetType) {
 CollectingVisitor.prototype = Object.create(BaseVisitor.prototype);
 CollectingVisitor.prototype.constructor = CollectingVisitor;
 
+/**
+ * Override `genericVisit` untuk mengumpulkan node yang bertipe `targetType`
+ * ke `this.results`, lalu lanjutkan traversal ke anak-anaknya.
+ *
+ * @param {ASTNode} node - Node AST yang sedang dikunjungi
+ * @returns {void}
+ */
 CollectingVisitor.prototype.genericVisit = function (node) {
   if (node.type === this.targetType) {
     this.results.push(node);
@@ -284,7 +400,19 @@ CollectingVisitor.prototype.genericVisit = function (node) {
 };
 
 /**
- * Format AST menjadi string yang bisa dibaca.
+ * Format AST menjadi string yang dapat dibaca manusia. Berguna untuk
+ * debugging dan snapshot testing.
+ *
+ * Format per node (contoh):
+ * ```
+ * Type @line:col (scalarProp1: "val1", scalarProp2: 42)
+ *   child1
+ *   child2
+ * ```
+ *
+ * @param {ASTNode | null | undefined} node - Node AST yang akan di-format
+ * @param {number} [indent=0] - Level indent awal (2 spasi per level)
+ * @returns {string} Representasi string AST yang terformat
  */
 function formatAST(node, indent) {
   if (!indent) indent = 0;

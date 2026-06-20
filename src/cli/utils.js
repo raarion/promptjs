@@ -1,7 +1,11 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — CLI Utility Functions
+ * PromptJS v0.2 — CLI Utility Functions / Fungsi Utilitas CLI
  * ============================================================================
+ *
  * Shared helpers for the CLI commands: formatting, file discovery, etc.
+ * Helper bersama untuk command CLI: formatting, file discovery, dll.
  */
 
 'use strict';
@@ -10,7 +14,25 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Find all .pjs files in a directory (recursively).
+ * Palet warna ANSI yang dikembalikan oleh `makeColors`.
+ *
+ * @typedef {Object} ColorPalette
+ * @property {boolean} enabled - Apakah warna aktif
+ * @property {string} green - Escape code hijau (atau '' jika disabled)
+ * @property {string} cyan - Escape code cyan
+ * @property {string} red - Escape code merah
+ * @property {string} yellow - Escape code kuning
+ * @property {string} gray - Escape code abu-abu
+ * @property {string} bold - Escape code bold
+ * @property {string} reset - Escape code reset
+ */
+
+/**
+ * Cari semua file `.pjs` dalam direktori (rekursif).
+ *
+ * @param {string} dir - Path direktori akar pencarian
+ * @param {string[]} [ignoreDirs] - Daftar nama direktori yang di-skip (default: `['node_modules', '.git', 'dist']`)
+ * @returns {string[]} Daftar path absolut file `.pjs` yang ditemukan
  */
 function findPjsFiles(dir, ignoreDirs) {
   const ignore = ignoreDirs || ['node_modules', '.git', 'dist'];
@@ -50,8 +72,8 @@ function findPjsFiles(dir, ignoreDirs) {
  *   4. A `stream`'s TTY status (auto-detect; piped output gets no color).
  *   5. Default: enabled.
  *
- * Returns an object of escape codes (empty strings when disabled) plus the
- * resolved `enabled` flag, so callers can both colorize and gate other output.
+ * @param {{ enabled?: boolean, stream?: { isTTY?: boolean } }} [opts] - Opsi color
+ * @returns {ColorPalette} Palet warna ANSI dengan flag `enabled`
  */
 function makeColors(opts) {
   const { enabled, stream } = opts || {};
@@ -82,8 +104,13 @@ function makeColors(opts) {
 }
 
 /**
- * Format a compilation error/warning for terminal output.
- * Colors: red for errors, yellow for warnings, gray for info.
+ * Format diagnostic (error/warning) untuk output terminal.
+ *
+ * Warna: merah untuk error, kuning untuk warning, abu-abu untuk info.
+ *
+ * @param {Object} diag - Objek diagnostic dengan field `code`, `message`, `severity`, `line`, `suggestion`
+ * @param {boolean} [colorize] - Apakah output diwarnai (default: true)
+ * @returns {string} String diagnostic yang siap di-print
  */
 function formatDiagnostic(diag, colorize) {
   const { red, yellow, gray, bold, reset } = makeColors({ enabled: colorize !== false });
@@ -107,7 +134,12 @@ function formatDiagnostic(diag, colorize) {
 }
 
 /**
- * Print diagnostics to stderr.
+ * Print daftar diagnostic ke stderr.
+ *
+ * @param {Object[]} diagnostics - Daftar diagnostic
+ * @param {string} label - Label (tidak dipakai, kompatibilitas mundur)
+ * @param {boolean} [colorize] - Apakah output diwarnai
+ * @returns {void}
  */
 function printDiagnostics(diagnostics, label, colorize) {
   if (!diagnostics || diagnostics.length === 0) return;
@@ -119,10 +151,16 @@ function printDiagnostics(diagnostics, label, colorize) {
 }
 
 /**
- * Resolve output path for a compiled .pjs file.
- * If --out-dir is specified, mirror the source structure in that directory.
- * If --output is specified, write to that single file.
- * Otherwise, write .js next to the .pjs file.
+ * Resolve output path untuk file `.pjs` yang di-compile.
+ *
+ * Aturan:
+ * - Jika `options.output` di-set: tulis ke file tunggal tersebut.
+ * - Jika `options.outDir` di-set: mirror struktur source di outDir.
+ * - Default: tulis `.js` di sebelah file `.pjs`.
+ *
+ * @param {string} inputPath - Path file `.pjs` input
+ * @param {{ output?: string, outDir?: string, rootDir?: string }} options - Opsi output
+ * @returns {string} Path file `.js` output
  */
 function resolveOutputPath(inputPath, options) {
   if (options.output) {
@@ -143,7 +181,10 @@ function resolveOutputPath(inputPath, options) {
 }
 
 /**
- * Ensure the directory for a file path exists.
+ * Pastikan direktori parent dari `filePath` ada (buat jika belum).
+ *
+ * @param {string} filePath - Path file yang akan ditulis
+ * @returns {void}
  */
 function ensureDirForFile(filePath) {
   const dir = path.dirname(filePath);
@@ -153,7 +194,10 @@ function ensureDirForFile(filePath) {
 }
 
 /**
- * Format file size in human-readable form.
+ * Format ukuran file menjadi bentuk yang dapat dibaca manusia (mis. `1.2KB`, `3.4MB`).
+ *
+ * @param {number} bytes - Ukuran file dalam byte
+ * @returns {string} Ukuran terformat
  */
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + 'B';
@@ -162,7 +206,10 @@ function formatSize(bytes) {
 }
 
 /**
- * Get elapsed time string from a start hrtime.
+ * Format elapsed time dari start hrtime menjadi string (mis. `12.3ms`, `1.50s`).
+ *
+ * @param {[number, number]} start - Start time dari `process.hrtime()` (tuple [seconds, nanoseconds])
+ * @returns {string} Waktu terformat
  */
 function formatElapsed(start) {
   const diff = process.hrtime(start);

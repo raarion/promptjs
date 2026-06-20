@@ -1,6 +1,10 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — ANALYZER (Tahap 4)
+ * PromptJS v0.2 — ANALYZER (Tahap 4) / Analis Semantik
  * ============================================================================
+ *
+ * Performs semantic validation: types, reactivity, control flow, and lifecycle.
  * Melakukan validasi semantik: tipe, reaktivitas, kontrol alur, dan lifecycle.
  *
  * Sesuai Spesifikasi: PromptJS-grammar-spec_v0_3_1.md
@@ -21,6 +25,18 @@ const { BaseVisitor, accept } = require('../utils/visitor');
 const Err = require('../parser/error-codes');
 const DependencyGraph = require('./dependency-graph');
 
+/**
+ * Constructor PromptJSAnalyzer — semantic analyzer berbasis visitor.
+ *
+ * State analyzer:
+ * - `errors` / `warnings` — daftar diagnostic yang terkumpul
+ * - `_currentAst` — AST yang sedang dianalisis (dipakai buildSemanticGraph)
+ * - `options` — opsi analisis (mis. `{ strict: true }`)
+ * - `context` — stack konteks semantik (inComponent, inFunction, loopDepth, dll.)
+ *
+ * @constructor
+ * @this {PromptJSAnalyzer}
+ */
 function PromptJSAnalyzer() {
   BaseVisitor.call(this);
   this.errors = [];
@@ -42,6 +58,20 @@ function PromptJSAnalyzer() {
 PromptJSAnalyzer.prototype = Object.create(BaseVisitor.prototype);
 PromptJSAnalyzer.prototype.constructor = PromptJSAnalyzer;
 
+// TypeScript hint: BaseVisitor.call(this) inherits genericVisit/visit* methods
+// from BaseVisitor.prototype at runtime, but TS cannot see this connection.
+// Declare the alias explicitly so method bodies that call `this.genericVisit(node)`
+// type-check cleanly.
+/** @type {(node: Object) => void} */
+PromptJSAnalyzer.prototype.genericVisit;
+
+/**
+ * Entry point analyzer — traverse AST, validasi semantik, kumpulkan errors/warnings.
+ *
+ * @param {Object} ast - Root AST node (Program)
+ * @param {Object} [options] - Opsi analisis
+ * @returns {{ ast: Object, errors: Object[], warnings: Object[] }} Hasil analisis
+ */
 PromptJSAnalyzer.prototype.analyze = function (ast, options) {
   this.errors = [];
   this.warnings = [];
@@ -74,6 +104,15 @@ PromptJSAnalyzer.prototype.analyze = function (ast, options) {
 
 // --- Helpers ---
 
+/**
+ * Tambahkan error ke daftar `this.errors`.
+ *
+ * @param {string} code - Kode error
+ * @param {string} pesan - Pesan error
+ * @param {Object} loc - Source location
+ * @param {string} [saran] - Saran perbaikan (opsional)
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.addError = function (code, pesan, loc, saran) {
   this.errors.push(
     Err.createError(code, loc, {
@@ -83,6 +122,16 @@ PromptJSAnalyzer.prototype.addError = function (code, pesan, loc, saran) {
   );
 };
 
+/**
+ * Tambahkan warning ke daftar `this.warnings`.
+ *
+ * @param {string} code - Kode warning
+ * @param {string} pesan - Pesan warning
+ * @param {Object} loc - Source location
+ * @param {string} [saran] - Saran perbaikan (opsional)
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.addWarning = function (code, pesan, loc, saran) {
   this.warnings.push(
     Err.createError(code, loc, {
@@ -94,6 +143,14 @@ PromptJSAnalyzer.prototype.addWarning = function (code, pesan, loc, saran) {
 
 /**
  * Validasi Tipe Dasar (Section 7.3)
+ */
+/**
+ * Cek apakah typeHint kompatibel dengan valueNode (mis. `Data x: angka = "teks"` → W4001).
+ *
+ * @param {string} typeHint - Type hint yang dideklarasikan
+ * @param {Object} valueNode - AST node ekspresi nilai
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.checkTypeHint = function (typeHint, valueNode) {
   if (!typeHint || !valueNode || valueNode.type === 'ErrorNode') return;
@@ -149,6 +206,12 @@ PromptJSAnalyzer.prototype.checkTypeHint = function (typeHint, valueNode) {
 
 // --- Symbol Lookup ---
 
+/**
+ * Cari simbol berdasarkan nama (mirip Scope.lookup, tapi pakai semantic graph analyzer).
+ *
+ * @param {string} name - Nama simbol
+ * @returns {Object | null} SemanticSymbol jika ditemukan, null jika tidak
+ */
 PromptJSAnalyzer.prototype.lookupSymbol = function (name) {
   // [Bug 4 FIX] Lookup O(1) via Map, bukan O(n) linear scan
   if (this._symbolMap) {
@@ -170,6 +233,13 @@ PromptJSAnalyzer.prototype.lookupSymbol = function (name) {
 /**
  * Cek apakah target adalah data turunan (read-only).
  * Digunakan oleh simpan, tambahkan, kurangi, sisipkan, perbarui.
+ */
+/**
+ * Cek apakah ada penulisan ke data turunan (read-only) → emit E4004.
+ *
+ * @param {Object} node - AST node statement yang menulis
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.checkWriteToTurunan = function (node) {
   if (!node.target) return;
@@ -198,6 +268,13 @@ PromptJSAnalyzer.prototype.checkWriteToTurunan = function (node) {
 /**
  * Cek apakah statement berada di dalam ekspresi turunan (side-effect check).
  */
+/**
+ * Cek apakah ada side-effect (Simpan/Tambahkan/Kurangi) di dalam ekspresi turunan → E4002.
+ *
+ * @param {Object} node - AST node ekspresi turunan
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.checkSideEffectInTurunan = function (node) {
   if (this.context.inTurunanExpr) {
     this.addError(
@@ -211,6 +288,12 @@ PromptJSAnalyzer.prototype.checkSideEffectInTurunan = function (node) {
 
 /**
  * Refinement lvl.2: bangun dependency graph static dan normalized semantic view.
+ */
+/**
+ * Bangun semantic graph dari AST untuk tracking dependency simbol.
+ *
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.buildSemanticGraph = function () {
   if (!this._currentAst || !this._currentAst.semantic) return;
@@ -235,6 +318,12 @@ PromptJSAnalyzer.prototype.buildSemanticGraph = function () {
   this._currentAst.semantic.normalized = DependencyGraph.normalizeSemantic(this._currentAst);
 };
 
+/**
+ * Konversi daftar ID/identifier menjadi daftar nama simbol.
+ *
+ * @param {(string | number)[]} ids - Daftar ID atau nama
+ * @returns {string[]} Daftar nama simbol
+ */
 PromptJSAnalyzer.prototype._symbolNamesFromIds = function (ids) {
   const symbols =
     this._currentAst && this._currentAst.semantic ? this._currentAst.semantic.symbols || [] : [];
@@ -250,6 +339,12 @@ PromptJSAnalyzer.prototype._symbolNamesFromIds = function (ids) {
  * Refinement lvl.1: gunakan metadata resolver untuk diagnostics usage dasar.
  * Rule ini sengaja konservatif: parameter tidak dilaporkan agar tidak bising,
  * dan declaration node tanpa loc valid dilewati.
+ */
+/**
+ * Emit warning penggunaan simbol (W4101/W4102/W4103/W4104) berdasarkan tracking read/write.
+ *
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.emitUsageWarnings = function () {
   if (!this._currentAst || !this._currentAst.semantic || !this._currentAst.semantic.symbols) return;
@@ -314,6 +409,13 @@ PromptJSAnalyzer.prototype.emitUsageWarnings = function () {
 /**
  * Validasi Komponen (Section 8)
  */
+/**
+ * Visitor untuk KomponenDeclaration — set context.inComponent, traverse body.
+ *
+ * @param {Object} node - AST node KomponenDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitKomponenDeclaration = function (node) {
   const prevInComponent = this.context.inComponent;
   this.context.inComponent = true;
@@ -358,6 +460,13 @@ PromptJSAnalyzer.prototype.visitKomponenDeclaration = function (node) {
 /**
  * Validasi Lifecycle Hook (Section 5.4 / 8.5)
  */
+/**
+ * Visitor untuk LifecycleStatement — cek context.inComponent (E4001 jika di luar komponen).
+ *
+ * @param {Object} node - AST node LifecycleStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitLifecycleStatement = function (node) {
   if (!this.context.inComponent) {
     this.addError(
@@ -382,6 +491,13 @@ PromptJSAnalyzer.prototype.visitLifecycleStatement = function (node) {
 /**
  * Validasi Turunan (Section 7.4)
  */
+/**
+ * Visitor untuk TurunanDeclaration — set context.inTurunanExpr, traverse init.
+ *
+ * @param {Object} node - AST node TurunanDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitTurunanDeclaration = function (node) {
   const prevInTurunan = this.context.inTurunanExpr;
   this.context.inTurunanExpr = true;
@@ -393,6 +509,13 @@ PromptJSAnalyzer.prototype.visitTurunanDeclaration = function (node) {
 /**
  * Validasi Type Hint pada Deklarasi Data (Section 7.3)
  */
+/**
+ * Visitor untuk DataDeclaration — checkTypeHint + traverse init.
+ *
+ * @param {Object} node - AST node DataDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitDataDeclaration = function (node) {
   if (node.typeHint && node.init) {
     this.checkTypeHint(node.typeHint, node.init);
@@ -400,6 +523,13 @@ PromptJSAnalyzer.prototype.visitDataDeclaration = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk TetapDeclaration — cek init wajib (W4003 jika null), checkTypeHint.
+ *
+ * @param {Object} node - AST node TetapDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitTetapDeclaration = function (node) {
   if (node.typeHint && node.init) {
     this.checkTypeHint(node.typeHint, node.init);
@@ -416,6 +546,13 @@ PromptJSAnalyzer.prototype.visitTetapDeclaration = function (node) {
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk UbahDeclaration — checkTypeHint + traverse init.
+ *
+ * @param {Object} node - AST node UbahDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitUbahDeclaration = function (node) {
   if (node.typeHint && node.init) {
     this.checkTypeHint(node.typeHint, node.init);
@@ -425,6 +562,13 @@ PromptJSAnalyzer.prototype.visitUbahDeclaration = function (node) {
 
 /**
  * Validasi Reaktivitas & Assignment (Section 7.5)
+ */
+/**
+ * Visitor untuk SimpanStatement — cek checkWriteToTurunan.
+ *
+ * @param {Object} node - AST node SimpanStatement
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.visitSimpanStatement = function (node) {
   // Cek side-effect dalam turunan
@@ -437,18 +581,39 @@ PromptJSAnalyzer.prototype.visitSimpanStatement = function (node) {
 
 // ─── Mutation Statements (C5/M1 FIX) ──────────────────────
 
+/**
+ * Visitor untuk TambahkanStatement — cek inTurunanExpr (E4002), checkWriteToTurunan.
+ *
+ * @param {Object} node - AST node TambahkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitTambahkanStatement = function (node) {
   this.checkSideEffectInTurunan(node);
   this.checkWriteToTurunan(node);
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk KurangiStatement — cek inTurunanExpr (E4002), checkWriteToTurunan.
+ *
+ * @param {Object} node - AST node KurangiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitKurangiStatement = function (node) {
   this.checkSideEffectInTurunan(node);
   this.checkWriteToTurunan(node);
   this.genericVisit(node);
 };
 
+/**
+ * Visitor untuk SisipkanStatement — cek inTurunanExpr (E4002), checkWriteToTurunan.
+ *
+ * @param {Object} node - AST node SisipkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitSisipkanStatement = function (node) {
   this.checkSideEffectInTurunan(node);
   this.checkWriteToTurunan(node);
@@ -456,6 +621,13 @@ PromptJSAnalyzer.prototype.visitSisipkanStatement = function (node) {
 };
 
 // ─── PerbaruiStatement (C5 FIX) ────────────────────────────
+/**
+ * Visitor untuk PerbaruiStatement — cek property valid (E4008), checkWriteToTurunan.
+ *
+ * @param {Object} node - AST node PerbaruiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitPerbaruiStatement = function (node) {
   // Cek side-effect dalam turunan
   this.checkSideEffectInTurunan(node);
@@ -465,6 +637,13 @@ PromptJSAnalyzer.prototype.visitPerbaruiStatement = function (node) {
 };
 
 // ─── GunakanStatement (H4 FIX) ─────────────────────────────
+/**
+ * Visitor untuk GunakanStatement — cek componentName adalah komponen (E4010 jika tidak).
+ *
+ * @param {Object} node - AST node GunakanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitGunakanStatement = function (node) {
   if (node.componentName) {
     const symbol = this.lookupSymbol(node.componentName);
@@ -481,6 +660,13 @@ PromptJSAnalyzer.prototype.visitGunakanStatement = function (node) {
 };
 
 // ─── TampilkanStatement (H4 FIX) ───────────────────────────
+/**
+ * Visitor untuk TampilkanStatement — cek mode valid (E4007).
+ *
+ * @param {Object} node - AST node TampilkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitTampilkanStatement = function (node) {
   const validModes = ['tambahkan', 'ganti', 'awalan', 'sebelum', 'sesudah'];
   if (node.mode && validModes.indexOf(node.mode) === -1) {
@@ -495,36 +681,85 @@ PromptJSAnalyzer.prototype.visitTampilkanStatement = function (node) {
 };
 
 // ─── SembunyikanStatement (H4 FIX) ─────────────────────────
+/**
+ * Visitor untuk SembunyikanStatement — traverse target.
+ *
+ * @param {Object} node - AST node SembunyikanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitSembunyikanStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── HapusStatement (H4 FIX) ───────────────────────────────
+/**
+ * Visitor untuk HapusStatement — traverse target.
+ *
+ * @param {Object} node - AST node HapusStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitHapusStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── KosongkanStatement (H4 FIX) ───────────────────────────
+/**
+ * Visitor untuk KosongkanStatement — traverse target.
+ *
+ * @param {Object} node - AST node KosongkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitKosongkanStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── ArahkanStatement (H4 FIX) ─────────────────────────────
+/**
+ * Visitor untuk ArahkanStatement — traverse url.
+ *
+ * @param {Object} node - AST node ArahkanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitArahkanStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── SetelahStatement (H4 FIX) ─────────────────────────────
+/**
+ * Visitor untuk SetelahStatement — traverse target, body, action.
+ *
+ * @param {Object} node - AST node SetelahStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitSetelahStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── AmbilDomStatement (H4 FIX) ────────────────────────────
+/**
+ * Visitor untuk AmbilDomStatement — traverse source.
+ *
+ * @param {Object} node - AST node AmbilDomStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitAmbilDomStatement = function (node) {
   this.genericVisit(node);
 };
 
 // ─── AmbilLuarStatement (H4 FIX) ───────────────────────────
+/**
+ * Visitor untuk AmbilLuarStatement — traverse url, branches, options.
+ *
+ * @param {Object} node - AST node AmbilLuarStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitAmbilLuarStatement = function (node) {
   this.genericVisit(node);
 };
@@ -532,6 +767,13 @@ PromptJSAnalyzer.prototype.visitAmbilLuarStatement = function (node) {
 /**
  * Validasi Kontrol Alur (Section 6.5)
  * [H6 FIX] E6xxx → E4xxx baru
+ */
+/**
+ * Visitor untuk BerhentiStatement — cek context (E4011 jika di luar loop/handler).
+ *
+ * @param {Object} node - AST node BerhentiStatement
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.visitBerhentiStatement = function (node) {
   const isValid = this.context.loopDepth > 0 || this.context.handlerDepth > 0;
@@ -553,6 +795,13 @@ PromptJSAnalyzer.prototype.visitBerhentiStatement = function (node) {
   }
 };
 
+/**
+ * Visitor untuk LewatiStatement — cek context.loopDepth > 0 (E4012 jika di luar loop).
+ *
+ * @param {Object} node - AST node LewatiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitLewatiStatement = function (node) {
   // PromptJS patch: "pass" in BuatStatement body is valid (empty element marker)
   // Only emit error if not inside a BuatStatement (i.e., standalone pass outside loop)
@@ -566,6 +815,13 @@ PromptJSAnalyzer.prototype.visitLewatiStatement = function (node) {
   }
 };
 
+/**
+ * Visitor untuk KembalikanStatement — cek context.inFunction || inComponent (E4013 jika di luar).
+ *
+ * @param {Object} node - AST node KembalikanStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitKembalikanStatement = function (node) {
   if (!this.context.inFunction && !this.context.inComponent) {
     this.addError(
@@ -580,24 +836,52 @@ PromptJSAnalyzer.prototype.visitKembalikanStatement = function (node) {
 /**
  * Validasi Konteks Loop & Handler
  */
+/**
+ * Visitor untuk UlangiStatement — increment loopDepth, traverse body, decrement.
+ *
+ * @param {Object} node - AST node UlangiStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitUlangiStatement = function (node) {
   this.context.loopDepth++;
   this.genericVisit(node);
   this.context.loopDepth--;
 };
 
+/**
+ * Visitor untuk SelamaStatement — increment loopDepth, traverse condition + body, decrement.
+ *
+ * @param {Object} node - AST node SelamaStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitSelamaStatement = function (node) {
   this.context.loopDepth++;
   this.genericVisit(node);
   this.context.loopDepth--;
 };
 
+/**
+ * Visitor untuk KetikaStatement — increment handlerDepth, traverse body, decrement.
+ *
+ * @param {Object} node - AST node KetikaStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitKetikaStatement = function (node) {
   this.context.handlerDepth++;
   this.genericVisit(node);
   this.context.handlerDepth--;
 };
 
+/**
+ * Visitor untuk FungsiDeclaration — set context.inFunction, traverse params + body.
+ *
+ * @param {Object} node - AST node FungsiDeclaration
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitFungsiDeclaration = function (node) {
   const prevInFunc = this.context.inFunction;
   this.context.inFunction = true;
@@ -608,6 +892,13 @@ PromptJSAnalyzer.prototype.visitFungsiDeclaration = function (node) {
 /**
  * PromptJS patch: Track BuatStatement context so pass/lewati is valid inside it.
  */
+/**
+ * Visitor untuk BuatStatement — set context.inBuatStatement, traverse body.
+ *
+ * @param {Object} node - AST node BuatStatement
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitBuatStatement = function (node) {
   const prevInBuat = this.context.inBuatStatement;
   this.context.inBuatStatement = true;
@@ -617,6 +908,13 @@ PromptJSAnalyzer.prototype.visitBuatStatement = function (node) {
 
 /**
  * Validasi Watcher (Section 7.6)
+ */
+/**
+ * Visitor untuk SaatStatement — cek target adalah data reaktif (W3003 jika tidak).
+ *
+ * @param {Object} node - AST node SaatStatement
+ * @this {any}
+ * @returns {void}
  */
 PromptJSAnalyzer.prototype.visitSaatStatement = function (node) {
   const symbol = node.targetSymbol || this.lookupSymbol(node.target);
@@ -632,6 +930,13 @@ PromptJSAnalyzer.prototype.visitSaatStatement = function (node) {
 };
 
 // ─── TextNode (PromptJS patch: pass-through) ───────────────────────────────
+/**
+ * Visitor untuk TextNode — no-op.
+ *
+ * @param {Object} _node - AST node TextNode (unused)
+ * @this {any}
+ * @returns {void}
+ */
 PromptJSAnalyzer.prototype.visitTextNode = function (_node) {
   // TextNode is a leaf node — no semantic validation needed.
   // The value is a plain string that will become a DOM text node.

@@ -10,6 +10,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This entry tracks the **Level 1 maturation effort** (merge of roadmap phases 0–2).
 See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full ordered plan.
 
+### Added — Wave F (JSDoc Typing)
+
+- **Per-file `// @ts-check`** enabled on all 13 production source files
+  (`src/utils/`, `src/lexer/`, `src/parser/`, `src/resolver/`, `src/analyzer/`,
+  `src/compiler/`, `src/engine/`, `src/cli/`). Test harness files (`src/tester/`,
+  `src/lexer/test-lexer.js`) are intentionally excluded.
+- **`jsconfig.json`** added with `checkJs: false` globally; per-file checking
+  activated via `// @ts-check` pragma so files can be migrated incrementally
+  without breaking the build on untouched files.
+- **JSDoc annotations** added to every HIGH/MEDIUM/LOW priority function
+  identified in the Wave F analysis: 533 `@param` tags, 297 `@returns` tags,
+  and 20 `@typedef` declarations across the codebase.
+- **Bilingual module headers** (Indonesia / English) per file to match the
+  bilingual DSL identity. Function body descriptions stay in Indonesian to
+  match the existing comment convention and avoid drift risk.
+- **`npm run typecheck`** script added (runs `tsc --noEmit -p jsconfig.json`).
+- **CI gate** added: `.github/workflows/ci.yml` now runs `npm run typecheck`
+  between `format:check` and `lint`, so type errors fail the build across
+  Node 20 / 22 / 24.
+- **TypeScript hints** added for dynamic-dispatch patterns TypeScript cannot
+  infer statically:
+  - `X.prototype.genericVisit` declared on resolver/analyzer/compiler to
+    expose the inherited `BaseVisitor` method to type-checking.
+  - `X.prototype._frontMatterData` declared on resolver for engine-assigned
+    runtime state.
+- **`typescript`** and **`@types/node`** added as devDependencies.
+
+### Changed — Wave F
+
+- Longgarkan beberapa parameter type di `ast-factory.js` (`buatBuatStatement`,
+  `buatGunakanStatement`) menjadi `any`/`any[]` karena parser membangun
+  plain object inline sebagai props (bukan AST node) — type signature yang
+  terlalu ketat akan menolak pola yang sah secara runtime.
+
 ### Added — Wave C4 (Expressions)
 
 - **Word operators**: `dan`/`atau` (→ `&&`/`||`), word comparators (`lebih dari`,

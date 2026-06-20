@@ -1,22 +1,12 @@
-/**
- * PromptJS v0.2 — CLI `serve` Command
- * ============================================================================
- * Dev server: serves compiled .pjs files as HTML pages with embedded JS,
- * with file watching and WebSocket live-reload on changes.
- *
- * Usage:
- *   pjs serve                     — serve current dir on port 3000
- *   pjs serve ./src               — serve specific dir
- *   pjs serve --port 8080         — custom port
- *   pjs serve --no-reload         — disable live reload
- *
- * Architecture:
- *   1. HTTP server serves static files (HTML, CSS, JS, images)
- *   2. .pjs files are compiled on-the-fly and served as HTML pages
- *   3. File watcher recompiles .pjs on change
- *   4. WebSocket notifies browser to reload on recompile
- */
+// @ts-check
 
+/**
+ * PromptJS v0.2 — CLI: `serve` Command / Perintah `serve`
+ * ============================================================================
+ *
+ * Dev server dengan live-reload via WebSocket. Compile `.pjs` on-the-fly,
+ * serve HTML + JS, dan push reload signal saat file berubah.
+ */
 'use strict';
 
 const fs = require('fs');
@@ -50,6 +40,14 @@ const LIVE_RELOAD_JS = `
 `;
 
 // HTML wrapper for compiled .pjs output
+/**
+ * Bungkus kode JS hasil compile menjadi HTML dengan live-reload script.
+ *
+ * @param {string} jsCode - Kode JS hasil compile
+ * @param {string} filePath - Path file `.pjs` asli
+ * @param {{ liveReload: boolean }} options - Opsi serve
+ * @returns {string} String HTML lengkap
+ */
 function wrapInHtml(jsCode, filePath, options) {
   const title = path.basename(filePath, '.pjs');
   const reloadScript = options.liveReload ? `\n  <script>${LIVE_RELOAD_JS}</script>` : '';
@@ -70,6 +68,15 @@ ${jsCode}
 </html>`;
 }
 
+/**
+ * Jalankan command `pjs serve`.
+ *
+ * Start HTTP server di `--port` (default 3000), serve file `.pjs` dari
+ * current directory, compile on-the-fly, dan inject live-reload script.
+ *
+ * @param {Object} argv - Parsed args dari `parseArgs`
+ * @returns {Object} Instance `http.Server`
+ */
 function runServe(argv) {
   const inputDir = argv._[0] || '.';
   const port = argv.port || argv.p || 3000;
@@ -436,6 +443,12 @@ a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}</style><
 
 /**
  * Escape HTML special characters.
+ */
+/**
+ * Escape karakter HTML special (`<`, `>`, `&`, `"`, `'`).
+ *
+ * @param {string} str - String yang akan di-escape
+ * @returns {string} String yang sudah di-escape
  */
 function escapeHtml(str) {
   return String(str)

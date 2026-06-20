@@ -1,7 +1,18 @@
+// @ts-check
+
 /**
  * PromptJS v0.2 — PARSER (Tahap 2)
  * ============================================================================
+ *
  * Produces AST nodes compatible with PromptJS's ast-factory.js shapes.
+ * Menghasilkan node AST yang kompatibel dengan ast-factory.js.
+ *
+ * Recursive-descent parser yang mengonsumsi token stream dari lexer dan
+ * membangun AST. Setiap error dilaporkan sebagai error node (bukan exception)
+ * agar parsing bisa lanjut dan melaporkan multiple errors dalam satu pass.
+ *
+ * Event alias resolution (mis. `on_klik` → `click`) dilakukan di sini,
+ * bukan di lexer.
  */
 
 'use strict';
@@ -12,6 +23,26 @@ const TT = require('../lexer/promptjs-lexer').TT;
 // Event alias: PromptJS on_x → PromptJS event name
 const EVENT_ALIASES = require('../lexer/promptjs-lexer').EVENT_ALIASES;
 
+/**
+ * Hasil parsing.
+ *
+ * @typedef {Object} ParseResult
+ * @property {Object} ast - Root AST node (Program)
+ * @property {Object[]} errors - Daftar error yang terjadi selama parsing
+ */
+
+/**
+ * Constructor PromptJSParser — recursive-descent parser untuk PromptJS.
+ *
+ * State parser:
+ * - `tokens` — token stream dari lexer
+ * - `pos` — posisi current token (index ke `tokens`)
+ * - `errors` — daftar error yang terkumpul
+ * - `componentNames` — Set nama komponen yang telah dideklarasikan (untuk validasi `Gunakan`)
+ *
+ * @constructor
+ * @this {PromptJSParser}
+ */
 function PromptJSParser() {
   this.tokens = [];
   this.pos = 0;
@@ -19,6 +50,16 @@ function PromptJSParser() {
   this.componentNames = new Set(); // Track defined components
 }
 
+/**
+ * Parse token stream menjadi AST.
+ *
+ * Entry point parser. Iterasi semua top-level statement via `_parseStatement`
+ * hingga TK_EOF, lalu bungkus hasilnya dalam node Program.
+ *
+ * @param {Object[]} tokens - Token stream dari lexer (akhirnya TK_EOF)
+ * @param {Object} [frontMatterData] - Data front-matter yang sudah di-parse (untuk pre-declare `$external`)
+ * @returns {ParseResult} Hasil parsing: `{ ast, errors }`
+ */
 PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   this.tokens = tokens;
   this.pos = 0;
@@ -65,27 +106,54 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
 };
 
 // --- Helpers ---
+/**
+ * Peek current token tanpa consume.
+ *
+ * @returns {Object} Token saat ini (atau TK_EOF sentinel jika sudah di akhir)
+ */
 PromptJSParser.prototype._peek = function () {
   if (this.pos >= this.tokens.length) return this.tokens[this.tokens.length - 1];
   return this.tokens[this.pos];
 };
 
+/**
+ * Peek token pada offset relatif dari posisi saat ini.
+ *
+ * @param {number} offset - Offset dari current pos (0 = current, 1 = next, -1 = prev)
+ * @returns {Object} Token pada offset (atau TK_EOF sentinel jika out of bounds)
+ */
 PromptJSParser.prototype._peekAt = function (offset) {
   const idx = this.pos + offset;
   if (idx >= this.tokens.length) return this.tokens[this.tokens.length - 1];
   return this.tokens[idx];
 };
 
+/**
+ * Consume dan kembalikan current token, lalu advance posisi.
+ *
+ * @returns {Object} Token yang baru saja di-consume
+ */
 PromptJSParser.prototype._advance = function () {
   const tok = this.tokens[this.pos];
   if (this.pos < this.tokens.length - 1) this.pos++;
   return tok;
 };
 
+/**
+ * Cek apakah parser sudah di akhir token stream (TK_EOF).
+ *
+ * @returns {boolean} `true` jika current token adalah TK_EOF
+ */
 PromptJSParser.prototype._atEnd = function () {
   return this._peek().type === TT.TK_EOF;
 };
 
+/**
+ * Jika current token bertipe `type`, consume dan kembalikan; jika tidak, kembalikan null.
+ *
+ * @param {string} type - Jenis token yang diharapkan (mis. 'TK_COLON')
+ * @returns {Object | null} Token yang di-consume, atau `null` jika tidak cocok
+ */
 PromptJSParser.prototype._match = function (type) {
   if (this._peek().type === type) {
     return this._advance();
@@ -93,6 +161,13 @@ PromptJSParser.prototype._match = function (type) {
   return null;
 };
 
+/**
+ * Expect current token bertipe `type`; jika ya consume, jika tidak push error dan kembalikan null.
+ *
+ * @param {string} type - Jenis token yang diharapkan
+ * @param {string} [errorMsg] - Pesan error custom (opsional, default: pesan generik)
+ * @returns {Object | null} Token yang di-consume, atau `null` jika gagal
+ */
 PromptJSParser.prototype._expect = function (type, errorMsg) {
   if (this._peek().type === type) {
     return this._advance();
@@ -109,6 +184,13 @@ PromptJSParser.prototype._expect = function (type, errorMsg) {
   return null;
 };
 
+/**
+ * Buat SourceLocation dari token awal dan akhir (convenience wrapper untuk `AST.buatLoc`).
+ *
+ * @param {Object} startTok - Token awal rentang
+ * @param {Object} [endTok] - Token akhir rentang (opsional, default: startTok)
+ * @returns {Object} SourceLocation
+ */
 PromptJSParser.prototype._makeLoc = function (startTok, endTok) {
   return AST.buatLoc(
     { line: startTok.line, column: startTok.col },
@@ -117,6 +199,15 @@ PromptJSParser.prototype._makeLoc = function (startTok, endTok) {
 };
 
 // --- Statement dispatch ---
+/**
+ * Dispatch parsing satu statement berdasarkan jenis token saat ini.
+ *
+ * Ini adalah router utama: cek current token, lalu panggil method
+ * `_parse<Type>Statement` yang sesuai. Jika tidak ada yang cocok, laporkan
+ * error `E2010` (keyword tidak dikenali di posisi statement).
+ *
+ * @returns {Object | null} AST node statement, atau `null` jika tidak ada statement (TK_EOF / error)
+ */
 PromptJSParser.prototype._parseStatement = function () {
   const tok = this._peek();
 
@@ -157,6 +248,19 @@ PromptJSParser.prototype._parseStatement = function () {
 };
 
 // --- Buat Statement ---
+/**
+ * Parse `Buat`/`Create` statement — pembuatan elemen DOM atau instansiasi komponen.
+ *
+ * Bentuk yang didukung:
+ * - `Buat tag.class#id:` — elemen dengan selector
+ * - `Buat h1: "text"` — elemen dengan inline text
+ * - `Buat NamaKomponen(prop: val)` — instansiasi komponen (jika nama ada di `componentNames`)
+ * - `Buat tag: -> aksi` — elemen dengan aksi tunggal
+ *
+ * Setelah header, parse body block (INDENT ... DEDENT) jika ada.
+ *
+ * @returns {Object} AST node BuatStatement atau GunakanStatement
+ */
 PromptJSParser.prototype._parseBuatStatement = function () {
   const startTok = this._advance(); // consume Buat/Create
 
@@ -226,6 +330,11 @@ PromptJSParser.prototype._parseBuatStatement = function () {
 };
 
 // --- Selector parsing ---
+/**
+ * Parse selector CSS-style `tag.class#id` (sudah di-emit sebagai objek oleh lexer).
+ *
+ * @returns {Object} AST node Selector
+ */
 PromptJSParser.prototype._parseSelector = function () {
   const tok = this._peek();
   let tag = '';
@@ -270,6 +379,15 @@ PromptJSParser.prototype._parseSelector = function () {
 };
 
 // --- Block parsing ---
+/**
+ * Parse body block — urutan statement di antara TK_INDENT dan TK_DEDENT.
+ *
+ * Setelah TK_INDENT, parse statement beruntun via `_parseStatement` hingga
+ * TK_DEDENT (atau TK_EOF). Jika tidak ada TK_INDENT, kembalikan null
+ * (body kosong — mis. `Buat h1: "text"` tanpa child block).
+ *
+ * @returns {Object | null} AST node BlockStatement, atau `null` jika tidak ada block
+ */
 PromptJSParser.prototype._parseBlock = function () {
   const statements = [];
 
@@ -306,6 +424,13 @@ PromptJSParser.prototype._parseBlock = function () {
 };
 
 // --- Jika Statement ---
+/**
+ * Parse `Jika`/`If` statement — kondisional dengan opsional cabang `Lainnya`/`Else`.
+ *
+ * Sintaks: `Jika <kondisi>: <body>` (opsional `Lainnya: <body>`).
+ *
+ * @returns {Object} AST node JikaStatement
+ */
 PromptJSParser.prototype._parseJikaStatement = function () {
   const startTok = this._advance(); // consume Jika/If
 
@@ -332,6 +457,16 @@ PromptJSParser.prototype._parseJikaStatement = function () {
 };
 
 // --- Ulangi Statement ---
+/**
+ * Parse `Ulangi`/`Loop` statement — tiga varian loop.
+ *
+ * Varian yang didukung (deteksi dari token setelah `Ulangi`):
+ * - Counted: `Ulangi <N> kali:` — `kind: 'kali'`
+ * - Iterasi: `Ulangi untuk <x> <sep> <source>:` — `kind: 'dari'`/`'in'` (sep = `dari`/`in`/`from`)
+ * - Range: `Ulangi <x> dari <A> sampai <B>:` — `kind: 'rentang'`
+ *
+ * @returns {Object} AST node UlangiStatement
+ */
 PromptJSParser.prototype._parseUlangiStatement = function () {
   const startTok = this._advance(); // consume Ulangi/Loop
 
@@ -391,12 +526,22 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
 };
 
 // --- Pass Statement ---
+/**
+ * Parse `lewati`/`pass` statement — empty body / skip.
+ *
+ * @returns {Object} AST node LewatiStatement
+ */
 PromptJSParser.prototype._parsePassStatement = function () {
   const tok = this._advance(); // consume pass/Lewati
   return AST.buatLewatiStatement(this._makeLoc(tok));
 };
 
 // --- Text Node (NEW — string literal as child) ---
+/**
+ * Parse text node — baris string literal sebagai child element.
+ *
+ * @returns {Object} AST node TextNode
+ */
 PromptJSParser.prototype._parseTextNode = function () {
   const tok = this._advance(); // consume STRING
   // TextNode is a special node type — we create it as a PropertyNode with key 'teks'
@@ -409,6 +554,13 @@ PromptJSParser.prototype._parseTextNode = function () {
 };
 
 // --- On-Event Statement (synthesized into KetikaStatement) ---
+/**
+ * Parse `on_event = expr` line sebagai KetikaStatement.
+ *
+ * Resolusi alias event (`on_klik` → `click`) dilakukan di sini via `EVENT_ALIASES`.
+ *
+ * @returns {Object} AST node KetikaStatement
+ */
 PromptJSParser.prototype._parseOnEventStatement = function () {
   const startTok = this._advance(); // consume ON_EVENT
   const eventName = startTok.value;
@@ -429,6 +581,14 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
 };
 
 // --- Property or Expression line ---
+/**
+ * Parse baris property `key = value` atau ekspresi standalone.
+ *
+ * Dispatch: jika current token adalah TK_IDENT dan next adalah TK_ASSIGN,
+ * parse sebagai property (AttributeNode); jika tidak, parse sebagai ekspresi.
+ *
+ * @returns {Object | null} AST node AttributeNode atau expression node, atau `null` jika tidak ada
+ */
 PromptJSParser.prototype._parsePropertyOrExpr = function () {
   // Check if this is key = value
   if (this._peekAt(1).type === TT.TK_ASSIGN) {
@@ -443,6 +603,13 @@ PromptJSParser.prototype._parsePropertyOrExpr = function () {
 };
 
 // --- Data declarations ---
+/**
+ * Parse deklarasi variabel — `Data`/`State`, `Tetap`/`Const`, `Ubah`/`Let`, `Turunan`/`Derived`.
+ *
+ * Sintaks: `<keyword> <nama> [: <typeHint>] [= <init>]`.
+ *
+ * @returns {Object} AST node DataDeclaration / TetapDeclaration / UbahDeclaration / TurunanDeclaration
+ */
 PromptJSParser.prototype._parseDataDeclaration = function () {
   const kindTok = this._advance(); // consume keyword
   const keyword = kindTok.value.toLowerCase();
@@ -482,6 +649,11 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
 };
 
 // --- Fungsi Declaration ---
+/**
+ * Parse deklarasi fungsi `Fungsi <nama>(<params>): <body>`.
+ *
+ * @returns {Object} AST node FungsiDeclaration
+ */
 PromptJSParser.prototype._parseFungsiDeclaration = function () {
   const startTok = this._advance(); // consume Fungsi/Func
   const nameTok = this._expect(TT.TK_IDENT, 'Expected function name');
@@ -508,6 +680,13 @@ PromptJSParser.prototype._parseFungsiDeclaration = function () {
 };
 
 // --- Define Component ---
+/**
+ * Parse deklarasi komponen `Komponen <Name>(<params>): <body>` / `Definisikan <Name>(...):`.
+ *
+ * Tambahkan nama komponen ke `this.componentNames` untuk validasi `Gunakan`.
+ *
+ * @returns {Object} AST node KomponenDeclaration
+ */
 PromptJSParser.prototype._parseDefineComponent = function () {
   const startTok = this._advance(); // consume Definisikan/Define
   const nameTok = this._expect(TT.TK_IDENT, 'Expected component name');
@@ -537,6 +716,13 @@ PromptJSParser.prototype._parseDefineComponent = function () {
 };
 
 // --- Saat Statement ---
+/**
+ * Parse `Saat`/`When` statement — reactive watcher terhadap data reaktif.
+ *
+ * Sintaks: `Saat <target>: <body>`.
+ *
+ * @returns {Object} AST node SaatStatement
+ */
 PromptJSParser.prototype._parseSaatStatement = function () {
   const startTok = this._advance(); // consume Saat/When
 
@@ -553,6 +739,11 @@ PromptJSParser.prototype._parseSaatStatement = function () {
 };
 
 // --- Return Statement ---
+/**
+ * Parse `Kembalikan`/`Return` statement — return dengan opsional ekspresi nilai.
+ *
+ * @returns {Object} AST node KembalikanStatement
+ */
 PromptJSParser.prototype._parseReturnStatement = function () {
   const startTok = this._advance(); // consume Kembalikan/Return
   let value = null;
@@ -567,6 +758,11 @@ PromptJSParser.prototype._parseReturnStatement = function () {
 };
 
 // --- Expression parsing (Pratt-style, simplified) ---
+/**
+ * Entry point parsing ekspresi — delegate ke `_parseBinaryExpression(0)`.
+ *
+ * @returns {Object} AST node expression
+ */
 PromptJSParser.prototype._parseExpression = function () {
   const test = this._parseBinaryExpression(0);
 
@@ -582,6 +778,18 @@ PromptJSParser.prototype._parseExpression = function () {
   return test;
 };
 
+/**
+ * Parse ekspresi biner dengan precedence climbing.
+ *
+ * Algoritma: parse operan kiri via `_parseUnaryExpression`, lalu selama
+ * current token adalah operator dengan precedence >= `minPrec`, consume
+ * operator, parse operan kanan via rekursi `_parseBinaryExpression(prec + 1)`,
+ * gabungkan keduanya ke BinaryExpression. Implementasi standard untuk
+ * left-associative operators.
+ *
+ * @param {number} minPrec - Minimum precedence yang akan dikonsumsi (0 = semua)
+ * @returns {Object} AST node expression
+ */
 PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
   let left = this._parseUnaryExpression();
 
@@ -637,6 +845,11 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
   return left;
 };
 
+/**
+ * Parse ekspresi uner — operator prefix (`-`, `!`, `tidak`/`not`) diikuti operan.
+ *
+ * @returns {Object} AST node UnaryExpression atau expression dari `_parsePostfixExpression`
+ */
 PromptJSParser.prototype._parseUnaryExpression = function () {
   if (this._peek().type === TT.TK_NOT) {
     const opTok = this._advance();
@@ -651,6 +864,13 @@ PromptJSParser.prototype._parseUnaryExpression = function () {
   return this._parsePostfixExpression();
 };
 
+/**
+ * Parse ekspresi postfix — operan diikuti optional `.prop`, `[index]`, atau `(args)`.
+ *
+ * Bangun MemberExpression / CallExpression berantai (mis. `a.b.c[0](x, y)`).
+ *
+ * @returns {Object} AST node expression (MemberExpression / CallExpression / primary)
+ */
 PromptJSParser.prototype._parsePostfixExpression = function () {
   let expr = this._parsePrimaryExpression();
 
@@ -679,6 +899,21 @@ PromptJSParser.prototype._parsePostfixExpression = function () {
   return expr;
 };
 
+/**
+ * Parse primary expression — atom ekspresi (literal, identifier, grup, object/array literal).
+ *
+ * Mendukung:
+ * - Literal: TK_NUMBER, TK_STRING, TK_TRUE, TK_FALSE, TK_NULL
+ * - Identifier: TK_IDENT (termasuk external ref `$name`)
+ * - Grup: `(` expr `)`
+ * - Object literal: `{ k: v, ... }`
+ * - Array literal: `[a, b, c]`
+ * - Ternary: `test ? consequent : alternate` (right-associative)
+ *
+ * Jika tidak ada yang cocok, laporkan error `E2020` dan kembalikan literal null.
+ *
+ * @returns {Object} AST node expression
+ */
 PromptJSParser.prototype._parsePrimaryExpression = function () {
   const tok = this._peek();
 

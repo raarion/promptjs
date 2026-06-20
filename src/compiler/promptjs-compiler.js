@@ -1,8 +1,13 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Compiler (Tahap 5)
+ * PromptJS v0.2 — Compiler (Tahap 5) / Kompilator
  * ============================================================================
+ *
+ * Lowers the AST into Vanilla JavaScript DOM API calls.
  * Melakukan lowering AST menjadi Vanilla JavaScript DOM API.
- * Fitur: Proxy-based reactivity, lifecycle management, zero dependencies.
+ *
+ * Features / Fitur: Proxy-based reactivity, lifecycle management, zero dependencies.
  */
 
 const { BaseVisitor, accept } = require('../utils/visitor');
@@ -11,6 +16,19 @@ const Codegen = require('./utils/codegen');
 const ExpressionLowering = require('./lower/expression');
 const StatementEmitters = require('./emitters/statements');
 
+/**
+ * Constructor PromptJSCompiler — codegen berbasis visitor.
+ *
+ * State compiler:
+ * - `output` — array baris kode JS yang sedang di-emit
+ * - `indent` — level indentasi saat ini
+ * - `varCounter` — counter untuk generate nama variabel unik
+ * - `componentCount` — counter komponen yang sudah di-emit
+ * - `helpers` — Set nama runtime helper yang perlu di-emit (diisi oleh StatementEmitters)
+ *
+ * @constructor
+ * @this {PromptJSCompiler}
+ */
 function PromptJSCompiler() {
   BaseVisitor.call(this);
   this.output = [];
@@ -31,6 +49,24 @@ function PromptJSCompiler() {
 PromptJSCompiler.prototype = Object.create(BaseVisitor.prototype);
 PromptJSCompiler.prototype.constructor = PromptJSCompiler;
 
+// TypeScript hint: BaseVisitor.call(this) inherits genericVisit/visit* methods.
+/** @type {(node: Object) => void} */
+PromptJSCompiler.prototype.genericVisit;
+
+/**
+ * Entry point compiler — lower AST menjadi string JavaScript.
+ *
+ * Algoritma:
+ * 1. Reset state (output, varCounter, componentCount).
+ * 2. Emit header comment + runtime helpers.
+ * 3. Bungkus user code dalam IIFE `(function() { ... })();`.
+ * 4. Traverse setiap top-level statement via `accept`; jika visitor
+ *    mengembalikan string (expression-style), emit sebagai statement.
+ * 5. Tutup IIFE, return seluruh output yang di-join dengan `\n`.
+ *
+ * @param {Object} ast - Root AST node (Program)
+ * @returns {string} Kode JavaScript hasil kompilasi
+ */
 PromptJSCompiler.prototype.compile = function (ast) {
   this.output = [];
   this.varCounter = 0;
@@ -70,17 +106,40 @@ PromptJSCompiler.prototype.compile = function (ast) {
 
 // --- Emitter Helpers ---
 
+/**
+ * Emit satu baris kode ke `this.output` dengan indentasi yang sesuai.
+ * Delegasi ke `Codegen.emit`.
+ *
+ * @param {string} code - Kode yang akan di-emit
+ * @returns {void}
+ */
 PromptJSCompiler.prototype.emit = function (code) {
   return Codegen.emit(this, code);
 };
 
+/**
+ * Generate nama variabel unik dengan prefix (mis. `v1`, `v2`, `__el3`).
+ * Delegasi ke `Codegen.genVar`.
+ *
+ * @param {string} [prefix='v'] - Prefix nama variabel
+ * @returns {string} Nama variabel unik
+ */
 PromptJSCompiler.prototype.genVar = function (prefix = 'v') {
   return Codegen.genVar(this, prefix);
 };
 
 /**
- * Resolve target element to a JS expression.
- * Handles: Identifier, Selector, Literal, SelfReference
+ * Resolve target element menjadi ekspresi JavaScript.
+ *
+ * Menangani empat jenis node target:
+ * - `Identifier` — jika reaktif (`data`/`turunan`), emit `<name>.value`;
+ *   jika tidak, emit `<name>` mentah.
+ * - `Selector` — emit `document.querySelector("tag.class#id")`.
+ * - `Literal` — emit `document.querySelector("<value>")`.
+ * - `SelfReference` — emit `compiledVarName` dari node yang direferensikan.
+ *
+ * @param {Object | null} targetNode - AST node target (Identifier/Selector/Literal/SelfReference)
+ * @returns {string} Ekspresi JavaScript yang merepresentasikan target
  */
 PromptJSCompiler.prototype.resolveTarget = function (targetNode) {
   if (!targetNode) return 'null';
@@ -117,11 +176,24 @@ PromptJSCompiler.prototype.resolveTarget = function (targetNode) {
 };
 
 /**
- * Runtime Helpers (Self-contained)
- * Implementasi emitter dipindah ke compiler/emitters/runtime.js.
+ * Emit runtime helpers (`__createReactive`, `__watch`, `__mount`, dll.) ke output.
+ * Implementasi sebenarnya di `compiler/emitters/runtime.js`.
+ *
+ * @returns {void}
  */
 PromptJSCompiler.prototype.emitRuntimeHelpers = function () {
   RuntimeEmitter.emitRuntimeHelpers(this);
+};
+
+/**
+ * Lower expression AST node menjadi string ekspresi JavaScript.
+ * Delegasi ke `ExpressionLowering.lowerExpression`.
+ *
+ * @param {Object | null} node - AST node expression
+ * @returns {string} Ekspresi JavaScript
+ */
+PromptJSCompiler.prototype.lowerExpression = function (node) {
+  return ExpressionLowering.lowerExpression(this, node);
 };
 
 // Statement emitters dipasang dari compiler/emitters/statements.js.

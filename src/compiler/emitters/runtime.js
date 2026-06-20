@@ -1,11 +1,35 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Runtime Helper Emitter
+ * PromptJS v0.2 — Runtime Helper Emitter / Emitor Helper Runtime
  * ============================================================================
+ *
+ * Runtime helper emitter separated from the main compiler.
  * Runtime helper emitter dipisah dari compiler utama.
+ *
+ * Berisi string `RUNTIME_HELPERS` (kode JS yang akan di-emit ke output
+ * compiler) dan fungsi `emitRuntimeHelpers` yang menulis string tersebut
+ * ke `compiler.output`.
+ *
+ * Helper yang di-emit:
+ * - `__createReactive(val)` — Proxy-based reactive state
+ * - `__createComputed(fn)` — computed value dari reactive lain
+ * - `__watch(reactive, cb)` — subscribe ke perubahan reactive
+ * - `__setState(reactive, val)` — set nilai reactive (trigger subscribers)
+ * - `__createElement(tag, props, children)` — buat elemen DOM
+ * - `__mount(target, parent)` — mount elemen ke parent (default: document.body)
+ * - `__cleanup(reactive)` — unsubscribe semua dependency reactive
+ * - `__promptjs_panjang/apakahKosong/apakahAda` — builtins yang perlu runtime
  */
 
 'use strict';
 
+/**
+ * String berisi seluruh kode runtime helper JS yang akan di-emit ke output
+ * compiler. Bukan fungsi yang dipanggil — ini adalah template string.
+ *
+ * @type {string}
+ */
 const RUNTIME_HELPERS = `
 const __subscribers = new WeakMap();
 const __effectMap = new WeakMap();
@@ -140,6 +164,15 @@ function __promptjs_apakahAda(arr, item) {
 }
 `;
 
+/**
+ * Emit runtime helpers ke `compiler.output`.
+ *
+ * Tulis header comment `// === Runtime Helpers ===`, lalu seluruh isi
+ * `RUNTIME_HELPERS` (di-trim), lalu baris kosong pemisah.
+ *
+ * @param {Object} compiler - Instance PromptJSCompiler
+ * @returns {void}
+ */
 function emitRuntimeHelpers(compiler) {
   compiler.emit('// === Runtime Helpers ===');
   compiler.output.push(RUNTIME_HELPERS.trim());

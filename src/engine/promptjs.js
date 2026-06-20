@@ -1,7 +1,10 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Engine (Pipeline Orchestrator)
+ * PromptJS v0.2 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
  * ============================================================================
- * Wires: Lexer → Parser → Resolver → Analyzer → Compiler
+ *
+ * Wires: Lexer → Parser → Resolver → Analyzer → Compiler.
  * Adapted from promptjs/engine/promptjs.js but with PromptJS-specific pipeline.
  *
  * Key differences from PromptJS engine:
@@ -23,10 +26,23 @@ const Compiler = require('../compiler/promptjs-compiler');
 const fs = require('fs');
 const path = require('path');
 
-// ============================================================================
-// PROMPTJS ENGINE
-// ============================================================================
+/**
+ * Hasil kompilasi PromptJS.
+ *
+ * @typedef {Object} CompileResult
+ * @property {string | null} js - Kode JavaScript hasil compile (null jika gagal)
+ * @property {Object[]} errors - Daftar error
+ * @property {Object[]} warnings - Daftar warning
+ * @property {Object | null} ast - Root AST node (null jika gagal sebelum parser selesai)
+ * @property {boolean} success - `true` jika js tidak null dan tidak ada error severity 'error'
+ */
 
+/**
+ * Constructor PromptJSEngine — orchestrator pipeline 5 tahap.
+ *
+ * @constructor
+ * @this {PromptJSEngine}
+ */
 function PromptJSEngine() {
   this.errors = [];
   this.warnings = [];
@@ -195,12 +211,25 @@ PromptJSEngine.prototype.compileFile = function (filePath, options) {
 
 /**
  * Load data files referenced in front-matter.
- * Replaces { type: 'file', path: './data/produk.json' } with
- * { type: 'inline', value: <loaded data> } so the pipeline can use it directly.
+ *
+ * Replaces `{ type: 'file', path: './data/produk.json' }` with
+ * `{ type: 'inline', value: <loaded data> }` so the pipeline can use it directly.
+ *
+ * Format file yang didukung:
+ * - `.json` → parse dengan `JSON.parse`
+ * - `.csv` → parse sederhana (first line = headers, koma separator)
+ * - Lainnya → treat as raw text string
+ *
+ * Jika file tidak ditemukan:
+ * - Di dev mode: keep as file reference (akan di-load runtime)
+ * - Di production: emit warning + set value `null`
+ *
+ * @param {Object<string, any>} frontMatterData - Data front-matter dari lexer
+ * @returns {Object<string, any>} Data front-matter yang sudah di-load
  */
 PromptJSEngine.prototype._loadDataFiles = function (frontMatterData) {
   const dataDir = this.options.dataDir || process.cwd();
-  const result = {};
+  const result = /** @type {Object<string, any>} */ ({});
 
   for (const [name, info] of Object.entries(frontMatterData)) {
     if (info.type === 'file') {
@@ -251,7 +280,16 @@ PromptJSEngine.prototype._loadDataFiles = function (frontMatterData) {
 };
 
 /**
- * Build result object.
+ * Build result object — format konsisten untuk return value `compile` / `compileFile`.
+ *
+ * `success` di-set `true` hanya jika `js` tidak null DAN tidak ada error dengan
+ * severity 'error' di `errors` (warning tidak mempengaruhi success).
+ *
+ * @param {string | null} js - Kode JavaScript hasil compile (null jika gagal)
+ * @param {Object[]} errors - Daftar error
+ * @param {Object[]} warnings - Daftar warning
+ * @param {Object} [ast] - Root AST node (opsional)
+ * @returns {CompileResult} Result object
  */
 PromptJSEngine.prototype._makeResult = function (js, errors, warnings, ast) {
   return {

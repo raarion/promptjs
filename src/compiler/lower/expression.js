@@ -1,9 +1,13 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Expression Lowering
+ * PromptJS v0.2 — Expression Lowering / Penurunan Ekspresi
  * ============================================================================
+ *
+ * Expression lowering separated from the main compiler.
  * Expression lowering dipisah dari compiler utama.
  *
- * Menurunkan ekspresi AST ke JavaScript:
+ * Lowers AST expressions to JavaScript / Menurunkan ekspresi AST ke JavaScript:
  *   - Built-in function calls (panjang, tipeData, apakahArray, dll.)
  *     diturunkan ke JavaScript yang benar
  *   - Mutating array methods pada variabel reaktif (push, pop, splice, dll.)
@@ -14,7 +18,10 @@
 
 'use strict';
 
-// Method yang bermutasi array (tidak mengubah reference, jadi Proxy setter tidak terpicu)
+/**
+ * Method array yang bermutasi (tidak mengubah reference, jadi Proxy setter tidak terpicu).
+ * @type {Set<string>}
+ */
 const MUTATING_ARRAY_METHODS = new Set([
   'push',
   'pop',
@@ -26,6 +33,28 @@ const MUTATING_ARRAY_METHODS = new Set([
   'fill',
 ]);
 
+/**
+ * Lower expression AST node menjadi string ekspresi JavaScript.
+ *
+ * Dispatch berdasarkan `node.type`:
+ * - `Literal` → `JSON.stringify(value)`
+ * - `Identifier` → `<name>` (atau `<name>.value` jika reaktif)
+ * - `BinaryExpression` → `(left op right)` (dengan translasi operator kata ID → simbol JS)
+ * - `UnaryExpression` → `(op operand)` (dengan translasi `tidak` → `!`)
+ * - `ConditionalExpression` → `(test ? consequent : alternate)`
+ * - `MemberExpression` → `object.property`
+ * - `CallExpression` → delegate ke `lowerCallExpression`
+ * - `ObjectLiteral` → `{ "k1": v1, "k2": v2 }`
+ * - `ArrayLiteral` → `[e1, e2, e3]`
+ * - `JalankanExpression` / `PanggilNativeExpression` → delegate ke compiler visitor
+ * - `Selector` → delegate ke `compiler.resolveTarget`
+ * - `PropertyNode` → lower `value`-nya saja
+ * - `FetchBranch` / `FetchOption` / `ErrorNode` → `undefined`
+ *
+ * @param {Object} compiler - Instance PromptJSCompiler (untuk delegasi)
+ * @param {Object | null} node - AST node expression
+ * @returns {string} Ekspresi JavaScript (atau `'undefined'` jika node null)
+ */
 function lowerExpression(compiler, node) {
   if (!node) return 'undefined';
 
@@ -124,12 +153,18 @@ function lowerExpression(compiler, node) {
 }
 
 /**
- * Menurunkan CallExpression ke JavaScript.
- * Menangani:
- *   - Fungsi bawaan (builtins): panjang(arr) → arr.value.length, dll.
- *   - Method call pada variabel reaktif: arr.push(x) → arr.value.push(x); arr.value = [...arr.value]
- *   - Method call non-mutating: arr.forEach(...) → arr.value.forEach(...)
- *   - Panggilan fungsi biasa: myFunc(args)
+ * Lower CallExpression ke JavaScript.
+ *
+ * Tiga kasus yang ditangani:
+ * 1. Fungsi bawaan (builtins, mis. `panjang(arr)` → `arr.length`)
+ *    → delegate ke `lowerBuiltinCall`.
+ * 2. Method call pada objek reaktif (mis. `arr.push(x)`) → delegate ke
+ *    `lowerMethodCall` untuk picu reaktivitas.
+ * 3. Panggilan fungsi biasa (`myFunc(args)`) → lower callee + args langsung.
+ *
+ * @param {Object} compiler - Instance PromptJSCompiler
+ * @param {Object} node - AST node CallExpression
+ * @returns {string} Ekspresi JavaScript
  */
 function lowerCallExpression(compiler, node) {
   // ── Kasus 1: Fungsi bawaan (builtin) ────────────────────────────────────────
@@ -149,11 +184,24 @@ function lowerCallExpression(compiler, node) {
 }
 
 /**
- * Menurunkan panggilan fungsi bawaan (builtin) ke JavaScript.
- * panjang(arr) → arr.value.length  (atau arr.length jika bukan reaktif)
- * tipeData(x) → typeof x
- * apakahArray(x) → Array.isArray(x)
- * dll.
+ * Lower panggilan fungsi bawaan (builtin) ke JavaScript.
+ *
+ * Contoh translasi:
+ * - `panjang(arr)` → `arr.length` (unwrap `.value` jika reaktif)
+ * - `tipeData(x)` → `typeof x`
+ * - `apakahArray(x)` → `Array.isArray(x)`
+ * - `apakahKosong(x)` → cek null/undefined/array kosong/string kosong
+ * - `gabung(arr, sep)` → `arr.join(sep)`
+ * - `saring(arr, fn)` → `arr.filter(fn)`
+ * - `pilih(arr, fn)` → `arr.map(fn)`
+ * - `urutkan(arr, fn?)` → `[...arr].sort(fn)` (salin agar tidak bermutasi)
+ * - `balik(arr)` → `[...arr].reverse()`
+ * - `temukan(arr, fn)` → `arr.find(fn)`
+ * - `apakahAda(arr, item)` → `arr.includes(item)`
+ *
+ * @param {Object} compiler - Instance PromptJSCompiler
+ * @param {Object} node - AST node CallExpression (dengan `isBuiltin=true` dan `builtinInfo`)
+ * @returns {string} Ekspresi JavaScript
  */
 function lowerBuiltinCall(compiler, node) {
   const builtin = node.builtinInfo;
@@ -216,10 +264,20 @@ function lowerBuiltinCall(compiler, node) {
 }
 
 /**
- * Menurunkan method call pada objek (arr.method(args)).
- * Menangani:
- *   - Mutating methods pada variabel reaktif: picu reaktivitas
- *   - Non-mutating methods: langsung panggil
+ * Lower method call pada objek (`obj.method(args)`).
+ *
+ * Kasus khusus: jika method ada di `MUTATING_ARRAY_METHODS` dan objek
+ * adalah variabel reaktif, bungkus dalam IIFE yang melakukan:
+ * 1. Panggil method (mis. `arr.value.push(x)`).
+ * 2. Setelah itu, assign ulang dengan spread (`arr.value = [...arr.value]`)
+ *    untuk memicu Proxy setter sehingga subscriber reaktif ter-update.
+ * 3. Return hasil method asli via variabel temp `__r`.
+ *
+ * Jika tidak mutating atau tidak reaktif, panggil method secara langsung.
+ *
+ * @param {Object} compiler - Instance PromptJSCompiler
+ * @param {Object} node - AST node CallExpression (callee adalah MemberExpression)
+ * @returns {string} Ekspresi JavaScript
  */
 function lowerMethodCall(compiler, node) {
   const callArgs = node.arguments.map((a) => lowerExpression(compiler, a)).join(', ');
@@ -246,7 +304,12 @@ function lowerMethodCall(compiler, node) {
 
 /**
  * Cek apakah objek ekspresi adalah variabel reaktif (data/turunan).
- * Menggunakan metadata resolver yang dilampirkan ke Identifier node.
+ *
+ * Memeriksa metadata `resolved` yang dilampirkan resolver ke Identifier node.
+ * Untuk MemberExpression yang mengakses `.value` dari reaktif, recurse ke `.object`.
+ *
+ * @param {Object | null} objectNode - AST node expression objek
+ * @returns {boolean} `true` jika objek adalah variabel reaktif
  */
 function isObjectReactive(objectNode) {
   if (!objectNode) return false;

@@ -1,16 +1,14 @@
-/**
- * PromptJS v0.2 — CLI `compile` Command
- * ============================================================================
- * Compiles .pjs file(s) to vanilla JS.
- *
- * Usage:
- *   pjs compile <file.pjs>         — compile single file, output .js next to it
- *   pjs compile <file.pjs> -o out  — compile to out/file.js
- *   pjs compile <dir>              — compile all .pjs files in dir (recursive)
- *   pjs compile <file.pjs> --stdout — output to stdout instead of file
- *   pjs compile --watch            — watch for changes and recompile
- */
+// @ts-check
 
+/**
+ * PromptJS v0.2 — CLI: `compile` Command / Perintah `compile`
+ * ============================================================================
+ *
+ * Compile file `.pjs` menjadi `.js`. Mendukung:
+ * - Single file: `pjs compile file.pjs --stdout` atau `--output out.js`
+ * - Batch: `pjs compile src/ --out-dir dist/`
+ * - Watch mode: `pjs compile src/ --watch` (recompile on change)
+ */
 'use strict';
 
 const fs = require('fs');
@@ -26,6 +24,12 @@ const {
   makeColors,
 } = require('../utils');
 
+/**
+ * Jalankan command `pjs compile`.
+ *
+ * @param {Object} argv - Parsed args dari `parseArgs`
+ * @returns {void | Object} Exit, atau objek watchers jika `--watch` mode
+ */
 function runCompile(argv) {
   const input = argv._[0]; // First positional arg after 'compile'
   const stdout = argv.stdout || false;
@@ -108,6 +112,13 @@ function runCompile(argv) {
 /**
  * Compile a list of .pjs files.
  */
+/**
+ * Compile multiple file `.pjs` sekaligus.
+ *
+ * @param {string[]} files - Daftar path file `.pjs`
+ * @param {Object} options - Opsi compile (output, outDir, rootDir, dll.)
+ * @returns {Object[]} Daftar result compile per file
+ */
 function compileFiles(files, options) {
   const results = [];
 
@@ -121,6 +132,13 @@ function compileFiles(files, options) {
 
 /**
  * Compile a single .pjs file.
+ */
+/**
+ * Compile satu file `.pjs` menjadi `.js`.
+ *
+ * @param {string} filePath - Path file `.pjs`
+ * @param {Object} options - Opsi compile
+ * @returns {Object} Result compile (`{ js, errors, warnings, ast, success }`)
  */
 function compileOne(filePath, options) {
   const start = process.hrtime();
@@ -188,6 +206,13 @@ function compileOne(filePath, options) {
 /**
  * Start watch mode — recompile files on change.
  */
+/**
+ * Mulai watch mode — recompile file saat berubah.
+ *
+ * @param {string[]} files - Daftar path file `.pjs` yang akan di-watch
+ * @param {Object} options - Opsi compile
+ * @returns {{ watchers: Map }} Map dari path → fs.FSWatcher
+ */
 function startWatch(files, options) {
   const { gray, cyan, reset } = makeColors({ stream: process.stdout });
 
@@ -204,7 +229,8 @@ function startWatch(files, options) {
   }
 
   // Also watch root input dir if it was a directory
-  const inputDir = files.length > 1 ? path.commonDir(files) : path.dirname(files[0]);
+  const inputDir =
+    files.length > 1 ? /** @type {any} */ (path).commonDir(files) : path.dirname(files[0]);
   if (inputDir) watchedDirs.add(inputDir);
 
   // Debounce map

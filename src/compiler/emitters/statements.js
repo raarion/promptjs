@@ -1,21 +1,54 @@
+// @ts-check
+
 /**
- * PromptJS v0.2 — Statement Emitters
+ * PromptJS v0.2 — Statement Emitters / Emitor Statement
  * ============================================================================
+ *
+ * Statement visitor emitters separated from the main compiler.
  * Statement visitor emitters dipisah dari compiler utama.
+ *
+ * Fungsi `install` memasang semua `visit<NodeType>` ke `PromptJSCompiler.prototype`
+ * sebagai statement emitter. Setiap visitor menerima AST node dan menulis
+ * kode JavaScript ke `this.output` via `this.emit(...)`.
  */
 
 'use strict';
 
+/**
+ * Pasang semua statement visitor ke `PromptJSCompiler.prototype`.
+ *
+ * Dipanggil sekali saat module load. Setelah `install`, instance PromptJSCompiler
+ * akan memiliki semua `visit<NodeType>` method yang siap dipakai oleh `accept`
+ * dispatch dari `compile()`.
+ *
+ * @param {Function} PromptJSCompiler - Constructor PromptJSCompiler
+ * @param {Function} accept - Fungsi `accept` dari `utils/visitor` (dispatch visitor)
+ * @returns {void}
+ */
 function install(PromptJSCompiler, accept) {
   // ═══════════════════════════════════════════════════════════════════════════════
   // VISITOR IMPLEMENTATIONS — DECLARATIONS
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit `const <name> = __createReactive(<init>);` untuk DataDeclaration reaktif.
+   *
+   * @this {any}
+   * @param {Object} node - AST node DataDeclaration
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitDataDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
     this.emit(`const ${node.name} = __createReactive(${initVal});`);
   };
 
+  /**
+   * Emit `const <name> = <init>;` untuk TetapDeclaration. Handle external data dari front-matter.
+   *
+   * @this {any}
+   * @param {Object} node - AST node TetapDeclaration
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitTetapDeclaration = function (node) {
     // PromptJS patch: handle external data from front-matter
     if (node._isExternal && node._externalInfo) {
@@ -37,16 +70,37 @@ function install(PromptJSCompiler, accept) {
     this.emit(`const ${node.name} = ${initVal};`);
   };
 
+  /**
+   * Emit `let <name> = <init>;` untuk UbahDeclaration (mutable).
+   *
+   * @this {any}
+   * @param {Object} node - AST node UbahDeclaration
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitUbahDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
     this.emit(`let ${node.name} = ${initVal};`);
   };
 
+  /**
+   * Emit `const <name> = __createComputed(() => <init>);` untuk TurunanDeclaration (computed).
+   *
+   * @this {any}
+   * @param {Object} node - AST node TurunanDeclaration
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitTurunanDeclaration = function (node) {
     const expr = this.lowerExpression(node.init);
     this.emit(`const ${node.name} = __createComputed(() => ${expr});`);
   };
 
+  /**
+   * Emit factory function `function __komp_<Name>(props) { ... return __root; }` untuk KomponenDeclaration.
+   *
+   * @this {any}
+   * @param {Object} node - AST node KomponenDeclaration
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitKomponenDeclaration = function (node) {
     // Component = factory function that takes a single named-props object and
     // returns a DOM element. Props are destructured into locals so the body can
@@ -81,6 +135,13 @@ function install(PromptJSCompiler, accept) {
     this.emit(`window.${node.name} = ${componentVar};`);
   };
 
+  /**
+   * Emit `function <name>(<params>) { ... }` untuk FungsiDeclaration.
+   *
+   * @this {any}
+   * @param {Object} node - AST node FungsiDeclaration
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitFungsiDeclaration = function (node) {
     const params = node.params.map((p) => p.name).join(', ');
     this.emit(`function ${node.name}(${params}) {`);
@@ -94,6 +155,13 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — DOM STRUCTURE
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit pembuatan elemen DOM via `__createElement(tag, props, children)` (sangat kompleks, ~150 baris).
+   *
+   * @this {any}
+   * @param {Object} node - AST node BuatStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitBuatStatement = function (node) {
     const varName = this.genVar('el');
     node.compiledVarName = varName; // Simpan untuk child reference
@@ -244,6 +312,13 @@ function install(PromptJSCompiler, accept) {
   };
 
   // ── PromptJS patch: TextNode emitter ──────────────────────────────────────────
+  /**
+   * Emit `document.createTextNode(<text>);` untuk TextNode (child string literal).
+   *
+   * @this {any}
+   * @param {Object} node - AST node TextNode
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitTextNode = function (node) {
     const varName = this.genVar('txt');
     this.emit(`const ${varName} = document.createTextNode(${JSON.stringify(node.value)});`);
@@ -254,6 +329,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `__mount(<target>, <mountTarget>);` untuk TampilkanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node TampilkanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitTampilkanStatement = function (node) {
     // Handle message kinds: pesan, pesan-error, notifikasi
     if (node.messageKind) {
@@ -282,11 +364,25 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `<target>.style.display = "none";` untuk SembunyikanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node SembunyikanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitSembunyikanStatement = function (node) {
     const target = this.resolveTarget(node.target);
     this.emit(`{ const __el = ${target}; if (__el) __el.style.display = 'none'; };`);
   };
 
+  /**
+   * Emit `<target>.remove();` untuk HapusStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node HapusStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitHapusStatement = function (node) {
     const target = this.resolveTarget(node.target);
     this.emit(
@@ -294,6 +390,13 @@ function install(PromptJSCompiler, accept) {
     );
   };
 
+  /**
+   * Emit `<array>.splice(<array>.indexOf(<item>), 1);` untuk HapusDariStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node HapusDariStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitHapusDariStatement = function (node) {
     const item = this.lowerExpression(node.item);
     const arr = node.fromArray;
@@ -309,11 +412,25 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `<target>.innerHTML = "";` untuk KosongkanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node KosongkanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitKosongkanStatement = function (node) {
     const target = this.resolveTarget(node.target);
     this.emit(`{ const __el = ${target}; if (__el) __el.innerHTML = ''; };`);
   };
 
+  /**
+   * Emit update properti elemen DOM (mis. `el.innerText = ...`, `el.className = ...`) untuk PerbaruiStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node PerbaruiStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitPerbaruiStatement = function (node) {
     const val = this.lowerExpression(node.value);
     const target = this.resolveTarget(node.target);
@@ -348,6 +465,13 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — BEHAVIOR & EVENTS
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit `el.addEventListener("<event>", function(e) { ... });` untuk KetikaStatement (sangat kompleks, ~80 baris).
+   *
+   * @this {any}
+   * @param {Object} node - AST node KetikaStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitKetikaStatement = function (node) {
     const eventMap = {
       diklik: 'click',
@@ -427,6 +551,13 @@ function install(PromptJSCompiler, accept) {
     this.emit('});');
   };
 
+  /**
+   * Emit `__watch(<target>, function(n, o) { ... });` untuk SaatStatement (reactive watcher).
+   *
+   * @this {any}
+   * @param {Object} node - AST node SaatStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitSaatStatement = function (node) {
     this.emit(`__watch(${node.target}, (nilaiBaru, nilaiLama) => {`);
     this.indent++;
@@ -435,6 +566,13 @@ function install(PromptJSCompiler, accept) {
     this.emit('});');
   };
 
+  /**
+   * Emit lifecycle hook (mis. `__mount` callback untuk `pasang`/`mount`) untuk LifecycleStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node LifecycleStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitLifecycleStatement = function (node) {
     // Lifecycle hooks: dipasang, dilepas, diperbarui.
     // Emitted directly via DOM event listeners based on node.kind below.
@@ -467,6 +605,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `setTimeout(function() { ... }, 0);` untuk SetelahStatement (next-tick).
+   *
+   * @this {any}
+   * @param {Object} node - AST node SetelahStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitSetelahStatement = function (node) {
     // "setelah X selesai" — X adalah nama operasi/fungsi async
     // Lower to: X().then(() => { ... }) atau callback setelah pemanggilan
@@ -500,6 +645,13 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — LOGIC & CONTROL FLOW
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit `if (<cond>) { ... } else { ... }` untuk JikaStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node JikaStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitJikaStatement = function (node) {
     const cond = this.lowerExpression(node.condition);
     this.emit(`if (${cond}) {`);
@@ -515,6 +667,13 @@ function install(PromptJSCompiler, accept) {
     this.emit('}');
   };
 
+  /**
+   * Emit `for (...) { ... }` untuk UlangiStatement (3 varian: counted, iterasi, range).
+   *
+   * @this {any}
+   * @param {Object} node - AST node UlangiStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitUlangiStatement = function (node) {
     const source = this.lowerExpression(node.source);
 
@@ -545,6 +704,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `while (<cond>) { ... }` untuk SelamaStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node SelamaStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitSelamaStatement = function (node) {
     const cond = this.lowerExpression(node.condition);
     this.emit(`while (${cond}) {`);
@@ -554,10 +720,24 @@ function install(PromptJSCompiler, accept) {
     this.emit('}');
   };
 
+  /**
+   * Emit `break;` untuk BerhentiStatement.
+   *
+   * @this {any}
+   * @param {Object} _node - AST node BerhentiStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitBerhentiStatement = function (_node) {
     this.emit(`break;`);
   };
 
+  /**
+   * Emit `continue;` untuk LewatiStatement.
+   *
+   * @this {any}
+   * @param {Object} _node - AST node LewatiStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitLewatiStatement = function (_node) {
     // PromptJS patch: "pass" inside a BuatStatement means "empty element body" — emit nothing.
     // "lewati" inside a loop means "skip this iteration" — emit continue.
@@ -569,6 +749,13 @@ function install(PromptJSCompiler, accept) {
     this.emit(`continue;`);
   };
 
+  /**
+   * Emit `return <value>;` untuk KembalikanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node KembalikanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitKembalikanStatement = function (node) {
     if (node.value) {
       const val = this.lowerExpression(node.value);
@@ -599,6 +786,13 @@ function install(PromptJSCompiler, accept) {
     return true;
   };
 
+  /**
+   * Emit assignment ke variabel/property reaktif (mis. `<target>.value = <value>;`) untuk SimpanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node SimpanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitSimpanStatement = function (node) {
     const target = node.target;
     const val = this.lowerExpression(node.value);
@@ -611,6 +805,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `<array>.push(<value>);` untuk TambahkanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node TambahkanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitTambahkanStatement = function (node) {
     const target = node.target;
     const jumlah = this.lowerExpression(node.value);
@@ -623,6 +824,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `<array>.splice(...)` atau `<target> -= <value>;` untuk KurangiStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node KurangiStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitKurangiStatement = function (node) {
     const target = node.target;
     // Default ke 1 jika tidak ada value (kurangi counter → counter - 1)
@@ -636,6 +844,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `<array>.splice(idx, 0, <value>);` untuk SisipkanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node SisipkanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitSisipkanStatement = function (node) {
     const val = this.lowerExpression(node.value);
     const target = node.target;
@@ -650,6 +865,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit assignment dari nilai DOM (mis. `const <target> = <source>.value;`) untuk AmbilDomStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node AmbilDomStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitAmbilDomStatement = function (node) {
     // "ambil nilai/teks/html/dll dari sumber -> simpan ke target"
     const source = this.resolveTarget(node.source);
@@ -673,6 +895,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit `fetch(<url>, <options>).then(...).catch(...)` untuk AmbilLuarStatement (sangat kompleks, ~60 baris).
+   *
+   * @this {any}
+   * @param {Object} node - AST node AmbilLuarStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitAmbilLuarStatement = function (node) {
     // "ambil dari URL" → fetch API
     const url = this.lowerExpression(node.url);
@@ -734,6 +963,13 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — KOMPONEN & GUNAKAN
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit instansiasi komponen `__komp_<Name>({prop: val, ...})` + append ke parent untuk GunakanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node GunakanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitGunakanStatement = function (node) {
     // "gunakan NamaKomponen dengan props di target"
     const componentFactory = `__komp_${node.componentName}`;
@@ -766,16 +1002,37 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — NAVIGASI
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit `window.location.href = <url>;` untuk ArahkanStatement.
+   *
+   * @this {any}
+   * @param {Object} node - AST node ArahkanStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitArahkanStatement = function (node) {
     // "arahkan ke URL" → window.location.href
     const url = this.lowerExpression(node.url);
     this.emit(`window.location.href = ${url};`);
   };
 
+  /**
+   * Emit `window.location.reload();` untuk MuatUlangStatement.
+   *
+   * @this {any}
+   * @param {Object} _node - AST node MuatUlangStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitMuatUlangStatement = function (_node) {
     this.emit(`window.location.reload();`);
   };
 
+  /**
+   * Emit `window.history.back();` untuk KembaliStatement.
+   *
+   * @this {any}
+   * @param {Object} _node - AST node KembaliStatement
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitKembaliStatement = function (_node) {
     this.emit(`window.history.back();`);
   };
@@ -784,10 +1041,24 @@ function install(PromptJSCompiler, accept) {
   // VISITOR IMPLEMENTATIONS — INTEROP & RANTAI AKSI
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  /**
+   * Emit raw JS string apa adanya untuk LangsungBlock (JS passthrough).
+   *
+   * @this {any}
+   * @param {Object} node - AST node LangsungBlock
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitLangsungBlock = function (node) {
     this.emit(node.content);
   };
 
+  /**
+   * Lower PanggilNativeExpression ke ekspresi JS (mis. `Math.max(a, b)`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node PanggilNativeExpression
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitPanggilNativeExpression = function (node) {
     const args = node.arguments.map((a) => this.lowerExpression(a)).join(', ');
     // Gunakan lowerExpression untuk callee, bukan .name langsung
@@ -803,6 +1074,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Lower JalankanExpression ke pemanggilan fungsi PromptJS.
+   *
+   * @this {any}
+   * @param {Object} node - AST node JalankanExpression
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitJalankanExpression = function (node) {
     // Hanya gunakan node.arguments atau node.withArgs
     const args = (node.arguments || node.withArgs || []).map((a) => this.lowerExpression(a));
@@ -817,6 +1095,13 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  /**
+   * Emit rantai aksi berurutan `aksi1(); aksi2(); aksi3();` untuk RantaiAksi.
+   *
+   * @this {any}
+   * @param {Object} node - AST node RantaiAksi
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitRantaiAksi = function (node) {
     // RantaiAksi: first statement diikuti chain of actions
     // "aksi1 lalu aksi2 lalu aksi3"
@@ -839,6 +1124,13 @@ function install(PromptJSCompiler, accept) {
   // Without these, BaseVisitor.genericVisit would just traverse children
   // without producing any output.
 
+  /**
+   * Lower CallExpression ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node CallExpression
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitCallExpression = function (node) {
     const code = this.lowerExpression(node);
     if (this.currentParent) {
@@ -847,30 +1139,79 @@ function install(PromptJSCompiler, accept) {
     return code;
   };
 
+  /**
+   * Lower Identifier ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node Identifier
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitIdentifier = function (node) {
     return this.lowerExpression(node);
   };
 
+  /**
+   * Lower Literal ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node Literal
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitLiteral = function (node) {
     return this.lowerExpression(node);
   };
 
+  /**
+   * Lower BinaryExpression ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node BinaryExpression
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitBinaryExpression = function (node) {
     return this.lowerExpression(node);
   };
 
+  /**
+   * Lower UnaryExpression ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node UnaryExpression
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitUnaryExpression = function (node) {
     return this.lowerExpression(node);
   };
 
+  /**
+   * Lower MemberExpression ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node MemberExpression
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitMemberExpression = function (node) {
     return this.lowerExpression(node);
   };
 
+  /**
+   * Lower ObjectLiteral ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node ObjectLiteral
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitObjectLiteral = function (node) {
     return this.lowerExpression(node);
   };
 
+  /**
+   * Lower ArrayLiteral ke ekspresi JS (delegate ke `lowerExpression`).
+   *
+   * @this {any}
+   * @param {Object} node - AST node ArrayLiteral
+   * @returns {void | string}
+   */
   PromptJSCompiler.prototype.visitArrayLiteral = function (node) {
     return this.lowerExpression(node);
   };

@@ -1,38 +1,23 @@
-#!/usr/bin/env node
-/**
- * PromptJS v0.2 — CLI Main Entry Point
- * ============================================================================
- * Command-line interface for the PromptJS template engine.
- *
- * Commands:
- *   pjs compile <file|dir>  — Compile .pjs files to JS
- *   pjs serve [dir]         — Dev server with live reload
- *   pjs build [dir]         — Build for production
- *   pjs init [name]         — Scaffold a new project
- *   pjs version             — Print version
- *   pjs help                — Print help
- *
- * Options:
- *   --port, -p       Server port (serve)
- *   --out-dir         Output directory (compile, build)
- *   --output, -o      Single output file (compile)
- *   --stdout          Print to stdout (compile)
- *   --watch, -w       Watch for changes (compile)
- *   --dev             Dev mode (compile)
- *   --template, -t    Project template (init: basic|counter|gallery)
- *   --prerender       Pre-render HTML with jsdom (build)
- *   --minify          Minify output JS (build)
- *   --no-reload       Disable live reload (serve)
- *   --force           Overwrite existing files (init)
- *   --no-data         Skip data file loading (compile)
- */
+// @ts-check
 
+/**
+ * PromptJS v0.2 — CLI Entry Point / Titik Masuk CLI
+ * ============================================================================
+ *
+ * Entry point untuk `pjs` CLI. Parse argv, dispatch ke sub-command
+ * (`compile` / `serve` / `build` / `init`), atau tampilkan help.
+ */
 'use strict';
 
 const path = require('path');
 
 // ── Version ────────────────────────────────────────────────────────────────
 
+/**
+ * Dapatkan versi PromptJS dari `package.json`.
+ *
+ * @returns {string} String versi (mis. `'0.2.0'`)
+ */
 function getVersion() {
   try {
     const pkg = require(path.resolve(__dirname, '../../../package.json'));
@@ -92,6 +77,15 @@ Examples:
 
 // ── Minimal argument parser ───────────────────────────────────────────────
 
+/**
+ * Parse argv CLI menjadi objek options.
+ *
+ * Mendukung flag pendek (`-o`) dan panjang (`--output`), serta
+ * positional arguments (mis. `pjs compile file.pjs`).
+ *
+ * @param {string[]} argv - Array argv (biasanya `process.argv.slice(2)`)
+ * @returns {Object} Objek parsed args dengan field `_` (positional), flag-flag, dan `command`
+ */
 function parseArgs(argv) {
   const args = {
     _: [], // Positional arguments
@@ -163,6 +157,12 @@ function parseArgs(argv) {
   return args;
 }
 
+/**
+ * Konversi flag pendek ke bentuk panjang (mis. `-o` → `--output`).
+ *
+ * @param {string} flag - Flag pendek (mis. `'-o'`)
+ * @returns {string} Flag panjang (mis. `'--output'`), atau input apa adanya jika tidak dikenal
+ */
 function shortToLong(flag) {
   const map = {
     o: 'output',
@@ -176,12 +176,23 @@ function shortToLong(flag) {
   return map[flag] || flag;
 }
 
+/**
+ * Cek apakah string adalah nama command yang valid (`compile`/`serve`/`build`/`init`).
+ *
+ * @param {string} str - String yang akan dicek
+ * @returns {boolean} `true` jika string adalah command valid
+ */
 function isCommand(str) {
   return ['compile', 'serve', 'build', 'init', 'version', 'help'].includes(str);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────
 
+/**
+ * Entry point CLI — parse argv, dispatch ke command yang sesuai.
+ *
+ * @returns {void}
+ */
 function main() {
   const args = parseArgs(process.argv);
 
@@ -228,8 +239,8 @@ function main() {
       if (args._.length > 0) {
         // Try to compile the file directly
         args.command = 'compile';
-        const { runCompile } = require('./commands/compile');
-        runCompile(args);
+        const compileModule = require('./commands/compile');
+        compileModule.runCompile(args);
       } else {
         process.stdout.write(HELP);
         process.exit(0);
