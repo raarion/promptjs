@@ -1,0 +1,409 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`D1 — Snapshot Codegen > Composite: end-to-end > composite-counter: data + tombol + on_klik + alert 1`] = `
+"(function() {
+  // @source 1:1 DataDeclaration
+  const hitung = __createReactive(0);
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("button");
+  const __txt_3 = document.createTextNode("Klik aku");
+  __el_1.appendChild(__txt_3);
+  __el_1.addEventListener("click", (event) => {
+    alert(hitung.value);
+  });
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Composite: end-to-end > composite-list: Ulangi dengan Data array 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const items = ["Apel", "Jeruk", "Mangga"];
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("ul");
+  items.forEach((item, indeks) => {
+    const __el_2 = document.createElement("li");
+    __el_1.appendChild(__el_2);
+  });
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: ArrayLiteral > array-basic: [1, 2, 3] 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const arr = [1, 2, 3];"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: ArrayLiteral > array-mixed: [1, "dua", benar] 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const arr = [1, "dua", true];"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: BinaryExpression > binary-compare: x > 5 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = 5;
+  // @source 2:1 TetapDeclaration
+  const y = (x > 3);"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: BinaryExpression > binary-logic: benar dan salah 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = (true && false);"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: BinaryExpression > binary-symbol: 3 + 4 * 2 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = (3 + (4 * 2));"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: BinaryExpression > binary-word: 3 tambah 4 kali 2 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = (3 + (4 * 2));"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: CallExpression > call-builtin: panjang(arr) 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const arr = [1, 2, 3];
+  // @source 2:1 TetapDeclaration
+  const n = arr.length;"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: CallExpression > call-js-global: alert("hi") 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("button");
+  __el_1.addEventListener("click", (event) => {
+    alert("hi");
+  });
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: ConditionalExpression (ternary) > ternary-basic: x > 3 ? "besar" : "kecil" 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = 5;
+  // @source 2:1 TetapDeclaration
+  const y = ((x > 3) ? "besar" : "kecil");"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: Literal > literal-boolean: tetap aktif = benar 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const aktif = true;"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: Literal > literal-null: tetap kosong = kosong 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const kosong = null;"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: Literal > literal-number: tetap x = 42 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = 42;"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: Literal > literal-string: tetap nama = "Budi" 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const nama = "Budi";"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: MemberExpression > member-access: orang.nama 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const orang = { "nama": "Budi" };
+  // @source 2:1 TetapDeclaration
+  const n = orang.name;"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: ObjectLiteral > object-basic: { nama: "Budi", umur: 30 } 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const orang = { "nama": "Budi", "umur": 30 };"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: ObjectLiteral > object-string-key: { "nama-lengkap": "Budi" } 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const orang = { "nama-lengkap": "Budi" };"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: UnaryExpression > unary-negate: -5 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = -5;"
+`;
+
+exports[`D1 — Snapshot Codegen > Expression: UnaryExpression > unary-not: tidak benar 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const x = (!true);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: BuatStatement > buat-bilingual: Create div.box: 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  __el_1.className = "box";
+  const __txt_2 = document.createTextNode("Content");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: BuatStatement > buat-fragment: auto-fragment multi-child 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  const __txt_3 = document.createTextNode("First");
+  __el_1.appendChild(__txt_3);
+  const __txt_4 = document.createTextNode("Second");
+  __el_1.appendChild(__txt_4);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: BuatStatement > buat-pass: empty body marker 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  __el_1.className = "kotak";
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: BuatStatement > buat-selector: Buat tombol.cta#daftar: 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("button");
+  __el_1.id = "daftar";
+  __el_1.className = "cta";
+  const __txt_2 = document.createTextNode("Klik");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: BuatStatement > buat-simple: Buat h1: "Hello" 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("h1");
+  const __txt_2 = document.createTextNode("Hello");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: Declarations > data-declaration: Data hitung = 0 1`] = `
+"(function() {
+  // @source 1:1 DataDeclaration
+  const hitung = __createReactive(0);
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  const __txt_2 = document.createTextNode("Halo");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: Declarations > tetap-declaration: Tetap PI = 3.14 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const PI = 3.14;
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  const __txt_2 = document.createTextNode("Halo");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: Declarations > turunan-declaration: Turunan total = a + b 1`] = `
+"(function() {
+  // @source 1:1 DataDeclaration
+  const a = __createReactive(5);
+  // @source 2:1 DataDeclaration
+  const b = __createReactive(3);
+  // @source 3:1 TurunanDeclaration
+  const total = __createComputed(() => (a.value + b.value));
+  // @source 4:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  const __txt_2 = document.createTextNode("Halo");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: Declarations > ubah-declaration: Ubah nama = "Budi" 1`] = `
+"(function() {
+  // @source 1:1 UbahDeclaration
+  let nama = "Budi";
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  const __txt_2 = document.createTextNode("Halo");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: FungsiDeclaration > fungsi-no-params: Fungsi halo(): 1`] = `
+"(function() {
+  // @source 1:1 FungsiDeclaration
+  function halo() {
+    return "hai";
+  }"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: FungsiDeclaration > fungsi-with-params: Fungsi tambah(a, b): 1`] = `
+"(function() {
+  // @source 1:1 FungsiDeclaration
+  function tambah(a, b) {
+    return (a + b);
+  }"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: JikaStatement > jika-basic: Jika stok > 0 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const stok = 5;
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  if ((stok > 0)) {
+    const __txt_2 = document.createTextNode("Ada");
+    __el_1.appendChild(__txt_2);
+  }
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: JikaStatement > jika-lainnya: with else branch 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const stok = 0;
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  if ((stok > 0)) {
+    const __txt_2 = document.createTextNode("Ada");
+    __el_1.appendChild(__txt_2);
+  } else {
+    const __txt_3 = document.createTextNode("Habis");
+    __el_1.appendChild(__txt_3);
+  }
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: JikaStatement > jika-word-operator: Jika stok lebih dari 0 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const stok = 5;
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  if ((stok > 0)) {
+    const __txt_2 = document.createTextNode("Ada");
+    __el_1.appendChild(__txt_2);
+  }
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: KembalikanStatement > kembalikan-value: kembalikan "hai" 1`] = `
+"(function() {
+  // @source 1:1 FungsiDeclaration
+  function halo() {
+    return "hai";
+  }"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: KomponenDeclaration > komponen-basic: Komponen Kartu(judul): 1`] = `
+"(function() {
+  // @source 1:1 KomponenDeclaration
+  function __komp_Kartu(props) {
+    props = props || {};
+    // Component: Kartu
+    const judul = props.judul;
+    const __root = document.createElement("div");
+    const __el_1 = document.createElement("div");
+    const __txt_2 = document.createTextNode("Kartu");
+    __el_1.appendChild(__txt_2);
+    __root.appendChild(__el_1);
+    return __root;
+  }
+  window.Kartu = __komp_Kartu;"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: OnEventStatement > on-event-klik: on_klik = alert("hi") 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("button");
+  const __txt_3 = document.createTextNode("Klik");
+  __el_1.appendChild(__txt_3);
+  __el_1.addEventListener("click", (event) => {
+    alert("hi");
+  });
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: PassStatement > pass-lewati: lewati keyword 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: PropertyLine > property-basic: kelas = "tombol" 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("button");
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: SaatStatement > saat-basic: Saat hitung 1`] = `
+"(function() {
+  // @source 1:1 DataDeclaration
+  const hitung = __createReactive(0);
+  // @source 2:1 SaatStatement
+  __watch([object Object], (nilaiBaru, nilaiLama) => {
+    const __txt_1 = document.createTextNode("berubah");
+    document.body.appendChild(__txt_1);
+  });"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: TextNode > textnode-inline: inline text in Buat 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("div");
+  const __txt_2 = document.createTextNode("Hello PromptJS!");
+  __el_1.appendChild(__txt_2);
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: UlangiStatement > ulangi-counted: Ulangi 3 kali 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("ul");
+  for (let __i = 0; __i < 3; __i++) {
+    const __txt_2 = document.createTextNode("Item");
+    __el_1.appendChild(__txt_2);
+  }
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: UlangiStatement > ulangi-iterasi: Ulangi untuk item in daftar 1`] = `
+"(function() {
+  // @source 1:1 TetapDeclaration
+  const daftar = [1, 2, 3];
+  // @source 2:1 BuatStatement
+  const __el_1 = document.createElement("ul");
+  daftar.forEach((item, indeks) => {
+    const __txt_2 = document.createTextNode("Item");
+    __el_1.appendChild(__txt_2);
+  });
+  document.body.appendChild(__el_1);"
+`;
+
+exports[`D1 — Snapshot Codegen > Statement: UlangiStatement > ulangi-rentang: Ulangi untuk i in [1,2,3,4,5] 1`] = `
+"(function() {
+  // @source 1:1 BuatStatement
+  const __el_1 = document.createElement("ul");
+  [1, 2, 3, 4, 5].forEach((i, indeks) => {
+    const __txt_2 = document.createTextNode("Item");
+    __el_1.appendChild(__txt_2);
+  });
+  document.body.appendChild(__el_1);"
+`;

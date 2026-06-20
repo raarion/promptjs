@@ -1206,14 +1206,35 @@ PromptJSResolver.prototype.visitKetikaStatement = function (node) {
  * @returns {void}
  */
 PromptJSResolver.prototype.visitSaatStatement = function (node) {
-  // Resolve target reaktif
-  const binding = this.currentScope.lookup(node.target);
+  // Resolve target reaktif.
+  // `node.target` bisa berupa:
+  //   - String (legacy API, langsung nama variabel)
+  //   - Identifier node (`{ type: 'Identifier', name: 'hitung' }`)
+  //   - MemberExpression node (`{ type: 'MemberExpression', object: ..., property: ... }`)
+  //     untuk `nama.berubah` — kita ambil nama root object untuk lookup.
+  let targetName;
+  if (typeof node.target === 'string') {
+    targetName = node.target;
+  } else if (node.target && node.target.type === 'Identifier') {
+    targetName = node.target.name;
+  } else if (node.target && node.target.type === 'MemberExpression') {
+    // `nama.berubah` → ambil `nama` sebagai root
+    let root = node.target;
+    while (root.type === 'MemberExpression') {
+      root = root.object;
+    }
+    targetName = root.name;
+  } else {
+    targetName = String(node.target);
+  }
+
+  const binding = this.currentScope.lookup(targetName);
   if (!binding) {
     // Emit E3001 untuk watcher target yang tidak dideklarasikan
     node.isUndefined = true;
     this.errors.push(
       Err.createError('E3001', node.loc, {
-        message: `Identifier "${node.target}" tidak dideklarasikan.`,
+        message: `Identifier "${targetName}" tidak dideklarasikan.`,
         suggestion: 'Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.',
       })
     );
@@ -1221,7 +1242,7 @@ PromptJSResolver.prototype.visitSaatStatement = function (node) {
     // [M4 FIX] W3001 → W3003 (kode baru khusus: watcher target non-reaktif)
     this.warnings.push(
       Err.createError('W3003', node.loc, {
-        message: `Variabel "${node.target}" bukan data reaktif. Watcher mungkin tidak akan pernah terpicu.`,
+        message: `Variabel "${targetName}" bukan data reaktif. Watcher mungkin tidak akan pernah terpicu.`,
         suggestion: 'Gunakan "data" (var) reaktif sebagai target watcher.',
       })
     );

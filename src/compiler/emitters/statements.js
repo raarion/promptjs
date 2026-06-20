@@ -246,7 +246,19 @@ function install(PromptJSCompiler, accept) {
 
     // ── PromptJS patch: fragment should NOT create a DOM element ──
     // Instead, just visit children and append them directly to the current parent.
+    //
+    // BUG FIX (Wave D snapshot): fragment must inherit the parent's
+    // `compiledVarName` so that child KetikaStatement (event handler
+    // without explicit target) can resolve its SelfReference target
+    // correctly. Without this, `on_klik = ...` inside a multi-child Buat
+    // body (which auto-wraps in a fragment) would emit `__el_2` instead
+    // of the actual parent element variable name.
     if (tag === 'fragment') {
+      // Make this fragment "transparent" — children see the grand-parent's
+      // compiledVarName as their SelfReference target.
+      if (this.currentParent) {
+        node.compiledVarName = this.currentParent;
+      }
       if (node.body) accept(node.body, this);
       if (node.action) accept(node.action, this);
       return;
