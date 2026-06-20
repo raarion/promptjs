@@ -87,6 +87,9 @@
     TK_NUMBER: 'TK_NUMBER',
     TK_IDENT: 'TK_IDENT',
     TK_EXT_REF: 'TK_EXT_REF', // $nama.path (external data reference)
+    TK_BENAR: 'TK_BENAR', // benar / true (boolean literal)
+    TK_SALAH: 'TK_SALAH', // salah / false (boolean literal)
+    TK_KOSONG: 'TK_KOSONG', // kosong / null (null literal)
 
     // Operators
     TK_ASSIGN: 'TK_ASSIGN', // =
@@ -176,6 +179,16 @@
     when: TT.TK_SAAT,
     return: TT.TK_KEMBALIKAN,
     skip: TT.TK_PASS,
+
+    // Boolean & null literals (bilingual)
+    // Catatan: `salah` juga muncul sebagai event alias (`on_salah` → `error`),
+    // tapi di konteks expression (bukan setelah `on_`), `salah` harus jadi boolean literal.
+    benar: TT.TK_BENAR,
+    true: TT.TK_BENAR,
+    salah: TT.TK_SALAH,
+    false: TT.TK_SALAH,
+    kosong: TT.TK_KOSONG,
+    null: TT.TK_KOSONG,
   };
 
   /* ==========================================================================
@@ -1068,10 +1081,18 @@
   /**
    * Tokenize baris deklarasi (`Data`/`Tetap`/`Ubah`/`Turunan`/`Fungsi`/`Saat`/`Kembalikan`).
    *
-   * Emit keyword token, lalu tokenize sisa baris:
-   * - Untuk deklarasi variabel: nama + opsional type hint + opsional `= expr`.
-   * - Untuk `Saat`/`When`: target watcher.
-   * - Untuk `Kembalikan`/`Return`: opsional ekspresi nilai return.
+   * Emit keyword token, lalu tokenize sisa baris dengan strategi kontekstual:
+   * - Untuk `Fungsi`/`Func`/`Komponen`/`Component`/`Definisikan`/`Define`:
+   *   parse nama fungsi/komponen sebagai TK_IDENT eksplisit (bukan via
+   *   _tokenizeExpression), baru parameter dan `:` setelahnya. Ini
+   *   menghindari collision dengan word operators (mis. `Fungsi tambah(...)`
+   *   di mana `tambah` adalah nama fungsi, bukan operator `+`).
+   * - Untuk `Data`/`State`/`Tetap`/`Const`/`Ubah`/`Let`/`Turunan`/`Derived`:
+   *   parse nama variabel sebagai TK_IDENT eksplisit, lalu sisa baris
+   *   (setelah `=` atau `:`) sebagai expression.
+   * - Untuk `Saat`/`When`: parse target sebagai expression (target boleh
+   *   `nama` atau `nama.berubah`).
+   * - Untuk `Kembalikan`/`Return`: parse ekspresi nilai return.
    *
    * @param {string} content - Isi baris (mis. `Data harga = 1000`)
    * @param {number} lineNum - Nomor baris
@@ -1083,10 +1104,150 @@
     const kwToken = KEYWORDS[keyword.toLowerCase()] || TT.TK_IDENT;
     this.tokens.push(new Token(kwToken, keyword, lineNum, baseCol + 1));
 
-    const afterKeyword = content.substring(keyword.length).trim();
-    if (afterKeyword) {
-      this._tokenizeExpression(afterKeyword, lineNum, baseCol + keyword.length + 1);
+    const kwLower = keyword.toLowerCase();
+    const afterKeyword = content.substring(keyword.length);
+    const afterTrim = afterKeyword.trim();
+    if (!afterTrim) return;
+
+    // Offset kolom: posisi awal afterTrim relatif ke baseCol
+    const afterStart = afterKeyword.indexOf(afterTrim);
+    const afterCol = baseCol + keyword.length + afterStart + 1;
+
+    // ─── Fungsi / Komponen / Definisikan: parse signature ────────────────
+    // Signature: Nama(params):
+    // Kita harus parse Nama sebagai identifier eksplisit (bukan expression)
+    // supaya nama seperti "tambah", "kali", "dan" tidak dianggap word operator.
+    if (
+      kwLower === 'fungsi' ||
+      kwLower === 'func' ||
+      kwLower === 'komponen' ||
+      kwLower === 'component' ||
+      kwLower === 'definisikan' ||
+      kwLower === 'define'
+    ) {
+      // Match: <identifier> (
+      // Tolerate optional space between name and (
+      const sigMatch = afterTrim.match(/^([A-Za-z_]\w*)\s*\(/);
+      if (sigMatch) {
+        const name = sigMatch[1];
+        const nameCol = afterCol;
+        this.tokens.push(new Token(TT.TK_IDENT, name, lineNum, nameCol));
+
+        // Tokenize parameter list + sisanya via expression tokenizer
+        // (di dalam parens, expression context is correct)
+        const paramStart = sigMatch[0].length - 1; // index of '('
+        const rest = afterTrim.substring(paramStart);
+        this._tokenizeExpression(rest, lineNum, afterCol + paramStart);
+        return;
+      }
+      // Fallback: nama tanpa parameter → token sisa sebagai expression
+      this._tokenizeExpression(afterTrim, lineNum, afterCol);
+      return;
     }
+
+    // ─── Data/Tetap/Ubah/Turunan: parse nama lalu sisa ──────────────────
+    // Bentuk: <nama> [: <typeHint>] [= <init>]
+    // atau:   <nama> = <init>
+    // Kita parse nama sebagai TK_IDENT eksplisit supaya nama seperti
+    // "tambah", "kali" tidak dianggap word operator.
+    if (
+      kwLower === 'data' ||
+      kwLower === 'state' ||
+      kwLower === 'tetap' ||
+      kwLower === 'const' ||
+      kwLower === 'ubah' ||
+      kwLower === 'let' ||
+      kwLower === 'turunan' ||
+      kwLower === 'derived'
+    ) {
+      // Match: <identifier> [\s:=]
+      const nameMatch = afterTrim.match(/^([A-Za-z_]\w*)/);
+      if (nameMatch) {
+        const name = nameMatch[1];
+        this.tokens.push(new Token(TT.TK_IDENT, name, lineNum, afterCol));
+
+        const restStart = nameMatch[0].length;
+        const rest = afterTrim.substring(restStart).trim();
+        if (rest) {
+          // Offset untuk rest: posisi awal rest relatif ke baseCol
+          const restAbsStart = afterTrim.indexOf(rest, restStart);
+          const restCol = afterCol + restAbsStart;
+          // Sisa: bisa `= value`, `: typeHint = value`, atau `: typeHint`
+          if (rest.startsWith('=')) {
+            this.tokens.push(new Token(TT.TK_ASSIGN, '=', lineNum, restCol + 1));
+            const exprPart = rest.substring(1).trim();
+            if (exprPart) {
+              this._tokenizeExpression(
+                exprPart,
+                lineNum,
+                restCol + 1 + (rest.length - 1 - rest.indexOf(exprPart))
+              );
+            }
+          } else if (rest.startsWith(':')) {
+            this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, restCol + 1));
+            const afterColon = rest.substring(1).trim();
+            // Type hint bisa sampai '=' atau sampai akhir baris
+            const eqIdx = afterColon.indexOf('=');
+            if (eqIdx >= 0) {
+              const typeHint = afterColon.substring(0, eqIdx).trim();
+              const initPart = afterColon.substring(eqIdx + 1).trim();
+              if (typeHint) {
+                this.tokens.push(new Token(TT.TK_IDENT, typeHint, lineNum, restCol + 2));
+              }
+              this.tokens.push(new Token(TT.TK_ASSIGN, '=', lineNum, restCol + 2 + eqIdx));
+              if (initPart) {
+                this._tokenizeExpression(initPart, lineNum, restCol + 2 + eqIdx + 1);
+              }
+            } else if (afterColon) {
+              // Hanya type hint, tidak ada init
+              this.tokens.push(new Token(TT.TK_IDENT, afterColon, lineNum, restCol + 2));
+            }
+          }
+        }
+        return;
+      }
+      // Fallback: tidak ada nama valid, tokenize sebagai expression
+      this._tokenizeExpression(afterTrim, lineNum, afterCol);
+      return;
+    }
+
+    // ─── Saat/When, Kembalikan/Return: tokenize sebagai expression ──────
+    // Saat: target bisa `nama` atau `nama.berubah` → expression context OK
+    // Kembalikan: nilai return → expression context OK
+    // Tapi kita tetap perlu pastikan nama identifier di posisi awal tidak
+    // dianggap word operator. Untuk Saat, target biasanya identifier
+    // sederhana; kita ekstrak identifier pertama secara manual.
+    if (kwLower === 'saat' || kwLower === 'when') {
+      // Target Saat: bisa `nama` atau `nama.path`
+      // Match: <identifier>(.identifier)*
+      const targetMatch = afterTrim.match(/^([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)/);
+      if (targetMatch) {
+        const target = targetMatch[1];
+        // Emit setiap bagian sebagai IDENT + DOT
+        const parts = target.split('.');
+        let partCol = afterCol;
+        for (let i = 0; i < parts.length; i++) {
+          if (i > 0) {
+            this.tokens.push(new Token(TT.TK_DOT, '.', lineNum, partCol));
+            partCol += 1;
+          }
+          this.tokens.push(new Token(TT.TK_IDENT, parts[i], lineNum, partCol));
+          partCol += parts[i].length;
+        }
+        // Sisa (seharusnya `:`) → tokenize sebagai expression
+        const rest = afterTrim.substring(targetMatch[0].length).trim();
+        if (rest) {
+          const restAbsStart = afterTrim.indexOf(rest, targetMatch[0].length);
+          this._tokenizeExpression(rest, lineNum, afterCol + restAbsStart);
+        }
+        return;
+      }
+      this._tokenizeExpression(afterTrim, lineNum, afterCol);
+      return;
+    }
+
+    // Fallback default (Kembalikan/Return dan lainnya)
+    this._tokenizeExpression(afterTrim, lineNum, afterCol);
   };
 
   // --- Property line tokenization ---

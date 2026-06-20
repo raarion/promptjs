@@ -929,6 +929,22 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return AST.buatLiteral(tok.value, 'number', this._makeLoc(tok));
   }
 
+  // Boolean literals: benar/true → true, salah/false → false
+  if (tok.type === TT.TK_BENAR) {
+    this._advance();
+    return AST.buatLiteral(true, 'boolean', this._makeLoc(tok));
+  }
+  if (tok.type === TT.TK_SALAH) {
+    this._advance();
+    return AST.buatLiteral(false, 'boolean', this._makeLoc(tok));
+  }
+
+  // Null literal: kosong/null → null
+  if (tok.type === TT.TK_KOSONG) {
+    this._advance();
+    return AST.buatLiteral(null, 'null', this._makeLoc(tok));
+  }
+
   // External reference: $name.path
   if (tok.type === TT.TK_EXT_REF) {
     this._advance();
