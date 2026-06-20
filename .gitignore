@@ -1,5 +1,1 @@
-node_modules/
-dist/
-*.log
-.DS_Store
-coverage/
+Nothing should be ignored based on the provided file changes. The only added file is a markdown documentation file (`doc-dev/INVENTARIS-STATEMENT-ERROR-CODES.md`), which should not be added to `.gitignore`. Since there are no build artifacts, dependencies, temporary files, or other items that should be ignored, the output is empty.
