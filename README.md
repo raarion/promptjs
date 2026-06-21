@@ -162,7 +162,7 @@ npm run typecheck # JSDoc type checking
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
 | Ketika | When | Event handler dengan target |
-| Saat | (—) | Watcher reaktif (data.berubah) |
+| Saat | Watch | Watcher reaktif (data.berubah) |
 | Dipasang | Mounted | Lifecycle: dipasang ke DOM |
 | Dilepas | Unmounted | Lifecycle: dilepas dari DOM |
 
@@ -172,7 +172,7 @@ npm run typecheck # JSDoc type checking
 |-----------|---------|--------|
 | Tampilkan | Show | Tampilkan elemen |
 | Sembunyikan | Hide | Sembunyikan elemen |
-| Hapus | (—) | Hapus elemen dari DOM |
+| Hapus | Delete | Hapus elemen dari DOM |
 | Kosongkan | Clear | Kosongkan children |
 | Perbarui | Update | Update properti elemen |
 
