@@ -917,11 +917,28 @@ PromptJSAnalyzer.prototype.visitBuatStatement = function (node) {
  * @returns {void}
  */
 PromptJSAnalyzer.prototype.visitSaatStatement = function (node) {
-  const symbol = node.targetSymbol || this.lookupSymbol(node.target);
+  // Extract target name — `node.target` can be a string (legacy),
+  // Identifier node, or MemberExpression node (same fix as resolver).
+  let targetName;
+  if (typeof node.target === 'string') {
+    targetName = node.target;
+  } else if (node.target && node.target.type === 'Identifier') {
+    targetName = node.target.name;
+  } else if (node.target && node.target.type === 'MemberExpression') {
+    let root = node.target;
+    while (root.type === 'MemberExpression') {
+      root = root.object;
+    }
+    targetName = root.name;
+  } else {
+    targetName = String(node.target);
+  }
+
+  const symbol = node.targetSymbol || this.lookupSymbol(targetName);
   if (symbol && symbol.isReactive === false) {
     this.addWarning(
       'W4104',
-      `Watcher target "${node.target}" bukan data reaktif menurut analyzer.`,
+      `Watcher target "${targetName}" bukan data reaktif menurut analyzer.`,
       node.loc,
       'Gunakan data/turunan reaktif sebagai target watcher.'
     );
