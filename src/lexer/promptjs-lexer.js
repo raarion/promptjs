@@ -91,6 +91,28 @@
     TK_SALAH: 'TK_SALAH', // salah / false (boolean literal)
     TK_KOSONG: 'TK_KOSONG', // kosong / null (null literal)
 
+    // ─── Action statements (Wave G: keyword activation) ──────────────────
+    TK_SIMPAN: 'TK_SIMPAN', // simpan / save
+    TK_TAMBAHKAN: 'TK_TAMBAHKAN', // tambahkan / append
+    TK_KURANGI: 'TK_KURANGI', // kurangi / remove
+    TK_SISIPKAN: 'TK_SISIPKAN', // sisipkan / insert
+    TK_KETIKA: 'TK_KETIKA', // ketika / when (event handler with target)
+    TK_BERHENTI: 'TK_BERHENTI', // berhenti / break
+    TK_TAMPILKAN: 'TK_TAMPILKAN', // tampilkan / show
+    TK_SEMBUNYIKAN: 'TK_SEMBUNYIKAN', // sembunyikan / hide
+    TK_HAPUS: 'TK_HAPUS', // hapus / remove
+    TK_KOSONGKAN: 'TK_KOSONGKAN', // kosongkan / clear
+    TK_PERBARUI: 'TK_PERBARUI', // perbarui / update
+    TK_AMBIL: 'TK_AMBIL', // ambil / fetch
+    TK_ARAHKAN: 'TK_ARAHKAN', // arahkan / navigate
+    TK_MUAT_ULANG: 'TK_MUAT_ULANG', // muat ulang / reload
+    TK_KEMBALI: 'TK_KEMBALI', // kembali / back
+    TK_JALANKAN: 'TK_JALANKAN', // jalankan / run
+    TK_GUNAKAN: 'TK_GUNAKAN', // gunakan / use (component instantiation)
+    TK_DIPASANG: 'TK_DIPASANG', // dipasang / mounted (lifecycle)
+    TK_DILEPAS: 'TK_DILEPAS', // dilepas / unmounted (lifecycle)
+    TK_KE: 'TK_KE', // ke / to (target preposition for simpan)
+
     // Operators
     TK_ASSIGN: 'TK_ASSIGN', // =
     TK_EQ: 'TK_EQ', // ===
@@ -189,6 +211,46 @@
     false: TT.TK_SALAH,
     kosong: TT.TK_KOSONG,
     null: TT.TK_KOSONG,
+
+    // ─── Action statements (Wave G) ──────────────────────────────────────
+    simpan: TT.TK_SIMPAN,
+    save: TT.TK_SIMPAN,
+    tambahkan: TT.TK_TAMBAHKAN,
+    append: TT.TK_TAMBAHKAN,
+    kurangi: TT.TK_KURANGI,
+    remove: TT.TK_KURANGI,
+    sisipkan: TT.TK_SISIPKAN,
+    insert: TT.TK_SISIPKAN,
+    ketika: TT.TK_KETIKA,
+    berhenti: TT.TK_BERHENTI,
+    break: TT.TK_BERHENTI,
+    tampilkan: TT.TK_TAMPILKAN,
+    show: TT.TK_TAMPILKAN,
+    sembunyikan: TT.TK_SEMBUNYIKAN,
+    hide: TT.TK_SEMBUNYIKAN,
+    hapus: TT.TK_HAPUS,
+    kosongkan: TT.TK_KOSONGKAN,
+    clear: TT.TK_KOSONGKAN,
+    perbarui: TT.TK_PERBARUI,
+    update: TT.TK_PERBARUI,
+    ambil: TT.TK_AMBIL,
+    fetch: TT.TK_AMBIL,
+    arahkan: TT.TK_ARAHKAN,
+    navigate: TT.TK_ARAHKAN,
+    muatulang: TT.TK_MUAT_ULANG,
+    reload: TT.TK_MUAT_ULANG,
+    kembali: TT.TK_KEMBALI,
+    back: TT.TK_KEMBALI,
+    jalankan: TT.TK_JALANKAN,
+    run: TT.TK_JALANKAN,
+    gunakan: TT.TK_GUNAKAN,
+    use: TT.TK_GUNAKAN,
+    dipasang: TT.TK_DIPASANG,
+    mounted: TT.TK_DIPASANG,
+    dilepas: TT.TK_DILEPAS,
+    unmounted: TT.TK_DILEPAS,
+    ke: TT.TK_KE,
+    to: TT.TK_KE,
   };
 
   /* ==========================================================================

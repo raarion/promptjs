@@ -132,8 +132,14 @@ function lowerExpression(compiler, node) {
         return `[${elems.join(', ')}]`;
       }
       return '[]';
-    case 'JalankanExpression':
-      return compiler.visitJalankanExpression(node);
+    case 'JalankanExpression': {
+      // Lower directly as a function call — avoid infinite recursion via
+      // compiler.visitJalankanExpression which would call accept() →
+      // visitJalankanExpression → lowerExpression → ...
+      const calleeCode = lowerExpression(compiler, node.callee);
+      const args = (node.arguments || []).map((a) => lowerExpression(compiler, a)).join(', ');
+      return `${calleeCode}(${args})`;
+    }
     case 'PanggilNativeExpression':
       return compiler.visitPanggilNativeExpression(node);
     case 'Selector':
@@ -145,6 +151,51 @@ function lowerExpression(compiler, node) {
       return 'undefined';
     case 'ErrorNode':
       return 'undefined';
+    // ─── Wave G: action keywords as expression values ─────────────────
+    case 'MuatUlangStatement':
+      return 'window.location.reload()';
+    case 'KembaliStatement':
+      return 'window.history.back()';
+    case 'BerhentiStatement':
+      return 'break';
+    case 'SembunyikanStatement':
+      return `${compiler.resolveTarget(node.target)}.style.display = "none"`;
+    case 'HapusStatement':
+      return `${compiler.resolveTarget(node.target)}.remove()`;
+    case 'KosongkanStatement':
+      return `${compiler.resolveTarget(node.target)}.innerHTML = ""`;
+    case 'TampilkanStatement':
+      return `${compiler.resolveTarget(node.target)}.style.display = ""`;
+    case 'ArahkanStatement':
+      return `window.location.href = ${lowerExpression(compiler, node.target)}`;
+    case 'SimpanStatement': {
+      const val = lowerExpression(compiler, node.value);
+      const tgt = compiler.resolveTarget(node.target);
+      return `${tgt} = ${val}`;
+    }
+    case 'TambahkanStatement': {
+      const val = lowerExpression(compiler, node.value);
+      const tgt = compiler.resolveTarget(node.target);
+      return `${tgt}.push(${val})`;
+    }
+    case 'KurangiStatement': {
+      const tgt = compiler.resolveTarget(node.target);
+      return `${tgt}--`;
+    }
+    case 'SisipkanStatement': {
+      const val = lowerExpression(compiler, node.value);
+      const tgt = compiler.resolveTarget(node.target);
+      return `${tgt}.push(${val})`;
+    }
+    case 'PerbaruiStatement': {
+      const tgt = compiler.resolveTarget(node.target);
+      const val = lowerExpression(compiler, node.value);
+      if (node.property === 'teks') return `${tgt}.innerText = ${val}`;
+      if (node.property === 'html') return `${tgt}.innerHTML = ${val}`;
+      if (node.property === 'kelas') return `${tgt}.className = ${val}`;
+      if (node.property === 'nilai') return `${tgt}.value = ${val}`;
+      return `${tgt}.setAttribute("${node.property}", ${val})`;
+    }
     default:
       // Unknown node type — emit warning comment
       console.warn(`[PromptJS Compiler] Unknown expression type: ${node.type}`);

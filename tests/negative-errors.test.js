@@ -127,15 +127,49 @@ describe('D2 — Negative-test matrix', () => {
       expectError('tetap x = 5\nBuat h1:\n    "Halo"', 'W4101', 'warning');
     });
 
-    // W4003 dan W3002: warning codes yang terdefinisi di source tapi
-    // tidak terpicu dengan input sederhana. Dapat dipicu dengan setup
-    // yang lebih kompleks — defer ke D2.1.
-    it.skip('W4003: deklarasi tetap tanpa nilai awal (deferred to D2.1)', () => {
+    // Wave G: W4003 dan W3002 sekarang terpicu berkat bug fix D2.1
+    // (engine forward resolver warnings ke result).
+    it('W4003: deklarasi tetap tanpa nilai awal', () => {
       expectError('tetap x', 'W4003', 'warning');
     });
 
-    it.skip('W3002: variabel shadowing scope luar (deferred to D2.1)', () => {
-      expectError('data x = 1\nBuat ruang:\n    data x = 2\n    "Halo"', 'W3002', 'warning');
+    it('W3002: variabel shadowing scope luar', () => {
+      expectError(
+        'data x = 1\nFungsi halo():\n    data x = 2\n    kembalikan x',
+        'W3002',
+        'warning'
+      );
+    });
+  });
+
+  // ─── WAVE G: Newly triggerable error codes ──────────────────────────
+  // These error codes were feature gaps in D2/D2.1 because the keywords
+  // were not implemented. Wave G activated the keywords, so these codes
+  // can now be tested.
+
+  describe('Wave G — newly triggerable error codes', () => {
+    it('E3003: menulis ke variabel tetap (const) via simpan', () => {
+      expectError('tetap x = 5\nsimpan 10 ke x', 'E3003', 'error');
+    });
+
+    it('E3005: ketika tanpa target di luar blok buat/komponen', () => {
+      expectError('ketika diklik:\n    "hai"', 'E3005', 'error');
+    });
+
+    it('E4001: lifecycle hook di luar komponen', () => {
+      expectError('dipasang:\n    "hai"', 'E4001', 'error');
+    });
+
+    it('E4011: berhenti di luar loop/handler', () => {
+      expectError('berhenti', 'E4011', 'error');
+    });
+
+    it('W4102: simbol ditulis tapi tidak pernah dibaca (via simpan)', () => {
+      expectError('ubah x = 5\nsimpan 10 ke x', 'W4102', 'warning');
+    });
+
+    it('W4103: data reaktif dimutasi tapi tidak dibaca (via simpan)', () => {
+      expectError('data x = 5\nsimpan 10 ke x', 'W4103', 'warning');
     });
   });
 

@@ -239,6 +239,42 @@ PromptJSParser.prototype._parseStatement = function () {
       return this._parseTextNode();
     case TT.TK_ON_EVENT:
       return this._parseOnEventStatement();
+    // ─── Wave G: Action statement dispatch ────────────────────────────
+    case TT.TK_BERHENTI:
+      return this._parseSimpleStatement('BerhentiStatement');
+    case TT.TK_MUAT_ULANG:
+      return this._parseSimpleStatement('MuatUlangStatement');
+    case TT.TK_KEMBALI:
+      return this._parseSimpleStatement('KembaliStatement');
+    case TT.TK_DIPASANG:
+      return this._parseLifecycleStatement('dipasang');
+    case TT.TK_DILEPAS:
+      return this._parseLifecycleStatement('dilepas');
+    case TT.TK_SEMBUNYIKAN:
+      return this._parseTargetStatement('SembunyikanStatement');
+    case TT.TK_HAPUS:
+      return this._parseTargetStatement('HapusStatement');
+    case TT.TK_KOSONGKAN:
+      return this._parseTargetStatement('KosongkanStatement');
+    case TT.TK_ARAHKAN:
+      return this._parseTargetStatement('ArahkanStatement');
+    case TT.TK_TAMPILKAN:
+      return this._parseTampilkanStatement();
+    case TT.TK_SIMPAN:
+    case TT.TK_TAMBAHKAN:
+    case TT.TK_KURANGI:
+    case TT.TK_SISIPKAN:
+      return this._parseSimpanStatement();
+    case TT.TK_PERBARUI:
+      return this._parsePerbaruiStatement();
+    case TT.TK_GUNAKAN:
+      return this._parseGunakanStatement();
+    case TT.TK_KETIKA:
+      return this._parseKetikaStatement();
+    case TT.TK_AMBIL:
+      return this._parseAmbilStatement();
+    case TT.TK_JALANKAN:
+      return this._parseJalankanStatement();
     case TT.TK_IDENT:
       return this._parsePropertyOrExpr();
     default:
@@ -967,6 +1003,103 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return AST.buatIdentifier(tok.value, this._makeLoc(tok));
   }
 
+  // ─── Wave G: action keywords as expression values ─────────────────
+  // These keywords can appear after `on_klik = <keyword>` and need to
+  // be lowered to JS by the expression lowerer.
+  if (tok.type === TT.TK_MUAT_ULANG) {
+    this._advance();
+    return { type: 'MuatUlangStatement', loc: this._makeLoc(tok) };
+  }
+  if (tok.type === TT.TK_KEMBALI) {
+    this._advance();
+    return { type: 'KembaliStatement', loc: this._makeLoc(tok) };
+  }
+  if (tok.type === TT.TK_BERHENTI) {
+    this._advance();
+    return { type: 'BerhentiStatement', loc: this._makeLoc(tok) };
+  }
+  // For target-action keywords, parse as a call with target
+  if (
+    tok.type === TT.TK_SEMBUNYIKAN ||
+    tok.type === TT.TK_HAPUS ||
+    tok.type === TT.TK_KOSONGKAN ||
+    tok.type === TT.TK_TAMPILKAN ||
+    tok.type === TT.TK_ARAHKAN
+  ) {
+    const kwTok = this._advance();
+    const target = this._parseExpression();
+    const nodeTypeMap = {
+      [TT.TK_SEMBUNYIKAN]: 'SembunyikanStatement',
+      [TT.TK_HAPUS]: 'HapusStatement',
+      [TT.TK_KOSONGKAN]: 'KosongkanStatement',
+      [TT.TK_TAMPILKAN]: 'TampilkanStatement',
+      [TT.TK_ARAHKAN]: 'ArahkanStatement',
+    };
+    return { type: nodeTypeMap[kwTok.type], loc: this._makeLoc(kwTok), target };
+  }
+  // simpan/tambahkan/kurangi/sisipkan as expression: parse value + ke + target
+  if (
+    tok.type === TT.TK_SIMPAN ||
+    tok.type === TT.TK_TAMBAHKAN ||
+    tok.type === TT.TK_KURANGI ||
+    tok.type === TT.TK_SISIPKAN
+  ) {
+    const kwTok = this._advance();
+    const kind = kwTok.value.toLowerCase();
+    if (kind === 'kurangi' || kind === 'remove') {
+      const target = this._parseExpression();
+      return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target };
+    }
+    const value = this._parseExpression();
+    if (this._peek().type === TT.TK_KE) {
+      this._advance();
+      const target = this._parseExpression();
+      const nodeTypeMap = {
+        simpan: 'SimpanStatement',
+        tambahkan: 'TambahkanStatement',
+        sisipkan: 'SisipkanStatement',
+      };
+      return {
+        type: nodeTypeMap[kind] || 'SimpanStatement',
+        loc: this._makeLoc(kwTok),
+        value,
+        target,
+        kind,
+      };
+    }
+    return { type: 'SimpanStatement', loc: this._makeLoc(kwTok), value, target: null, kind };
+  }
+  // jalankan as expression
+  if (tok.type === TT.TK_JALANKAN) {
+    this._advance();
+    const calleeTok = this._expect(TT.TK_IDENT, 'Expected function name after "jalankan"');
+    const callee = calleeTok
+      ? AST.buatIdentifier(calleeTok.value, null)
+      : AST.buatIdentifier('_', null);
+    const args = [];
+    if (this._peek().type === TT.TK_LPAREN) {
+      this._advance();
+      while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
+        args.push(this._parseExpression());
+        if (!this._match(TT.TK_COMMA)) break;
+      }
+      this._expect(TT.TK_RPAREN, 'Expected ")"');
+    }
+    return AST.buatJalankanExpression(callee, 'jalankan', null, null, args);
+  }
+  // perbarui as expression
+  if (tok.type === TT.TK_PERBARUI) {
+    this._advance();
+    const propTok = this._expect(TT.TK_IDENT, 'Expected property name after "perbarui"');
+    const property = propTok ? propTok.value : 'teks';
+    const target = this._parseExpression();
+    let value = null;
+    if (this._match(TT.TK_COLON)) {
+      value = this._parseExpression();
+    }
+    return { type: 'PerbaruiStatement', loc: null, property, target, value };
+  }
+
   // Parenthesized expression
   if (tok.type === TT.TK_LPAREN) {
     this._advance();
@@ -1032,6 +1165,248 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     suggestion: '',
   });
   return AST.buatLiteral(null, 'null', null);
+};
+
+// ─── Wave G: Action statement parsers ───────────────────────────────────
+
+/**
+ * Parse standalone keyword statement (berhenti, muat ulang, kembali).
+ * No arguments — just consume the keyword and return the AST node.
+ */
+PromptJSParser.prototype._parseSimpleStatement = function (nodeType) {
+  const tok = this._advance();
+  const loc = this._makeLoc(tok);
+  switch (nodeType) {
+    case 'BerhentiStatement':
+      return AST.buatBerhentiStatement(loc);
+    case 'MuatUlangStatement':
+      return AST.buatMuatUlangStatement(loc);
+    case 'KembaliStatement':
+      return AST.buatKembaliStatement(loc);
+    default:
+      return { type: nodeType, loc };
+  }
+};
+
+/**
+ * Parse lifecycle hook (dipasang:, dilepas:).
+ * `dipasang:` / `dilepas:` → block body.
+ */
+PromptJSParser.prototype._parseLifecycleStatement = function (kind) {
+  const tok = this._advance();
+  this._expect(TT.TK_COLON, 'Expected ":" after lifecycle keyword');
+  const loc = this._makeLoc(tok);
+  const body = this._parseBlock();
+  return AST.buatLifecycleStatement(kind, body, loc, null);
+};
+
+/**
+ * Parse single-target statement (sembunyikan, hapus, kosongkan, arahkan).
+ * `<keyword> <target>` where target is an expression (Identifier, Selector, etc.)
+ */
+PromptJSParser.prototype._parseTargetStatement = function (nodeType) {
+  const tok = this._advance();
+  const target = this._parseExpression();
+  const loc = this._makeLoc(tok);
+  switch (nodeType) {
+    case 'SembunyikanStatement':
+      return AST.buatSembunyikanStatement(target, loc, null);
+    case 'HapusStatement':
+      return AST.buatHapusStatement(target, loc, null);
+    case 'KosongkanStatement':
+      return AST.buatKosongkanStatement(target, loc, null);
+    case 'ArahkanStatement':
+      return AST.buatArahkanStatement(target, loc, null);
+    default:
+      return { type: nodeType, loc, target };
+  }
+};
+
+/**
+ * Parse `tampilkan` statement.
+ * `tampilkan <target>` or `tampilkan <target> di <mountTarget>` or
+ * `tampilkan <target> dengan mode <mode>`
+ */
+PromptJSParser.prototype._parseTampilkanStatement = function () {
+  const tok = this._advance();
+  const target = this._parseExpression();
+  const loc = this._makeLoc(tok);
+  const mountTarget = null;
+  const mode = null;
+  const messageKind = null;
+
+  // Optional `di <mountTarget>` — but `di` is not a keyword, so we check
+  // if next token is TK_IDENT with value 'di'. For now, keep it simple.
+  // Mode is also optional — skip complex parsing for now.
+
+  return AST.buatTampilkanStatement(target, loc, null, mountTarget, mode, messageKind);
+};
+
+/**
+ * Parse `simpan` / `tambahkan` / `kurangi` / `sisipkan` statement.
+ * `simpan <value> ke <target>` — SimpanStatement
+ * `tambahkan <value> ke <target>` — TambahkanStatement
+ * `kurangi <target>` or `kurangi <target> ke <value>` — KurangiStatement
+ * `sisipkan <value> ke <target>` — SisipkanStatement
+ */
+PromptJSParser.prototype._parseSimpanStatement = function () {
+  const tok = this._advance();
+  const kind = tok.value.toLowerCase();
+  const loc = this._makeLoc(tok);
+
+  if (kind === 'kurangi' || kind === 'remove') {
+    // kurangi <target> [ke <value>]
+    const target = this._parseExpression();
+    let value = null;
+    if (this._peek().type === TT.TK_KE) {
+      this._advance();
+      value = this._parseExpression();
+    }
+    return AST.buatKurangiStatement(target, loc, null, value);
+  }
+
+  // simpan/tambahkan/sisipkan <value> ke <target>
+  const value = this._parseExpression();
+  this._expect(TT.TK_KE, 'Expected "ke" after value in simpan/tambahkan/sisipkan');
+  const target = this._parseExpression();
+
+  if (kind === 'tambahkan' || kind === 'append') {
+    return AST.buatTambahkanStatement(value, target, loc, null);
+  }
+  if (kind === 'sisipkan' || kind === 'insert') {
+    return AST.buatSisipkanStatement(value, target, loc, null);
+  }
+  // Default: simpan
+  return AST.buatSimpanStatement(value, target, 'simpan', loc, null);
+};
+
+/**
+ * Parse `perbarui` statement.
+ * `perbarui <property> <target> -> <value>` or
+ * `perbarui <property> <target>: <value>`
+ */
+PromptJSParser.prototype._parsePerbaruiStatement = function () {
+  const tok = this._advance();
+  const loc = this._makeLoc(tok);
+
+  // Parse property name (identifier)
+  const propTok = this._expect(TT.TK_IDENT, 'Expected property name after "perbarui"');
+  const property = propTok ? propTok.value : 'teks';
+
+  // Parse target expression
+  const target = this._parseExpression();
+
+  // Expect -> or : for value
+  let value;
+  if (this._match(TT.TK_COLON)) {
+    value = this._parseExpression();
+  } else {
+    // Try to parse value as expression (flexible syntax)
+    value = this._parseExpression();
+  }
+
+  return AST.buatPerbaruiStatement(property, target, value, loc, null);
+};
+
+/**
+ * Parse `gunakan` statement (component instantiation).
+ * `gunakan <ComponentName>` or `gunakan <ComponentName> dengan <prop>: <val>, ...`
+ */
+PromptJSParser.prototype._parseGunakanStatement = function () {
+  const tok = this._advance();
+  const loc = this._makeLoc(tok);
+
+  // Component name (PascalCase identifier)
+  const nameTok = this._expect(TT.TK_IDENT, 'Expected component name after "gunakan"');
+  const componentName = nameTok ? nameTok.value : '_';
+
+  // Optional props — "dengan" is not a keyword in TT, so we check if next
+  // token is TK_IDENT with value "dengan". For now, skip complex prop parsing.
+  // The simple form: `gunakan NamaKomponen` (no props)
+
+  return AST.buatGunakanStatement(componentName, loc, null);
+};
+
+/**
+ * Parse `ketika` statement (event handler with explicit target).
+ * `ketika <target> <event>: <body>` or `ketika <target> <event> -> <action>`
+ * Simplified: `ketika <event>: <body>`
+ */
+PromptJSParser.prototype._parseKetikaStatement = function () {
+  const tok = this._advance();
+  const loc = this._makeLoc(tok);
+
+  // Parse event name (identifier)
+  const eventTok = this._expect(TT.TK_IDENT, 'Expected event name after "ketika"');
+  const event = eventTok ? eventTok.value : 'diklik';
+
+  // Optional target
+  let target = null;
+  if (this._peek().type === TT.TK_IDENT && this._peek().value !== 'diklik') {
+    target = this._parseExpression();
+  }
+
+  // Expect colon
+  this._expect(TT.TK_COLON, 'Expected ":" after ketika event');
+
+  const body = this._parseBlock();
+
+  return AST.buatKetikaStatement(event, loc, null, target, body, null);
+};
+
+/**
+ * Parse `ambil` statement (fetch from DOM or URL).
+ * Simplified: `ambil <kind> dari <source> ke <target>`
+ */
+PromptJSParser.prototype._parseAmbilStatement = function () {
+  const tok = this._advance();
+  const loc = this._makeLoc(tok);
+
+  // Parse kind (identifier: nilai, teks, atribut)
+  const kindTok = this._expect(TT.TK_IDENT, 'Expected kind after "ambil"');
+  const kind = kindTok ? kindTok.value : 'nilai';
+
+  // Parse source expression (rest of line as expression)
+  const source = this._parseExpression();
+
+  // Parse target (string name)
+  let target = '_result';
+  if (this._peek().type === TT.TK_KE) {
+    this._advance();
+    const targetTok = this._expect(TT.TK_IDENT, 'Expected target name after "ke"');
+    if (targetTok) target = targetTok.value;
+  }
+
+  return AST.buatAmbilDomStatement(kind, source, target, loc, null);
+};
+
+/**
+ * Parse `jalankan` statement (call PromptJS function).
+ * `jalankan <fungsi>(<args>)`
+ */
+PromptJSParser.prototype._parseJalankanStatement = function () {
+  const tok = this._advance();
+  const loc = this._makeLoc(tok);
+
+  // Parse callee (identifier)
+  const calleeTok = this._expect(TT.TK_IDENT, 'Expected function name after "jalankan"');
+  const callee = calleeTok
+    ? AST.buatIdentifier(calleeTok.value, null)
+    : AST.buatIdentifier('_', null);
+
+  // Optional arguments
+  let arguments_ = [];
+  if (this._peek().type === TT.TK_LPAREN) {
+    this._advance();
+    arguments_ = [];
+    while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
+      arguments_.push(this._parseExpression());
+      if (!this._match(TT.TK_COMMA)) break;
+    }
+    this._expect(TT.TK_RPAREN, 'Expected ")"');
+  }
+
+  return AST.buatJalankanExpression(callee, 'jalankan', loc, null, arguments_);
 };
 
 // --- Module index ---
