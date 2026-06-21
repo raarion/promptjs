@@ -6,7 +6,7 @@ Halaman Todo:
   data tugas = ""
   data daftar = []
 
-  Buat h1: "Todo List"
+  Buat h1: $judul
 
   Buat masukan:
     on_diketik = simpan document.querySelector("input").value ke tugas
