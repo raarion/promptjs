@@ -1,0 +1,20 @@
+---
+judul: "Counter Interaktif"
+---
+
+Halaman Counter:
+  data hitung = 0
+
+  Buat h1: "Counter PromptJS"
+
+  Buat paragraf:
+    "Jumlah klik: "
+    hitung
+
+  Buat tombol:
+    "Klik aku"
+    on_klik = simpan hitung tambah 1 ke hitung
+
+  Buat tombol:
+    "Reset"
+    on_klik = simpan 0 ke hitung

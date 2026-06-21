@@ -1,0 +1,20 @@
+---
+judul: "Galeri Foto"
+fotos:
+  - url: "https://example.com/1.jpg"
+    judul: "Pantai"
+  - url: "https://example.com/2.jpg"
+    judul: "Gunung"
+  - url: "https://example.com/3.jpg"
+    judul: "Kota"
+---
+
+Halaman Galeri:
+  Buat h1: $judul
+
+  Buat div.galeri:
+    Ulangi untuk foto dari $fotos:
+      Buat div.kartu:
+        Buat gambar:
+          src = foto.url
+        Buat h3: foto.judul

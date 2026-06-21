@@ -50,8 +50,12 @@ promptjs/
 │   ├── utils/       # Visitor pattern helpers
 │   └── tester/      # Manual exploration scripts (NOT the automated suite)
 ├── tests/           # Automated Vitest suite (the source of truth)
-├── doc-dev/         # Specs, architecture notes, roadmap
-└── .github/workflows/  # CI
+│   ├── helpers/     # Zero-dependency test utilities (temp-fs, report-gen)
+│   ├── reports/     # Markdown test reports (Wave D documentation)
+│   └── __snapshots__/ # Vitest snapshot files
+├── examples/        # Runnable .pjs example files (compiled in CI)
+├── doc-dev/         # Specs, architecture notes, roadmap, ADR
+└── .github/workflows/  # CI: format, typecheck, lint, test, smoke, examples
 ```
 
 > The automated test suite lives in **`tests/`**. Files under `src/tester/`
@@ -75,18 +79,21 @@ When diagnosing a failure, identify the stage from the error code family:
   assert on `Engine.compile(source, options)` results
   (`{ js, errors, warnings, ast, success }`).
 - When you add or fix an **error code**, add a negative test that asserts the
-  exact code fires (this matrix is being built out in Wave D).
+  exact code fires (this matrix is built out in Wave D — see
+  `tests/negative-errors.test.js`).
+- Use `tests/helpers/temp-fs.js` for filesystem tests (zero-dependency,
+  auto-cleanup).
 
 ## Quality gates (CI)
 
 Every push / PR runs, across Node 20 / 22 / 24:
 
-1. `npm run lint`
-2. `npm test`
-3. A smoke compile through the CLI.
-
-A coverage threshold (target ≥ 80%) and `format:check` will be promoted to hard
-gates as the test suite matures — see the roadmap.
+1. `npm run format:check` — Prettier formatting
+2. `npm run typecheck` — JSDoc type checking (checkJs per-file)
+3. `npm run lint` — ESLint with `--max-warnings=0`
+4. `npm test` — Vitest suite (243 tests)
+5. Smoke compile via CLI
+6. Compile all `examples/*.pjs`
 
 ## Commit / PR conventions
 
