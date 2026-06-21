@@ -5,7 +5,7 @@ judul: "Counter Interaktif"
 Halaman Counter:
   data hitung = 0
 
-  Buat h1: "Counter PromptJS"
+  Buat h1: $judul
 
   Buat paragraf:
     "Jumlah klik: "
