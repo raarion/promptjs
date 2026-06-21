@@ -46,3 +46,10 @@ jobs:
           printf 'Buat ruang:\n    "Hello CI"\n' > smoke.pjs
           node src/cli/index.js compile smoke.pjs --stdout > /dev/null
           rm -f smoke.pjs
+
+      - name: Compile examples (E4)
+        run: |
+          for f in examples/*.pjs; do
+            echo "Compiling $f..."
+            node src/cli/index.js compile "$f" --stdout > /dev/null
+          done

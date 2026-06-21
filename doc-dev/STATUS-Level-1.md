@@ -46,12 +46,12 @@
 
 ## ⏳ Belum dikerjakan
 
-### Wave E — Dokumentasi final
-- [ ] Perbaiki contoh headline README ke sintaks valid
-- [ ] Finalkan tabel fitur + alias event/tag (hapus placeholder `...`)
-- [ ] Koreksi diagram struktur proyek (hapus `runtime/` & `src/promptjs/`, tambah `examples/`+`tests/`)
-- [ ] `examples/` ≥3 `.pjs` runnable + diuji di CI
-- [ ] Pass final CHANGELOG untuk rilis v0.3
+### Wave E — Dokumentasi final ✅
+- [x] Perbaiki contoh headline README ke sintaks valid
+- [x] Finalkan tabel fitur + alias event/tag (hapus placeholder `...`)
+- [x] Koreksi diagram struktur proyek (hapus `runtime/` & `src/promptjs/`, tambah `examples/`+`tests/`)
+- [x] `examples/` ≥3 `.pjs` runnable + diuji di CI
+- [x] Pass final CHANGELOG untuk rilis v0.3
 
 ## 🐞 Known issues (terlacak)
 - ~~Operator kata belum dikenali parser (`3 kali 2` → E3001)~~ — **resolved di C4**:

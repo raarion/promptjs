@@ -10,9 +10,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This entry tracks the **Level 1 maturation effort** (merge of roadmap phases 0–2).
 See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full ordered plan.
 
-### Added — Wave F (JSDoc Typing)
+### Added — Wave E (Final Documentation)
 
-- **Per-file `// @ts-check`** enabled on all 13 production source files
+- **README rewrite** with valid syntax examples, complete keyword table
+  (40+ keywords), full event alias table (21 entries), full tag alias table
+  (28 entries), corrected project structure diagram, examples section.
+- **`examples/` directory** with 3 runnable `.pjs` files:
+  `counter.pjs` (interaktif dengan reaktivitas), `todo.pjs` (todo list
+  dengan tambah/hapus), `gallery.pjs` (galeri foto dengan front-matter).
+- **CI step** to compile all examples in `examples/` on every push/PR.
+- **CONTRIBUTING.md** updated with current test count, scripts, and
+  project layout.
+
+### Added — Wave G (Keyword Activation)
+
+- **16 keyword activated** in lexer (previously defined but not recognized):
+  `simpan`/`save`, `tambahkan`/`append`, `kurangi`/`remove`,
+  `sisipkan`/`insert`, `ketika`, `berhenti`/`break`,
+  `tampilkan`/`show`, `sembunyikan`/`hide`, `hapus`, `kosongkan`/`clear`,
+  `perbarui`/`update`, `ambil`/`fetch`, `arahkan`/`navigate`,
+  `muatulang`/`reload`, `kembali`/`back`, `jalankan`/`run`,
+  `gunakan`/`use`, `dipasang`/`mounted`, `dilepas`/`unmounted`,
+  `ke`/`to` (preposisi).
+- **Parser dispatch** + 10 new parse methods for action statements.
+- **Expression lowering** for 14 action statement types.
+- **5 error codes newly triggerable**: E3003, E3005, E4001, E4011, E4101.
+- **2 warning codes newly triggerable**: W4102, W4103.
+- **Bug fix**: `JalankanExpression` lowering caused stack overflow
+  (infinite recursion via `compiler.visitJalankanExpression` →
+  `lowerExpression`).
+
+### Added — Wave D (Comprehensive Testing)
+
+- **D1 — Snapshot codegen**: 44 snapshot tests per statement/expression
+  type + 5 bug fixes (lexer word operator collision, boolean/null literals,
+  parser primary expression, resolver SaatStatement target, compiler
+  fragment compiledVarName).
+- **D2 — Negative test matrix**: 22 tests for 14 error codes + 5 positive
+  tests for statement types.
+- **D2.1 — Complex setup tests**: 9 tests + 3 bug fixes (engine resolver
+  warnings forwarding, parser type hint parsing, analyzer SaatStatement
+  target access).
+- **D3 — Coverage gate**: 111 tests for CLI utils, AST factory, visitor
+  pattern. Coverage threshold gate at 60% (current: 62%).
+- **Test reports**: 4 Markdown reports in `tests/reports/` (D1, D2, D2.1,
+  D3) as documentation for Wave E.
+- **Zero-dependency test helpers**: `tests/helpers/temp-fs.js` (temp
+  filesystem), `tests/helpers/report-generator.js` (Markdown report
+  generator).
   (`src/utils/`, `src/lexer/`, `src/parser/`, `src/resolver/`, `src/analyzer/`,
   `src/compiler/`, `src/engine/`, `src/cli/`). Test harness files (`src/tester/`,
   `src/lexer/test-lexer.js`) are intentionally excluded.

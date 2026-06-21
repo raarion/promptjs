@@ -1,0 +1,26 @@
+---
+judul: "Todo List"
+---
+
+Halaman Todo:
+  data tugas = ""
+  data daftar = []
+
+  Buat h1: "Todo List"
+
+  Buat masukan:
+    on_diketik = simpan document.querySelector("input").value ke tugas
+
+  Buat tombol:
+    "Tambah"
+    on_klik = tambahkan tugas ke daftar
+
+  Buat daftar:
+    Ulangi untuk item dari daftar:
+      Buat item:
+        item
+
+  Buat paragraf:
+    "Total: "
+    panjang(daftar)
+    " tugas"

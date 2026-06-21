@@ -12,7 +12,7 @@
 
 ---
 
-## Apa itu PromptJS ?
+## Apa itu PromptJS?
 
 PromptJS adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompilasi template deklaratif menjadi JavaScript vanilla. Didesain dengan kata kunci bilingual (Indonesia & English), pipeline 5 tahap, dan output zero-runtime-dependency.
 
@@ -24,6 +24,8 @@ PromptJS adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompila
 - **Event alias** — `on_klik` → `diklik` → `click`, dll.
 - **Tag alias** — `tombol` → `button`, `masukan` → `input`, dll.
 - **Auto-fragment** — multiple top-level children otomatis dibungkus fragment
+- **Reaktivitas** — Proxy-based reactivity dengan `data`/`turunan`/`Saat`
+- **Sistem komponen** — `Komponen Nama(props):` + `Buat Nama(prop: nilai)`
 - **Zero dependency** — output JS vanilla, tanpa framework
 
 ## Contoh
@@ -40,17 +42,45 @@ items:
 Halaman Beranda:
   Buat h1: $judul
   Buat ul:
-    Ulangi item dari $items:
+    Ulangi untuk item dari $items:
       Buat li: item
 ```
 
 Menghasilkan JavaScript vanilla yang langsung membuat elemen DOM.
+
+### Contoh dengan Reaktivitas
+
+```pjs
+data hitung = 0
+
+Buat tombol:
+    "Klik aku"
+    on_klik = simpan hitung tambah 1 ke hitung
+
+Buat paragraf:
+    "Jumlah: "
+    hitung
+```
+
+### Contoh dengan Komponen
+
+```pjs
+Komponen Kartu(judul, isi):
+    Buat div.kartu:
+        Buat h2: judul
+        Buat p: isi
+
+Halaman:
+    Buat ruang:
+        gunakan Kartu
+```
 
 ## Instalasi
 
 ```bash
 git clone https://github.com/raarion/promptjs.git
 cd promptjs
+npm install
 ```
 
 ## Penggunaan CLI
@@ -60,7 +90,7 @@ cd promptjs
 node src/cli/index.js compile halaman.pjs --stdout
 
 # Kompilasi ke direktori
-node src/cli/index.js compile src/ --out dist/
+node src/cli/index.js compile src/ --out-dir dist/
 
 # Dev server dengan live-reload
 node src/cli/index.js serve --port 3000
@@ -78,57 +108,160 @@ node src/cli/index.js init -t gallery
 Source (.pjs) → Lexer → Parser → Resolver → Analyzer → Compiler → JS Vanilla
 ```
 
-| Tahap      | File                                         | Tanggung Jawab                                    |
-|------------|----------------------------------------------|----------------------------------------------------|
-| Lexer      | `lexer/promptjs-lexer.js`                    | Tokenisasi, keyword bilingual, event/tag alias     |
-| Parser     | `parser/promptjs-parser.js`                  | AST (compatibel dengan ast-factory internal)       |
-| Resolver   | `resolver/promptjs-resolver.js`              | Resolusi referensi, validasi identifier            |
-| Analyzer   | `analyzer/promptjs-analyzer.js`              | Analisis semantik, konteks `pass`/`lewati`         |
-| Compiler   | `compiler/promptjs-compiler.js` + emitters   | Emit JS vanilla, runtime helpers                   |
+| Tahap | File | Tanggung Jawab |
+|-------|------|----------------|
+| Lexer | `src/lexer/promptjs-lexer.js` | Tokenisasi, keyword bilingual, event/tag alias |
+| Parser | `src/parser/promptjs-parser.js` | AST builder (recursive descent) |
+| Resolver | `src/resolver/promptjs-resolver.js` | Resolusi referensi, scope, validasi identifier |
+| Analyzer | `src/analyzer/promptjs-analyzer.js` | Analisis semantik, dependency graph, usage tracking |
+| Compiler | `src/compiler/promptjs-compiler.js` + emitters | Emit JS vanilla, runtime helpers |
 
 ## Testing
 
 ```bash
-npm test
+npm test          # Run all tests
+npm run coverage  # Coverage report
+npm run lint      # ESLint
+npm run typecheck # JSDoc type checking
 ```
 
-24 pengujian mencakup: kompilasi dasar, kata kunci bilingual, TextNode, KetikaStatement, referensi eksternal, operator, loop, pass/lewati, auto-fragment, JS_GLOBALS, front-matter, dan lainnya.
+243 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, CLI utilities, AST factory, dan visitor pattern.
 
 ## Referensi Sintaks
 
 ### Kata Kunci
 
-| Indonesia | English   | Fungsi                        |
-|-----------|-----------|-------------------------------|
-| Buat      | Create    | Buat elemen DOM               |
-| Jika      | If        | Kondisional                   |
-| Lainnya   | Else      | Cabang alternatif             |
-| Ulangi    | Loop      | Iterasi                       |
-| Ketika    | When      | Event handler                 |
-| Tetap     | Const     | Deklarasi konstanta           |
-| Halaman   | Page      | Blok halaman                  |
-| Komponen  | Component | Blok komponen                 |
-| lewati    | pass      | Skip / body kosong            |
+#### Deklarasi & Struktur
+
+| Indonesia | English | Fungsi |
+|-----------|---------|--------|
+| Buat | Create | Buat elemen DOM |
+| Halaman | Page | Blok halaman (root element) |
+| Komponen | Component | Deklarasi komponen |
+| Definisikan | Define | Alias untuk Komponen |
+| Fungsi | Func | Deklarasi fungsi |
+| Data | State | Deklarasi data reaktif |
+| Tetap | Const | Deklarasi konstanta |
+| Ubah | Let | Deklarasi variabel mutable |
+| Turunan | Derived | Deklarasi computed value |
+
+#### Control Flow
+
+| Indonesia | English | Fungsi |
+|-----------|---------|--------|
+| Jika | If | Kondisional |
+| Lainnya | Else | Cabang alternatif |
+| Ulangi | Loop | Iterasi (untuk/kali/rentang) |
+| Selama | While | Loop dengan kondisi |
+| Berhenti | Break | Break dari loop |
+| lewati | pass | Skip / body kosong |
+| Kembalikan | Return | Return dari fungsi |
+
+#### Event & Lifecycle
+
+| Indonesia | English | Fungsi |
+|-----------|---------|--------|
+| Ketika | When | Event handler dengan target |
+| Saat | (—) | Watcher reaktif (data.berubah) |
+| Dipasang | Mounted | Lifecycle: dipasang ke DOM |
+| Dilepas | Unmounted | Lifecycle: dilepas dari DOM |
+
+#### Aksi DOM
+
+| Indonesia | English | Fungsi |
+|-----------|---------|--------|
+| Tampilkan | Show | Tampilkan elemen |
+| Sembunyikan | Hide | Sembunyikan elemen |
+| Hapus | (—) | Hapus elemen dari DOM |
+| Kosongkan | Clear | Kosongkan children |
+| Perbarui | Update | Update properti elemen |
+
+#### Aksi Data
+
+| Indonesia | English | Fungsi |
+|-----------|---------|--------|
+| Simpan | Save | Simpan nilai ke variabel |
+| Tambahkan | Append | Tambahkan ke array |
+| Kurangi | Remove | Kurangi dari array/variabel |
+| Sisipkan | Insert | Sisipkan ke array |
+
+#### Navigasi & Lainnya
+
+| Indonesia | English | Fungsi |
+|-----------|---------|--------|
+| Ambil | Fetch | Ambil dari DOM/URL |
+| Arahkan | Navigate | Navigasi halaman |
+| Muat Ulang | Reload | Reload halaman |
+| Kembali | Back | Browser back |
+| Jalankan | Run | Panggil fungsi PromptJS |
+| Gunakan | Use | Instansiasi komponen |
 
 ### Event Alias
 
-| Alias Indonesia | Alias Inggris | Event DOM |
-|-----------------|---------------|-----------|
-| diklik          | on_click      | click     |
-| diubah          | on_change     | change    |
-| dikirim         | on_submit     | submit    |
-| masuk           | on_mouseenter | mouseenter|
-| ...             | ...           | ...       |
+| `on_` Prefix | PromptJS Event | DOM Event |
+|--------------|----------------|-----------|
+| on_klik | diklik | click |
+| on_diklik | diklik | click |
+| on_click | diklik | click |
+| on_input | diketik | input |
+| on_keydown | ditekan | keydown |
+| on_keyup | dilepas | keyup |
+| on_change | diubah | change |
+| on_submit | disubmit | submit |
+| on_focus | difokus | focus |
+| on_blur | ditinggal | blur |
+| on_mouseover | diarahkan | mouseover |
+| on_mouseout | ditinggal-kursor | mouseout |
+| on_mouseenter | masuk | mouseenter |
+| on_mouseleave | keluar | mouseleave |
+| on_load | dimuat | DOMContentLoaded |
+| on_scroll | digulir | scroll |
+| on_dragstart | diseret | dragstart |
+| on_contextmenu | dikonteks | contextmenu |
+| on_paste | dilewat | paste |
+| on_resize | diubahukuran | resize |
+| on_error | salah | error |
 
 ### Tag Alias
 
-| Alias Indonesia | Alias Inggris | Tag HTML  |
-|-----------------|---------------|-----------|
-| tombol          | btn           | button    |
-| masukan         | inp           | input     |
-| teks            | txt           | span      |
-| gambar          | img_          | img       |
-| ...             | ...           | ...       |
+| Indonesia | English | Tag HTML |
+|-----------|---------|----------|
+| tombol | button | `<button>` |
+| ruang, wadah | div | `<div>` |
+| judul | h1 | `<h1>` |
+| subjudul | h2 | `<h2>` |
+| paragraf | p | `<p>` |
+| gambar | img | `<img>` |
+| tautan | a | `<a>` |
+| masukan | input | `<input>` |
+| pilihan | select | `<select>` |
+| kolom | textarea | `<textarea>` |
+| tabel | table | `<table>` |
+| artikel | article | `<article>` |
+| kanvas | canvas | `<canvas>` |
+| opsi | option | `<option>` |
+| fragmen | fragment | (virtual) |
+| pemisah | hr | `<hr>` |
+| frm | form | `<form>` |
+| navigasi | nav | `<nav>` |
+| kepala | header | `<header>` |
+| kaki | footer | `<footer>` |
+| bagian | section | `<section>` |
+| utama | main | `<main>` |
+| samping | aside | `<aside>` |
+| daftar | ul | `<ul>` |
+| daftarterurut | ol | `<ol>` |
+| item | li | `<li>` |
+| rentang | span | `<span>` |
+| bingkai | iframe | `<iframe>` |
+
+## Contoh Lengkap
+
+Lihat direktori `examples/` untuk contoh yang runnable:
+
+- `examples/counter.pjs` — Counter interaktif dengan reaktivitas
+- `examples/todo.pjs` — Todo list dengan tambah/hapus
+- `examples/gallery.pjs` — Galeri foto dengan front-matter data
 
 ## Struktur Proyek
 
@@ -136,31 +269,51 @@ npm test
 promptjs/
 ├── package.json
 ├── README.md
-├── .gitignore
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── .github/workflows/ci.yml
 ├── assets/
 ├── doc-dev/
+│   ├── ROADMAP-Level-1.md
+│   ├── STATUS-Level-1.md
+│   ├── ADR-001-level1-decisions.md
+│   ├── INVENTARIS-STATEMENT-ERROR-CODES.md
+│   ├── PromptJS-Spec-v0.2.md
 │   ├── PromptJS-Evaluasi-Arsitektur.md
-│   ├── PromptJS-Spec-v0.1.md
-│   └── PromptJS-Spec-v0.2.md
-└── src/
-    └── promptjs/
-        ├── engine/           # Orchestrator utama
-        ├── lexer/             # Tokenizer
-        ├── parser/            # AST builder
-        ├── resolver/          # Reference resolver
-        ├── analyzer/          # Semantic analyzer
-        ├── compiler/          # Code emitter
-        │   ├── emitters/     # Statement visitors + runtime
-        │   ├── lower/        # Expression lowering
-        │   └── utils/        # Codegen helpers
-        ├── cli/               # Command-line interface
-        │   └── commands/     # compile, serve, build, init
-        ├── utils/             # Visitor pattern
-        ├── runtime/           # (Placeholder — future modular runtime)
-        └── tester/
-            ├── test-all.js
-            ├── test-pipeline.js
-            └── test-extended.js
+│   └── REVIEW-Level1-PreC4.md
+├── examples/
+│   ├── counter.pjs
+│   ├── todo.pjs
+│   └── gallery.pjs
+├── src/
+│   ├── engine/              # Pipeline orchestrator
+│   ├── lexer/               # Tokenizer
+│   ├── parser/              # AST builder
+│   ├── resolver/            # Reference resolver
+│   ├── analyzer/            # Semantic analyzer
+│   ├── compiler/            # Code emitter
+│   │   ├── emitters/        # Statement visitors + runtime
+│   │   ├── lower/           # Expression lowering
+│   │   └── utils/           # Codegen helpers
+│   ├── cli/                 # Command-line interface
+│   │   └── commands/        # compile, serve, build, init
+│   ├── utils/               # Visitor pattern
+│   └── tester/              # Manual exploration scripts
+├── tests/
+│   ├── pipeline.test.js
+│   ├── extended.test.js
+│   ├── c4-expressions.test.js
+│   ├── components.test.js
+│   ├── snapshot-codegen.test.js
+│   ├── negative-errors.test.js
+│   ├── negative-complex.test.js
+│   ├── cli-utils.test.js
+│   ├── ast-factory-coverage.test.js
+│   ├── cli-visitor-coverage.test.js
+│   ├── helpers/             # Test utilities
+│   ├── reports/             # Test reports (Wave D documentation)
+│   └── __snapshots__/       # Snapshot files
+└── jsconfig.json
 ```
 
 ## Roadmap
