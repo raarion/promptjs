@@ -1,0 +1,68 @@
+{
+  "name": "promptjs",
+  "displayName": "PromptJS",
+  "description": "Syntax highlighting and snippets for PromptJS (.pjs) — a bilingual ID/EN DSL that compiles to vanilla JS.",
+  "version": "0.3.0",
+  "publisher": "raarion",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/raarion/promptjs.git",
+    "directory": "editors/vscode"
+  },
+  "homepage": "https://raarion.github.io/promptjs/",
+  "bugs": {
+    "url": "https://github.com/raarion/promptjs/issues"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "promptjs",
+    "dsl",
+    "indonesian",
+    "bilingual",
+    "compiler",
+    "template"
+  ],
+  "icon": "images/promptjs-logo.png",
+  "contributes": {
+    "languages": [
+      {
+        "id": "promptjs",
+        "aliases": [
+          "PromptJS",
+          "promptjs",
+          "pjs"
+        ],
+        "extensions": [
+          ".pjs"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "promptjs",
+        "scopeName": "source.pjs",
+        "path": "./syntaxes/promptjs.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "promptjs",
+        "path": "./snippets/promptjs.json"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0"
+  }
+}

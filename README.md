@@ -10,6 +10,7 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-0.3.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
+    <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
   <p><strong>A mini-DSL template engine that compiles to vanilla JS with zero dependencies.</strong></p>
@@ -118,6 +119,35 @@ node src/cli/index.js build --minify
 # Scaffold proyek baru
 node src/cli/index.js init -t gallery
 ```
+
+## Live Showcase
+
+Lihat contoh langsung di browser tanpa install apa-apa:
+
+**https://raarion.github.io/promptjs/**
+
+Halaman showcase di-generate oleh `scripts/build-pages.js` — setiap file `examples/*.pjs` di-compile menjadi halaman HTML dengan **source code di kiri** dan **live preview di kanan** (iframe sandboxed). Deploy otomatis ke GitHub Pages setiap push ke `main` via workflow `.github/workflows/pages.yml`.
+
+Untuk build showcase secara lokal:
+
+```bash
+npm run pages:build         # one-shot, output ke dist-pages/
+npm run pages:dev           # watch mode, rebuild otomatis
+```
+
+Lalu buka `dist-pages/index.html` di browser.
+
+## Editor Support
+
+Syntax highlighting untuk file `.pjs` tersedia sebagai **VS Code extension** di folder `editors/vscode/`. Lihat [`editors/vscode/README.md`](editors/vscode/README.md) untuk instruksi install manual atau publish ke Marketplace.
+
+Fitur extension:
+
+- Syntax highlighting untuk keyword bilingual (`Buat`/`Create`, `Jika`/`If`, `Ulangi`/`Loop`, …)
+- Pengenalan front-matter `--- … ---`
+- Highlighting untuk `on_event`, `$external`, string, number, boolean, null
+- Indentation guide 2-spaces (sesuai spec PromptJS)
+- Snippet untuk scaffold cepat (`Halaman`, `Komponen`, `data`, `Buat`, `Jika`, `Ulangi`)
 
 ## Pipeline 5 Tahap
 
@@ -288,8 +318,10 @@ promptjs/
 ├── README.md
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
-├── .github/workflows/ci.yml
-├── assets/
+├── .github/workflows/
+│   ├── ci.yml               # lint • typecheck • test • smoke (Node 20/22/24)
+│   └── pages.yml            # Build showcase & deploy to GitHub Pages
+├── assets/                  # Logo SVG (PromptJS-logo.svg, prompt-js.svg)
 ├── doc-dev/
 │   ├── ROADMAP-Level-1.md
 │   ├── STATUS-Level-1.md
@@ -298,10 +330,20 @@ promptjs/
 │   ├── PromptJS-Spec-v0.2.md
 │   ├── PromptJS-Evaluasi-Arsitektur.md
 │   └── REVIEW-Level1-PreC4.md
+├── editors/
+│   └── vscode/              # VS Code extension skeleton (syntax + snippets)
+│       ├── package.json
+│       ├── language-configuration.json
+│       ├── syntaxes/promptjs.tmLanguage.json
+│       ├── snippets/promptjs.json
+│       ├── images/promptjs-logo.png
+│       └── scripts/convert-icon.js
 ├── examples/
 │   ├── counter.pjs
 │   ├── todo.pjs
 │   └── gallery.pjs
+├── scripts/
+│   └── build-pages.js       # Build showcase site → dist-pages/ (for GitHub Pages)
 ├── src/
 │   ├── engine/              # Pipeline orchestrator
 │   ├── lexer/               # Tokenizer

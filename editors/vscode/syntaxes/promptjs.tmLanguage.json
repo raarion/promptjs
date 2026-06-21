@@ -1,0 +1,134 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "PromptJS",
+  "scopeName": "source.pjs",
+  "patterns": [
+    { "include": "#front-matter" },
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#booleans-null" },
+    { "include": "#external-ref" },
+    { "include": "#on-event" },
+    { "include": "#keywords" },
+    { "include": "#tag-aliases" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "front-matter": {
+      "name": "meta.frontmatter.pjs",
+      "begin": "\\A---",
+      "end": "^(---)\\s*$",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.frontmatter.pjs" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.frontmatter.pjs" }
+      },
+      "patterns": [
+        { "include": "#fm-string" },
+        { "include": "#fm-number" },
+        { "include": "#fm-bool" },
+        { "include": "#fm-key" },
+        { "include": "#fm-list-item" }
+      ]
+    },
+    "fm-string": {
+      "name": "string.quoted.double.frontmatter.pjs",
+      "match": "\"[^\"]*\"|'[^']*'"
+    },
+    "fm-number": {
+      "name": "constant.numeric.frontmatter.pjs",
+      "match": "\\b-?\\d+(\\.\\d+)?\\b"
+    },
+    "fm-bool": {
+      "name": "constant.language.boolean.frontmatter.pjs",
+      "match": "\\b(true|false|null)\\b"
+    },
+    "fm-key": {
+      "name": "support.type.property-name.frontmatter.pjs",
+      "match": "^[A-Za-z_][A-Za-z0-9_]*(?=\\s*:)"
+    },
+    "fm-list-item": {
+      "name": "keyword.operator.list.frontmatter.pjs",
+      "match": "^\\s*-\\s+"
+    },
+
+    "comments": {
+      "name": "comment.line.double-slash.pjs",
+      "match": "//.*$"
+    },
+
+    "strings": {
+      "name": "string.quoted.double.pjs",
+      "match": "\"[^\"]*\"|'[^']*'"
+    },
+
+    "numbers": {
+      "name": "constant.numeric.pjs",
+      "match": "\\b-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
+    },
+
+    "booleans-null": {
+      "name": "constant.language.pjs",
+      "match": "\\b(benar|salah|kosong|true|false|null)\\b"
+    },
+
+    "external-ref": {
+      "name": "variable.language.external.pjs",
+      "match": "\\$[A-Za-z_][A-Za-z0-9_.]*"
+    },
+
+    "on-event": {
+      "name": "support.function.event-handler.pjs",
+      "match": "\\bon_[a-z_-]+(?=\\s*=)"
+    },
+
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.structure.pjs",
+          "match": "\\b(Buat|Create|Halaman|Page|Komponen|Component|Definisikan|Define|Fungsi|Func|Function)\\b"
+        },
+        {
+          "name": "keyword.control.flow.pjs",
+          "match": "\\b(Jika|If|Lainnya|Else|Ulangi|Loop|Untuk|For|Selama|While|Berhenti|Break|Lewati|Pass|Skip|Kembalikan|Return)\\b"
+        },
+        {
+          "name": "keyword.control.iterator.pjs",
+          "match": "\\b(dari|in|sampai|until|kali|times)\\b"
+        },
+        {
+          "name": "keyword.control.reactive.pjs",
+          "match": "\\b(Data|State|Tetap|Const|Ubah|Let|Turunan|Derived|Saat|Watch|Ketika|When)\\b"
+        },
+        {
+          "name": "keyword.control.action.pjs",
+          "match": "\\b(Simpan|Save|Tambahkan|Append|Kurangi|Remove|Sisipkan|Insert|Tampilkan|Show|Sembunyikan|Hide|Hapus|Delete|Kosongkan|Clear|Perbarui|Update|Ambil|Fetch|Arahkan|Navigate|MuatUlang|Reload|Kembali|Back|Jalankan|Run|Gunakan|Use)\\b"
+        },
+        {
+          "name": "keyword.control.lifecycle.pjs",
+          "match": "\\b(Dipasang|Mounted|Dilepas|Unmounted)\\b"
+        },
+        {
+          "name": "keyword.operator.word.pjs",
+          "match": "\\b(ke|to|dengan|with|sebagai|as)\\b"
+        },
+        {
+          "name": "keyword.operator.prose.pjs",
+          "match": "\\b(tidak sama dengan|sama dengan|paling sedikit|paling banyak|lebih dari|kurang dari|tidak|negatif|tambah|kurang|kali|bagi|mod|pangkat|dan|atau)\\b"
+        }
+      ]
+    },
+
+    "tag-aliases": {
+      "name": "support.class.tag.pjs",
+      "match": "\\b(tombol|button|ruang|wadah|div|judul|h1|subjudul|h2|paragraf|p|gambar|img|tautan|a|masukan|input|pilihan|select|kolom|textarea|tabel|table|artikel|article|kanvas|canvas|opsi|option|fragmen|fragment|pemisah|hr|frm|form|navigasi|nav|kepala|header|kaki|footer|bagian|section|utama|main|samping|aside|daftar|ul|daftarterurut|ol|item|li|rentang|span|bingkai|iframe|label|h3|h4|h5|h6|video|audio)\\b"
+    },
+
+    "identifiers": {
+      "name": "variable.other.pjs",
+      "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+    }
+  }
+}

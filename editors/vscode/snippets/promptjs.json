@@ -1,0 +1,75 @@
+{
+  "Halaman (page scaffold)": {
+    "prefix": "halaman",
+    "body": [
+      "---",
+      "judul: \"${1:Judul Halaman}\"",
+      "---",
+      "",
+      "Halaman ${2:Beranda}:",
+      "    Buat h1: $judul",
+      "    $0"
+    ],
+    "description": "Scaffold halaman PromptJS dengan front-matter"
+  },
+  "Komponen (component declaration)": {
+    "prefix": "komponen",
+    "body": ["Komponen ${1:Kartu}(${2:props}):", "    Buat div.${3:kelas}:", "        $0"],
+    "description": "Deklarasi komponen dengan props"
+  },
+  "Buat (DOM element)": {
+    "prefix": "buat",
+    "body": ["Buat ${1:tombol}:", "    \"${2:Teks tombol}\"", "    on_klik = $0"],
+    "description": "Buat elemen DOM"
+  },
+  "Data (reactive state)": {
+    "prefix": "data",
+    "body": ["data ${1:hitung} = ${2:0}"],
+    "description": "Deklarasi state reaktif"
+  },
+  "Turunan (computed)": {
+    "prefix": "turunan",
+    "body": ["turunan ${1:namaTurunan} = $0"],
+    "description": "Computed value reaktif"
+  },
+  "Jika (conditional)": {
+    "prefix": "jika",
+    "body": ["Jika ${1:kondisi}:", "    $0", "Lainnya:", "    "],
+    "description": "Conditional Jika/Lainnya"
+  },
+  "Ulangi untuk (for-in loop)": {
+    "prefix": "ulangi",
+    "body": ["Ulangi untuk ${1:item} dari ${2:daftar}:", "    Buat item:", "        $1", "    $0"],
+    "description": "Loop untuk...dari"
+  },
+  "Ulangi kali (counted loop)": {
+    "prefix": "ulangi-kali",
+    "body": ["Ulangi ${1:i} dari 1 sampai ${2:10}:", "    $0"],
+    "description": "Range loop dengan batas atas"
+  },
+  "Saat (reactive watcher)": {
+    "prefix": "saat",
+    "body": ["Saat ${1:stateName}.berubah:", "    $0"],
+    "description": "Watcher reaktif"
+  },
+  "Ketika (event handler with target)": {
+    "prefix": "ketika",
+    "body": ["Ketika \"${1:selector}\" ${2:diklik}:", "    $0"],
+    "description": "Event handler dengan target selector"
+  },
+  "Dipasang (mounted lifecycle)": {
+    "prefix": "dipasang",
+    "body": ["Dipasang:", "    $0"],
+    "description": "Lifecycle: dipasang ke DOM"
+  },
+  "Simpan (assignment)": {
+    "prefix": "simpan",
+    "body": ["simpan ${1:ekspresi} ke ${2:variabel}"],
+    "description": "Simpan nilai ke variabel"
+  },
+  "Front-matter block": {
+    "prefix": "fm",
+    "body": ["---", "$0", "---"],
+    "description": "Blok front-matter kosong"
+  }
+}

@@ -82,9 +82,54 @@ coverage gate at 60%, 3 runnable examples, zero-dependency runtime.
 
 ## [Unreleased]
 
-_No unreleased changes yet._
+### Added — Post-v0.3.0 release preparation
 
-<!-- Historical [Unreleased] content has been released as v0.3.0 above. -->
+- **`files` field** di `package.json` — npm publish hanya menyertakan
+  `src/`, `examples/`, `assets/`, dan dokumen inti (README, CHANGELOG,
+  LICENSE, CONTRIBUTING). `tests/`, `doc-dev/`, `editors/`, `scripts/`
+  tidak ikut terpublish ke npm registry (mengurangi ukuran tarball
+  secara signifikan).
+- **`repository`, `homepage`, `bugs` fields** di `package.json` —
+  metadata standar npm untuk discoverability di npmjs.com dan
+  `npm repo`/`npm bugs` commands.
+- **`sideEffects: false`** di `package.json` — sinyal tree-shaking
+  untuk bundler modern (webpack, rollup, vite, esbuild).
+- **`author`** field di `package.json`.
+- **`pages:build` dan `pages:dev` scripts** — builder showcase site
+  untuk GitHub Pages.
+- **`scripts/build-pages.js`** — builder zero-dep yang compile semua
+  `examples/*.pjs` menjadi halaman HTML split-view (source code di
+  kiri, live preview iframe di kanan) + landing page showcase.
+  Output: `dist-pages/` (di-gitignore).
+- **`.github/workflows/pages.yml`** — workflow auto-deploy ke GitHub
+  Pages setiap push ke `main` (atau manual via `workflow_dispatch`).
+  Menggunakan `actions/upload-pages-artifact@v3` dan
+  `actions/deploy-pages@v4`. URL target: `https://raarion.github.io/promptjs/`.
+- **`editors/vscode/`** — VS Code extension skeleton:
+  - `syntaxes/promptjs.tmLanguage.json` — TextMate grammar untuk
+    keyword bilingual (56+), front-matter, event alias, external
+    ref, tag aliases, prose operators, booleans/null.
+  - `language-configuration.json` — bracket matching, auto-closing
+    pairs, indentation rules (`:` increase, `Lainnya`/`Else`/
+    `Berhenti`/`Kembalikan` decrease).
+  - `snippets/promptjs.json` — 13 snippets scaffold (`halaman`,
+    `komponen`, `buat`, `data`, `turunan`, `jika`, `ulangi`,
+    `ulangi-kali`, `saat`, `ketika`, `dipasang`, `simpan`, `fm`).
+  - `images/promptjs-logo.png` — icon 128×128 (converted dari
+    `assets/PromptJS-logo.svg` via `scripts/convert-icon.js`).
+  - `README.md`, `CHANGELOG.md`, `LICENSE`, `.vscodeignore`.
+  - Extension validated dengan `vsce package` → 10.09 KB VSIX.
+- **README badge** baru: "showcase-live" → `https://raarion.github.io/promptjs/`.
+- **README section** baru: "Live Showcase" dan "Editor Support".
+- **README project structure** diupdate untuk refleksikan folder
+  baru: `editors/vscode/`, `scripts/`, dan workflow `pages.yml`.
+
+### Changed
+
+- **`.gitignore`** — tambah entry untuk `dist-pages/` dan
+  `editors/vscode/{node_modules,.vscode,*.vsix}`.
+- **`package.json` keywords** — ditambah `bilingual`, `frontend`,
+  `vanilla-js`, `reactive`, `dom` untuk SEO di npm registry.
 
 ## [0.2.0] — 2026-06-19
 

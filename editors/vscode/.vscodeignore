@@ -1,0 +1,9 @@
+.vscode/**
+.vscode-test/**
+node_modules/**
+*.vsix
+.gitignore
+.gitattributes
+CHANGELOG.md
+scripts/**
+package-lock.json

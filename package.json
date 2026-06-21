@@ -6,6 +6,15 @@
   "bin": {
     "pjs": "src/cli/index.js"
   },
+  "files": [
+    "src/",
+    "examples/",
+    "assets/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "CONTRIBUTING.md"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,19 +25,36 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build": "node src/cli/index.js build --minify",
-    "pjs": "node src/cli/index.js"
+    "pjs": "node src/cli/index.js",
+    "pages:build": "node scripts/build-pages.js",
+    "pages:dev": "node scripts/build-pages.js --watch"
   },
   "keywords": [
     "dsl",
     "template",
     "compiler",
     "indonesian",
-    "promptjs"
+    "promptjs",
+    "bilingual",
+    "frontend",
+    "vanilla-js",
+    "reactive",
+    "dom"
   ],
   "engines": {
     "node": ">=20.19.0"
   },
   "license": "MIT",
+  "author": "raarion",
+  "homepage": "https://raarion.github.io/promptjs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raarion/promptjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/raarion/promptjs/issues"
+  },
+  "sideEffects": false,
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.0.0",

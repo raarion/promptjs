@@ -1,6 +1,12 @@
 node_modules/
 dist/
+dist-pages/
 *.log
 .DS_Store
 coverage/
+
+# VS Code extension build output (editors/vscode)
+editors/vscode/.vscode/
+editors/vscode/node_modules/
+editors/vscode/*.vsix
 
