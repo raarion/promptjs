@@ -20,7 +20,18 @@
 
 ## Apa itu PromptJS?
 
-PromptJS adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompilasi template deklaratif menjadi JavaScript vanilla. Didesain dengan kata kunci bilingual (Indonesia & English), pipeline 5 tahap, dan output zero-runtime-dependency.
+**PromptJS** adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompilasi template deklaratif menjadi JavaScript vanilla. Didesain dengan kata kunci bilingual (Indonesia & English), pipeline 5 tahap, dan output zero-runtime-dependency.
+
+### **PromptJS: Jembatan Inovatif antara Coding, Vibe-Coding dan Prompting**
+Di tengah maraknya era _AI_ dan tren _vibe coding_ yang mulai menggeser kebiasaan menulis kode tradisional, batasan antara memberikan instruksi (_prompting_) dan pemrograman menjadi semakin **bias**. **PromptJS** hadir dengan harapan menjadi sebuah jembatan inovatif untuk mempertemukan dunia _coding_, _vibe coding_, dan _prompting_ dalam satu kesatuan.
+
+### **Pendekatan Bilingual dan Intuitif**
+Melalui pendekatan _bilingual_ (Indonesia & Inggris) yang hampir tanpa simbol sintaksis (_zero syntax symbol_), bahasa ini dirancang agar mengalir seperti rangkaian kata yang _intuitif_ namun tetap patuh pada aturan pola dan format _compiler_ yang ketat. Pengguna akan merasakan pengalaman layaknya menulis sebuah _prompt_ ke AI, sementara di balik layar, _compiler_ **PromptJS** bekerja cerdas memisahkan dan menghubungkan instruksi tersebut ke dalam file HTML, CSS, dan _vanilla JS_ yang terstruktur secara mandiri.
+
+### **Menghancurkan Dinding Pembatas dalam Pemrograman**
+> Harapan terbesar dari proyek ini adalah meruntuhkan dinding pembatas dalam belajar pemrograman.
+>
+Dengan menjaga _workflow_ yang tetap terasa disiplin sebagai aktivitas _coding_ namun dikemas dalam kenyamanan interaksi layaknya hanya menulis _prompt_, **PromptJS** ingin memastikan bahwa siapapun—_bahkan mereka yang baru terbiasa berkomunikasi dengan AI_—dapat mulai menulis kode yang sesungguhnya dengan mudah. Ini adalah ruang di mana struktur logika yang _presisi_ bertemu dengan bahasa yang _manusiawi_, membuka pintu bagi generasi _developer_ baru untuk berkarya tanpa hambatan kerumitan simbol.
 
 ## Fitur Utama
 
