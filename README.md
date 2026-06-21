@@ -7,14 +7,13 @@
   </div>
 
   <p>
-    <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-0.3.0-green.svg">
-    <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-success.svg">
+    <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
+    <img alt="Version" src="https://img.shields.io/badge/version-0.3.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
+    <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
   </p>
 
   <p><strong>A mini-DSL template engine that compiles to vanilla JS with zero dependencies.</strong></p>
-  <hr>
-  <sub><strong>Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.</strong></sub>
+  <mark><sup><strong>  Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.  </strong></sup></mark>
 </div>
 
 ---
