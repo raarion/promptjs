@@ -618,9 +618,12 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
   const nameTok = this._expect(TT.TK_IDENT, 'Expected variable name');
   const name = nameTok ? nameTok.value : '_';
 
-  // Optional type hint
-  const typeHint = null;
-  // (PromptJS v0.1 doesn't support type hints yet)
+  // Optional type hint: `name: typeHint = value` or `name = value`
+  let typeHint = null;
+  if (this._match(TT.TK_COLON)) {
+    const hintTok = this._expect(TT.TK_IDENT, 'Expected type hint name');
+    if (hintTok) typeHint = hintTok.value;
+  }
 
   // Expect =
   let init = null;

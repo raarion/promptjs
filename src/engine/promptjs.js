@@ -123,6 +123,12 @@ PromptJSEngine.prototype.compile = function (source, options) {
   if (resolveResult.errors && resolveResult.errors.length > 0) {
     this.errors.push(...resolveResult.errors);
   }
+  // BUG FIX (D2.1): Resolver warnings (W3002, W3003, W4003) were silently
+  // discarded — engine only collected analyzer warnings. Forward resolver
+  // warnings to the result so they're visible to the user.
+  if (resolveResult.warnings && resolveResult.warnings.length > 0) {
+    this.warnings.push(...resolveResult.warnings);
+  }
 
   // ── Stage 4: ANALYZER ───────────────────────────────────────────────────
   const analyzer = new Analyzer();
