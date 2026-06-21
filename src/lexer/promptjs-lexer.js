@@ -71,6 +71,7 @@
     TK_ULANGI: 'TK_ULANGI', // Ulangi / Loop
     TK_UNTUK: 'TK_UNTUK', // Untuk / For
     TK_IN: 'TK_IN', // in
+    TK_SAMPAI: 'TK_SAMPAI', // [FIX] sampai / until (range loop upper bound)
     TK_KALI: 'TK_KALI', // kali / times (counted-loop suffix)
     TK_PASS: 'TK_PASS', // pass / Lewati
     TK_DEFINSIKAN: 'TK_DEFINSIKAN', // Definisikan / Define
@@ -178,6 +179,7 @@
     kembalikan: TT.TK_KEMBALIKAN,
     in: TT.TK_IN,
     dari: TT.TK_IN,
+    sampai: TT.TK_SAMPAI, // [FIX] range loop upper bound keyword
     kali: TT.TK_KALI,
     halaman: TT.TK_BUAT, // Page root — synonym for Buat halaman
     komponen: TT.TK_DEFINSIKAN, // Component declaration (alias of Definisikan)
@@ -191,6 +193,7 @@
     loop: TT.TK_ULANGI,
     for: TT.TK_UNTUK,
     from: TT.TK_IN,
+    until: TT.TK_SAMPAI, // [FIX] English alias for range loop upper bound
     times: TT.TK_KALI,
     define: TT.TK_DEFINSIKAN,
     state: TT.TK_DATA,
@@ -198,6 +201,7 @@
     let: TT.TK_UBAH,
     derived: TT.TK_TURUNAN,
     func: TT.TK_FUNGSI,
+    function: TT.TK_FUNGSI, // [FIX] English alias for 'func' (full form)
     watch: TT.TK_SAAT,
     return: TT.TK_KEMBALIKAN,
     skip: TT.TK_PASS,
@@ -699,7 +703,7 @@
 
     // 7. Data declarations: Data/State, Tetap/Const, Ubah/Let, Turunan/Derived, Fungsi/Func
     const declMatch = trimmed.match(
-      /^(Data|data|State|state|Tetap|tetap|Const|const|Ubah|ubah|Let|let|Turunan|turunan|Derived|derived|Fungsi|fungsi|Func|func|Saat|saat|When|when|Kembalikan|kembalikan|Return|return)\b/
+      /^(Data|data|State|state|Tetap|tetap|Const|const|Ubah|ubah|Let|let|Turunan|turunan|Derived|derived|Fungsi|fungsi|Func|func|Function|function|Saat|saat|When|when|Kembalikan|kembalikan|Return|return)\b/
     );
     if (declMatch) {
       this._tokenizeDeclaration(trimmed, lineNum, baseCol, declMatch[1]);
@@ -1184,6 +1188,7 @@
     if (
       kwLower === 'fungsi' ||
       kwLower === 'func' ||
+      kwLower === 'function' ||
       kwLower === 'komponen' ||
       kwLower === 'component' ||
       kwLower === 'definisikan' ||

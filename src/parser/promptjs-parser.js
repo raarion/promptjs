@@ -541,14 +541,37 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
       message: 'Expected "in" after iterator name',
       line: this._peek().line,
       column: this._peek().col,
-      suggestion: 'Syntax: Ulangi untuk item in $collection:',
+      suggestion:
+        'Syntax: Ulangi untuk item in $collection:  atau  Ulangi untuk i dari 1 sampai 10:',
     });
     return null;
   }
   this._advance(); // consume in
 
-  // Source expression
+  // Source / range-start expression
   const source = this._parseExpression();
+
+  // [FIX] Range loop: "Ulangi untuk i dari 1 sampai 10:"
+  if (this._peek().type === TT.TK_SAMPAI) {
+    this._advance(); // consume sampai/until
+
+    const rangeEnd = this._parseExpression();
+
+    this._expect(TT.TK_COLON, 'Expected ":" after range loop');
+
+    const rangeLoc = this._makeLoc(startTok);
+    const rangeBody = this._parseBlock();
+
+    return AST.buatUlangiStatement(
+      iteratorName,
+      source,
+      rangeBody,
+      'rentang',
+      rangeLoc,
+      null,
+      rangeEnd
+    );
+  }
 
   // Expect colon
   this._expect(TT.TK_COLON, 'Expected ":" after loop source');
