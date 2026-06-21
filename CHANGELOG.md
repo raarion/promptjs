@@ -5,187 +5,86 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] — 2026-06-21
 
-This entry tracks the **Level 1 maturation effort** (merge of roadmap phases 0–2).
-See [`doc-dev/ROADMAP-Level-1.md`](doc-dev/ROADMAP-Level-1.md) for the full ordered plan.
+**Level 1 Maturation complete.** 243 tests, 56 bilingual keywords, 66 error codes,
+coverage gate at 60%, 3 runnable examples, zero-dependency runtime.
 
 ### Added — Wave E (Final Documentation)
 
 - **README rewrite** with valid syntax examples, complete keyword table
   (40+ keywords), full event alias table (21 entries), full tag alias table
   (28 entries), corrected project structure diagram, examples section.
+  Added badges: MIT license, v0.3.0, zero-deps.
 - **`examples/` directory** with 3 runnable `.pjs` files:
-  `counter.pjs` (interaktif dengan reaktivitas), `todo.pjs` (todo list
-  dengan tambah/hapus), `gallery.pjs` (galeri foto dengan front-matter).
-- **CI step** to compile all examples in `examples/` on every push/PR.
-- **CONTRIBUTING.md** updated with current test count, scripts, and
-  project layout.
+  `counter.pjs`, `todo.pjs`, `gallery.pjs`.
+- **CI step** to compile all examples on every push/PR.
 
 ### Added — Wave G (Keyword Activation)
 
-- **16 keyword activated** in lexer (previously defined but not recognized):
-  `simpan`/`save`, `tambahkan`/`append`, `kurangi`/`remove`,
-  `sisipkan`/`insert`, `ketika`, `berhenti`/`break`,
-  `tampilkan`/`show`, `sembunyikan`/`hide`, `hapus`, `kosongkan`/`clear`,
-  `perbarui`/`update`, `ambil`/`fetch`, `arahkan`/`navigate`,
-  `muatulang`/`reload`, `kembali`/`back`, `jalankan`/`run`,
-  `gunakan`/`use`, `dipasang`/`mounted`, `dilepas`/`unmounted`,
-  `ke`/`to` (preposisi).
+- **16 keyword activated** in lexer: simpan, tambahkan, kurangi, sisipkan,
+  ketika, berhenti, tampilkan, sembunyikan, hapus, kosongkan, perbarui,
+  ambil, arahkan, muatulang, kembali, jalankan, gunakan, dipasang, dilepas.
 - **Parser dispatch** + 10 new parse methods for action statements.
 - **Expression lowering** for 14 action statement types.
 - **5 error codes newly triggerable**: E3003, E3005, E4001, E4011, E4101.
 - **2 warning codes newly triggerable**: W4102, W4103.
-- **Bug fix**: `JalankanExpression` lowering caused stack overflow
-  (infinite recursion via `compiler.visitJalankanExpression` →
-  `lowerExpression`).
+- **Bug fix**: JalankanExpression lowering caused stack overflow.
+- **English keyword aliases corrected**: when→TK_KETIKA, watch→TK_SAAT,
+  delete→TK_HAPUS, function→TK_FUNGSI, sampai/until→TK_SAMPAI.
+- **Range loop** `Ulangi i dari 1 sampai 5:` now works (parser handle
+  range loop without `untuk` prefix).
 
 ### Added — Wave D (Comprehensive Testing)
 
-- **D1 — Snapshot codegen**: 44 snapshot tests per statement/expression
-  type + 5 bug fixes (lexer word operator collision, boolean/null literals,
-  parser primary expression, resolver SaatStatement target, compiler
-  fragment compiledVarName).
-- **D2 — Negative test matrix**: 22 tests for 14 error codes + 5 positive
-  tests for statement types.
-- **D2.1 — Complex setup tests**: 9 tests + 3 bug fixes (engine resolver
-  warnings forwarding, parser type hint parsing, analyzer SaatStatement
-  target access).
-- **D3 — Coverage gate**: 111 tests for CLI utils, AST factory, visitor
-  pattern. Coverage threshold gate at 60% (current: 62%).
-- **Test reports**: 4 Markdown reports in `tests/reports/` (D1, D2, D2.1,
-  D3) as documentation for Wave E.
-- **Zero-dependency test helpers**: `tests/helpers/temp-fs.js` (temp
-  filesystem), `tests/helpers/report-generator.js` (Markdown report
-  generator).
-  (`src/utils/`, `src/lexer/`, `src/parser/`, `src/resolver/`, `src/analyzer/`,
-  `src/compiler/`, `src/engine/`, `src/cli/`). Test harness files (`src/tester/`,
-  `src/lexer/test-lexer.js`) are intentionally excluded.
-- **`jsconfig.json`** added with `checkJs: false` globally; per-file checking
-  activated via `// @ts-check` pragma so files can be migrated incrementally
-  without breaking the build on untouched files.
-- **JSDoc annotations** added to every HIGH/MEDIUM/LOW priority function
-  identified in the Wave F analysis: 533 `@param` tags, 297 `@returns` tags,
-  and 20 `@typedef` declarations across the codebase.
-- **Bilingual module headers** (Indonesia / English) per file to match the
-  bilingual DSL identity. Function body descriptions stay in Indonesian to
-  match the existing comment convention and avoid drift risk.
-- **`npm run typecheck`** script added (runs `tsc --noEmit -p jsconfig.json`).
-- **CI gate** added: `.github/workflows/ci.yml` now runs `npm run typecheck`
-  between `format:check` and `lint`, so type errors fail the build across
-  Node 20 / 22 / 24.
-- **TypeScript hints** added for dynamic-dispatch patterns TypeScript cannot
-  infer statically:
-  - `X.prototype.genericVisit` declared on resolver/analyzer/compiler to
-    expose the inherited `BaseVisitor` method to type-checking.
-  - `X.prototype._frontMatterData` declared on resolver for engine-assigned
-    runtime state.
-- **`typescript`** and **`@types/node`** added as devDependencies.
+- **D1**: 44 snapshot tests + 5 bug fixes (lexer word operator collision,
+  boolean/null literals, parser primary expression, resolver SaatStatement
+  target, compiler fragment compiledVarName).
+- **D2**: 22 negative tests for 14 error codes + 5 positive tests.
+- **D2.1**: 9 complex setup tests + 3 bug fixes (engine resolver warnings
+  forwarding, parser type hint parsing, analyzer SaatStatement target).
+- **D3**: 111 coverage tests + coverage gate at 60%.
+- **Test reports**: 4 Markdown reports in `tests/reports/`.
+- **Zero-dependency test helpers**: temp-fs.js, report-generator.js.
 
-### Changed — Wave F
+### Added — Wave F (JSDoc Typing)
 
-- Longgarkan beberapa parameter type di `ast-factory.js` (`buatBuatStatement`,
-  `buatGunakanStatement`) menjadi `any`/`any[]` karena parser membangun
-  plain object inline sebagai props (bukan AST node) — type signature yang
-  terlalu ketat akan menolak pola yang sah secara runtime.
+- **Per-file `// @ts-check`** on all 13 production source files.
+- **`jsconfig.json`** + `typescript` + `@types/node` devDependencies.
+- **`npm run typecheck`** script + CI gate.
+- **533 `@param`**, **297 `@returns`**, **20 `@typedef`** across codebase.
+- **Bilingual module headers** (ID/EN).
 
-### Added — Wave C4 (Expressions)
+### Changed — Wave D/F/G
 
-- **Word operators**: `dan`/`atau` (→ `&&`/`||`), word comparators (`lebih dari`,
-  `kurang dari`, `sama dengan`, `tidak sama dengan`, `paling sedikit`,
-  `paling banyak`) and word arithmetic (`tambah`, `kurang`, `kali`, `bagi`,
-  `mod`, `pangkat`). Symbol operators keep working; the counted-loop suffix
-  `kali`/`times` is still parsed correctly (e.g. `Ulangi 2 kali 3 kali:`).
-- **Ternary conditional** `test ? consequent : alternate` (right-associative);
-  the resolver traverses all three branches so reactive `.value` is appended.
-- **Object literals** `{ ... }` as expression values: identifier **and**
-  string/number keys, values may be any C4 expression and reactive data.
-- 16 new tests in `tests/c4-expressions.test.js` (52 total).
+- ESLint config: `no-var` + `prefer-const` enabled, `--max-warnings=0`.
+- CI: 6 gates (format, typecheck, lint, test, smoke, examples) across
+  Node 20/22/24.
+- vitest.config.js: coverage threshold gate (60% statements).
 
-### Changed — Pre-C4 refining pass
+### Fixed — Cumulative bug fixes (15 total across Waves D1, D2.1, G)
 
-- Centralized CLI color handling in a single `makeColors()` helper
-  (`src/cli/utils.js`) that honors the `NO_COLOR` and `FORCE_COLOR` conventions
-  and auto-detects TTYs. Previously `build`/`init`/`serve` emitted ANSI codes
-  unconditionally and no command respected `NO_COLOR`; now every command does.
+1. Lexer `_tokenizeDeclaration` word operator collision (`Fungsi tambah()` → `+`)
+2. Lexer `TK_BENAR`/`TK_SALAH`/`TK_KOSONG` undefined in TT object
+3. Parser `_parsePrimaryExpression` missing boolean/null literal cases
+4. Resolver `visitSaatStatement` target access (AST node vs string)
+5. Compiler `visitBuatStatement` fragment `compiledVarName` inheritance
+6. Engine resolver warnings silently discarded
+7. Parser `_parseDataDeclaration` type hint hardcoded null
+8. Analyzer `visitSaatStatement` target access (same as #4)
+9. Compiler `JalankanExpression` lowering infinite recursion
+10. Lexer `when` mapped to `TK_SAAT` (should be `TK_KETIKA`)
+11. Lexer `watch`/`delete`/`function` English aliases missing
+12. Parser `_parseUlangiStatement` range loop without `untuk` prefix
+13. Lexer `_tokenizeDeclaration` Data/Tetap/Ubah init value not parsed
+14. Lexer `_tokenizeDeclaration` Saat target tokenization (word operator collision)
+15. Compiler `on_klik` event handler fragment `__el_N` off-by-one
 
-- Formatted all source files with Prettier (23 files that the rushed Waves A–C3
-  had left unformatted).
-- Eliminated all 33 `no-unused-vars` lint warnings (unused catch bindings,
-  unused params `_`-prefixed, dead locals/imports removed). No behavior change.
-- **CI hardened:** `lint` now runs with `--max-warnings=0`, and a `format:check`
-  step was added to the workflow so unformatted/warning-laden code can't merge.
-- Removed the `--open` serve flag from CLI help/JSDoc — it was advertised but
-  never implemented. Will be re-added when the feature actually lands.
-- Added [`doc-dev/REVIEW-Level1-PreC4.md`](doc-dev/REVIEW-Level1-PreC4.md)
-  documenting the pass and proposing larger follow-up refactors (`var`→`const`
-  migration, centralized `NO_COLOR`-aware color helper).
-- Migrated the source off legacy `var`: enabled `no-var` + `prefer-const` in
-  ESLint and auto-fixed ~298 declarations to `const`/`let`. Remaining `var`
-  tokens live only inside emitted-code strings and error messages. No behavior
-  change.
+## [Unreleased]
 
-### Added — Wave A (Foundation & Safety Net)
+_No unreleased changes yet._
 
-- **Vitest** test framework. The 24 hand-rolled assertion tests in
-  `src/tester/test-all.js` and `src/tester/test-extended.js` were migrated to
-  `tests/pipeline.test.js` and `tests/extended.test.js`.
-- **ESLint 10** (flat config, `eslint.config.js`) + **Prettier** +
-  `.editorconfig` for consistent style and static checks.
-- **GitHub Actions CI** (`.github/workflows/ci.yml`): lint + test + smoke
-  compile across Node 20 / 22 / 24.
-- `CHANGELOG.md` and `CONTRIBUTING.md`.
-- npm scripts: `test`, `test:watch`, `coverage`, `lint`, `lint:fix`,
-  `format`, `format:check`, `build`.
-- `engines.node` set to `>=20.19.0`.
-
-### Fixed — Wave A
-
-- **Duplicate object key** `'label'` in the lexer tag-alias map
-  (`src/lexer/promptjs-lexer.js`).
-- **Unterminated block comment** in `src/lexer/test-lexer.js` that made the
-  whole scratch file a syntax error (it was never part of `npm test`, so this
-  went unnoticed).
-- Unsafe `obj.hasOwnProperty(...)` calls replaced with
-  `Object.prototype.hasOwnProperty.call(...)` in `error-codes.js` and
-  `visitor.js`.
-- `no-case-declarations` violations in `src/compiler/lower/expression.js`
-  (case bodies that declare `const`/`let` are now block-scoped). No behavior
-  change — purely scoping hygiene.
-
-### Added — Wave B/C (Design decisions + first features)
-
-- **ADR-001** (`doc-dev/ADR-001-level1-decisions.md`) recording the loop,
-  named-page, and component decisions.
-- **Named pages**: `Halaman Nama:` / `Page Name:` now compile; the page name
-  becomes the root element's `id` (e.g. `Halaman Beranda:` → `id="beranda"`).
-  Anonymous `Halaman:` / `Page:` is unchanged.
-- **Counted loops**: `Ulangi N kali:` / `Loop N times:` now compile to
-  `for (let __i = 0; __i < N; __i++)`. (The downstream pipeline already
-  supported `kind: 'kali'`; only the `kali`/`times` → `TK_KALI` lexer keyword
-  and a parser branch were missing.)
-- **Loop separator aliases**: `from` (English) joins `in` and `dari` as
-  interchangeable separators in `Ulangi untuk x <sep> source:`.
-- **Component system (rebuilt, Wave C3)**: declaration via `Komponen Name(p1, p2):`
-  / `Component Name(...):` (with `Definisikan` / `Define` kept as aliases) and
-  instantiation via `Buat Name(p1: v1, p2: v2)` / `Create Name(...)` using named
-  arguments. Components compile to a `props`-object factory
-  (`function __komp_Name(props) { const p1 = props.p1; … return __root; }`) that
-  is appended to the current parent on instantiation. Undeclared components raise
-  `E3004`. The previous machinery mis-tokenized parameters and emitted invalid JS.
-
-### Changed — Wave C
-
-- The counted-loop test that was previously `todo` is now a real passing test;
-  added tests for English `times`, the `from`/`dari` aliases, and named pages.
-
-
-
-### Known issues (tracked for later waves)
-
-- Word-operators (`kali`/`tambah`/`dan`/`sama dengan`…) are present in the
-  compiler's expression lowering but not recognized by the parser (e.g.
-  `3 kali 2` → `E3001`). Logged for the expression work (Wave C4).
+<!-- Historical [Unreleased] content has been released as v0.3.0 above. -->
 
 ## [0.2.0] — 2026-06-19
 
