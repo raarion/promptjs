@@ -5,6 +5,13 @@
   <div>
   <img src="./assets/prompt-js.svg" alt="PromptJS Logo" width="200">
   </div>
+
+  <p>
+    <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+    <img alt="Version" src="https://img.shields.io/badge/version-0.3.0-green.svg">
+    <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-success.svg">
+  </p>
+
   <p><strong>A mini-DSL template engine that compiles to vanilla JS with zero dependencies.</strong></p>
   <hr>
   <sub><strong>Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.</strong></sub>

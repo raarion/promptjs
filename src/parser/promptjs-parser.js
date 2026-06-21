@@ -508,6 +508,51 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
 
   // Counted loop: "Ulangi N kali:" / "Loop N times:" (kind = 'kali').
   if (this._peek().type !== TT.TK_UNTUK) {
+    // Range loop without "untuk": "Ulangi i dari 1 sampai 5:"
+    // Check if next is IDENT followed by IN (dari/in/from)
+    if (
+      this._peek().type === TT.TK_IDENT &&
+      (this._peekAt(1).type === TT.TK_IN || this._peekAt(1).type === TT.TK_IDENT)
+    ) {
+      // Could be range loop: "Ulangi i dari 1 sampai 5:"
+      // or iteration loop without "untuk": "Ulangi i in items:"
+      const iteratorTok = this._advance();
+      const iteratorName = iteratorTok.value;
+
+      // Expect separator (in/dari/from)
+      if (this._peek().type === TT.TK_IN) {
+        this._advance(); // consume in/dari/from
+      }
+
+      // Parse source / range-start
+      const source = this._parseExpression();
+
+      // Check for range loop: "sampai/until"
+      if (this._peek().type === TT.TK_SAMPAI) {
+        this._advance(); // consume sampai/until
+        const rangeEnd = this._parseExpression();
+        this._expect(TT.TK_COLON, 'Expected ":" after range loop');
+        const rangeLoc = this._makeLoc(startTok);
+        const rangeBody = this._parseBlock();
+        return AST.buatUlangiStatement(
+          iteratorName,
+          source,
+          rangeBody,
+          'rentang',
+          rangeLoc,
+          null,
+          rangeEnd
+        );
+      }
+
+      // Regular iteration: "Ulangi i in items:"
+      this._expect(TT.TK_COLON, 'Expected ":" after loop source');
+      const iterLoc = this._makeLoc(startTok);
+      const iterBody = this._parseBlock();
+      return AST.buatUlangiStatement(iteratorName, source, iterBody, 'dari', iterLoc, null, null);
+    }
+
+    // Try counted loop: "Ulangi N kali:"
     const countExpr = this._parseExpression();
     if (countExpr && this._peek().type === TT.TK_KALI) {
       this._advance(); // consume kali/times
@@ -523,7 +568,8 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
       message: 'Expected "untuk/for" after "ulangi/loop"',
       line: startTok.line,
       column: startTok.col,
-      suggestion: 'Syntax: Ulangi untuk item in $collection:  (atau: Ulangi N kali:)',
+      suggestion:
+        'Syntax: Ulangi untuk item in $collection:  (atau: Ulangi N kali:  atau: Ulangi i dari 1 sampai 10:)',
     });
     return null;
   }
