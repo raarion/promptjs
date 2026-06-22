@@ -208,7 +208,6 @@ function buildExamplePage(name, compiled, version) {
   <header class="site-header">
     <div class="container header-inner">
       <a href="index.html" class="logo-link">
-        <img src="assets/prompt-js.svg" alt="PromptJS-Logo" class="logo-mark" width="50" height="50">
         <img src="assets/PromptJS-logo.svg" alt="PromptJS" class="logo-mark" width="36" height="36">
         <span class="logo-text">PromptJS</span>
         <span class="version-pill">v${escapeHtml(version)}</span>
@@ -387,7 +386,6 @@ function buildIndexPage(examples, version) {
   <header class="site-header">
     <div class="container header-inner">
       <a href="index.html" class="logo-link">
-        <img src="assets/prompt-js.svg" alt="PromptJS-Logo" class="logo-mark" width="50" height="50">
         <img src="assets/PromptJS-logo.svg" alt="PromptJS" class="logo-mark" width="36" height="36">
         <span class="logo-text">PromptJS</span>
         <span class="version-pill">v${escapeHtml(version)}</span>
@@ -402,8 +400,10 @@ function buildIndexPage(examples, version) {
 
   <section class="hero">
     <div class="container hero-inner">
+     <div class="logo-wrapper">
       <img src="assets/PromptJS-logo.svg" alt="PromptJS-Logo" class="hero-logo" width="400" height="400">
       <img src="assets/prompt-js.svg" alt="PromptJS" class="hero-logo" width="320">
+    </div>
       <p class="hero-tagline">
         Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.
       </p>
@@ -567,6 +567,8 @@ a:hover { text-decoration: underline; }
 }
 
 .hero-inner { max-width: 720px; margin: 0 auto; }
+
+.logo-wrapper { display: flex; flex-direction: column; }
 
 .hero-logo { width: 100%; max-width: 320px; height: auto; margin-bottom: 1.5rem; }
 
