@@ -1,12 +1,6 @@
 ---
 judul: "Galeri Foto"
-fotos:
-  - url: "https://example.com/1.jpg"
-    judul: "Pantai"
-  - url: "https://example.com/2.jpg"
-    judul: "Gunung"
-  - url: "https://example.com/3.jpg"
-    judul: "Kota"
+fotos: [{"url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400", "judul": "Pantai"}, {"url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400", "judul": "Gunung"}, {"url": "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400", "judul": "Kota"}]
 ---
 
 Halaman Galeri:
@@ -17,4 +11,7 @@ Halaman Galeri:
       Buat div.kartu:
         Buat gambar:
           src = foto.url
-        Buat h3: foto.judul
+          alt = foto.judul
+
+        Buat h3:
+          foto.judul

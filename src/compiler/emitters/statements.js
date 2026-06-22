@@ -341,6 +341,73 @@ function install(PromptJSCompiler, accept) {
     }
   };
 
+  // ── PromptJS patch: PropertyNode emitter (key = value inside Buat body) ──────
+  /**
+   * Emit property assignment untuk child PropertyNode di dalam Buat body.
+   *
+   * Pattern: `Buat gambar: src = foto.url` — `src = foto.url` adalah
+   * PropertyNode yang harus dipetakan ke `__el_N.src = foto.url;` (atau
+   * setAttribute untuk atribut HTML umum).
+   *
+   * Atribut yang dikenal: teks→innerText, html→innerHTML, kelas→className,
+   * nilai→value, src/href/alt/dll → direct property assignment.
+   *
+   * @this {any}
+   * @param {Object} node - AST node PropertyNode
+   * @returns {void | string}
+   */
+  PromptJSCompiler.prototype.visitPropertyNode = function (node) {
+    if (!this.currentParent) return; // Tidak ada elemen target — skip
+    const val = this.lowerExpression(node.value);
+    const key = node.key;
+    const parent = this.currentParent;
+    if (key === 'teks') {
+      this.emit(`${parent}.innerText = ${val};`);
+    } else if (key === 'html') {
+      this.emit(`${parent}.innerHTML = ${val};`);
+    } else if (key === 'kelas') {
+      this.emit(`${parent}.className = ${val};`);
+    } else if (key === 'nilai') {
+      this.emit(`${parent}.value = ${val};`);
+    } else {
+      // Atribut HTML umum: src, href, alt, width, height, id, placeholder, dll.
+      // Gunakan direct property assignment (lebih efisien) untuk properti
+      // standar, fallback ke setAttribute untuk yang tidak dikenal.
+      const directProps = new Set([
+        'src',
+        'href',
+        'alt',
+        'title',
+        'id',
+        'name',
+        'value',
+        'placeholder',
+        'width',
+        'height',
+        'type',
+        'for',
+        'checked',
+        'disabled',
+        'readonly',
+        'required',
+        'min',
+        'max',
+        'step',
+        'pattern',
+        'maxlength',
+        'colspan',
+        'rowspan',
+        'target',
+        'rel',
+      ]);
+      if (directProps.has(key)) {
+        this.emit(`${parent}.${key} = ${val};`);
+      } else {
+        this.emit(`${parent}.setAttribute("${key}", ${val});`);
+      }
+    }
+  };
+
   /**
    * Emit `__mount(<target>, <mountTarget>);` untuk TampilkanStatement.
    *
@@ -550,12 +617,41 @@ function install(PromptJSCompiler, accept) {
 
     if (node.body) accept(node.body, this);
     if (node.action) {
-      // PromptJS patch: action may be an expression (CallExpression, etc.)
-      // Expression visitors return JS code strings. We emit them here as statements.
-      // Use lowerExpression directly to avoid double-emission from visitCallExpression.
-      const actionCode = this.lowerExpression(node.action);
-      if (actionCode && actionCode !== 'undefined') {
-        this.emit(actionCode + ';');
+      // Action may be a Statement (SimpanStatement, TambahkanStatement, etc.)
+      // or an Expression (CallExpression, Identifier, etc.).
+      //
+      // For Statement nodes, use `accept` so the proper visitor runs
+      // (visitSimpanStatement emits `__setState(...)`, etc.).
+      //
+      // For Expression nodes, use `lowerExpression` and emit as a statement.
+      const actionType = node.action.type;
+      const statementTypes = new Set([
+        'SimpanStatement',
+        'TambahkanStatement',
+        'KurangiStatement',
+        'SisipkanStatement',
+        'PerbaruiStatement',
+        'TampilkanStatement',
+        'SembunyikanStatement',
+        'HapusStatement',
+        'KosongkanStatement',
+        'ArahkanStatement',
+        'MuatUlangStatement',
+        'KembaliStatement',
+        'BerhentiStatement',
+        'LanjutkanStatement',
+        'PassStatement',
+        'LewatiStatement',
+      ]);
+      if (statementTypes.has(actionType)) {
+        // Statement visitor emits via this.emit() internally.
+        accept(node.action, this);
+      } else {
+        // Expression visitor returns a code string — emit as statement.
+        const actionCode = this.lowerExpression(node.action);
+        if (actionCode && actionCode !== 'undefined') {
+          this.emit(actionCode + ';');
+        }
       }
     }
 
@@ -566,14 +662,51 @@ function install(PromptJSCompiler, accept) {
   /**
    * Emit `__watch(<target>, function(n, o) { ... });` untuk SaatStatement (reactive watcher).
    *
+   * Watcher membuat wrapper `<span>` sendiri (marker) yang menjadi parent
+   * untuk semua child yang di-render di dalam watcher. Saat re-render,
+   * hanya marker ini yang di-clear, sehingga sibling elements di parent
+   * utama tidak ikut terhapus.
+   *
    * @this {any}
    * @param {Object} node - AST node SaatStatement
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitSaatStatement = function (node) {
-    this.emit(`__watch(${node.target}, (nilaiBaru, nilaiLama) => {`);
+    // __watch butuh proxy (bukan .value) — pakai node.target.name bila Identifier.
+    let tgtStr;
+    if (node.target && node.target.type === 'Identifier') {
+      tgtStr = node.target.name;
+    } else {
+      tgtStr = this.resolveTarget(node.target);
+    }
+
+    // Buat marker element sebagai wrapper untuk children watcher.
+    const markerVar = this.genVar('wmarker');
+    this.emit(`const ${markerVar} = document.createElement("span");`);
+    this.emit(`${markerVar}.className = "__promptjs_watcher_marker";`);
+    if (this.currentParent) {
+      this.emit(`${this.currentParent}.appendChild(${markerVar});`);
+    } else {
+      this.emit(`document.body.appendChild(${markerVar});`);
+    }
+
+    this.emit(`__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
     this.indent++;
-    accept(node.body, this);
+    // Clear hanya marker ini, bukan parent.
+    this.emit(`${markerVar}.innerHTML = "";`);
+
+    // Set currentParent ke marker agar children di-append ke marker.
+    const prevParent = this.currentParent;
+    this.currentParent = markerVar;
+    // Watcher body bukan "Buat body" biasa — set flag supaya visitIdentifier
+    // dan visitCallExpression tetap merender text node di sini.
+    const prevInBuat = this._inBuatBody;
+    this._inBuatBody = true;
+
+    if (node.body) accept(node.body, this);
+
+    this._inBuatBody = prevInBuat;
+    this.currentParent = prevParent;
     this.indent--;
     this.emit('});');
   };
@@ -806,33 +939,54 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitSimpanStatement = function (node) {
-    const target = node.target;
+    const tgt = this.resolveTarget(node.target);
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, gunakan __setState
-      this.emit(`__setState(${target}, ${val});`);
+      this.emit(`__setState(${tgt}, ${val});`);
     } else {
       // ubah → plain variable, assignment langsung
-      this.emit(`${target} = ${val};`);
+      this.emit(`${tgt} = ${val};`);
     }
   };
 
   /**
    * Emit `<array>.push(<value>);` untuk TambahkanStatement.
    *
+   * Jika target adalah array reaktif (data/turunan), push ke .value lalu
+   * trigger reaktivitas via __setState dengan array reference baru.
+   * Jika target adalah numeric reaktif, gunakan penambahan numerik.
+   * Jika target biasa (ubah), push langsung atau assign langsung.
+   *
    * @this {any}
    * @param {Object} node - AST node TambahkanStatement
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitTambahkanStatement = function (node) {
-    const target = node.target;
-    const jumlah = this.lowerExpression(node.value);
+    const tgt = this.resolveTarget(node.target);
+    const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
-      // data/turunan → Proxy, akses via .value
-      this.emit(`__setState(${target}, ${target}.value + ${jumlah});`);
+      // Heuristic: if value lowers to a string literal or the target is
+      // initialized as an array, treat as array push. Otherwise numeric add.
+      // Safer: always emit array-push form when target init was an array.
+      const sym = node.targetSymbol;
+      const initIsArray =
+        sym &&
+        sym.declarationNode &&
+        sym.declarationNode.init &&
+        (sym.declarationNode.init.type === 'ArrayLiteral' ||
+          Array.isArray(sym.declarationNode.init.value));
+      if (initIsArray) {
+        this.emit(
+          `${tgt}.value.push(${val}); __setState(${tgt.split('.')[0]}, [...${tgt}.value]);`
+        );
+      } else {
+        // Numeric/string add for reactive scalar
+        this.emit(`__setState(${tgt.split('.')[0]}, ${tgt} + ${val});`);
+      }
     } else {
-      // ubah → plain variable, assignment langsung
-      this.emit(`${target} = ${target} + ${jumlah};`);
+      // ubah → plain variable, push to array if it's an array, else add
+      this.emit(`${tgt}.push(${val});`);
     }
   };
 
@@ -844,15 +998,15 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitKurangiStatement = function (node) {
-    const target = node.target;
+    const tgt = this.resolveTarget(node.target);
     // Default ke 1 jika tidak ada value (kurangi counter → counter - 1)
     const jumlah = node.value ? this.lowerExpression(node.value) : '1';
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, akses via .value
-      this.emit(`__setState(${target}, ${target}.value - ${jumlah});`);
+      this.emit(`__setState(${tgt.split('.')[0]}, ${tgt} - ${jumlah});`);
     } else {
       // ubah → plain variable, assignment langsung
-      this.emit(`${target} = ${target} - ${jumlah};`);
+      this.emit(`${tgt} = ${tgt} - ${jumlah};`);
     }
   };
 
@@ -865,15 +1019,13 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitSisipkanStatement = function (node) {
     const val = this.lowerExpression(node.value);
-    const target = node.target;
+    const tgt = this.resolveTarget(node.target);
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, push lalu trigger reaktivitas via spread assignment
-      // .push() saja bermutasi array tanpa mengubah reference .value,
-      // sehingga Proxy setter tidak terpicu dan watcher tidak terpanggil.
-      this.emit(`${target}.value.push(${val}); ${target}.value = [...${target}.value];`);
+      this.emit(`${tgt}.value.push(${val}); __setState(${tgt.split('.')[0]}, [...${tgt}.value]);`);
     } else {
       // ubah → plain array, push langsung
-      this.emit(`${target}.push(${val});`);
+      this.emit(`${tgt}.push(${val});`);
     }
   };
 
@@ -1139,13 +1291,23 @@ function install(PromptJSCompiler, accept) {
   /**
    * Lower CallExpression ke ekspresi JS (delegate ke `lowerExpression`).
    *
+   * Inside a Buat body (currentParent set), wrap as a text node so the
+   * expression result is actually rendered. Otherwise (top-level or inside
+   * an event handler), emit as a bare statement.
+   *
    * @this {any}
    * @param {Object} node - AST node CallExpression
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitCallExpression = function (node) {
     const code = this.lowerExpression(node);
-    if (this.currentParent) {
+    if (this.currentParent && this._inBuatBody) {
+      // Render expression result as a text node child of currentParent.
+      const txtVar = this.genVar('txt');
+      this.emit(`const ${txtVar} = document.createTextNode(String(${code}));`);
+      this.emit(`${this.currentParent}.appendChild(${txtVar});`);
+    } else if (this.currentParent) {
+      // Inside event handler / non-body context — emit as statement.
       this.emit(code + ';');
     }
     return code;
@@ -1154,12 +1316,27 @@ function install(PromptJSCompiler, accept) {
   /**
    * Lower Identifier ke ekspresi JS (delegate ke `lowerExpression`).
    *
+   * Inside a Buat body (currentParent set + _inBuatBody), wrap as a text
+   * node so the identifier value is rendered (e.g. loop variable `item`).
+   *
    * @this {any}
    * @param {Object} node - AST node Identifier
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitIdentifier = function (node) {
-    return this.lowerExpression(node);
+    const code = this.lowerExpression(node);
+    if (this.currentParent && this._inBuatBody) {
+      // Skip SelfReference / element-var references — only render data/tetap/ubah/loop vars.
+      const isRenderable =
+        node.resolved &&
+        ['data', 'turunan', 'tetap', 'ubah', 'parameter'].includes(node.resolved.kind);
+      if (isRenderable) {
+        const txtVar = this.genVar('txt');
+        this.emit(`const ${txtVar} = document.createTextNode(String(${code}));`);
+        this.emit(`${this.currentParent}.appendChild(${txtVar});`);
+      }
+    }
+    return code;
   };
 
   /**
@@ -1198,12 +1375,21 @@ function install(PromptJSCompiler, accept) {
   /**
    * Lower MemberExpression ke ekspresi JS (delegate ke `lowerExpression`).
    *
+   * Inside a Buat body (currentParent set + _inBuatBody), wrap as a text
+   * node so the value is rendered (e.g. `foto.judul` in `Buat h3:` body).
+   *
    * @this {any}
    * @param {Object} node - AST node MemberExpression
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitMemberExpression = function (node) {
-    return this.lowerExpression(node);
+    const code = this.lowerExpression(node);
+    if (this.currentParent && this._inBuatBody) {
+      const txtVar = this.genVar('txt');
+      this.emit(`const ${txtVar} = document.createTextNode(String(${code}));`);
+      this.emit(`${this.currentParent}.appendChild(${txtVar});`);
+    }
+    return code;
   };
 
   /**

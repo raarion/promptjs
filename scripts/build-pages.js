@@ -332,6 +332,18 @@ function buildPreviewIframe(jsCode, title) {
     ul { padding-left: 1.2rem; }
     li { margin: 0.2rem 0; }
     h1 { font-size: 1.5rem; }
+    h3 { font-size: 1rem; margin: 0.4rem 0 0; }
+    /* Gallery grid layout */
+    .galeri { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .kartu { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.6rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .kartu img { width: 100%; height: 140px; object-fit: cover; border-radius: 4px; display: block; background: #f3f4f6; }
+    /* Counter highlight */
+    #counter p { font-size: 1.1rem; }
+    /* Todo spacing */
+    #todo input { margin-bottom: 0.5rem; }
+    #todo ul { margin: 0.5rem 0; }
+    /* Watcher marker shouldn't affect layout */
+    .__promptjs_watcher_marker { display: inline; }
   </style>
 </head>
 <body>

@@ -171,20 +171,38 @@ function lowerExpression(compiler, node) {
     case 'SimpanStatement': {
       const val = lowerExpression(compiler, node.value);
       const tgt = compiler.resolveTarget(node.target);
+      // Reactive target (data/turunan) → use __setState to trigger watchers.
+      // Plain target (ubah) → direct assignment.
+      if (node.targetSymbol && node.targetSymbol.isReactive) {
+        return `__setState(${tgt}, ${val})`;
+      }
       return `${tgt} = ${val}`;
     }
     case 'TambahkanStatement': {
       const val = lowerExpression(compiler, node.value);
       const tgt = compiler.resolveTarget(node.target);
+      // Reactive array (data/turunan) → push to .value then trigger reactivity
+      // via __setState with a new array reference (so Proxy setter fires).
+      // Plain array (ubah) → push directly.
+      if (node.targetSymbol && node.targetSymbol.isReactive) {
+        return `(${tgt}.value.push(${val}), __setState(${tgt}, [...${tgt}.value]))`;
+      }
       return `${tgt}.push(${val})`;
     }
     case 'KurangiStatement': {
       const tgt = compiler.resolveTarget(node.target);
-      return `${tgt}--`;
+      const jumlah = node.value ? lowerExpression(compiler, node.value) : '1';
+      if (node.targetSymbol && node.targetSymbol.isReactive) {
+        return `__setState(${tgt}, ${tgt}.value - ${jumlah})`;
+      }
+      return `${tgt} = ${tgt} - ${jumlah}`;
     }
     case 'SisipkanStatement': {
       const val = lowerExpression(compiler, node.value);
       const tgt = compiler.resolveTarget(node.target);
+      if (node.targetSymbol && node.targetSymbol.isReactive) {
+        return `(${tgt}.value.push(${val}), __setState(${tgt}, [...${tgt}.value]))`;
+      }
       return `${tgt}.push(${val})`;
     }
     case 'PerbaruiStatement': {

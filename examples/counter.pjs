@@ -8,8 +8,12 @@ Halaman Counter:
   Buat h1: $judul
 
   Buat paragraf:
-    "Jumlah klik: "
-    hitung
+    Buat span:
+      "Jumlah klik: "
+
+    Saat hitung:
+      Buat span:
+        hitung
 
   Buat tombol:
     "Klik aku"

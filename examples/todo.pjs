@@ -9,6 +9,7 @@ Halaman Todo:
   Buat h1: $judul
 
   Buat masukan:
+    placeholder = "Tulis tugas baru..."
     on_diketik = simpan document.querySelector("input").value ke tugas
 
   Buat tombol:
@@ -16,11 +17,18 @@ Halaman Todo:
     on_klik = tambahkan tugas ke daftar
 
   Buat daftar:
-    Ulangi untuk item dari daftar:
-      Buat item:
-        item
+    Saat daftar:
+      Ulangi untuk item dari daftar:
+        Buat item:
+          item
 
   Buat paragraf:
-    "Total: "
-    panjang(daftar)
-    " tugas"
+    Buat span:
+      "Total: "
+
+    Saat daftar:
+      Buat span:
+        panjang(daftar)
+
+    Buat span:
+      " tugas"

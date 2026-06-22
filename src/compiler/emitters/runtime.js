@@ -84,6 +84,9 @@ function __watch(reactive, cb) {
   let subs = __subscribers.get(reactive) || new Set();
   subs.add(effect);
   __subscribers.set(reactive, subs);
+  // Run cb once initially so the watcher renders the initial value,
+  // not just subsequent changes.
+  try { cb(reactive.value, undefined); } catch(e) { /* defer if deps not ready */ }
   const unsub = function unsubscribe() {
     const subs = __subscribers.get(reactive);
     if (subs) subs.delete(effect);

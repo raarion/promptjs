@@ -22,6 +22,8 @@ exports[`D1 — Snapshot Codegen > Composite: end-to-end > composite-list: Ulang
   const __el_1 = document.createElement("ul");
   items.forEach((item, indeks) => {
     const __el_2 = document.createElement("li");
+    const __txt_3 = document.createTextNode(String(item));
+    __el_2.appendChild(__txt_3);
     __el_1.appendChild(__el_2);
   });
   document.body.appendChild(__el_1);"
@@ -350,6 +352,7 @@ exports[`D1 — Snapshot Codegen > Statement: PropertyLine > property-basic: kel
 "(function() {
   // @source 1:1 BuatStatement
   const __el_1 = document.createElement("button");
+  __el_1.className = "tombol-utama";
   document.body.appendChild(__el_1);"
 `;
 
@@ -358,9 +361,13 @@ exports[`D1 — Snapshot Codegen > Statement: SaatStatement > saat-basic: Saat h
   // @source 1:1 DataDeclaration
   const hitung = __createReactive(0);
   // @source 2:1 SaatStatement
-  __watch([object Object], (nilaiBaru, nilaiLama) => {
-    const __txt_1 = document.createTextNode("berubah");
-    document.body.appendChild(__txt_1);
+  const __wmarker_1 = document.createElement("span");
+  __wmarker_1.className = "__promptjs_watcher_marker";
+  document.body.appendChild(__wmarker_1);
+  __watch(hitung, (nilaiBaru, nilaiLama) => {
+    __wmarker_1.innerHTML = "";
+    const __txt_2 = document.createTextNode("berubah");
+    __wmarker_1.appendChild(__txt_2);
   });"
 `;
 
