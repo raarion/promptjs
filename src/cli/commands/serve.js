@@ -23,19 +23,67 @@ const {
 
 // Minimal WebSocket server for live-reload
 const LIVE_RELOAD_JS = `
-// PromptJS Live Reload
+// PromptJS v0.4.0 Live Reload
 (function() {
   var ws = new WebSocket('ws://' + location.host + '/__pjs_reload__');
   ws.onmessage = function(e) {
-    if (e.data === 'reload') {
-      console.log('[pjs] File changed, reloading...');
-      location.reload();
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'reload') {
+        console.log('[pjs] File changed, reloading...');
+        location.reload();
+      } else if (msg.type === 'error') {
+        showPjsError(msg.errors);
+      } else if (msg.type === 'css') {
+        var style = document.getElementById('pjs-dev-css');
+        if (!style) {
+          style = document.createElement('style');
+          style.id = 'pjs-dev-css';
+          document.head.appendChild(style);
+        }
+        style.textContent = msg.css;
+        console.log('[pjs] CSS updated (HMR)');
+      }
+    } catch(err) {
+      if (e.data === 'reload') location.reload();
     }
   };
   ws.onclose = function() {
     console.log('[pjs] Live reload disconnected. Retrying in 2s...');
     setTimeout(function() { location.reload(); }, 2000);
   };
+
+  function showPjsError(errors) {
+    var overlay = document.getElementById('pjs-error-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'block';
+    overlay.innerHTML = '<strong>⚠ PromptJS Compile Error</strong><br>' +
+      errors.map(function(e) {
+        return '<span style="color:#e94560">' + (e.code || 'E0000') + '</span>: ' +
+               (e.message || 'Unknown error') +
+               (e.line ? ' (line ' + e.line + ')' : '');
+      }).join('<br>');
+  }
+
+  window.__pjsClearError = function() {
+    var overlay = document.getElementById('pjs-error-overlay');
+    if (overlay) overlay.style.display = 'none';
+  };
+})();
+`;
+
+// Error overlay script (injected alongside live-reload)
+const ERROR_OVERLAY_JS = `
+// PromptJS v0.4.0 Error Overlay — auto-clear on successful compile
+(function() {
+  window.addEventListener('error', function(e) {
+    var overlay = document.getElementById('pjs-error-overlay');
+    if (overlay && overlay.style.display === 'block') return;
+    // Only show JS runtime errors in dev
+    if (e.error) {
+      console.error('[pjs] Runtime error:', e.error.message);
+    }
+  });
 })();
 `;
 
@@ -45,22 +93,26 @@ const LIVE_RELOAD_JS = `
  *
  * @param {string} jsCode - Kode JS hasil compile
  * @param {string} filePath - Path file `.pjs` asli
- * @param {{ liveReload: boolean }} options - Opsi serve
+ * @param {{ liveReload: boolean, css?: string }} options - Opsi serve
  * @returns {string} String HTML lengkap
  */
 function wrapInHtml(jsCode, filePath, options) {
   const title = path.basename(filePath, '.pjs');
+  const cssCode = options.css || '';
+  const cssTag = cssCode ? `<style>\n${cssCode}\n  </style>` : '';
   const reloadScript = options.liveReload ? `\n  <script>${LIVE_RELOAD_JS}</script>` : '';
+  const errorOverlay = options.liveReload ? `\n  <script>${ERROR_OVERLAY_JS}</script>` : '';
 
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>${reloadScript}
+  <title>${title}</title>${cssTag}${reloadScript}${errorOverlay}
 </head>
 <body>
   <div id="app"></div>
+  <div id="pjs-error-overlay" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#e94560;padding:12px 20px;font-family:monospace;font-size:13px;z-index:99999;border-top:2px solid #e94560;max-height:40vh;overflow-y:auto;"></div>
   <script>
 ${jsCode}
   </script>
@@ -155,7 +207,10 @@ function runServe(argv) {
       return { html: errorHtml, js: null, error: true, elapsed };
     }
 
-    const html = wrapInHtml(result.js, filePath, { liveReload: !noReload });
+    const html = wrapInHtml(result.js, filePath, {
+      liveReload: !noReload,
+      css: result.css || '',
+    });
     process.stderr.write(
       `  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${green}✓${reset} ${gray}(${formatSize(result.js.length)} ${elapsed})${reset}\n`
     );
