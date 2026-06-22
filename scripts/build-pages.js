@@ -580,10 +580,10 @@ a:hover { text-decoration: underline; }
 
 .hero-inner { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
 
-.logo-wrapper { display: flex; flex-direction: column; margin: auto; gap: 0; }
+.logo-wrapper { display: flex; flex-direction: column; gap: 0; }
 .logo-wrapper img { margin: auto; }
 
-.hero-logo { width: 100%; max-width: 320px; height: auto; margin-bottom: 1.5rem; }
+.hero-logo { width: 100%; max-width: 320px; height: auto; margin-bottom: 1.5rem; align-self: center; }
 
 .hero-tagline {
   font-size: 1.3rem;
