@@ -144,5 +144,6 @@ Baseline release audited for this effort (commit `9a60726`).
 - 64-code bilingual error registry with line:column and suggestions.
 - CLI: `compile`, `serve`, `build`, `init` (with `--minify` and jsdom prerender).
 
-[Unreleased]: https://github.com/raarion/promptjs/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/raarion/promptjs/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/raarion/promptjs/releases/tag/v0.3.0
 [0.2.0]: https://github.com/raarion/promptjs/releases/tag/v0.2.0
