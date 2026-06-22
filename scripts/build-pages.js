@@ -568,7 +568,7 @@ a:hover { text-decoration: underline; }
 
 .hero-inner { max-width: 720px; margin: 0 auto; }
 
-.logo-wrapper { display: flex; flex-direction: column; }
+.logo-wrapper { display: flex; flex-direction: column; margin: auto;}
 
 .hero-logo { width: 100%; max-width: 320px; height: auto; margin-bottom: 1.5rem; }
 
