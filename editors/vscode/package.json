@@ -2,7 +2,7 @@
   "name": "promptjs",
   "displayName": "PromptJS",
   "description": "Syntax highlighting and snippets for PromptJS (.pjs) — a bilingual ID/EN DSL that compiles to vanilla JS.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "raarion",
   "license": "MIT",
   "repository": {
