@@ -578,7 +578,7 @@ a:hover { text-decoration: underline; }
     radial-gradient(circle at 50% 100%, rgba(134, 239, 172, 0.25), transparent 50%);
 }
 
-.hero-inner { max-width: 720px; margin: 0 auto; }
+.hero-inner { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
 
 .logo-wrapper { display: flex; flex-direction: column; margin: auto;}
 
