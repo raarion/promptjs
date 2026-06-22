@@ -5,6 +5,66 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-06-22
+
+**The Maturation Wave.** PromptJS becomes a real full-stack DSL:
+multi-file projects, CSS support, module system, and dev server HMR.
+
+### Added — Wave H: Module System (`kirim`/`terima`)
+
+- **Cross-file symbol sharing** via front-matter directives:
+  `kirim: apiKey = "abc123"` (share) / `terima: apiKey dari "config.pjs"` (import).
+  English: `share:` / `get: ... from "..."`.
+- **Cycle detection** with max depth 10.
+- **Re-export** support: `kirim: formatTanggal dari "utils.pjs"`.
+- **Symbol injection**: resolved imports merged into front-matter as `$external` symbols.
+- `src/engine/modules.js` — zero-dependency module resolver.
+
+### Added — Wave I: CSS Support (`Gaya:`/`Style:`)
+
+- **Indent-based CSS blocks** in `.pjs` source:
+  ```pjs
+  Gaya:
+      .card
+          background: white
+          border-radius: 8px
+  ```
+- **`@media` query** support with nested rules.
+- **Scoped CSS** per page/component via `data-pjs-<name>` attribute selectors.
+- **Extended CompileResult**: `{ js, css, errors, warnings, ast, success }`.
+- `src/engine/css.js` — zero-dependency CSS extractor + parser + compiler.
+
+### Added — Wave J: Multi-file Project & Routing
+
+- **Folder-based routing** (ala Astro/Next.js):
+  `src/pages/index.pjs` → `/`, `src/pages/about.pjs` → `/about`,
+  `src/pages/blog/[slug].pjs` → `/blog/:slug`.
+- **Project builder**: `src/engine/builder.js` compiles all pages,
+  bundles JS + CSS.
+- **Route-aware JS**: single `prompt.js` with `window.__PJS_ROUTE__` guards.
+
+### Added — Wave K: Build Pipeline
+
+- **Output**: `dist/` with `index.html`, `about.html`, `prompt.js`, `prompt.css`.
+  No Indonesian in output filenames.
+- **CLI auto-detection**: `pjs build` detects `src/pages/` for project mode,
+  falls back to legacy single-file mode.
+- **Static assets** copy from `src/assets/` to `dist/assets/`.
+
+### Added — Wave L: Developer Experience
+
+- **HMR (Hot Module Replacement)**: CSS changes pushed via WebSocket
+  without full page reload.
+- **Error overlay**: compile errors displayed as fixed-bottom overlay
+  with error code, message, and line number. Auto-clears on recompile.
+- **Upgraded live-reload**: JSON message protocol (reload/error/css).
+
+### Changed
+
+- All version headers updated from v0.2/v0.3 to **v0.4.0**.
+- `package.json` version bumped to 0.4.0.
+- Engine `compile()` now returns `css` field in result.
+
 ## [0.3.0] — 2026-06-21
 
 **Level 1 Maturation complete.** 243 tests, 56 bilingual keywords, 66 error codes,
