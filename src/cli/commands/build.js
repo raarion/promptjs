@@ -1,17 +1,20 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — CLI: `build` Command / Perintah `build`
+ * PromptJS v0.4.0 — CLI: `build` Command / Perintah `build`
  * ============================================================================
  *
  * Build production: compile + minify + prerender HTML via jsdom.
- * Output: folder `dist/` berisi `.html`, `.js`, dan static assets.
+ * v0.4.0: Multi-file project build with prompt.js + prompt.css output.
+ *
+ * Output: folder `dist/` berisi `.html`, `prompt.js`, `prompt.css`, dan static assets.
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
 const { PromptJSEngine } = require('../../engine/promptjs');
+const Builder = require('../../engine/builder');
 const {
   findPjsFiles,
   printDiagnostics,
@@ -45,6 +48,60 @@ function runBuild(argv) {
   }
 
   const { green, cyan, red, gray, bold, reset } = makeColors({ stream: process.stdout });
+
+  // ── v0.4.0: Project mode — if src/pages/ exists, use multi-file builder ──
+  const srcDir = path.join(rootDir, 'src');
+  const pagesInSrc = path.join(srcDir, 'pages');
+  const pagesInRoot = path.join(rootDir, 'pages');
+  const pagesDir = fs.existsSync(pagesInSrc)
+    ? pagesInSrc
+    : fs.existsSync(pagesInRoot)
+      ? pagesInRoot
+      : null;
+
+  if (pagesDir && fs.statSync(pagesDir).isDirectory()) {
+    const projectRoot = fs.existsSync(pagesInSrc) ? srcDir : rootDir;
+    process.stderr.write(`\n${bold}PromptJS v0.4.0 — Project Build${reset}\n`);
+    process.stderr.write(`  Source: ${cyan}${projectRoot}${reset}\n`);
+    process.stderr.write(`  Output: ${cyan}${distDir}${reset}\n\n`);
+
+    const startTotal = process.hrtime();
+    const result = Builder.buildProject({
+      rootDir: projectRoot,
+      outDir: distDir,
+      pagesDir: 'pages',
+    });
+
+    if (result.errors.length > 0) {
+      printDiagnostics(result.errors, 'Build Errors');
+    }
+
+    // Report
+    const elapsed = formatElapsed(startTotal);
+    let jsSize = 0;
+    let cssSize = 0;
+    try {
+      jsSize = fs.statSync(path.join(distDir, 'prompt.js')).size;
+    } catch {}
+    try {
+      cssSize = fs.statSync(path.join(distDir, 'prompt.css')).size;
+    } catch {}
+
+    process.stderr.write(`\n${green}✓${reset} Built ${bold}${result.pages.length}${reset} pages\n`);
+    if (jsSize) process.stderr.write(`  ${gray}prompt.js${reset}  ${formatSize(jsSize)}\n`);
+    if (cssSize) process.stderr.write(`  ${gray}prompt.css${reset} ${formatSize(cssSize)}\n`);
+    for (const page of result.pages) {
+      process.stderr.write(`  ${green}✓${reset} ${page.htmlFile} (${page.route})\n`);
+    }
+    process.stderr.write(`\n  ${gray}Done in ${elapsed}${reset}\n\n`);
+
+    if (result.errors.some((e) => e.severity === 'error')) {
+      process.exit(1);
+    }
+    return;
+  }
+
+  // ── Legacy: single-file build mode ──────────────────────────────────────
 
   const startTotal = process.hrtime();
 
