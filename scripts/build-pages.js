@@ -208,6 +208,7 @@ function buildExamplePage(name, compiled, version) {
   <header class="site-header">
     <div class="container header-inner">
       <a href="index.html" class="logo-link">
+        <img src="assets/prompt-js.svg" alt="PromptJS-Logo" class="logo-mark" width="50" height="50">
         <img src="assets/PromptJS-logo.svg" alt="PromptJS" class="logo-mark" width="36" height="36">
         <span class="logo-text">PromptJS</span>
         <span class="version-pill">v${escapeHtml(version)}</span>
