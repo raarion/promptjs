@@ -1,18 +1,13 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
+ * PromptJS v0.4.0 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
  * ============================================================================
  *
  * Wires: Lexer → Parser → Resolver → Analyzer → Compiler.
- * Adapted from promptjs/engine/promptjs.js but with PromptJS-specific pipeline.
+ * v0.4.0: Module system (Wave H) + CSS support (Wave I).
  *
- * Key differences from PromptJS engine:
- *   - Front-matter data extraction before lexing
- *   - Front-matter data passed to parser for $external pre-declaration
- *   - Data file loading for file-referenced front-matter entries
- *   - Tag alias resolution at compile time
- *   - TextNode handling in all downstream stages
+ * Extended result: { js, css, errors, warnings, ast, success }
  */
 
 'use strict';
@@ -22,6 +17,8 @@ const Parser = require('../parser/promptjs-parser');
 const Resolver = require('../resolver/promptjs-resolver');
 const Analyzer = require('../analyzer/promptjs-analyzer');
 const Compiler = require('../compiler/promptjs-compiler');
+const Modules = require('./modules');
+const CSS = require('./css');
 
 const fs = require('fs');
 const path = require('path');
@@ -31,6 +28,7 @@ const path = require('path');
  *
  * @typedef {Object} CompileResult
  * @property {string | null} js - Kode JavaScript hasil compile (null jika gagal)
+ * @property {string} css - Kode CSS hasil compile Gaya:/Style: blocks (kosong jika tidak ada)
  * @property {Object[]} errors - Daftar error
  * @property {Object[]} warnings - Daftar warning
  * @property {Object | null} ast - Root AST node (null jika gagal sebelum parser selesai)
@@ -70,12 +68,16 @@ PromptJSEngine.prototype.compile = function (source, options) {
   this.warnings = [];
   Object.assign(this.options, options || {});
 
+  // ── Wave I: CSS extraction (before lexing) ─────────────────────────────
+  // Extract Gaya:/Style: blocks from source, produce CSS + clean source
+  const { css, cleanSource } = CSS.processGayaBlocks(source, this.options.scope);
+
   // ── Stage 1: LEXER ──────────────────────────────────────────────────────
-  const lexResult = Lexer.tokenize(source);
+  const lexResult = Lexer.tokenize(cleanSource);
 
   if (lexResult.errors && lexResult.errors.length > 0) {
     this.errors.push(...lexResult.errors);
-    return this._makeResult(null, lexResult.errors, []);
+    return this._makeResult(null, lexResult.errors, [], null, css);
   }
 
   // ── Front-matter parsing ────────────────────────────────────────────────
@@ -89,6 +91,33 @@ PromptJSEngine.prototype.compile = function (source, options) {
     }
   }
 
+  // ── Wave H: Module system — resolve kirim/terima directives ────────────
+  if (frontMatterData) {
+    const { shares, imports, hasModuleDirectives } =
+      Modules.extractModuleDirectives(frontMatterData);
+    if (hasModuleDirectives) {
+      // Resolve imports (terima/get) by loading referenced files
+      if (Object.keys(imports).length > 0) {
+        const baseDir = this.options.dataDir || process.cwd();
+        const importResult = Modules.resolveImports(imports, baseDir);
+        if (importResult.errors.length > 0) {
+          this.errors.push(...importResult.errors);
+        }
+        if (importResult.warnings.length > 0) {
+          this.warnings.push(...importResult.warnings);
+        }
+        // Merge resolved import values into front-matter data
+        frontMatterData = Modules.mergeImportsToFrontMatter(frontMatterData, importResult.values);
+      }
+      // Add shares (kirim) as inline data — they'll be available as $external symbols
+      for (const [name, value] of Object.entries(shares)) {
+        if (!value || !value.__reExport) {
+          frontMatterData[name] = { type: 'inline', value: value };
+        }
+      }
+    }
+  }
+
   // ── Stage 2: PARSER ─────────────────────────────────────────────────────
   const parseResult = Parser.parse(lexResult.tokens, frontMatterData);
 
@@ -96,7 +125,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
     this.errors.push(...parseResult.errors);
     // Still try to continue with partial AST for error recovery
     if (!parseResult.ast) {
-      return this._makeResult(null, this.errors, []);
+      return this._makeResult(null, this.errors, [], null, css);
     }
   }
 
@@ -117,7 +146,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
       message: `Resolver error: ${resolveErr.message}`,
       suggestion: '',
     });
-    return this._makeResult(null, this.errors, []);
+    return this._makeResult(null, this.errors, [], null, css);
   }
 
   if (resolveResult.errors && resolveResult.errors.length > 0) {
@@ -144,7 +173,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
       message: `Analyzer error: ${analyzeErr.message}`,
       suggestion: '',
     });
-    return this._makeResult(null, this.errors, []);
+    return this._makeResult(null, this.errors, [], null, css);
   }
 
   if (analyzeResult.errors && analyzeResult.errors.length > 0) {
@@ -157,7 +186,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
   // Stop if there are fatal errors (don't compile invalid code)
   const hasFatalErrors = this.errors.some((e) => e.severity === 'error');
   if (hasFatalErrors) {
-    return this._makeResult(null, this.errors, this.warnings);
+    return this._makeResult(null, this.errors, this.warnings, null, css);
   }
 
   // ── Stage 5: COMPILER ───────────────────────────────────────────────────
@@ -172,10 +201,10 @@ PromptJSEngine.prototype.compile = function (source, options) {
       message: `Compiler error: ${compileErr.message}`,
       suggestion: 'Sederhanakan kode atau gunakan tag HTML langsung',
     });
-    return this._makeResult(null, this.errors, this.warnings);
+    return this._makeResult(null, this.errors, this.warnings, null, css);
   }
 
-  return this._makeResult(js, this.errors, this.warnings, analyzeResult.ast);
+  return this._makeResult(js, this.errors, this.warnings, analyzeResult.ast, css);
 };
 
 /**
@@ -208,7 +237,9 @@ PromptJSEngine.prototype.compileFile = function (filePath, options) {
           suggestion: 'Pastikan file ada dan dapat dibaca',
         },
       ],
-      []
+      [],
+      null,
+      ''
     );
   }
 
@@ -294,17 +325,19 @@ PromptJSEngine.prototype._loadDataFiles = function (frontMatterData) {
  * @param {string | null} js - Kode JavaScript hasil compile (null jika gagal)
  * @param {Object[]} errors - Daftar error
  * @param {Object[]} warnings - Daftar warning
- * @param {Object} [ast] - Root AST node (opsional)
+ * @param {Object | null} [ast] - Root AST node (opsional)
+ * @param {string} [css] - Kode CSS hasil compile (opsional)
  * @returns {CompileResult} Result object
  */
-PromptJSEngine.prototype._makeResult = function (js, errors, warnings, ast) {
-  return {
+PromptJSEngine.prototype._makeResult = function (js, errors, warnings, ast, css) {
+  return /** @type {CompileResult} */ ({
     js: js,
+    css: css || '',
     errors: errors || [],
     warnings: warnings || [],
     ast: ast || null,
     success: js !== null && (!errors || errors.every((e) => e.severity !== 'error')),
-  };
+  });
 };
 
 // ============================================================================
