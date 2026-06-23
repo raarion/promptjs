@@ -19,6 +19,27 @@
 
 ---
 
+## Daftar Isi
+
+- [Apa itu PromptJS?](#apa-itu-promptjs)
+- [Fitur Utama](#fitur-utama)
+- [Contoh](#contoh)
+- [Instalasi](#instalasi)
+- [Penggunaan CLI](#penggunaan-cli)
+- [Live Showcase](#live-showcase)
+- [Editor Support](#editor-support)
+- [Pipeline Kompilasi](#pipeline-kompilasi)
+- [Tech Stack](#tech-stack)
+- [Testing](#testing)
+- [Referensi Sintaks](#referensi-sintaks)
+- [Contoh Lengkap](#contoh-lengkap)
+- [Struktur Proyek](#struktur-proyek)
+- [Peta Proyek PromptJS](#peta-proyek-promptjs)
+- [Roadmap](#roadmap)
+- [Lisensi](#lisensi)
+
+---
+
 ## Apa itu PromptJS?
 
 **PromptJS** adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompilasi template deklaratif menjadi JavaScript vanilla. Didesain dengan kata kunci bilingual (Indonesia & English), pipeline 5 tahap, dan output zero-runtime-dependency.
@@ -66,6 +87,9 @@ Halaman Beranda:
 
 Menghasilkan JavaScript vanilla yang langsung membuat elemen DOM.
 
+<details>
+<summary><b>✨ Lihat contoh lainnya — Reaktivitas & Komponen</b></summary>
+
 ### Contoh dengan Reaktivitas
 
 ```pjs
@@ -93,6 +117,8 @@ Halaman:
         gunakan Kartu
 ```
 
+</details>
+
 ## Instalasi
 
 ```bash
@@ -119,6 +145,16 @@ node src/cli/index.js build --minify
 # Scaffold proyek baru
 node src/cli/index.js init -t gallery
 ```
+
+<details>
+<summary><b>⌨️ Referensi singkat — CLI Commands (alias <code>pjs</code>)</b></summary>
+
+- `pjs init` → Setup project baru
+- `pjs compile <file>` → Compile single file
+- `pjs build [--minify]` → Full build dengan optimasi
+- `pjs serve` → Dev server dengan hot reload
+
+</details>
 
 ## Live Showcase
 
@@ -163,13 +199,6 @@ Source (.pjs) → Lexer → Parser → Resolver → Analyzer → Compiler → JS
 | Analyzer | `src/analyzer/promptjs-analyzer.js` | Analisis semantik, dependency graph, usage tracking |
 | Compiler | `src/compiler/promptjs-compiler.js` + emitters | Emit JS vanilla, runtime helpers |
 
-## CLI Commands:
-
-- `pjs init` → Setup project baru
-- `pjs compile <file>` → Compile single file
-- `pjs build [--minify]` → Full build dengan optimasi
-- `pjs serve` → Dev server dengan hot reload
-
 ## Tech Stack
 
 - **Language**: JavaScript (100%)
@@ -179,7 +208,19 @@ Source (.pjs) → Lexer → Parser → Resolver → Analyzer → Compiler → JS
 - **Type Checking**: TypeScript (JSDoc)
 - **Editor Support**: VS Code extension dengan syntax highlighting
 
-## Development Scripts
+## Testing
+
+```bash
+npm test          # Run all tests
+npm run coverage  # Coverage report
+npm run lint      # ESLint
+npm run typecheck # JSDoc type checking
+```
+
+263 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, CLI utilities, AST factory, dan visitor pattern.
+
+<details>
+<summary><b>🧰 Semua Development Scripts</b></summary>
 
 ```bash
 npm test                 # Run tests
@@ -195,22 +236,14 @@ npm pages:build       # Build documentation site
 npm pages:dev         # Dev docs site
 ```
 
-## Testing
-
-```bash
-npm test          # Run all tests
-npm run coverage  # Coverage report
-npm run lint      # ESLint
-npm run typecheck # JSDoc type checking
-```
-
-263 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, CLI utilities, AST factory, dan visitor pattern.
+</details>
 
 ## Referensi Sintaks
 
 ### Kata Kunci
 
-#### Deklarasi & Struktur
+<details>
+<summary><b>📐 Deklarasi & Struktur</b></summary>
 
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
@@ -224,7 +257,10 @@ npm run typecheck # JSDoc type checking
 | Ubah | Let | Deklarasi variabel mutable |
 | Turunan | Derived | Deklarasi computed value |
 
-#### Control Flow
+</details>
+
+<details>
+<summary><b>🔁 Control Flow</b></summary>
 
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
@@ -236,7 +272,10 @@ npm run typecheck # JSDoc type checking
 | lewati | pass | Skip / body kosong |
 | Kembalikan | Return | Return dari fungsi |
 
-#### Event & Lifecycle
+</details>
+
+<details>
+<summary><b>🎯 Event & Lifecycle</b></summary>
 
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
@@ -245,7 +284,10 @@ npm run typecheck # JSDoc type checking
 | Dipasang | Mounted | Lifecycle: dipasang ke DOM |
 | Dilepas | Unmounted | Lifecycle: dilepas dari DOM |
 
-#### Aksi DOM
+</details>
+
+<details>
+<summary><b>🧩 Aksi DOM</b></summary>
 
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
@@ -255,7 +297,10 @@ npm run typecheck # JSDoc type checking
 | Kosongkan | Clear | Kosongkan children |
 | Perbarui | Update | Update properti elemen |
 
-#### Aksi Data
+</details>
+
+<details>
+<summary><b>💾 Aksi Data</b></summary>
 
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
@@ -264,7 +309,10 @@ npm run typecheck # JSDoc type checking
 | Kurangi | Remove | Kurangi dari array/variabel |
 | Sisipkan | Insert | Sisipkan ke array |
 
-#### Navigasi & Lainnya
+</details>
+
+<details>
+<summary><b>🧭 Navigasi & Lainnya</b></summary>
 
 | Indonesia | English | Fungsi |
 |-----------|---------|--------|
@@ -275,7 +323,10 @@ npm run typecheck # JSDoc type checking
 | Jalankan | Run | Panggil fungsi PromptJS |
 | Gunakan | Use | Instansiasi komponen |
 
-### Event Alias
+</details>
+
+<details>
+<summary><b>🖱️ Event Alias</b></summary>
 
 | `on_` Prefix | PromptJS Event | DOM Event |
 |--------------|----------------|-----------|
@@ -301,7 +352,10 @@ npm run typecheck # JSDoc type checking
 | on_resize | diubahukuran | resize |
 | on_error | salah | error |
 
-### Tag Alias
+</details>
+
+<details>
+<summary><b>🏷️ Tag Alias</b></summary>
 
 | Indonesia | English | Tag HTML |
 |-----------|---------|----------|
@@ -334,6 +388,8 @@ npm run typecheck # JSDoc type checking
 | rentang | span | `<span>` |
 | bingkai | iframe | `<iframe>` |
 
+</details>
+
 ## Contoh Lengkap
 
 Lihat direktori `examples/` untuk contoh yang runnable:
@@ -343,6 +399,9 @@ Lihat direktori `examples/` untuk contoh yang runnable:
 - `examples/gallery.pjs` — Galeri foto dengan front-matter data
 
 ## Struktur Proyek
+
+<details>
+<summary><b>📂 Lihat struktur folder lengkap</b></summary>
 
 ```
 promptjs/
@@ -475,6 +534,8 @@ promptjs/
     ├── STATUS-Level-1.md             # Current status
     └── TUTORIAL-v0.4.md              # v0.4 tutorial
 ```
+
+</details>
 
 ## Peta Proyek PromptJS
 
