@@ -1,21 +1,16 @@
 // @ts-nocheck
 
 /**
- * PromptJS v0.4.0 — Project Builder (Wave J + K)
+ * PromptJS v0.6 — Project Builder (Wave J + K + SPA)
  * ============================================================================
  *
- * Multi-file project builder. Compiles all .pjs files in src/pages/ to
- * individual HTML files, bundles all JS into a single prompt.js, and
- * all CSS into a single prompt.css.
+ * Multi-file project builder. Compiles all .pjs files in src/pages/.
  *
- * Output structure (no Indonesian in dist/):
- *   dist/
- *   ├── index.html          # Page HTML
- *   ├── about.html          # Page HTML
- *   ├── blog.html           # Page HTML
- *   ├── prompt.js           # Bundled JS (all pages)
- *   ├── prompt.css          # Bundled CSS (all pages)
- *   └── assets/             # Static assets
+ * v0.4.0 (MPA mode): Separate HTML files per route, bundled JS/CSS.
+ * v0.6.0 (SPA mode): Single HTML, client-side router, factory functions.
+ *
+ * SPA mode is activated when any page has `router: benar` in front-matter.
+ * Without it, output is identical to v0.4.0 (zero regression).
  *
  * Usage:
  *   const Builder = require('./builder');
@@ -27,6 +22,7 @@
 const fs = require('fs');
 const path = require('path');
 const Engine = require('./promptjs');
+const { ROUTER_RUNTIME } = require('./router-runtime');
 
 /**
  * Find all .pjs files recursively in a directory.
@@ -65,11 +61,6 @@ function findPjsFiles(dir, ignore) {
 /**
  * Generate route path from file path.
  *
- * src/pages/index.pjs → /
- * src/pages/about.pjs → /about
- * src/pages/blog/index.pjs → /blog
- * src/pages/blog/post.pjs → /blog/post
- *
  * @param {string} filePath - Full file path
  * @param {string} pagesDir - Pages directory path
  * @returns {string} Route path (e.g. "/about")
@@ -104,60 +95,78 @@ function fileToRoute(filePath, pagesDir) {
 /**
  * Generate output HTML filename from route.
  *
- * / → index.html
- * /about → about.html
- * /blog → blog.html
- * /blog/post → blog/post.html
- *
  * @param {string} route - Route path
  * @returns {string} HTML filename relative to dist/
  */
 function routeToHtmlFile(route) {
   if (route === '/' || route === '') return 'index.html';
   const clean = route.replace(/^\//, '');
-  // For nested routes, create subdirectories
   return clean + '.html';
 }
 
 /**
- * Build a single page: compile .pjs → extract JS + CSS → generate HTML.
+ * Generate a safe JavaScript identifier from a route path.
+ *
+ * / → index
+ * /about → about
+ * /blog/:slug → blog_slug
+ *
+ * @param {string} route - Route path
+ * @returns {string} Safe identifier
+ */
+function routeToPageName(route) {
+  if (route === '/' || route === '') return 'index';
+  return route
+    .replace(/^\//, '')
+    .replace(/:/g, '_')
+    .replace(/\//g, '_')
+    .replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+/**
+ * Build a single page: compile .pjs → extract JS + CSS.
  *
  * @param {string} filePath - Path to .pjs file
  * @param {Object} opts - Build options
- * @returns {{ route: string, htmlFile: string, js: string, css: string, errors: Object[], success: boolean }}
+ * @param {boolean} [opts.spa] - Compile in SPA mode (factory function)
+ * @returns {{ route: string, pageName: string, htmlFile: string, js: string, css: string, errors: Object[], success: boolean, isSPA: boolean }}
  */
 function buildPage(filePath, opts) {
   const engine = new Engine.PromptJSEngine();
+  const route = fileToRoute(filePath, opts.pagesDir);
+  const pageName = routeToPageName(route);
+
   const result = engine.compileFile(filePath, {
     source: path.basename(filePath),
     dataDir: path.dirname(filePath),
     loadDataFiles: !opts.dev,
     scope: opts.scope,
+    // v0.6: Pass SPA options
+    pageName: pageName,
+    pageRoute: route,
   });
-
-  const route = fileToRoute(filePath, opts.pagesDir);
-  const htmlFile = routeToHtmlFile(route);
 
   return {
     route,
-    htmlFile,
+    pageName,
+    htmlFile: routeToHtmlFile(route),
     js: result.js || '',
     css: result.css || '',
     errors: result.errors,
     warnings: result.warnings,
     success: result.success,
+    isSPA: !!result.isSPA,
   };
 }
 
 /**
- * Generate HTML wrapper for a page.
+ * Generate HTML wrapper for a page (MPA mode).
  *
- * @param {string} pageRoute - Route path (e.g. "/about")
  * @param {string} pageTitle - Page title
  * @param {Object} opts - Build options
  * @returns {string} HTML string
  */
-function generatePageHTML(pageRoute, pageTitle, opts) {
+function generatePageHTML(pageTitle, opts) {
   const cssLink = opts.hasCss ? '<link rel="stylesheet" href="prompt.css">\n  ' : '';
   const jsScript = opts.hasJs ? '<script src="prompt.js" defer></script>' : '';
 
@@ -177,6 +186,31 @@ function generatePageHTML(pageRoute, pageTitle, opts) {
 }
 
 /**
+ * Generate SPA HTML shell (single page with router).
+ *
+ * @param {string} title - Site title
+ * @param {Object} opts - Build options
+ * @returns {string} HTML string
+ */
+function generateSPAHTML(title, opts) {
+  const cssLink = opts.hasCss ? '<link rel="stylesheet" href="prompt.css">\n  ' : '';
+
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  ${cssLink}
+</head>
+<body>
+  <div id="app"></div>
+  <script src="prompt.js" defer></script>
+</body>
+</html>`;
+}
+
+/**
  * Build entire project.
  *
  * @param {Object} opts - Build options
@@ -184,7 +218,7 @@ function generatePageHTML(pageRoute, pageTitle, opts) {
  * @param {string} [opts.outDir='dist'] - Output directory
  * @param {string} [opts.pagesDir='pages'] - Pages subdirectory (relative to rootDir)
  * @param {boolean} [opts.dev=false] - Dev mode
- * @returns {{ pages: Object[], js: string, css: string, errors: Object[] }}
+ * @returns {{ pages: Object[], js: string, css: string, errors: Object[], isSPA: boolean }}
  */
 function buildProject(opts) {
   opts = opts || {};
@@ -195,7 +229,6 @@ function buildProject(opts) {
 
   const errors = [];
   const pages = [];
-  let allJs = '';
   let allCss = '';
 
   // Find all .pjs page files
@@ -208,52 +241,25 @@ function buildProject(opts) {
       message: `No .pjs files found in ${pagesDir}`,
       suggestion: 'Buat file .pjs di direktori pages/',
     });
-    return { pages, js: '', css: '', errors };
+    return { pages, js: '', css: '', errors, isSPA: false };
   }
 
-  // Compile each page
+  // First pass: compile all pages and detect SPA mode
+  let isSPA = false;
+  const pageResults = [];
   for (const filePath of pageFiles) {
-    const pageResult = buildPage(filePath, {
-      pagesDir,
-      dev,
-      scope: path.basename(filePath, '.pjs'),
-    });
+    const pageResult = buildPage(filePath, { pagesDir, dev, scope: path.basename(filePath, '.pjs') });
+    pageResults.push(pageResult);
+    if (pageResult.isSPA) isSPA = true;
+    if (!pageResult.success) errors.push(...pageResult.errors);
+  }
 
-    if (!pageResult.success) {
-      errors.push(...pageResult.errors);
+  // Collect CSS from all pages
+  for (const pr of pageResults) {
+    if (pr.css) {
+      allCss += `\n/* === Page: ${pr.route} === */\n`;
+      allCss += pr.css + '\n';
     }
-
-    // Collect JS (with route wrapper)
-    if (pageResult.js) {
-      const routeVar = JSON.stringify(pageResult.route);
-      allJs += `\n// === Page: ${pageResult.route} (${path.basename(filePath)}) ===\n`;
-      allJs += `if (window.__PJS_ROUTE__ === ${routeVar} || window.location.pathname === ${routeVar}) {\n`;
-      allJs += pageResult.js + '\n';
-      allJs += '}\n';
-    }
-
-    // Collect CSS
-    if (pageResult.css) {
-      allCss += `\n/* === Page: ${pageResult.route} === */\n`;
-      allCss += pageResult.css + '\n';
-    }
-
-    // Generate HTML
-    const pageTitle = path.basename(filePath, '.pjs');
-    const html = generatePageHTML(pageResult.route, pageTitle, {
-      hasCss: !!allCss,
-      hasJs: !!allJs,
-    });
-
-    pages.push({
-      route: pageResult.route,
-      htmlFile: pageResult.htmlFile,
-      html,
-      js: pageResult.js,
-      css: pageResult.css,
-      success: pageResult.success,
-      errors: pageResult.errors,
-    });
   }
 
   // Write output files
@@ -264,29 +270,103 @@ function buildProject(opts) {
     }
     fs.mkdirSync(outDir, { recursive: true });
 
-    // Write prompt.js (bundled JS)
-    if (allJs) {
-      const jsOutput =
-        '// PromptJS v0.4.0 — Bundled JavaScript\n' +
-        '// Auto-generated. Do not edit.\n' +
-        'window.__PJS_ROUTE__ = window.location.pathname;\n' +
-        allJs;
-      fs.writeFileSync(path.join(outDir, 'prompt.js'), jsOutput, 'utf-8');
+    if (isSPA) {
+      // ═══ SPA MODE ═══
+      // Compile all pages as factory functions, generate route table + router
+      let spaJs = '// PromptJS v0.6 — SPA Bundle\n';
+      spaJs += '// Auto-generated. Do not edit.\n\n';
+
+      // Emit each page as a named factory function
+      for (const pr of pageResults) {
+        if (pr.js) {
+          spaJs += `// === Page: ${pr.route} (${pr.pageName}) ===\n`;
+          spaJs += `function __page_${pr.pageName}(__parent) {\n`;
+          // Indent the page JS (it's the factory body)
+          const lines = pr.js.split('\n');
+          for (const line of lines) {
+            if (line.trim()) {
+              spaJs += '  ' + line + '\n';
+            } else {
+              spaJs += '\n';
+            }
+          }
+          spaJs += '\n}\n\n';
+        }
+      }
+
+      // Build route table
+      spaJs += '// === Route Table ===\n';
+      spaJs += 'var __PJS_ROUTES = {\n';
+      for (const pr of pageResults) {
+        if (pr.js) {
+          const routeKey = pr.route.replace(/'/g, "\\'");
+          spaJs += `  "${routeKey}": __page_${pr.pageName},\n`;
+        }
+      }
+      spaJs += '};\n\n';
+
+      // Embed router runtime
+      spaJs += '// === Router Runtime ===\n';
+      spaJs += ROUTER_RUNTIME + '\n\n';
+
+      // Initialize router
+      spaJs += '// === Initialize ===\n';
+      spaJs += '__pjsRouter(__PJS_ROUTES);\n';
+
+      fs.writeFileSync(path.join(outDir, 'prompt.js'), spaJs, 'utf-8');
+
+      // Write single SPA HTML
+      const html = generateSPAHTML('PromptJS SPA', { hasCss: !!allCss });
+      fs.writeFileSync(path.join(outDir, 'index.html'), html, 'utf-8');
+    } else {
+      // ═══ MPA MODE (v0.4 behavior, zero regression) ═══
+      let allJs = '';
+
+      for (const pr of pageResults) {
+        if (pr.js) {
+          const routeVar = JSON.stringify(pr.route);
+          allJs += `\n// === Page: ${pr.route} (${pr.pageName}) ===\n`;
+          allJs += `if (window.__PJS_ROUTE__ === ${routeVar} || window.location.pathname === ${routeVar}) {\n`;
+          allJs += pr.js + '\n';
+          allJs += '}\n';
+        }
+
+        // Generate per-page HTML
+        const pageTitle = path.basename(pr.route.replace(/^\//, ''), '.pjs') || 'PromptJS';
+        const html = generatePageHTML(pageTitle, { hasCss: !!allCss, hasJs: !!allJs });
+        pages.push({
+          route: pr.route,
+          htmlFile: pr.htmlFile,
+          html,
+          js: pr.js,
+          css: pr.css,
+          success: pr.success,
+          errors: pr.errors,
+        });
+      }
+
+      if (allJs) {
+        const jsOutput =
+          '// PromptJS v0.6 — Bundled JavaScript\n' +
+          '// Auto-generated. Do not edit.\n' +
+          'window.__PJS_ROUTE__ = window.location.pathname;\n' +
+          allJs;
+        fs.writeFileSync(path.join(outDir, 'prompt.js'), jsOutput, 'utf-8');
+      }
+
+      // Write HTML files
+      for (const page of pages) {
+        const htmlPath = path.join(outDir, page.htmlFile);
+        fs.mkdirSync(path.dirname(htmlPath), { recursive: true });
+        fs.writeFileSync(htmlPath, page.html, 'utf-8');
+      }
     }
 
-    // Write prompt.css (bundled CSS)
+    // Write CSS
     if (allCss) {
       const cssOutput =
-        '/* PromptJS v0.4.0 — Bundled CSS */\n' + '/* Auto-generated. Do not edit. */\n' + allCss;
+        '/* PromptJS v0.6 — Bundled CSS */\n' + '/* Auto-generated. Do not edit. */\n' + allCss;
       fs.writeFileSync(path.join(outDir, 'prompt.css'), cssOutput, 'utf-8');
-    }
-
-    // Write HTML files
-    for (const page of pages) {
-      // Create subdirectories for nested routes
-      const htmlPath = path.join(outDir, page.htmlFile);
-      fs.mkdirSync(path.dirname(htmlPath), { recursive: true });
-      fs.writeFileSync(htmlPath, page.html, 'utf-8');
     }
 
     // Copy static assets if they exist
@@ -303,7 +383,7 @@ function buildProject(opts) {
     });
   }
 
-  return { pages, js: allJs, css: allCss, errors };
+  return { pages, js: '', css: allCss, errors, isSPA };
 }
 
 /**
@@ -330,8 +410,10 @@ module.exports = {
   findPjsFiles,
   fileToRoute,
   routeToHtmlFile,
+  routeToPageName,
   buildPage,
   generatePageHTML,
+  generateSPAHTML,
   buildProject,
   copyDirRecursive,
 };

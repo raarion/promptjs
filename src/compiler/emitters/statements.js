@@ -39,6 +39,7 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitDataDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
+    this.helpers.add('__createReactive');
     this.emit(`const ${node.name} = __createReactive(${initVal});`);
   };
 
@@ -91,6 +92,8 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitTurunanDeclaration = function (node) {
     const expr = this.lowerExpression(node.init);
+    this.helpers.add('__createComputed');
+    this.helpers.add('__createReactive');
     this.emit(`const ${node.name} = __createComputed(() => ${expr});`);
   };
 
@@ -314,7 +317,14 @@ function install(PromptJSCompiler, accept) {
     this.currentParent = prevParent;
 
     if (!this.currentParent) {
-      this.emit(`document.body.appendChild(${varName});`);
+      // v0.6: SPA mode — don't auto-append; track page root for mount()
+      if (this.isSPA) {
+        if (!this._spaPageRoot) {
+          this._spaPageRoot = varName;
+        }
+      } else {
+        this.emit(`document.body.appendChild(${varName});`);
+      }
     } else {
       this.emit(`${this.currentParent}.appendChild(${varName});`);
     }
@@ -602,6 +612,12 @@ function install(PromptJSCompiler, accept) {
       }
     }
 
+    // Determine context name for error reporting
+    const errorContext = node.target
+      ? (node.target.type === 'Identifier' ? node.target.name : 'elemen')
+      : 'halaman';
+    const errorHook = 'on_' + node.event;
+
     // Custom events (mounted/unmounted) need MutationObserver
     if (eventName === '__promptjs_mounted' || eventName === '__promptjs_unmounted') {
       const domEvent = eventName === '__promptjs_mounted' ? 'DOMNodeInserted' : 'DOMNodeRemoved';
@@ -611,6 +627,11 @@ function install(PromptJSCompiler, accept) {
     } else {
       this.emit(`${target}.addEventListener("${eventName}", (event) => {`);
     }
+
+    this.indent++;
+    // v0.5: Error boundary — wrap handler body in try/catch
+    this.helpers.add('__pjs_handleError');
+    this.emit(`try {`);
 
     this.indent++;
     if (node.event === 'disubmit') this.emit('event.preventDefault();');
@@ -656,6 +677,12 @@ function install(PromptJSCompiler, accept) {
     }
 
     this.indent--;
+    // v0.5: catch block for error boundary
+    this.emit(`} catch(__e) {`);
+    this.emit(`  __pjs_handleError(__e, "${errorContext}", "${errorHook}");`);
+    this.emit(`}`);
+
+    this.indent--;
     this.emit('});');
   };
 
@@ -673,6 +700,7 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitSaatStatement = function (node) {
     // __watch butuh proxy (bukan .value) — pakai node.target.name bila Identifier.
+    this.helpers.add('__watch');
     let tgtStr;
     if (node.target && node.target.type === 'Identifier') {
       tgtStr = node.target.name;
@@ -686,11 +714,18 @@ function install(PromptJSCompiler, accept) {
     this.emit(`${markerVar}.className = "__promptjs_watcher_marker";`);
     if (this.currentParent) {
       this.emit(`${this.currentParent}.appendChild(${markerVar});`);
+    } else if (this.isSPA && this._spaPageRoot) {
+      this.emit(`${this._spaPageRoot}.appendChild(${markerVar});`);
     } else {
       this.emit(`document.body.appendChild(${markerVar});`);
     }
 
-    this.emit(`__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
+    // v0.6: SPA mode — wrap __watch in __cleanupFns.push() for cleanup on unmount
+    if (this.isSPA) {
+      this.emit(`__cleanupFns.push(__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
+    } else {
+      this.emit(`__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
+    }
     this.indent++;
     // Clear hanya marker ini, bukan parent.
     this.emit(`${markerVar}.innerHTML = "";`);
@@ -708,7 +743,12 @@ function install(PromptJSCompiler, accept) {
     this._inBuatBody = prevInBuat;
     this.currentParent = prevParent;
     this.indent--;
-    this.emit('});');
+    // v0.6: SPA mode — extra closing paren for __cleanupFns.push()
+    if (this.isSPA) {
+      this.emit('}));');
+    } else {
+      this.emit('});');
+    }
   };
 
   /**
@@ -720,7 +760,28 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitLifecycleStatement = function (node) {
     // Lifecycle hooks: dipasang, dilepas, diperbarui.
-    // Emitted directly via DOM event listeners based on node.kind below.
+    // v0.6: SPA mode — collect hooks for mount/unmount instead of DOM events.
+    if (this.isSPA) {
+      if (node.kind === 'dipasang') {
+        this.emit(`__dipasangFns.push(function() {`);
+        this.indent++;
+        if (node.body) accept(node.body, this);
+        this.indent--;
+        this.emit(`});`);
+      } else if (node.kind === 'dilepas') {
+        this.emit(`__dilepasFns.push(function() {`);
+        this.indent++;
+        if (node.body) accept(node.body, this);
+        this.indent--;
+        this.emit(`});`);
+      } else {
+        // Generic lifecycle — just emit the body directly
+        if (node.body) accept(node.body, this);
+      }
+      return;
+    }
+
+    // Non-SPA: original behavior (DOMContentLoaded / beforeunload)
     this.emit(`// Lifecycle: saat komponen ${node.kind}`);
     if (node.kind === 'dipasang') {
       // mounted — schedule to run after DOM is ready
@@ -943,6 +1004,7 @@ function install(PromptJSCompiler, accept) {
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, gunakan __setState
+      this.helpers.add('__setState');
       this.emit(`__setState(${tgt}, ${val});`);
     } else {
       // ubah → plain variable, assignment langsung
@@ -1174,9 +1236,13 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitArahkanStatement = function (node) {
-    // "arahkan ke URL" → window.location.href
+    // "arahkan ke URL" → SPA navigate or full reload
     const url = this.lowerExpression(node.url);
-    this.emit(`window.location.href = ${url};`);
+    if (this.isSPA) {
+      this.emit(`__pjsRouter.navigate(${url});`);
+    } else {
+      this.emit(`window.location.href = ${url};`);
+    }
   };
 
   /**

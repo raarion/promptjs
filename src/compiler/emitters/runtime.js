@@ -1,72 +1,88 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Runtime Helper Emitter / Emitor Helper Runtime
+ * PromptJS v0.5 — Runtime Helper Emitter / Emitor Helper Runtime
  * ============================================================================
  *
- * Runtime helper emitter separated from the main compiler.
- * Runtime helper emitter dipisah dari compiler utama.
+ * v0.5 changes:
+ * - Split RUNTIME_HELPERS monolith → per-helper map for tree shaking
+ * - Add __pjs_handleError helper for error boundaries
+ * - emitRuntimeHelpers() only emits helpers present in compiler.helpers Set
  *
- * Berisi string `RUNTIME_HELPERS` (kode JS yang akan di-emit ke output
- * compiler) dan fungsi `emitRuntimeHelpers` yang menulis string tersebut
- * ke `compiler.output`.
- *
- * Helper yang di-emit:
+ * Helper yang di-emit (tree-shaken berdasarkan penggunaan):
  * - `__createReactive(val)` — Proxy-based reactive state
  * - `__createComputed(fn)` — computed value dari reactive lain
  * - `__watch(reactive, cb)` — subscribe ke perubahan reactive
  * - `__setState(reactive, val)` — set nilai reactive (trigger subscribers)
- * - `__createElement(tag, props, children)` — buat elemen DOM
- * - `__mount(target, parent)` — mount elemen ke parent (default: document.body)
  * - `__cleanup(reactive)` — unsubscribe semua dependency reactive
+ * - `__pjs_handleError(error, context, hook)` — error boundary handler
  * - `__promptjs_panjang/apakahKosong/apakahAda` — builtins yang perlu runtime
+ *
+ * Helper yang TIDAK di-emit (legacy, sudah tidak dipakai langsung):
+ * - `__createElement` — visitBuatStatement pakai document.createElement langsung
+ * - `__mount` — visitBuatStatement pakai appendChild langsung
  */
 
 'use strict';
 
-/**
- * String berisi seluruh kode runtime helper JS yang akan di-emit ke output
- * compiler. Bukan fungsi yang dipanggil — ini adalah template string.
- *
- * @type {string}
- */
-const RUNTIME_HELPERS = `
-const __subscribers = new WeakMap();
-const __effectMap = new WeakMap();
-let __activeEffect = null;
-let __effectId = 0;
+// ============================================================================
+// SHARED REACTIVE INFRASTRUCTURE
+// ============================================================================
+// Globals yang dibutuhkan oleh beberapa helper — selalu di-emit kalau
+// ADA helper reaktif yang dipakai.
 
+const REACTIVE_INFRA = `
+var __subscribers = new WeakMap();
+var __effectMap = new WeakMap();
+var __activeEffect = null;
+var __effectId = 0;
+`.trim();
+
+// ============================================================================
+// PER-HELPER CODE MAP
+// ============================================================================
+// Setiap helper punya kode mandiri. Di-emit hanya jika namanya ada
+// di compiler.helpers Set.
+
+/**
+ * @type {Object<string, string>}
+ * Map nama helper → kode JS-nya.
+ */
+const RUNTIME_HELPER_MAP = {
+  // ── Reactive Core ────────────────────────────────────────────────────
+  __createReactive: `
 function __createReactive(val) {
-  const obj = { value: val, __id: ++__effectId };
-  const proxy = new Proxy(obj, {
-    get(target, prop) {
+  var obj = { value: val, __id: ++__effectId };
+  var proxy = new Proxy(obj, {
+    get: function(target, prop) {
       if (__activeEffect && prop === 'value') {
-        let subs = __subscribers.get(proxy) || new Set();
+        var subs = __subscribers.get(proxy) || new Set();
         subs.add(__activeEffect);
         __subscribers.set(proxy, subs);
         if (__activeEffect.__deps) __activeEffect.__deps.add(proxy);
       }
       return target[prop];
     },
-    set(target, prop, newVal) {
-      const oldVal = target[prop];
+    set: function(target, prop, newVal) {
+      var oldVal = target[prop];
       target[prop] = newVal;
       if (prop === 'value' && oldVal !== newVal) {
-        const subs = __subscribers.get(proxy);
+        var subs = __subscribers.get(proxy);
         if (subs) {
-          const subsCopy = Array.from(subs);
-          for (let i = 0; i < subsCopy.length; i++) subsCopy[i](newVal, oldVal);
+          var subsCopy = Array.from(subs);
+          for (var i = 0; i < subsCopy.length; i++) subsCopy[i](newVal, oldVal);
         }
       }
       return true;
     }
   });
   return proxy;
-}
+}`.trim(),
 
+  __createComputed: `
 function __createComputed(fn) {
-  const reactive = __createReactive(null);
-  const effect = function computedEffect() {
+  var reactive = __createReactive(null);
+  var effect = function computedEffect() {
     __activeEffect = effect;
     try { reactive.value = fn(); } catch(e) { /* defer if deps not ready */ }
     __activeEffect = null;
@@ -76,113 +92,158 @@ function __createComputed(fn) {
   effect();
   __effectMap.set(reactive, effect);
   return reactive;
-}
+}`.trim(),
 
+  __watch: `
 function __watch(reactive, cb) {
-  const effect = function watchEffect(n, o) { cb(n, o); };
+  var effect = function watchEffect(n, o) { cb(n, o); };
   effect.__deps = new Set();
-  let subs = __subscribers.get(reactive) || new Set();
+  var subs = __subscribers.get(reactive) || new Set();
   subs.add(effect);
   __subscribers.set(reactive, subs);
-  // Run cb once initially so the watcher renders the initial value,
-  // not just subsequent changes.
   try { cb(reactive.value, undefined); } catch(e) { /* defer if deps not ready */ }
-  const unsub = function unsubscribe() {
-    const subs = __subscribers.get(reactive);
-    if (subs) subs.delete(effect);
+  var unsub = function unsubscribe() {
+    var s = __subscribers.get(reactive);
+    if (s) s.delete(effect);
   };
   return unsub;
-}
+}`.trim(),
 
+  __setState: `
 function __setState(reactive, val) {
   reactive.value = val;
-}
+}`.trim(),
 
-function __createElement(tag, props, children) {
-  if (!props) props = {};
-  if (!children) children = [];
-  const el = document.createElement(tag === 'fragmen' ? 'div' : tag);
-  if (props.id) el.id = props.id;
-  if (props.className) el.className = props.className;
-  if (props.innerText) el.innerText = props.innerText;
-  if (props.src) el.src = props.src;
-  if (props.href) el.href = props.href;
-  children.forEach(function(child) { el.appendChild(child); });
-  return el;
-}
-
-function __mount(target, parent) {
-  const el = typeof target === 'string' ? document.querySelector(target) : target;
-  if (el) {
-    if (parent) {
-      const parentEl = typeof parent === 'string' ? document.querySelector(parent) : parent;
-      if (parentEl) parentEl.appendChild(el);
-    } else {
-      document.body.appendChild(el);
-    }
-  }
-}
-
+  __cleanup: `
 function __cleanup(reactive) {
-  const effect = __effectMap.get(reactive);
+  var effect = __effectMap.get(reactive);
   if (effect && effect.__deps) {
     effect.__deps.forEach(function(dep) {
-      const subs = __subscribers.get(dep);
+      var subs = __subscribers.get(dep);
       if (subs) subs.delete(effect);
     });
     effect.__deps.clear();
   }
-  const subs = __subscribers.get(reactive);
+  var subs = __subscribers.get(reactive);
   if (subs) subs.clear();
-}
+}`.trim(),
 
-// ============================================================================
-// PromptJS Builtin Helper Functions — Fungsi bawaan PromptJS
-// ============================================================================
-// Catatan: panjang() diterjemahkan langsung ke .length oleh expression lowering,
-// jadi tidak perlu runtime helper. Helper di bawah ini untuk builtins yang
-// memerlukan logika tambahan.
+  // ── Error Boundary (v0.5) ────────────────────────────────────────────
+  __pjs_handleError: `
+function __pjs_handleError(error, context, hook) {
+  console.error("[PromptJS] Error di " + context + "." + hook + ":", error);
+  if (window.__pjsClearError) { window.__pjsClearError(); }
+}`.trim(),
 
+  // ── PromptJS Builtin Helpers ─────────────────────────────────────────
+  __promptjs_panjang: `
 function __promptjs_panjang(val) {
   if (val === null || val === undefined) return 0;
   if (typeof val === 'string' || Array.isArray(val)) return val.length;
   if (typeof val === 'object' && val.hasOwnProperty('value')) return __promptjs_panjang(val.value);
   return 0;
-}
+}`.trim(),
 
+  __promptjs_apakahKosong: `
 function __promptjs_apakahKosong(val) {
   if (val === null || val === undefined) return true;
   if (typeof val === 'string' && val === '') return true;
   if (Array.isArray(val) && val.length === 0) return true;
   if (typeof val === 'object' && val.hasOwnProperty('value')) return __promptjs_apakahKosong(val.value);
   return false;
-}
+}`.trim(),
 
+  __promptjs_apakahAda: `
 function __promptjs_apakahAda(arr, item) {
   if (arr === null || arr === undefined) return false;
   if (typeof arr === 'object' && arr.hasOwnProperty('value')) return __promptjs_apakahAda(arr.value, item);
   if (Array.isArray(arr)) return arr.includes(item);
   if (typeof arr === 'string') return arr.indexOf(item) !== -1;
   return false;
-}
-`;
+}`.trim(),
+};
+
+// ============================================================================
+// HELPERS YANG MEMBUTUHKAN REACTIVE INFRASTRUCTURE
+// ============================================================================
+const REACTIVE_HELPERS = new Set([
+  '__createReactive',
+  '__createComputed',
+  '__watch',
+  '__cleanup',
+]);
+
+// ============================================================================
+// BACKWARD COMPAT: RUNTIME_HELPERS monolith (untuk snapshot tests)
+// ============================================================================
 
 /**
- * Emit runtime helpers ke `compiler.output`.
+ * Full monolith string — for backward compatibility with any code
+ * that imports RUNTIME_HELPERS directly.
+ * @type {string}
+ */
+const RUNTIME_HELPERS = REACTIVE_INFRA + '\n\n' +
+  Object.values(RUNTIME_HELPER_MAP).join('\n\n');
+
+// ============================================================================
+// EMIT FUNCTION
+// ============================================================================
+
+/**
+ * Emit runtime helpers ke `compiler.output` — hanya yang dipakai (tree shaking).
  *
- * Tulis header comment `// === Runtime Helpers ===`, lalu seluruh isi
- * `RUNTIME_HELPERS` (di-trim), lalu baris kosong pemisah.
+ * Algoritma:
+ * 1. Jika compiler.helpers kosong → skip seluruh runtime (output minimal)
+ * 2. Jika ada reactive helper → emit shared infra dulu
+ * 3. Emit setiap helper yang ada di Set, urut sesuai definisi
  *
  * @param {Object} compiler - Instance PromptJSCompiler
  * @returns {void}
  */
 function emitRuntimeHelpers(compiler) {
+  const needed = compiler.helpers;
+
+  // Jika tidak ada helper yang dipakai, skip seluruh blok
+  if (!needed || needed.size === 0) {
+    return;
+  }
+
   compiler.emit('// === Runtime Helpers ===');
-  compiler.output.push(RUNTIME_HELPERS.trim());
-  compiler.emit('');
+
+  // Emit shared reactive infrastructure jika ada helper reaktif yang dipakai
+  const needsReactive = [...needed].some(h => REACTIVE_HELPERS.has(h));
+  if (needsReactive) {
+    compiler.output.push(REACTIVE_INFRA);
+    compiler.emit('');
+  }
+
+  // Emit helpers yang dipakai, urut sesuai urusan logis
+  const emitOrder = [
+    // Reactive core dulu
+    '__createReactive',
+    '__createComputed',
+    '__watch',
+    '__setState',
+    '__cleanup',
+    // Error boundary
+    '__pjs_handleError',
+    // Builtins
+    '__promptjs_panjang',
+    '__promptjs_apakahKosong',
+    '__promptjs_apakahAda',
+  ];
+
+  for (const name of emitOrder) {
+    if (needed.has(name) && RUNTIME_HELPER_MAP[name]) {
+      compiler.output.push(RUNTIME_HELPER_MAP[name]);
+      compiler.emit('');
+    }
+  }
 }
 
 module.exports = {
   RUNTIME_HELPERS,
+  RUNTIME_HELPER_MAP,
+  REACTIVE_HELPERS,
   emitRuntimeHelpers,
 };

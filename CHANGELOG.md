@@ -5,6 +5,110 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] — 2026-06-24
+
+**SPA Capability.** Client-side routing, page lifecycle mount/unmount,
+and zero-overhead SPA activation via front-matter.
+
+### Added — 1.1 Lifecycle Mount/Unmount [CORE]
+
+- **SPA factory function wrapping** — when `router: benar` is in front-matter,
+  compiled code is wrapped in a named factory function (e.g. `__page_index`)
+  instead of an IIFE. Returns `{ el, mount(parent), unmount() }`.
+- **Page root tracking** — first top-level element in SPA mode becomes
+  the page root (`this._spaPageRoot`), appended by `mount()` instead of
+  auto-appending to `document.body`.
+- **Cleanup arrays** — `__cleanupFns[]`, `__dipasangFns[]`, `__dilepasFns[]`
+  initialized in SPA mode for lifecycle management.
+- **Watcher cleanup** — `visitSaatStatement` wraps `__watch()` calls in
+  `__cleanupFns.push()` so unsub functions are called on unmount.
+- **Lifecycle hook collection** — `visitLifecycleStatement` in SPA mode
+  pushes `dipasang` hooks to `__dipasungFns` (called in `mount()`) and
+  `dilepas` hooks to `__dilepasFns` (called in `unmount()`), instead of
+  binding to DOMContentLoaded/beforeunload.
+
+### Added — 1.2 Client-Side Router [PLUGIN]
+
+- **Router runtime** (`src/engine/router-runtime.js`) — zero-dependency
+  `__pjsRouter()` function embedded at compile time when SPA mode is active.
+  Supports: exact + dynamic segment route matching, pushState navigation,
+  `<a href>` click interception, `popstate` handling, 404 fallback (`"*"` route),
+  and `destroy()` for full cleanup.
+- **SPA-activated `arahkan`** — `visitArahkanStatement` emits
+  `__pjsRouter.navigate(url)` instead of `window.location.href` when in SPA mode.
+- **Builder SPA mode** — `buildProject()` detects `router: benar` in any page's
+  front-matter. In SPA mode: compiles all pages as factory functions,
+  generates a route table (`__PJS_ROUTES`), embeds router runtime, and
+  produces a single `index.html`. In MPA mode (no `router: benar`): output
+  is identical to v0.4.0 (zero regression).
+- **`routeToPageName()`** helper — converts route paths to safe JS identifiers
+  (`/` → `index`, `/about` → `about`, `/blog/:slug` → `blog_slug`).
+
+### Changed
+
+- Engine `compile()` result includes `isSPA` boolean field.
+- Engine accepts `options.pageName` and `options.pageRoute` for SPA compilation.
+- `frontMatterData.router` with value `benar`/`true` activates SPA mode.
+- Compiler version header updated to **v0.6**.
+- Builder version strings updated to **v0.6**.
+- `visitSaatStatement` marker element appends to page root in SPA mode.
+- 22 new verification tests in `tests/v0.6-spa.test.js`.
+- Builder integration test version expectations updated.
+- **306 tests passing** (284 existing + 22 new).
+
+## [0.5.0] — 2026-06-24
+
+**Compiler Infrastructure.** Source maps, tree shaking, and error boundaries —
+foundations that all future phases build upon.
+
+### Added — 0.1 Source Maps (V3 + VLQ)
+
+- **VLQ Base64 encoding** in `compiler/utils/codegen.js` — `encodeVLQ()` for
+  signed integer encoding, `generateSourceMap()` for V3 JSON generation.
+- **Source location tracking** — every top-level AST node with `loc` records
+  a mapping `{ sourceLine, sourceCol, outputLine }` during compilation.
+- **Source Map V3 object** returned in `compile()` result as `sourceMap` field.
+- Delta-encoded mappings per output line, semicolon-delimited.
+
+### Added — 0.2 Tree Shaking Runtime Helpers
+
+- **Per-helper code map** (`RUNTIME_HELPER_MAP`) — each runtime helper stored
+  as independent string, emitted only when used.
+- **`compiler.helpers` Set** — visitors add helper names during AST traversal;
+  `emitRuntimeHelpers()` iterates the Set and emits only needed helpers.
+- **Reactive infrastructure** (`__subscribers`, `__effectMap`, etc.) emitted
+  only when at least one reactive helper is needed.
+- **Static-only output** (no data/watch/events) = ~16 lines, zero runtime helpers.
+- **Backward compat**: `RUNTIME_HELPERS` monolith string still exported for
+  legacy consumers.
+
+### Added — 0.3 Error Boundaries
+
+- **`__pjs_handleError(error, context, hook)`** — logs to console with
+  `[PromptJS]` prefix, calls `window.__pjsClearError()` if available.
+- **try/catch wrapping** in every event handler (`visitKetikaStatement`) —
+  caught errors are forwarded to `__pjs_handleError` with context and hook name.
+- Error boundary helper only emitted when events are present (tree-shaken).
+
+### Fixed
+
+- **Critical: Tree shaking bug** — `emitRuntimeHelpers()` was called BEFORE
+  AST traversal, so `this.helpers` Set was always empty. Fixed by deferring
+  helper emission to AFTER traversal, using output array redirect + splice.
+- **Source map data recording** — `sourceMapData` was never populated because
+  visitors didn't pass `loc` to `emit()`. Fixed by recording mappings in the
+  `compile()` loop for each top-level node with source location.
+
+### Changed
+
+- All version headers updated to **v0.5**.
+- `compile()` algorithm changed to 4-phase: header → AST traversal (collect
+  helpers + source map data) → generate helpers → splice into output.
+- `engine/promptjs.js` — `compile()` result now includes `sourceMap` field.
+- 21 new verification tests in `tests/v0.5-compiler-infra.test.js`.
+- 3 snapshot tests updated for error boundary output.
+- **284 tests passing** (263 existing + 21 new).
+
 ## [0.4.0] — 2026-06-22
 
 **The Maturation Wave.** PromptJS becomes a real full-stack DSL:

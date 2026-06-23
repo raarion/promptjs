@@ -9,7 +9,11 @@ exports[`D1 — Snapshot Codegen > Composite: end-to-end > composite-counter: da
   const __txt_3 = document.createTextNode("Klik aku");
   __el_1.appendChild(__txt_3);
   __el_1.addEventListener("click", (event) => {
-    alert(hitung.value);
+    try {
+      alert(hitung.value);
+    } catch(__e) {
+      __pjs_handleError(__e, "elemen", "on_diklik");
+    }
   });
   document.body.appendChild(__el_1);"
 `;
@@ -80,7 +84,11 @@ exports[`D1 — Snapshot Codegen > Expression: CallExpression > call-js-global: 
   // @source 1:1 BuatStatement
   const __el_1 = document.createElement("button");
   __el_1.addEventListener("click", (event) => {
-    alert("hi");
+    try {
+      alert("hi");
+    } catch(__e) {
+      __pjs_handleError(__e, "elemen", "on_diklik");
+    }
   });
   document.body.appendChild(__el_1);"
 `;
@@ -336,7 +344,11 @@ exports[`D1 — Snapshot Codegen > Statement: OnEventStatement > on-event-klik: 
   const __txt_3 = document.createTextNode("Klik");
   __el_1.appendChild(__txt_3);
   __el_1.addEventListener("click", (event) => {
-    alert("hi");
+    try {
+      alert("hi");
+    } catch(__e) {
+      __pjs_handleError(__e, "elemen", "on_diklik");
+    }
   });
   document.body.appendChild(__el_1);"
 `;

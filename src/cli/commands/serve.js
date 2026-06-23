@@ -210,6 +210,7 @@ function runServe(argv) {
     const html = wrapInHtml(result.js, filePath, {
       liveReload: !noReload,
       css: result.css || '',
+      sourceMap: result.sourceMap || null,
     });
     process.stderr.write(
       `  ${cyan}${path.relative(process.cwd(), filePath)}${reset} ${green}✓${reset} ${gray}(${formatSize(result.js.length)} ${elapsed})${reset}\n`

@@ -33,6 +33,8 @@ const path = require('path');
  * @property {Object[]} warnings - Daftar warning
  * @property {Object | null} ast - Root AST node (null jika gagal sebelum parser selesai)
  * @property {boolean} success - `true` jika js tidak null dan tidak ada error severity 'error'
+ * @property {Object | null} sourceMap - Source Map V3 object (v0.5)
+ * @property {boolean} isSPA - Whether this page was compiled in SPA mode (v0.6)
  */
 
 /**
@@ -61,7 +63,9 @@ function PromptJSEngine() {
  * @param {boolean} [options.dev] - Dev mode (includes source maps, HMR helpers)
  * @param {string} [options.dataDir] - Directory to resolve relative data file paths
  * @param {boolean} [options.loadDataFiles] - Whether to load file-referenced data (default: true)
- * @returns {object} { js, errors, warnings, ast, semantic }
+ * @param {string} [options.pageName] - Page name for SPA factory function (v0.6)
+ * @param {string} [options.pageRoute] - Route path for SPA page (v0.6)
+ * @returns {object} { js, css, errors, warnings, ast, sourceMap, success }
  */
 PromptJSEngine.prototype.compile = function (source, options) {
   this.errors = [];
@@ -190,10 +194,31 @@ PromptJSEngine.prototype.compile = function (source, options) {
   }
 
   // ── Stage 5: COMPILER ───────────────────────────────────────────────────
+  // v0.6: Detect SPA mode from front-matter (router: benar / router: true)
+  var isSPA = false;
+  var pageName = this.options.pageName || 'page';
+  var pageRoute = this.options.pageRoute || null;
+  if (frontMatterData && frontMatterData.router) {
+    var routerVal = frontMatterData.router;
+    var rawVal = (routerVal && routerVal.value !== undefined) ? routerVal.value : routerVal;
+    if (rawVal === true || rawVal === 'benar' || rawVal === 'true') {
+      isSPA = true;
+    }
+  }
+  // Attach SPA flags to AST so the compiler can access them
+  if (analyzeResult.ast) {
+    analyzeResult.ast.isSPA = isSPA;
+    analyzeResult.ast.pageName = pageName;
+    analyzeResult.ast.pageRoute = pageRoute;
+  }
+
   const compiler = new Compiler();
   let js;
+  let sourceMap = null;
   try {
     js = compiler.compile(analyzeResult.ast);
+    // v0.5: Generate source map
+    sourceMap = compiler.generateSourceMap();
   } catch (compileErr) {
     this.errors.push({
       code: 'E5001',
@@ -204,7 +229,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
     return this._makeResult(null, this.errors, this.warnings, null, css);
   }
 
-  return this._makeResult(js, this.errors, this.warnings, analyzeResult.ast, css);
+  return this._makeResult(js, this.errors, this.warnings, analyzeResult.ast, css, sourceMap);
 };
 
 /**
@@ -327,15 +352,18 @@ PromptJSEngine.prototype._loadDataFiles = function (frontMatterData) {
  * @param {Object[]} warnings - Daftar warning
  * @param {Object | null} [ast] - Root AST node (opsional)
  * @param {string} [css] - Kode CSS hasil compile (opsional)
+ * @param {Object} [sourceMap] - Source map V3 (opsional, v0.5)
  * @returns {CompileResult} Result object
  */
-PromptJSEngine.prototype._makeResult = function (js, errors, warnings, ast, css) {
+PromptJSEngine.prototype._makeResult = function (js, errors, warnings, ast, css, sourceMap) {
   return /** @type {CompileResult} */ ({
     js: js,
     css: css || '',
     errors: errors || [],
     warnings: warnings || [],
     ast: ast || null,
+    sourceMap: sourceMap || null,
+    isSPA: (ast && ast.isSPA) || false,
     success: js !== null && (!errors || errors.every((e) => e.severity !== 'error')),
   });
 };
