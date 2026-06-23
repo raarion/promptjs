@@ -12,6 +12,7 @@ Syntax highlighting and snippets for [PromptJS](https://github.com/raarion/promp
 - **Prose operator** highlighting (`sama dengan`, `lebih dari`, `tambah`, `kali`, …)
 - **Booleans & null** literals (`benar`/`true`, `salah`/`false`, `kosong`/`null`)
 - **Snippets** for scaffold cepat: `Halaman`, `Komponen`, `Buat`, `Data`, `Jika`, `Ulangi`, `Saat`, `Ketika`, `Dipasang`, …
+- **v0.4.0+**: Fully compatible with multi-page projects, CSS blocks, and module system
 
 ## Installation
 
@@ -20,8 +21,8 @@ Syntax highlighting and snippets for [PromptJS](https://github.com/raarion/promp
 ```bash
 cd editors/vscode
 npm install
-npm run package      # menghasilkan promptjs-0.3.0.vsix
-code --install-extension promptjs-0.3.0.vsix
+npm run package      # menghasilkan promptjs-0.4.0.vsix
+code --install-extension promptjs-0.4.0.vsix
 ```
 
 ### Opsi B — Install dari Marketplace (setelah publish)
@@ -59,7 +60,7 @@ editors/vscode/
 └── LICENSE
 ```
 
-> **Catatan**: `images/promptjs-logo.png` perlu di-supply secara manual (128x128 PNG). Sementara pakai `assets/PromptJS-logo.svg` dari repo root — konversi ke PNG via `rsvg-convert` atau Figma export.
+> **Catatan**: `images/promptjs-logo.png` perlu di-supply secara manual (128x128 PNG). Sementara pakai `assets/PromptJS-logo.svg` dari repo root — konversi ke PNG via `rsvg-convert` atau Figma e[...]
 
 ## Development
 
@@ -70,13 +71,23 @@ Untuk iterasi grammar secara live:
 3. Buka file `.pjs` di host → lihat highlighting
 4. Edit `syntaxes/promptjs.tmLanguage.json` → reload window (`Ctrl+R` di host) untuk lihat perubahan
 
-Untuk test grammar terhadap examples:
+Untuk test grammar terhadap examples (termasuk v0.4.0 multi-page):
 
 ```bash
 cd /path/to/promptjs
-code --install-extension editors/vscode/promptjs-0.3.0.vsix
+code --install-extension editors/vscode/promptjs-0.4.0.vsix
 code examples/counter.pjs
+code examples/multi-page/src/pages/index.pjs    # v0.4.0 multi-page example
 ```
+
+## Version Compatibility
+
+| PromptJS Version | Extension Version | Grammar Changes | Status |
+|------------------|-------------------|-----------------|--------|
+| v0.3.0           | v0.3.0            | Initial grammar | ✅ Released |
+| v0.4.0           | v0.4.0            | No changes      | ✅ Compatible |
+
+> **Note**: v0.4.0 PromptJS adds modules, CSS, and routing at the **engine level** — the TextMate grammar remains unchanged and fully compatible.
 
 ## License
 
