@@ -1,0 +1,45 @@
+Gaya:
+    .about
+        max-width: 600px
+        margin: 40px auto
+        padding: 40px
+        background: white
+        border-radius: 12px
+    .about h2
+        color: #1a1a2e
+    .feature
+        padding: 16px
+        border-left: 4px solid #0f3460
+        margin: 16px 0
+        background: #f8f9fa
+    .feature h3
+        margin: 0 0 8px 0
+        color: #16213e
+    .feature p
+        margin: 0
+        color: #555
+
+Halaman Tentang:
+    Buat div.about:
+        Buat h2: "Tentang PromptJS"
+        Buat p: "PromptJS adalah DSL template engine berbasis indentasi yang mengkompilasi ke JavaScript vanilla."
+
+        Buat div.feature:
+            Buat h3: "Bilingual"
+            Buat p: "Tulis dengan kata kunci Indonesia (Buat, Jika, Ulangi) atau English (Create, If, Loop)."
+
+        Buat div.feature:
+            Buat h3: "Zero Dependencies"
+            Buat p: "Output JS vanilla murni tanpa framework. Runtime helpers di-embed langsung."
+
+        Buat div.feature:
+            Buat h3: "CSS Support"
+            Buat p: "Tulis CSS dengan block Gaya: yang compile ke prompt.css terpisah."
+
+        Buat div.feature:
+            Buat h3: "Reaktif"
+            Buat p: "Data reaktif dengan Proxy. Saat x: untuk watcher. Turunan untuk computed values."
+
+        Buat div.feature:
+            Buat h3: "Multi-file"
+            Buat p: "Folder-based routing ala Astro. kirim/terima untuk sharing antar file."
