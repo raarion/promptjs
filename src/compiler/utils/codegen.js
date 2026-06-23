@@ -128,28 +128,43 @@ function generateSourceMap(compiler) {
   let prevSourceLine = 0;
   let prevSourceCol = 0;
 
+  // Build a map of outputLine → segment for efficient lookup
+  const lineToSegment = new Map();
   for (const entry of sorted) {
-    // Delta encode
-    const outputCol = 0; // All our emit calls start at column 0 (after indent)
+    const outputCol = 0;
     const sourceLine0 = entry.sourceLine - 1; // 0-indexed
-    const sourceCol0 = entry.sourceCol || 0; // 0-indexed
-    const sourceFileIdx = 0; // Always single file for now
+    const sourceCol0 = entry.sourceCol || 0;
+    const sourceFileIdx = 0;
 
     const dCol = outputCol - prevOutputCol;
-    const dSrc = sourceFileIdx; // Always 0, so delta = 0
+    const dSrc = sourceFileIdx; // Always 0 delta
     const dSrcLine = sourceLine0 - prevSourceLine;
     const dSrcCol = sourceCol0 - prevSourceCol;
 
-    mappings.push(
+    const segment =
       encodeVLQ(dCol) +
       encodeVLQ(dSrc) +
       encodeVLQ(dSrcLine) +
-      encodeVLQ(dSrcCol)
-    );
+      encodeVLQ(dSrcCol);
+
+    lineToSegment.set(entry.outputLine, segment);
 
     prevOutputCol = outputCol;
     prevSourceLine = sourceLine0;
     prevSourceCol = sourceCol0;
+  }
+
+  // Build mappings string with proper semicolon padding.
+  // In Source Map V3: each ';' = advance one output line.
+  // Lines without mappings get empty segments (just ';').
+  const totalLines = output.length;
+  const mappingParts = [];
+  for (let line = 0; line < totalLines; line++) {
+    if (lineToSegment.has(line)) {
+      mappingParts.push(lineToSegment.get(line));
+    } else {
+      mappingParts.push('');
+    }
   }
 
   return {
@@ -158,7 +173,7 @@ function generateSourceMap(compiler) {
     sourceRoot: '',
     sources: [sourceFile],
     names: [],
-    mappings: mappings.join(';'), // Semicolon = new output line
+    mappings: mappingParts.join(';'),
   };
 }
 

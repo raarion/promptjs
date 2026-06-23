@@ -23,7 +23,7 @@ and zero-overhead SPA activation via front-matter.
 - **Watcher cleanup** — `visitSaatStatement` wraps `__watch()` calls in
   `__cleanupFns.push()` so unsub functions are called on unmount.
 - **Lifecycle hook collection** — `visitLifecycleStatement` in SPA mode
-  pushes `dipasang` hooks to `__dipasungFns` (called in `mount()`) and
+  pushes `dipasang` hooks to `__dipasangFns` (called in `mount()`) and
   `dilepas` hooks to `__dilepasFns` (called in `unmount()`), instead of
   binding to DOMContentLoaded/beforeunload.
 

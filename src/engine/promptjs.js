@@ -122,8 +122,26 @@ PromptJSEngine.prototype.compile = function (source, options) {
     }
   }
 
+  // ── Filter compiler directives from front-matter data ─────────────────
+  // Keys like `router`, `adapter`, `butuhAuth` are compiler directives,
+  // not user data. They should NOT become TetapDeclaration nodes in the AST
+  // (which would emit `const router = "benar"` to output — wasteful).
+  const FRONT_MATTER_DIRECTIVES = new Set([
+    'router', 'adapter', 'butuhAuth', 'redirect', 'token', 'peran',
+  ]);
+  let parserFrontMatter = frontMatterData;
+  if (frontMatterData) {
+    parserFrontMatter = {};
+    for (const [key, val] of Object.entries(frontMatterData)) {
+      if (!FRONT_MATTER_DIRECTIVES.has(key)) {
+        parserFrontMatter[key] = val;
+      }
+    }
+    if (Object.keys(parserFrontMatter).length === 0) parserFrontMatter = null;
+  }
+
   // ── Stage 2: PARSER ─────────────────────────────────────────────────────
-  const parseResult = Parser.parse(lexResult.tokens, frontMatterData);
+  const parseResult = Parser.parse(lexResult.tokens, parserFrontMatter);
 
   if (parseResult.errors && parseResult.errors.length > 0) {
     this.errors.push(...parseResult.errors);

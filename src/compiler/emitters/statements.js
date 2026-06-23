@@ -40,7 +40,7 @@ function install(PromptJSCompiler, accept) {
   PromptJSCompiler.prototype.visitDataDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
     this.helpers.add('__createReactive');
-    this.emit(`const ${node.name} = __createReactive(${initVal});`);
+    this.emit(`const ${node.name} = __createReactive(${initVal});`, node.loc);
   };
 
   /**
@@ -80,7 +80,7 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitUbahDeclaration = function (node) {
     const initVal = this.lowerExpression(node.init);
-    this.emit(`let ${node.name} = ${initVal};`);
+    this.emit(`let ${node.name} = ${initVal};`, node.loc);
   };
 
   /**
@@ -94,7 +94,7 @@ function install(PromptJSCompiler, accept) {
     const expr = this.lowerExpression(node.init);
     this.helpers.add('__createComputed');
     this.helpers.add('__createReactive');
-    this.emit(`const ${node.name} = __createComputed(() => ${expr});`);
+    this.emit(`const ${node.name} = __createComputed(() => ${expr});`, node.loc);
   };
 
   /**
@@ -612,10 +612,18 @@ function install(PromptJSCompiler, accept) {
       }
     }
 
-    // Determine context name for error reporting
-    const errorContext = node.target
-      ? (node.target.type === 'Identifier' ? node.target.name : 'elemen')
-      : 'halaman';
+    // Determine context name for error reporting (v0.5 patch: use tag name)
+    let errorContext = 'halaman';
+    if (node.target) {
+      if (node.target.type === 'Identifier') {
+        errorContext = node.target.name;
+      } else if (node.target.type === 'SelfReference' && node.target.referencedNode) {
+        const ref = node.target.referencedNode;
+        errorContext = (ref.selector && ref.selector.tag) || ref.compiledVarName || 'elemen';
+      } else {
+        errorContext = 'elemen';
+      }
+    }
     const errorHook = 'on_' + node.event;
 
     // Custom events (mounted/unmounted) need MutationObserver
@@ -625,7 +633,16 @@ function install(PromptJSCompiler, accept) {
     } else if (eventName === 'DOMContentLoaded') {
       this.emit(`document.addEventListener("DOMContentLoaded", (event) => {`);
     } else {
-      this.emit(`${target}.addEventListener("${eventName}", (event) => {`);
+      // v0.6 patch: In SPA mode, track event listeners for cleanup on unmount.
+      // This prevents listener leaks especially on document/window targets.
+      if (this.isSPA) {
+        const handlerVar = this.genVar('handler');
+        this.emit(`const ${handlerVar} = (event) => {`);
+        // Handler body will be emitted below, then we close + addEventListener + push cleanup
+        this._pendingSpaHandler = { target, eventName, handlerVar };
+      } else {
+        this.emit(`${target}.addEventListener("${eventName}", (event) => {`);
+      }
     }
 
     this.indent++;
@@ -683,7 +700,16 @@ function install(PromptJSCompiler, accept) {
     this.emit(`}`);
 
     this.indent--;
-    this.emit('});');
+    // v0.6 patch: SPA mode — close handler var, addEventListener, track cleanup
+    if (this._pendingSpaHandler) {
+      const h = this._pendingSpaHandler;
+      this.emit('};');
+      this.emit(`${h.target}.addEventListener("${h.eventName}", ${h.handlerVar});`);
+      this.emit(`__cleanupFns.push(function() { ${h.target}.removeEventListener("${h.eventName}", ${h.handlerVar}); });`);
+      this._pendingSpaHandler = null;
+    } else {
+      this.emit('});');
+    }
   };
 
   /**

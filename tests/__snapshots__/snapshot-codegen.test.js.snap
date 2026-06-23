@@ -12,7 +12,7 @@ exports[`D1 — Snapshot Codegen > Composite: end-to-end > composite-counter: da
     try {
       alert(hitung.value);
     } catch(__e) {
-      __pjs_handleError(__e, "elemen", "on_diklik");
+      __pjs_handleError(__e, "fragment", "on_diklik");
     }
   });
   document.body.appendChild(__el_1);"
@@ -87,7 +87,7 @@ exports[`D1 — Snapshot Codegen > Expression: CallExpression > call-js-global: 
     try {
       alert("hi");
     } catch(__e) {
-      __pjs_handleError(__e, "elemen", "on_diklik");
+      __pjs_handleError(__e, "tombol", "on_diklik");
     }
   });
   document.body.appendChild(__el_1);"
@@ -347,7 +347,7 @@ exports[`D1 — Snapshot Codegen > Statement: OnEventStatement > on-event-klik: 
     try {
       alert("hi");
     } catch(__e) {
-      __pjs_handleError(__e, "elemen", "on_diklik");
+      __pjs_handleError(__e, "fragment", "on_diklik");
     }
   });
   document.body.appendChild(__el_1);"
