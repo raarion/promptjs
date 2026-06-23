@@ -1,0 +1,47 @@
+---
+kirim: formatTanggal = "DD/MM/YYYY"
+---
+
+Gaya:
+    .blog
+        max-width: 700px
+        margin: 40px auto
+        padding: 20px
+    .post
+        background: white
+        border-radius: 8px
+        padding: 24px
+        margin: 16px 0
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05)
+    .post h3
+        color: #1a1a2e
+        margin: 0 0 8px 0
+    .post .meta
+        color: #999
+        font-size: 0.85rem
+        margin-bottom: 12px
+    .post p
+        color: #444
+        line-height: 1.6
+
+Halaman Blog:
+    Buat div.blog:
+        Buat h2: "Blog PromptJS"
+
+        Buat div.post:
+            Buat h3: "Memahami Sintaks PromptJS"
+            Buat div.meta:
+                "14 Juni 2026"
+            Buat p: "PromptJS menggunakan sintaks berbasis indentasi. Setiap baris adalah statement, dan indentasi menentukan nesting."
+
+        Buat div.post:
+            Buat h3: "CSS dengan Gaya: Block"
+            Buat div.meta:
+                "16 Juni 2026"
+            Buat p: "Block Gaya: memungkinkan Anda menulis CSS langsung di file .pjs dengan indent-based syntax, lengkap dengan scoped CSS per komponen."
+
+        Buat div.post:
+            Buat h3: "Module System: kirim dan terima"
+            Buat div.meta:
+                "20 Juni 2026"
+            Buat p: "Bagikan nilai, fungsi, dan komponen antar file .pjs dengan direktif kirim dan terima di front-matter."
