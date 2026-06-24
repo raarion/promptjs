@@ -57,6 +57,7 @@ Serve options:
 
 Build options:
   --out-dir <dir>      Output directory (default: dist)
+  --adapter <name>     Build adapter (static|node|vercel)
   --prerender          Pre-render HTML with jsdom
   --minify             Minify output JS
 

@@ -1,11 +1,12 @@
 // @ts-check
 
 /**
- * PromptJS v0.4.0 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
+ * PromptJS v0.8 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
  * ============================================================================
  *
  * Wires: Lexer → Parser → Resolver → Analyzer → Compiler.
  * v0.4.0: Module system (Wave H) + CSS support (Wave I).
+ * v0.8.0: Plugin system — 4 transform hooks applied per compile/build.
  *
  * Extended result: { js, css, errors, warnings, ast, success }
  */
@@ -19,6 +20,7 @@ const Analyzer = require('../analyzer/promptjs-analyzer');
 const Compiler = require('../compiler/promptjs-compiler');
 const Modules = require('./modules');
 const CSS = require('./css');
+const Plugins = require('./plugins');
 
 const fs = require('fs');
 const path = require('path');
@@ -67,14 +69,21 @@ function PromptJSEngine() {
  * @param {string} [options.pageRoute] - Route path for SPA page (v0.6)
  * @returns {object} { js, css, errors, warnings, ast, sourceMap, success }
  */
-PromptJSEngine.prototype.compile = function (source, options) {
+PromptJSEngine.prototype.compile = function (sourceInput, options) {
   this.errors = [];
   this.warnings = [];
   Object.assign(this.options, options || {});
 
+  // v0.8: Apply transformSource hook (before any pipeline stage)
+  var plugins = this.options.plugins || [];
+  var filename = this.options.source || 'unknown.pjs';
+  var source = Plugins.transformSource(plugins, sourceInput, filename);
+
   // ── Wave I: CSS extraction (before lexing) ─────────────────────────────
   // Extract Gaya:/Style: blocks from source, produce CSS + clean source
-  const { css, cleanSource } = CSS.processGayaBlocks(source, this.options.scope);
+  var cssResult = CSS.processGayaBlocks(source, this.options.scope);
+  var css = cssResult.css;
+  var cleanSource = cssResult.cleanSource;
 
   // ── Stage 1: LEXER ──────────────────────────────────────────────────────
   const lexResult = Lexer.tokenize(cleanSource);
@@ -246,6 +255,10 @@ PromptJSEngine.prototype.compile = function (source, options) {
     });
     return this._makeResult(null, this.errors, this.warnings, null, css);
   }
+
+  // v0.8: Apply transformJS and transformCSS hooks (after compile)
+  js = Plugins.transformJS(plugins, js, filename);
+  css = Plugins.transformCSS(plugins, css, filename);
 
   return this._makeResult(js, this.errors, this.warnings, analyzeResult.ast, css, sourceMap);
 };

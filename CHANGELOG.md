@@ -5,6 +5,71 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] — 2026-06-24
+
+**Full-Stack via Adapter.** Plugin system with 4 transform hooks,
+3 deployment adapters (static, node, vercel), and project config loading.
+
+### Added — 3.1 Plugin System [ENGINE]
+
+- **Plugin contract** — objects with optional hooks: `transformSource`,
+  `transformJS`, `transformCSS`, `transformHTML`. Non-fatal errors
+  (plugin crashes are caught and logged, never kill the build).
+- **4 transform hooks in engine** — `Plugins.transformSource()` runs
+  before CSS extraction; `transformJS`/`transformCSS` run after
+  compilation; `transformHTML` runs after HTML generation in builder.
+- **`src/engine/plugins.js`** — zero-dependency plugin runner with
+  `applyHook()` generic function + per-hook convenience wrappers.
+- **`src/engine/config.js`** — project config loader. Searches for
+  `pjs.config.js` or `promptjs.config.js` upward from cwd. Validates
+  adapter names, plugin shapes. Merges with CLI flags (CLI wins).
+
+### Added — 3.2 Adapter: Static Export [PLUGIN]
+
+- **`src/engine/adapters/static.js`** — `runStaticAdapter()` post-processor.
+- **Asset hashing** — `prompt.js` → `prompt.a1b2c3.js` (MD5, 8-char hex)
+  for cache busting. HTML references auto-updated.
+- **`<meta>` tag injection** — `og:title`, `og:description`, `og:image`,
+  `canonical` from config `meta` + `siteUrl`.
+- **`sitemap.xml`** auto-generation from route list + `siteUrl`.
+- **`404.html`** fallback — SPA mode reuses `index.html`; MPA generates
+  standalone 404 page.
+
+### Added — 3.3 Adapter: Node Server [PLUGIN]
+
+- **`src/engine/adapters/node.js`** — `runNodeAdapter()` generates
+  a self-contained `server.js` (zero runtime deps, Node.js built-ins only).
+- **Static file serving** with MIME types and immutable cache headers.
+- **SPA mode** — all non-static routes serve `index.html`.
+- **MPA mode** — route-to-`.html` mapping with 404 fallback.
+- **API proxy** — when `apiUrl` configured, `/api/*` requests are
+  forwarded to the backend. Off by default.
+- **Dockerfile template** — `FROM node:20-slim`, `COPY dist/ .`, `CMD ["node", "server.js"]`.
+
+### Added — 3.4 Adapter: Vercel [PLUGIN]
+
+- **`src/engine/adapters/vercel.js`** — `runVercelAdapter()` restructures
+  `dist/` into [Vercel Build Output API v3](https://vercel.com/docs/build-output-api/v3)
+  format (`.vercel/output/config.json` + `static/` + `functions/`).
+- **`vercel.json`** with SPA rewrites (SPA mode) and cache headers
+  for assets.
+- **`config.json`** V3 with route matching (SPA fallback or MPA per-route).
+
+### Changed
+
+- Engine `compile()` applies `transformSource` before pipeline and
+  `transformJS`/`transformCSS` after compilation (when plugins present).
+- Builder `buildProject()` accepts `adapter`, `plugins`, `meta`,
+  `siteUrl`, `apiUrl` options. Runs adapter post-processing after
+  standard build output. Applies `transformHTML` hooks on all HTML files.
+- CLI `build` command: loads `pjs.config.js`, accepts `--adapter <name>`,
+  reports adapter output (hashed assets, server.js, vercel.json, sitemap).
+- CLI help text updated with `--adapter` option.
+- Builder version strings updated to **v0.8**.
+- 42 new verification tests in `tests/v0.8-adapter.test.js`.
+- 2 existing tests updated (removed version string assertions).
+- **370 tests passing** (328 existing + 42 new).
+
 ## [0.6.0] — 2026-06-24
 
 **SPA Capability.** Client-side routing, page lifecycle mount/unmount,
@@ -308,6 +373,7 @@ Baseline release audited for this effort (commit `9a60726`).
 - 64-code bilingual error registry with line:column and suggestions.
 - CLI: `compile`, `serve`, `build`, `init` (with `--minify` and jsdom prerender).
 
-[Unreleased]: https://github.com/raarion/promptjs/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/raarion/promptjs/releases/tag/v0.3.0
+[Unreleased]: https://github.com/raarion/promptjs/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/raarion/promptjs/releases/tag/v0.8.0
+[0.6.0]: https://github.com/raarion/promptjs/releases/tag/v0.6.0
 [0.2.0]: https://github.com/raarion/promptjs/releases/tag/v0.2.0

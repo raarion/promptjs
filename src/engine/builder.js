@@ -1,13 +1,14 @@
 // @ts-nocheck
 
 /**
- * PromptJS v0.6 — Project Builder (Wave J + K + SPA)
+ * PromptJS v0.8 — Project Builder (Wave J + K + SPA + Adapters)
  * ============================================================================
  *
  * Multi-file project builder. Compiles all .pjs files in src/pages/.
  *
  * v0.4.0 (MPA mode): Separate HTML files per route, bundled JS/CSS.
  * v0.6.0 (SPA mode): Single HTML, client-side router, factory functions.
+ * v0.8.0 (Adapters): Plugin hooks, config loading, adapter post-processing.
  *
  * SPA mode is activated when any page has `router: benar` in front-matter.
  * Without it, output is identical to v0.4.0 (zero regression).
@@ -23,6 +24,7 @@ const fs = require('fs');
 const path = require('path');
 const Engine = require('./promptjs');
 const { ROUTER_RUNTIME } = require('./router-runtime');
+const Plugins = require('./plugins');
 
 /**
  * Find all .pjs files recursively in a directory.
@@ -218,7 +220,12 @@ function generateSPAHTML(title, opts) {
  * @param {string} [opts.outDir='dist'] - Output directory
  * @param {string} [opts.pagesDir='pages'] - Pages subdirectory (relative to rootDir)
  * @param {boolean} [opts.dev=false] - Dev mode
- * @returns {{ pages: Object[], js: string, css: string, errors: Object[], isSPA: boolean }}
+ * @param {string} [opts.adapter=null] - Adapter name: 'static', 'node', 'vercel', or null
+ * @param {Object[]} [opts.plugins=[]] - Loaded plugins for transform hooks
+ * @param {Object} [opts.meta={}] - Meta tags for static adapter
+ * @param {string} [opts.siteUrl=''] - Site URL for sitemap/canonical
+ * @param {string} [opts.apiUrl=''] - API URL for Node adapter proxy
+ * @returns {{ pages: Object[], js: string, css: string, errors: Object[], isSPA: boolean, adapter: Object|null }}
  */
 function buildProject(opts) {
   opts = opts || {};
@@ -226,6 +233,8 @@ function buildProject(opts) {
   const outDir = path.resolve(opts.outDir || 'dist');
   const pagesDir = path.join(rootDir, opts.pagesDir || 'pages');
   const dev = !!opts.dev;
+  const plugins = opts.plugins || [];
+  const adapter = opts.adapter || null;
 
   const errors = [];
   const pages = [];
@@ -252,6 +261,9 @@ function buildProject(opts) {
     pageResults.push(pageResult);
     if (pageResult.isSPA) isSPA = true;
     if (!pageResult.success) errors.push(...pageResult.errors);
+    // v0.8: Apply plugin transform hooks per page
+    pageResult.js = Plugins.transformJS(plugins, pageResult.js, path.basename(filePath));
+    pageResult.css = Plugins.transformCSS(plugins, pageResult.css, path.basename(filePath));
   }
 
   // Collect CSS from all pages
@@ -273,7 +285,7 @@ function buildProject(opts) {
     if (isSPA) {
       // ═══ SPA MODE ═══
       // Compile all pages as factory functions, generate route table + router
-      let spaJs = '// PromptJS v0.6 — SPA Bundle\n';
+      spaJs += '// PromptJS v0.8 — SPA Bundle\n';
       spaJs += '// Auto-generated. Do not edit.\n\n';
 
       // Emit each page as a named factory function.
@@ -374,7 +386,7 @@ function buildProject(opts) {
 
       if (allJs) {
         const jsOutput =
-          '// PromptJS v0.6 — Bundled JavaScript\n' +
+          '// PromptJS v0.8 — Bundled JavaScript\n' +
           '// Auto-generated. Do not edit.\n' +
           'window.__PJS_ROUTE__ = window.location.pathname;\n' +
           allJs;
@@ -392,7 +404,7 @@ function buildProject(opts) {
     // Write CSS
     if (allCss) {
       const cssOutput =
-        '/* PromptJS v0.6 — Bundled CSS */\n' + '/* Auto-generated. Do not edit. */\n' + allCss;
+        '/* PromptJS v0.8 — Bundled CSS */\n' + '/* Auto-generated. Do not edit. */\n' + allCss;
       fs.writeFileSync(path.join(outDir, 'prompt.css'), cssOutput, 'utf-8');
     }
 
@@ -401,6 +413,35 @@ function buildProject(opts) {
     if (fs.existsSync(assetsDir)) {
       copyDirRecursive(assetsDir, path.join(outDir, 'assets'));
     }
+
+    // v0.8: Apply adapter post-processing
+    var adapterResult = null;
+    if (adapter) {
+      var routes = pageResults.filter(function(pr) { return pr.success; }).map(function(pr) { return pr.route; });
+      try {
+        adapterResult = runAdapter(adapter, {
+          outDir: outDir,
+          isSPA: isSPA,
+          routes: routes,
+          meta: opts.meta || {},
+          siteUrl: opts.siteUrl || '',
+          apiUrl: opts.apiUrl || '',
+        });
+        if (adapterResult.errors && adapterResult.errors.length > 0) {
+          errors.push(...adapterResult.errors);
+        }
+      } catch (adapterErr) {
+        errors.push({
+          code: 'E0000',
+          severity: 'error',
+          message: 'Adapter error: ' + adapterErr.message,
+          suggestion: 'Check adapter name: ' + adapter,
+        });
+      }
+    }
+
+    // v0.8: Apply transformHTML hooks on all generated HTML files
+    applyHtmlPlugins(outDir, plugins);
   } catch (e) {
     errors.push({
       code: 'E0000',
@@ -410,7 +451,7 @@ function buildProject(opts) {
     });
   }
 
-  return { pages, js: '', css: allCss, errors, isSPA };
+  return { pages, js: '', css: allCss, errors, isSPA, adapter: adapterResult };
 }
 
 /**
@@ -433,6 +474,71 @@ function copyDirRecursive(src, dest) {
   }
 }
 
+/**
+ * Run an adapter by name.
+ *
+ * @param {string} name - Adapter name ('static', 'node', 'vercel')
+ * @param {Object} opts - Adapter options
+ * @returns {Object} Adapter result
+ */
+function runAdapter(name, opts) {
+  var AdapterStatic = require('./adapters/static');
+  var AdapterNode = require('./adapters/node');
+  var AdapterVercel = require('./adapters/vercel');
+
+  switch (name) {
+    case 'static':
+      return AdapterStatic.runStaticAdapter(opts);
+    case 'node':
+      return AdapterNode.runNodeAdapter(opts);
+    case 'vercel':
+      return AdapterVercel.runVercelAdapter(opts);
+    default:
+      return { errors: [{ code: 'E0000', severity: 'error', message: 'Unknown adapter: ' + name, suggestion: 'Use static, node, or vercel' }] };
+  }
+}
+
+/**
+ * Apply transformHTML plugin hooks to all .html files in a directory.
+ *
+ * @param {string} dir - Directory to process
+ * @param {Object[]} plugins - Loaded plugins
+ */
+function applyHtmlPlugins(dir, plugins) {
+  if (!plugins || plugins.length === 0) return;
+  var htmlFiles = findHtmlFiles(dir);
+  for (var i = 0; i < htmlFiles.length; i++) {
+    var htmlPath = htmlFiles[i];
+    var html = fs.readFileSync(htmlPath, 'utf-8');
+    html = Plugins.transformHTML(plugins, html, path.basename(htmlPath));
+    fs.writeFileSync(htmlPath, html, 'utf-8');
+  }
+}
+
+/**
+ * Find all .html files recursively.
+ *
+ * @param {string} dir - Directory
+ * @returns {string[]} HTML file paths
+ */
+function findHtmlFiles(dir) {
+  var results = [];
+  try {
+    var entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      var fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name !== 'node_modules') {
+        var sub = findHtmlFiles(fullPath);
+        results = results.concat(sub);
+      } else if (entry.name.endsWith('.html')) {
+        results.push(fullPath);
+      }
+    }
+  } catch {}
+  return results;
+}
+
 module.exports = {
   findPjsFiles,
   fileToRoute,
@@ -443,4 +549,5 @@ module.exports = {
   generateSPAHTML,
   buildProject,
   copyDirRecursive,
+  runAdapter,
 };
