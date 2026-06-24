@@ -5,6 +5,79 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.9] — 2026-06-25
+
+**Maturation & Documentation Overhaul.** Role-based access control (peran runtime guard),
+configurable token key (tokenKey directive + dot notation), 3 new CLI init templates,
+doc-dev directory restructuring, and comprehensive planning for v1.0.0.
+
+### Added — peran Role Check [CORE]
+
+- **`peran: admin` front-matter directive** — now emits runtime role check guard.
+  Previously parsed but not evaluated (was deferred to v1.0).
+  Auth guard now checks `localStorage.getItem('__peran')` against the declared role.
+  If role mismatch, redirects to the configured auth redirect path.
+- Role check is emitted after token check (both guards active when both directives present).
+- `peran` without `butuhAuth: benar` has no effect (role check is subordinate to auth guard).
+
+### Added — Configurable Token Key [CORE]
+
+- **`tokenKey: <key>` front-matter directive** — specifies the storage key name
+  for the auth token. Default: `'token'`. Example: `tokenKey: auth_token` emits
+  `localStorage.getItem('auth_token')` instead of `localStorage.getItem('token')`.
+- **Dot notation in `token:` directive** — `token: localStorage.auth_token` parses
+  into source=`localStorage` + key=`auth_token`. Equivalent to `token: localStorage`
+  + `tokenKey: auth_token`.
+- **`tokenKey` takes precedence** over dot notation key when both are present.
+- `tokenKey` added to KNOWN_DIRECTIVES set in lexer for implicit front-matter detection.
+
+### Added — CLI Init Templates
+
+- **`spa` template** (`pjs init -t spa`) — SPA app with `router: benar`, navigation,
+  and 3 pages (beranda, tentang, kontak).
+- **`fullstack` template** (`pjs init -t fullstack`) — Auth-protected dashboard with
+  `butuhAuth: benar`, `peran: admin`, `tokenKey: auth_token`, `router: benar`,
+  login page, dashboard, and settings.
+- **`blog` template** (`pjs init -t blog`) — Data-driven blog with article listing
+  from `data/artikel.json` via `Ulangi` loop.
+
+### Added — Documentation & Planning
+
+- **doc-dev/ restructured** by version/level/type:
+  - `v0.x/specs/` — historical language specifications (v0.1, v0.2)
+  - `v0.x/roadmap/` — roadmaps & status maps
+  - `v0.x/review/` — architecture evaluations & reviews
+  - `v0.x/decisions/` — architecture decision records
+  - `v0.x/reference/` — inventories & reference tables
+  - `v1.0-planning/` — v1.0.0 preparation materials
+  - `tutorial/` — tutorials
+- **SYNTAX-REFERENCE.md** — comprehensive syntax reference covering all keywords,
+  directives, expressions, tag aliases, event aliases, auth patterns, and SPA routing.
+- **V1.0-PREREQUISITES.md** — readiness checklist, decisions required, growth budget,
+  and estimated timeline for v1.0.0.
+- **V1.0-DEMO-APPS.md** — specifications for todo-app and dashboard-app demo applications.
+- **HANDOFF.md** updated to v0.9.9 with current status, architecture, and pitfalls.
+
+### Changed
+
+- **README.md** — version badge updated to 0.9.9, features expanded (auth, SPA, tokenKey),
+  test count updated to 392, roadmap updated through v0.9.9, doc-dev links updated.
+- **v0.9 auth tests** — section 4.5 updated from "v1.0 Evaluation" to "v0.9.9 Runtime Guard",
+  now verifies peran role check emission.
+- **Section numbering** in v0.9 auth tests updated (4.6→4.7, etc.) to accommodate
+  new 4.6 "Configurable Token Key" test section.
+
+### Tests
+
+- 7 new auth tests (22 total in v0.9-auth.test.js):
+  - peran role check emission
+  - peran check after token check (ordering)
+  - no peran check when peran absent
+  - custom token key via tokenKey directive
+  - token key from dot notation
+  - tokenKey override of dot notation
+  - default "token" key when no tokenKey
+
 ## [0.9.0] — 2026-06-25
 
 **Protected Content & Auth Pattern.** Authentication guard compilation,

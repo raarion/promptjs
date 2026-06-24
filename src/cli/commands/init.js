@@ -1,13 +1,13 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — CLI: `init` Command / Perintah `init`
+ * PromptJS v0.9.9 — CLI: `init` Command / Perintah `init`
  * ============================================================================
  *
  * Scaffold proyek PromptJS baru. Buat folder `src/`, `src/pages/`,
  * `src/components/`, file contoh, dan `package.json` minimal.
  *
- * Template yang tersedia: `basic`, `gallery`, `landing`.
+ * Template yang tersedia: `basic`, `counter`, `gallery`, `spa`, `fullstack`, `blog`.
  */
 'use strict';
 
@@ -144,6 +144,216 @@ pjs serve
 \`\`\`
 
 The gallery renders products from \`data/produk.json\` using the Ulangi (loop) construct.
+`,
+  },
+
+  spa: {
+    'index.pjs': `---
+judul: "Aplikasi SPA"
+router: benar
+---
+Halaman:
+    Buat nav#navigasi:
+        Buat tombol[data-halaman="beranda"]: "Beranda"
+        Buat tombol[data-halaman="tentang"]: "Tentang"
+        Buat tombol[data-halaman="kontak"]: "Kontak"
+    Buat div#konten:
+        Buat h2: "Selamat Datang"
+`,
+    'pages/beranda.pjs': `---
+judul: "Beranda"
+---
+Halaman Beranda:
+    Buat judul.utama: "Selamat Datang di Beranda"
+    Buat paragraf: "Ini adalah halaman beranda aplikasi SPA PromptJS."
+`,
+    'pages/tentang.pjs': `---
+judul: "Tentang"
+---
+Halaman Tentang:
+    Buat judul.utama: "Tentang Kami"
+    Buat paragraf: "PromptJS adalah mini-DSL yang mengompail .pjs menjadi JavaScript vanilla."
+`,
+    'pages/kontak.pjs': `---
+judul: "Kontak"
+---
+Halaman Kontak:
+    Buat judul.utama: "Hubungi Kami"
+    Buat paragraf: "Kirim pesan melalui formulir di bawah."
+    Buat formulir:
+        Buat input#nama[placeholder="Nama"]: ""
+        Buat input#email[placeholder="Email"]: ""
+        Buat tombol: "Kirim"
+`,
+    'README.md': `# PromptJS SPA
+
+A single-page application with client-side routing built with PromptJS.
+
+## Features
+
+- Client-side routing via \`router: benar\` directive
+- Multiple pages with navigation
+- Zero dependencies — compiles to vanilla JS
+
+## Run
+
+\`\`\`bash
+pjs serve
+\`\`\`
+
+Click navigation buttons to switch between pages without full reload.
+`,
+  },
+
+  fullstack: {
+    'index.pjs': `butuhAuth: benar
+redirect: "/login"
+token: localStorage
+tokenKey: auth_token
+peran: admin
+router: benar
+---
+Halaman Dashboard:
+    data hitung = 0
+    data nama = ""
+
+    Ketika muat:
+        simpan localStorage.getItem("user_name") ke nama
+
+    Buat nav#navigasi:
+        Buat span: "Dashboard Admin"
+        Buat tombol[data-halaman="dashboard"]: "Dashboard"
+        Buat tombol[data-halaman="pengaturan"]: "Pengaturan"
+        Buat tombol#keluar: "Keluar"
+    Buat div#konten:
+        Buat h2: "Halo, " + $nama
+        Buat div.kontainer:
+            Buat tombol#kurang: "Kurang"
+            Buat span#nilai: $hitung
+            Buat tombol#tambah: "Tambah"
+`,
+    'pages/login.pjs': `---
+judul: "Masuk"
+---
+Halaman Login:
+    data nama = ""
+    data sandi = ""
+
+    Buat div.kartu:
+        Buat h2: "Masuk ke Akun"
+        Buat formulir:
+            Buat label: "Nama Pengguna"
+            Buat input#nama[placeholder="admin"]: ""
+            Buat label: "Kata Sandi"
+            Buat input#sandi[type="password"]: ""
+            Buat tombol#masuk: "Masuk"
+`,
+    'pages/pengaturan.pjs': `---
+judul: "Pengaturan"
+---
+Halaman Pengaturan:
+    Buat judul.utama: "Pengaturan"
+    Buat div.pengaturan:
+        Buat label: "Tema"
+        Buat pilih#tema:
+            Buat opsi[value="terang"]: "Terang"
+            Buat opsi[value="gelap"]: "Gelap"
+`,
+    'data/users.json': `[
+  {
+    "nama": "admin",
+    "peran": "admin"
+  },
+  {
+    "nama": "editor",
+    "peran": "editor"
+  }
+]`,
+    'README.md': `# PromptJS Fullstack
+
+A full-stack pattern app with auth guard, role-based access, and SPA routing.
+
+## Features
+
+- Auth guard via \`butuhAuth: benar\` directive
+- Role-based access via \`peran: admin\` directive
+- Custom token key via \`tokenKey: auth_token\`
+- Client-side routing via \`router: benar\`
+- Login page, dashboard, and settings
+
+## Auth Flow
+
+1. User visits dashboard → auth guard checks \`localStorage.getItem('auth_token')\`
+2. If no token → redirect to \`/login\`
+3. If token exists but wrong role → redirect to \`/login\`
+4. On successful login → set \`localStorage.setItem('auth_token', ...)\`
+
+## Run
+
+\`\`\`bash
+pjs serve
+\`\`\`
+`,
+  },
+
+  blog: {
+    'index.pjs': `---
+judul: "Blog PromptJS"
+---
+Halaman:
+    Buat judul.utama: "Blog PromptJS"
+    Buat div.daftar-artikel:
+        Ulangi untuk artikel dari $artikel:
+            Buat artikel.kartu:
+                Buat h2: $artikel.judul
+                Buat span.tanggal: $artikel.tanggal
+                Buat p: $artikel.ringkasan
+                Buat tombol: "Baca Selengkapnya"
+`,
+    'pages/artikel.pjs': `---
+judul: "Detail Artikel"
+---
+Halaman Artikel:
+    Buat judul.utama: "Judul Artikel"
+    Buat span.tanggal: "1 Januari 2025"
+    Buat div.konten:
+        Buat p: "Isi artikel lengkap ada di sini."
+`,
+    'data/artikel.json': `[
+  {
+    "judul": "Memulai dengan PromptJS",
+    "tanggal": "2025-01-15",
+    "ringkasan": "Pelajari dasar-dasar PromptJS dan buat halaman pertamamu dalam hitungan menit."
+  },
+  {
+    "judul": "Autentikasi dengan butuhAuth",
+    "tanggal": "2025-02-01",
+    "ringkasan": "Lindungi halamanmu dengan auth guard bawaan PromptJS — tanpa library eksternal."
+  },
+  {
+    "judul": "SPA Routing di PromptJS",
+    "tanggal": "2025-03-10",
+    "ringkasan": "Buat aplikasi satu halaman dengan routing klien menggunakan direktif router: benar."
+  }
+]`,
+    'README.md': `# PromptJS Blog
+
+A simple blog template with data-driven article listing built with PromptJS.
+
+## Features
+
+- Data-driven article list from \`data/artikel.json\`
+- Loop rendering with \`Ulangi\` construct
+- Article detail page
+- Clean, minimal design
+
+## Run
+
+\`\`\`bash
+pjs serve
+\`\`\`
+
+Articles are rendered from the JSON data file. Add more entries to see them appear.
 `,
   },
 };

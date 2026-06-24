@@ -532,6 +532,7 @@
       'butuhAuth',
       'redirect',
       'token',
+      'tokenKey',
       'peran',
     ]);
     // Skip leading blank lines, then scan for consecutive known directives

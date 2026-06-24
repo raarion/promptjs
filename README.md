@@ -8,7 +8,7 @@
 
   <p>
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-0.4.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
+    <img alt="Version" src="https://img.shields.io/badge/version-0.9.9-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
@@ -66,6 +66,11 @@ Dengan menjaga _workflow_ yang tetap terasa disiplin sebagai aktivitas _coding_ 
 - **Reaktivitas** — Proxy-based reactivity dengan `data`/`turunan`/`Saat`
 - **Sistem komponen** — `Komponen Nama(props):` + `Buat Nama(prop: nilai)`
 - **Zero dependency** — output JS vanilla, tanpa framework
+- **Auth guard** — `butuhAuth: benar` → runtime token check + role-based access via `peran`
+- **SPA routing** — client-side routing via `router: benar` directive
+- **Configurable token source** — `token: localStorage`, `tokenKey: auth_token`, dot notation support
+- **Plugin system** — 4 transform hooks (transformSource, transformJS, transformCSS, transformHTML)
+- **Deployment adapters** — Static (asset hashing, sitemap), Node (Docker), Vercel (Build Output API v3)
 
 ## Contoh
 
@@ -143,7 +148,7 @@ node src/cli/index.js serve --port 3000
 node src/cli/index.js build --minify
 
 # Scaffold proyek baru
-node src/cli/index.js init -t gallery
+node src/cli/index.js init -t gallery   # atau: basic, counter, spa, fullstack, blog
 ```
 
 <details>
@@ -217,7 +222,7 @@ npm run lint      # ESLint
 npm run typecheck # JSDoc type checking
 ```
 
-263 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, CLI utilities, AST factory, dan visitor pattern.
+392 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, auth guard compilation, SPA routing, CLI utilities, AST factory, dan visitor pattern.
 
 <details>
 <summary><b>🧰 Semua Development Scripts</b></summary>
@@ -524,15 +529,19 @@ promptjs/
 │   └── build-pages.js                # GitHub Pages build script
 │
 └── doc-dev/                          # Development documentation
-    ├── ADR-001-level1-decisions.md   # Architecture Decision Records
-    ├── PromptJS-Spec-v0.1.md         # Specification v0.1
-    ├── PromptJS-Spec-v0.2.md         # Specification v0.2 (latest)
-    ├── PromptJS-Evaluasi-Arsitektur.md  # Architecture evaluation
-    ├── INVENTARIS-STATEMENT-ERROR-CODES.md
-    ├── REVIEW-Level1-PreC4.md        # Level 1 review
-    ├── ROADMAP-Level-1.md            # Development roadmap
-    ├── STATUS-Level-1.md             # Current status
-    └── TUTORIAL-v0.4.md              # v0.4 tutorial
+    ├── v0.x/                         # Historical (pre-v1.0)
+    │   ├── specs/                    # Language specifications
+    │   ├── roadmap/                  # Roadmaps & status
+    │   ├── review/                   # Reviews & evaluations
+    │   ├── decisions/                # Architecture decisions
+    │   └── reference/                # Reference & inventory
+    ├── v1.0-planning/               # v1.0.0 preparation
+    │   ├── HANDOFF.md               # Agent handoff document
+    │   ├── SYNTAX-REFERENCE.md      # Complete syntax reference
+    │   ├── V1.0-PREREQUISITES.md    # v1.0.0 readiness checklist
+    │   └── V1.0-DEMO-APPS.md       # Demo app specifications
+    └── tutorial/                     # Tutorials
+        └── TUTORIAL-v0.4.md         # v0.4 tutorial (to be updated for v1.0)
 ```
 
 </details>
@@ -737,15 +746,20 @@ promptjs/
 
 | # | File | Keterangan |
 |---|------|------------|
-| 1 | [`ADR-001-level1-decisions.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/ADR-001-level1-decisions.md) | Architecture Decision Records |
-| 2 | [`PromptJS-Spec-v0.1.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/PromptJS-Spec-v0.1.md) | Specification v0.1 |
-| 3 | [`PromptJS-Spec-v0.2.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/PromptJS-Spec-v0.2.md) | Specification v0.2 (latest) |
-| 4 | [`PromptJS-Evaluasi-Arsitektur.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/PromptJS-Evaluasi-Arsitektur.md) | Architecture evaluation |
-| 5 | [`INVENTARIS-STATEMENT-ERROR-CODES.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/INVENTARIS-STATEMENT-ERROR-CODES.md) | Statement error codes inventory |
-| 6 | [`REVIEW-Level1-PreC4.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/REVIEW-Level1-PreC4.md) | Level 1 review |
-| 7 | [`ROADMAP-Level-1.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/ROADMAP-Level-1.md) | Development roadmap |
-| 8 | [`STATUS-Level-1.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/STATUS-Level-1.md) | Current status |
-| 9 | [`TUTORIAL-v0.4.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/TUTORIAL-v0.4.md) | v0.4 tutorial |
+| 1 | [`HANDOFF.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v1.0-planning/HANDOFF.md) | Agent handoff document (v0.9.9) |
+| 2 | [`SYNTAX-REFERENCE.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v1.0-planning/SYNTAX-REFERENCE.md) | Complete syntax reference |
+| 3 | [`V1.0-PREREQUISITES.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v1.0-planning/V1.0-PREREQUISITES.md) | v1.0.0 readiness checklist |
+| 4 | [`V1.0-DEMO-APPS.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v1.0-planning/V1.0-DEMO-APPS.md) | Demo app specifications |
+| 5 | [`ROADMAP-FULLSTACK-REALISTIS-FIXED.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/roadmap/ROADMAP-FULLSTACK-REALISTIS-FIXED.md) | Master roadmap v0.5→v1.0 |
+| 6 | [`ROADMAP-Level-1.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/roadmap/ROADMAP-Level-1.md) | Level 1 development roadmap |
+| 7 | [`STATUS-Level-1.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/roadmap/STATUS-Level-1.md) | Level 1 status map |
+| 8 | [`ADR-001-level1-decisions.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/decisions/ADR-001-level1-decisions.md) | Architecture Decision Records |
+| 9 | [`PromptJS-Spec-v0.1.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/specs/PromptJS-Spec-v0.1.md) | Specification v0.1 |
+| 10 | [`PromptJS-Spec-v0.2.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/specs/PromptJS-Spec-v0.2.md) | Specification v0.2 |
+| 11 | [`PromptJS-Evaluasi-Arsitektur.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/review/PromptJS-Evaluasi-Arsitektur.md) | Architecture evaluation |
+| 12 | [`REVIEW-Level1-PreC4.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/review/REVIEW-Level1-PreC4.md) | Level 1 review |
+| 13 | [`INVENTARIS-STATEMENT-ERROR-CODES.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/v0.x/reference/INVENTARIS-STATEMENT-ERROR-CODES.md) | Statement error codes inventory |
+| 14 | [`TUTORIAL-v0.4.md`](https://github.com/raarion/promptjs/blob/main/doc-dev/tutorial/TUTORIAL-v0.4.md) | v0.4 tutorial |
 
 </details>
 
@@ -762,9 +776,14 @@ promptjs/
 ---
 ## Roadmap
 
-- **v0.5** — Modular runtime, tree-shaking, source maps
-- **v1.0** — Plugin system, SSR, component hot-reload
-- **v2.0** — Hydration runtime, Rust/Go port
+- **v0.5** ✅ — Modular runtime, tree-shaking, source maps
+- **v0.6** ✅ — SPA router, lifecycle hooks (mount/unmount)
+- **v0.7** ✅ — Data fetching, event modifiers
+- **v0.8** ✅ — Plugin system, deployment adapters (static/node/vercel)
+- **v0.9** ✅ — Auth guard, protected content, hapus lowering
+- **v0.9.9** ✅ — peran role check, tokenKey config, init templates (6), doc restructure
+- **v1.0** — Demo apps, complete tutorial, CI/CD hardening, npm publish
+- **v1.1+** — LSP, hydration, component library, Rust/Go compiler port
 
 ## Lisensi
 
