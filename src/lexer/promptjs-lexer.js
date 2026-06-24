@@ -302,6 +302,7 @@
     on_dilepas: 'dilepas',
     on_diubah: 'diubah',
     on_disubmit: 'disubmit',
+    on_dikirim: 'dikirim',
     on_difokus: 'difokus',
     on_ditinggal: 'ditinggal',
     on_diarahkan: 'diarahkan',
@@ -672,7 +673,7 @@
     }
 
     // 3. on_event = expr lines
-    if (/^on[_\w]+\s*=/.test(trimmed)) {
+    if (/^on[_\w]+(?:\.[a-zA-Z]+)*\s*=/.test(trimmed)) {
       this._tokenizeEventLine(trimmed, lineNum, baseCol);
       return;
     }

@@ -651,7 +651,19 @@ function install(PromptJSCompiler, accept) {
     this.emit(`try {`);
 
     this.indent++;
-    if (node.event === 'disubmit') this.emit('event.preventDefault();');
+    // v0.7: Event modifiers (.cegah/.prevent, .sekali/.once, .hentikan/.stop)
+    const MODIFIER_MAP = { cegah: 'preventDefault', prevent: 'preventDefault',
+      hentikan: 'stopPropagation', stop: 'stopPropagation' };
+    if (node.modifiers && node.modifiers.length > 0) {
+      for (const mod of node.modifiers) {
+        if (MODIFIER_MAP[mod]) {
+          this.emit(`event.${MODIFIER_MAP[mod]}();`);
+        }
+      }
+    } else if (node.event === 'disubmit') {
+      // Legacy: auto-preventDefault for submit events without explicit modifier
+      this.emit('event.preventDefault();');
+    }
 
     if (node.body) accept(node.body, this);
     if (node.action) {
@@ -1155,60 +1167,93 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitAmbilLuarStatement = function (node) {
-    // "ambil dari URL" → fetch API
+    // v0.7: "Ambil dari URL:" → async IIFE with try/catch/finally
+    // Developer menulis deklaratif, compiler emits async/await di balik layar.
+    // TIDAK ada keyword async di DSL — prinsip ⑨ terjaga.
     const url = this.lowerExpression(node.url);
 
     // Build fetch options
-    let fetchOptions = '{}';
+    let fetchOptionPairs = [];
     if (node.options && node.options.length > 0) {
-      const optPairs = node.options.map((opt) => {
+      node.options.forEach((opt) => {
+        const key = opt.key;
         const val = this.lowerExpression(opt.value);
-        return `"${opt.key}": ${val}`;
-      });
-      fetchOptions = `{ ${optPairs.join(', ')} }`;
-    }
-
-    this.emit(`fetch(${url}, ${fetchOptions})`);
-    this.indent++;
-
-    // Process branches (berhasil, gagal, selalu)
-    if (node.branches && node.branches.length > 0) {
-      node.branches.forEach((branch) => {
-        if (branch.kind === 'berhasil') {
-          this.emit(`.then((__response) => {`);
-          this.indent++;
-          this.emit(`if (!__response.ok) throw new Error("HTTP " + __response.status);`);
-          this.emit(`return __response.json();`);
-          this.indent--;
-          this.emit(`})`);
-          this.emit(`.then((__data) => {`);
-          this.indent++;
-          if (branch.action) accept(branch.action, this);
-          this.indent--;
-          this.emit(`})`);
-        } else if (branch.kind === 'gagal') {
-          this.emit(`.catch((__error) => {`);
-          this.indent++;
-          this.emit(`console.error("AmbilLuar gagal:", __error);`);
-          if (branch.action) accept(branch.action, this);
-          this.indent--;
-          this.emit(`})`);
-        } else if (branch.kind === 'selalu') {
-          this.emit(`.finally(() => {`);
-          this.indent++;
-          if (branch.action) accept(branch.action, this);
-          this.indent--;
-          this.emit(`})`);
+        // Map Indonesian option names to fetch API
+        const keyMap = { metode: 'method', isi: 'body', header: 'headers', mode: 'mode', kredensial: 'credentials' };
+        const jsKey = keyMap[key] || key;
+        // Body needs JSON.stringify if it's an object
+        if (jsKey === 'body') {
+          fetchOptionPairs.push(`"${jsKey}": JSON.stringify(${val})`);
+        } else {
+          fetchOptionPairs.push(`"${jsKey}": ${val}`);
         }
       });
-    } else {
-      // No branches — just log
-      this.emit(`.then(r => r.json())`);
-      this.emit(`.catch(e => console.error(e))`);
     }
 
-    this.emit(`;`);
+    // v0.7: SPA mode — AbortController for request cancellation on unmount
+    if (this.isSPA) {
+      const ctrlVar = this.genVar('ctrl');
+      this.emit(`const ${ctrlVar} = new AbortController();`);
+      this.emit(`__cleanupFns.push(function() { ${ctrlVar}.abort(); });`);
+      fetchOptionPairs.push(`"signal": ${ctrlVar}.signal`);
+    }
+
+    const fetchOptions = fetchOptionPairs.length > 0
+      ? `{ ${fetchOptionPairs.join(', ')} }`
+      : '{}';
+
+    // Emit async IIFE — developer never sees the word "async"
+    this.emit(`(async function() {`);
+    this.indent++;
+    this.emit(`try {`);
+    this.indent++;
+    this.emit(`const __response = await fetch(${url}, ${fetchOptions});`);
+    this.emit(`if (!__response.ok) throw new Error("HTTP " + __response.status);`);
+    this.emit(`const __data = await __response.json();`);
+
+    // berhasil: branch
+    if (node.branches && node.branches.length > 0) {
+      const berhasil = node.branches.find(b => b.kind === 'berhasil');
+      if (berhasil && berhasil.action) {
+        accept(berhasil.action, this);
+      }
+    }
+
     this.indent--;
+    this.emit(`} catch(__error) {`);
+    this.indent++;
+
+    // v0.7: SPA mode — ignore AbortError (request cancelled on unmount)
+    if (this.isSPA) {
+      this.emit(`if (__error.name === "AbortError") return;`);
+    }
+
+    // gagal: branch
+    if (node.branches && node.branches.length > 0) {
+      const gagal = node.branches.find(b => b.kind === 'gagal');
+      if (gagal && gagal.action) {
+        accept(gagal.action, this);
+      } else {
+        this.emit(`console.error("[PromptJS] Ambil gagal:", __error);`);
+      }
+    } else {
+      this.emit(`console.error("[PromptJS] Ambil gagal:", __error);`);
+    }
+
+    this.indent--;
+
+    // selalu: branch
+    const selalu = node.branches ? node.branches.find(b => b.kind === 'selalu') : null;
+    if (selalu && selalu.action) {
+      this.emit(`} finally {`);
+      this.indent++;
+      accept(selalu.action, this);
+      this.indent--;
+    }
+
+    this.emit(`}`);
+    this.indent--;
+    this.emit(`})();`);
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════

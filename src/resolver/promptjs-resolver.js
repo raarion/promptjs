@@ -111,6 +111,10 @@ const JS_GLOBALS = new Set([
   'module',
   '__dirname',
   '__filename',
+  // v0.7: Compiler-generated variables from Ambil dari (AmbilLuarStatement)
+  '__data',
+  '__error',
+  '__response',
 ]);
 
 // ============================================================================

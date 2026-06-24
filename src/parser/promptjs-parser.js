@@ -668,10 +668,26 @@ PromptJSParser.prototype._parseTextNode = function () {
  */
 PromptJSParser.prototype._parseOnEventStatement = function () {
   const startTok = this._advance(); // consume ON_EVENT
-  const eventName = startTok.value;
+  let rawEventName = startTok.value; // e.g. "on_dikirim.cegah.hentikan"
+
+  // v0.7: Parse modifiers from the event name string.
+  // Lexer produces event name as "on_dikirim.cegah" (modifier embedded in string).
+  const modifiers = [];
+  const VALID_MODIFIERS = { cegah: true, prevent: true, sekali: true, once: true, hentikan: true, stop: true };
+
+  if (rawEventName.includes('.')) {
+    const parts = rawEventName.split('.');
+    rawEventName = parts[0]; // The actual event name (e.g. "on_dikirim")
+    for (let i = 1; i < parts.length; i++) {
+      const mod = parts[i].toLowerCase();
+      if (VALID_MODIFIERS[mod]) {
+        modifiers.push(mod);
+      }
+    }
+  }
 
   // Map to PromptJS event name
-  const promptjsEvent = EVENT_ALIASES[eventName] || eventName;
+  const promptjsEvent = EVENT_ALIASES[rawEventName] || rawEventName;
 
   // Expect =
   this._expect(TT.TK_ASSIGN, 'Expected "=" after event name');
@@ -681,8 +697,12 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
 
   const loc = this._makeLoc(startTok);
 
-  // Synthesize KetikaStatement (self-referencing — target will be resolved in Resolver)
-  return AST.buatKetikaStatement(promptjsEvent, loc, null, null, null, action);
+  // Synthesize KetikaStatement with modifiers
+  const node = AST.buatKetikaStatement(promptjsEvent, loc, null, null, null, action);
+  if (modifiers.length > 0) {
+    node.modifiers = modifiers;
+  }
+  return node;
 };
 
 // --- Property or Expression line ---
@@ -1428,17 +1448,78 @@ PromptJSParser.prototype._parseKetikaStatement = function () {
  * Simplified: `ambil <kind> dari <source> ke <target>`
  */
 PromptJSParser.prototype._parseAmbilStatement = function () {
-  const tok = this._advance();
+  const tok = this._advance(); // consume "ambil"/"fetch"
   const loc = this._makeLoc(tok);
 
-  // Parse kind (identifier: nilai, teks, atribut)
+  // v0.7: Detect "Ambil dari URL:" (AmbilLuar) vs "ambil nilai dari elemen" (AmbilDom)
+  // "Ambil dari" = next word is TK_IN (dari/from/in) → AmbilLuarStatement
+  // "ambil nilai dari ..." = next word is TK_IDENT (nilai/teks/atribut) → AmbilDomStatement
+
+  const nextTok = this._peek();
+
+  // Case 1: "Ambil dari URL:" → AmbilLuarStatement
+  if (nextTok.type === TT.TK_IN) {
+    this._advance(); // consume "dari"/"from"
+    const url = this._parseExpression();
+
+    // Expect colon → block body with options + branches
+    this._expect(TT.TK_COLON, 'Expected ":" after URL in Ambil dari');
+
+    // Parse block body: options (metode, isi, header) + branches (berhasil, gagal, selalu)
+    const options = [];
+    const branches = [];
+    const OPTION_KEYS = new Set([
+      'metode', 'method', 'isi', 'body', 'header', 'headers',
+      'mode', 'kredensial', 'credentials',
+    ]);
+    const BRANCH_KEYS = new Set([
+      'berhasil', 'success', 'gagal', 'error', 'selalu', 'always', 'finally',
+    ]);
+    const BRANCH_MAP = {
+      berhasil: 'berhasil', success: 'berhasil',
+      gagal: 'gagal', error: 'gagal',
+      selalu: 'selalu', always: 'selalu', finally: 'selalu',
+    };
+
+    if (this._match(TT.TK_INDENT)) {
+      while (!this._atEnd() && this._peek().type !== TT.TK_DEDENT) {
+        const itemTok = this._peek();
+        if (itemTok.type === TT.TK_IDENT || itemTok.type === TT.TK_IN) {
+          const word = itemTok.value ? itemTok.value.toLowerCase() : '';
+
+          // Option line: "metode = POST"
+          if (OPTION_KEYS.has(word)) {
+            this._advance(); // consume option key
+            this._expect(TT.TK_ASSIGN, 'Expected "=" after option key');
+            const val = this._parseExpression();
+            options.push(AST.buatFetchOption(word, val, this._makeLoc(itemTok)));
+            continue;
+          }
+
+          // Branch: "berhasil:" / "gagal:" / "selalu:"
+          if (BRANCH_MAP[word]) {
+            this._advance(); // consume branch keyword
+            this._expect(TT.TK_COLON, 'Expected ":" after branch keyword');
+            const branchKind = BRANCH_MAP[word];
+            const branchBody = this._parseBlock();
+            branches.push(AST.buatFetchBranch(branchKind, branchBody, this._makeLoc(itemTok)));
+            continue;
+          }
+        }
+
+        // Skip newlines/unknown tokens
+        this._advance();
+      }
+      this._match(TT.TK_DEDENT);
+    }
+
+    return AST.buatAmbilLuarStatement(url, branches, loc, null, options);
+  }
+
+  // Case 2: "ambil nilai/teks/atribut dari ..." → AmbilDomStatement (legacy)
   const kindTok = this._expect(TT.TK_IDENT, 'Expected kind after "ambil"');
   const kind = kindTok ? kindTok.value : 'nilai';
-
-  // Parse source expression (rest of line as expression)
   const source = this._parseExpression();
-
-  // Parse target (string name)
   let target = '_result';
   if (this._peek().type === TT.TK_KE) {
     this._advance();
