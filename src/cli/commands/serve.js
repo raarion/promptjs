@@ -93,7 +93,7 @@ const ERROR_OVERLAY_JS = `
  *
  * @param {string} jsCode - Kode JS hasil compile
  * @param {string} filePath - Path file `.pjs` asli
- * @param {{ liveReload: boolean, css?: string }} options - Opsi serve
+ * @param {{ liveReload: boolean, css?: string, sourceMap?: string|null }} options - Opsi serve
  * @returns {string} String HTML lengkap
  */
 function wrapInHtml(jsCode, filePath, options) {

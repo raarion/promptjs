@@ -75,14 +75,12 @@ describe('v0.5 — 0.1 Source Maps', () => {
     });
 
     it('has mappings for statements with source locations', () => {
-      const result = compileWithMap(
-        'Buat h1: "Hello"\nBuat p: "World"'
-      );
+      const result = compileWithMap('Buat h1: "Hello"\nBuat p: "World"');
       expect(result.success).toBe(true);
       // Mappings should contain semicolons (one per output line with mapping)
       const mappings = result.sourceMap.mappings;
       // At least some non-empty segments should exist
-      const segments = mappings.split(';').filter(s => s.length > 0);
+      const segments = mappings.split(';').filter((s) => s.length > 0);
       expect(segments.length).toBeGreaterThan(0);
     });
   });
@@ -124,9 +122,7 @@ describe('v0.5 — 0.2 Tree Shaking Runtime Helpers', () => {
   });
 
   it('includes __createComputed + __createReactive for turunan', () => {
-    const result = compile(
-      'data hitung = 0\nturunan ganda = hitung * 2\nBuat p: ganda'
-    );
+    const result = compile('data hitung = 0\nturunan ganda = hitung * 2\nBuat p: ganda');
     expect(result.success).toBe(true);
     expect(result.js).toContain('__createReactive');
     expect(result.js).toContain('__createComputed');
@@ -144,9 +140,7 @@ describe('v0.5 — 0.2 Tree Shaking Runtime Helpers', () => {
   });
 
   it('includes __pjs_handleError only when events are used', () => {
-    const result = compile(
-      'Buat tombol:\n    "Klik"\n    on_klik = alert("hai")'
-    );
+    const result = compile('Buat tombol:\n    "Klik"\n    on_klik = alert("hai")');
     expect(result.success).toBe(true);
     expect(result.js).toContain('__pjs_handleError');
     // Static-only helpers should NOT appear
@@ -158,7 +152,7 @@ describe('v0.5 — 0.2 Tree Shaking Runtime Helpers', () => {
     const staticResult = compile('Buat h1: "Halo"\nBuat p: "Dunia"');
     const reactiveResult = compile(
       'data hitung = 0\nturunan ganda = hitung * 2\n' +
-      'Buat tombol:\n    "Klik"\n    on_klik = alert(hitung)'
+        'Buat tombol:\n    "Klik"\n    on_klik = alert(hitung)'
     );
 
     expect(staticResult.success).toBe(true);
@@ -176,9 +170,7 @@ describe('v0.5 — 0.2 Tree Shaking Runtime Helpers', () => {
 
 describe('v0.5 — 0.3 Error Boundaries', () => {
   it('wraps event handler body in try/catch', () => {
-    const result = compile(
-      'Buat tombol:\n    "Klik"\n    on_klik = alert("hi")'
-    );
+    const result = compile('Buat tombol:\n    "Klik"\n    on_klik = alert("hi")');
     expect(result.success).toBe(true);
     // Must have try/catch in the event listener
     expect(result.js).toContain('try {');
@@ -188,9 +180,7 @@ describe('v0.5 — 0.3 Error Boundaries', () => {
   });
 
   it('error boundary context includes event hook name', () => {
-    const result = compile(
-      'Buat tombol:\n    "Klik"\n    on_klik = alert("hi")'
-    );
+    const result = compile('Buat tombol:\n    "Klik"\n    on_klik = alert("hi")');
     expect(result.success).toBe(true);
     // Should reference the specific event hook
     expect(result.js).toContain('"on_diklik"');

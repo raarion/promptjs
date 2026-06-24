@@ -652,8 +652,12 @@ function install(PromptJSCompiler, accept) {
 
     this.indent++;
     // v0.7: Event modifiers (.cegah/.prevent, .sekali/.once, .hentikan/.stop)
-    const MODIFIER_MAP = { cegah: 'preventDefault', prevent: 'preventDefault',
-      hentikan: 'stopPropagation', stop: 'stopPropagation' };
+    const MODIFIER_MAP = {
+      cegah: 'preventDefault',
+      prevent: 'preventDefault',
+      hentikan: 'stopPropagation',
+      stop: 'stopPropagation',
+    };
     if (node.modifiers && node.modifiers.length > 0) {
       for (const mod of node.modifiers) {
         if (MODIFIER_MAP[mod]) {
@@ -717,7 +721,9 @@ function install(PromptJSCompiler, accept) {
       const h = this._pendingSpaHandler;
       this.emit('};');
       this.emit(`${h.target}.addEventListener("${h.eventName}", ${h.handlerVar});`);
-      this.emit(`__cleanupFns.push(function() { ${h.target}.removeEventListener("${h.eventName}", ${h.handlerVar}); });`);
+      this.emit(
+        `__cleanupFns.push(function() { ${h.target}.removeEventListener("${h.eventName}", ${h.handlerVar}); });`
+      );
       this._pendingSpaHandler = null;
     } else {
       this.emit('});');
@@ -1173,13 +1179,19 @@ function install(PromptJSCompiler, accept) {
     const url = this.lowerExpression(node.url);
 
     // Build fetch options
-    let fetchOptionPairs = [];
+    const fetchOptionPairs = [];
     if (node.options && node.options.length > 0) {
       node.options.forEach((opt) => {
         const key = opt.key;
         const val = this.lowerExpression(opt.value);
         // Map Indonesian option names to fetch API
-        const keyMap = { metode: 'method', isi: 'body', header: 'headers', mode: 'mode', kredensial: 'credentials' };
+        const keyMap = {
+          metode: 'method',
+          isi: 'body',
+          header: 'headers',
+          mode: 'mode',
+          kredensial: 'credentials',
+        };
         const jsKey = keyMap[key] || key;
         // Body needs JSON.stringify if it's an object
         if (jsKey === 'body') {
@@ -1198,9 +1210,7 @@ function install(PromptJSCompiler, accept) {
       fetchOptionPairs.push(`"signal": ${ctrlVar}.signal`);
     }
 
-    const fetchOptions = fetchOptionPairs.length > 0
-      ? `{ ${fetchOptionPairs.join(', ')} }`
-      : '{}';
+    const fetchOptions = fetchOptionPairs.length > 0 ? `{ ${fetchOptionPairs.join(', ')} }` : '{}';
 
     // Emit async IIFE — developer never sees the word "async"
     this.emit(`(async function() {`);
@@ -1213,7 +1223,7 @@ function install(PromptJSCompiler, accept) {
 
     // berhasil: branch
     if (node.branches && node.branches.length > 0) {
-      const berhasil = node.branches.find(b => b.kind === 'berhasil');
+      const berhasil = node.branches.find((b) => b.kind === 'berhasil');
       if (berhasil && berhasil.action) {
         accept(berhasil.action, this);
       }
@@ -1230,7 +1240,7 @@ function install(PromptJSCompiler, accept) {
 
     // gagal: branch
     if (node.branches && node.branches.length > 0) {
-      const gagal = node.branches.find(b => b.kind === 'gagal');
+      const gagal = node.branches.find((b) => b.kind === 'gagal');
       if (gagal && gagal.action) {
         accept(gagal.action, this);
       } else {
@@ -1243,7 +1253,7 @@ function install(PromptJSCompiler, accept) {
     this.indent--;
 
     // selalu: branch
-    const selalu = node.branches ? node.branches.find(b => b.kind === 'selalu') : null;
+    const selalu = node.branches ? node.branches.find((b) => b.kind === 'selalu') : null;
     if (selalu && selalu.action) {
       this.emit(`} finally {`);
       this.indent++;

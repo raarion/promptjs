@@ -171,7 +171,9 @@ describe('v0.7 — 2.1b Ambil dari options', () => {
 describe('v0.7 — 2.1c SPA Request Cancellation', () => {
   it('emits AbortController in SPA mode', () => {
     const src = [
-      '---', 'router: benar', '---',
+      '---',
+      'router: benar',
+      '---',
       'Ambil dari "/api/data":',
       '    berhasil:',
       '        tampilkan "ok"',
@@ -187,7 +189,9 @@ describe('v0.7 — 2.1c SPA Request Cancellation', () => {
 
   it('ignores AbortError in SPA catch block', () => {
     const src = [
-      '---', 'router: benar', '---',
+      '---',
+      'router: benar',
+      '---',
       'Ambil dari "/api/data":',
       '    berhasil:',
       '        tampilkan "ok"',
@@ -198,11 +202,7 @@ describe('v0.7 — 2.1c SPA Request Cancellation', () => {
   });
 
   it('does NOT emit AbortController in non-SPA mode', () => {
-    const src = [
-      'Ambil dari "/api/data":',
-      '    berhasil:',
-      '        tampilkan "ok"',
-    ].join('\n');
+    const src = ['Ambil dari "/api/data":', '    berhasil:', '        tampilkan "ok"'].join('\n');
     const result = compile(src);
     expect(result.success).toBe(true);
     expect(result.isSPA).toBe(false);

@@ -1,11 +1,12 @@
 // @ts-check
 
 /**
- * PromptJS v0.4.0 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
+ * PromptJS v0.8 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
  * ============================================================================
  *
  * Wires: Lexer → Parser → Resolver → Analyzer → Compiler.
  * v0.4.0: Module system (Wave H) + CSS support (Wave I).
+ * v0.8.0: Plugin system — 4 transform hooks applied per compile/build.
  *
  * Extended result: { js, css, errors, warnings, ast, success }
  */
@@ -19,6 +20,7 @@ const Analyzer = require('../analyzer/promptjs-analyzer');
 const Compiler = require('../compiler/promptjs-compiler');
 const Modules = require('./modules');
 const CSS = require('./css');
+const Plugins = require('./plugins');
 
 const fs = require('fs');
 const path = require('path');
@@ -57,7 +59,7 @@ function PromptJSEngine() {
 /**
  * Compile a PromptJS source string into vanilla JS.
  *
- * @param {string} source - PromptJS source code
+ * @param {string} sourceInput - PromptJS source code
  * @param {object} [options] - Compilation options
  * @param {string} [options.source] - Source identifier for comments
  * @param {boolean} [options.dev] - Dev mode (includes source maps, HMR helpers)
@@ -65,16 +67,24 @@ function PromptJSEngine() {
  * @param {boolean} [options.loadDataFiles] - Whether to load file-referenced data (default: true)
  * @param {string} [options.pageName] - Page name for SPA factory function (v0.6)
  * @param {string} [options.pageRoute] - Route path for SPA page (v0.6)
+ * @param {Array} [options.plugins] - Plugin instances (v0.8)
  * @returns {object} { js, css, errors, warnings, ast, sourceMap, success }
  */
-PromptJSEngine.prototype.compile = function (source, options) {
+PromptJSEngine.prototype.compile = function (sourceInput, options) {
   this.errors = [];
   this.warnings = [];
   Object.assign(this.options, options || {});
 
+  // v0.8: Apply transformSource hook (before any pipeline stage)
+  const plugins = this.options.plugins || [];
+  const filename = this.options.source || 'unknown.pjs';
+  const source = Plugins.transformSource(plugins, sourceInput, filename);
+
   // ── Wave I: CSS extraction (before lexing) ─────────────────────────────
   // Extract Gaya:/Style: blocks from source, produce CSS + clean source
-  const { css, cleanSource } = CSS.processGayaBlocks(source, this.options.scope);
+  const cssResult = CSS.processGayaBlocks(source, this.options.scope);
+  let css = cssResult.css;
+  const cleanSource = cssResult.cleanSource;
 
   // ── Stage 1: LEXER ──────────────────────────────────────────────────────
   const lexResult = Lexer.tokenize(cleanSource);
@@ -127,7 +137,12 @@ PromptJSEngine.prototype.compile = function (source, options) {
   // not user data. They should NOT become TetapDeclaration nodes in the AST
   // (which would emit `const router = "benar"` to output — wasteful).
   const FRONT_MATTER_DIRECTIVES = new Set([
-    'router', 'adapter', 'butuhAuth', 'redirect', 'token', 'peran',
+    'router',
+    'adapter',
+    'butuhAuth',
+    'redirect',
+    'token',
+    'peran',
   ]);
   let parserFrontMatter = frontMatterData;
   if (frontMatterData) {
@@ -213,12 +228,12 @@ PromptJSEngine.prototype.compile = function (source, options) {
 
   // ── Stage 5: COMPILER ───────────────────────────────────────────────────
   // v0.6: Detect SPA mode from front-matter (router: benar / router: true)
-  var isSPA = false;
-  var pageName = this.options.pageName || 'page';
-  var pageRoute = this.options.pageRoute || null;
+  let isSPA = false;
+  const pageName = this.options.pageName || 'page';
+  const pageRoute = this.options.pageRoute || null;
   if (frontMatterData && frontMatterData.router) {
-    var routerVal = frontMatterData.router;
-    var rawVal = (routerVal && routerVal.value !== undefined) ? routerVal.value : routerVal;
+    const routerVal = frontMatterData.router;
+    const rawVal = routerVal && routerVal.value !== undefined ? routerVal.value : routerVal;
     if (rawVal === true || rawVal === 'benar' || rawVal === 'true') {
       isSPA = true;
     }
@@ -232,7 +247,7 @@ PromptJSEngine.prototype.compile = function (source, options) {
 
   const compiler = new Compiler();
   let js;
-  let sourceMap = null;
+  let sourceMap;
   try {
     js = compiler.compile(analyzeResult.ast);
     // v0.5: Generate source map
@@ -246,6 +261,10 @@ PromptJSEngine.prototype.compile = function (source, options) {
     });
     return this._makeResult(null, this.errors, this.warnings, null, css);
   }
+
+  // v0.8: Apply transformJS and transformCSS hooks (after compile)
+  js = Plugins.transformJS(plugins, js, filename);
+  css = Plugins.transformCSS(plugins, css, filename);
 
   return this._makeResult(js, this.errors, this.warnings, analyzeResult.ast, css, sourceMap);
 };

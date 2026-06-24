@@ -1,11 +1,12 @@
 // @ts-check
 
 /**
- * PromptJS v0.4.0 — CLI: `build` Command / Perintah `build`
+ * PromptJS v0.8 — CLI: `build` Command / Perintah `build`
  * ============================================================================
  *
  * Build production: compile + minify + prerender HTML via jsdom.
  * v0.4.0: Multi-file project build with prompt.js + prompt.css output.
+ * v0.8.0: Config loading, plugin support, adapter flag (--adapter).
  *
  * Output: folder `dist/` berisi `.html`, `prompt.js`, `prompt.css`, dan static assets.
  */
@@ -15,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { PromptJSEngine } = require('../../engine/promptjs');
 const Builder = require('../../engine/builder');
+const Config = require('../../engine/config');
 const {
   findPjsFiles,
   printDiagnostics,
@@ -36,11 +38,20 @@ const {
  */
 function runBuild(argv) {
   const inputDir = argv._[0] || '.';
-  const outDir = argv['out-dir'] || argv.outDir || 'dist';
+  const outDir = argv['out-dir'] || argv.outDir || null;
   const prerender = argv.prerender || false;
   const minify = argv.minify || false;
+  const adapterFlag = argv.adapter || null;
   const rootDir = path.resolve(inputDir);
-  const distDir = path.resolve(outDir);
+
+  // v0.8: Load project config
+  const {
+    config: projectConfig,
+    errors: _configErrors,
+    rootDir: _configRootDir,
+  } = Config.loadProjectConfig(rootDir, argv);
+
+  const distDir = path.resolve(outDir || projectConfig.outDir || 'dist');
 
   if (!fs.existsSync(rootDir)) {
     process.stderr.write(`Error: Directory '${inputDir}' does not exist.\n`);
@@ -59,17 +70,32 @@ function runBuild(argv) {
       ? pagesInRoot
       : null;
 
+  // v0.8: Determine adapter (CLI flag > config file > none)
+  const adapter = adapterFlag || projectConfig.adapter || null;
+
   if (pagesDir && fs.statSync(pagesDir).isDirectory()) {
     const projectRoot = fs.existsSync(pagesInSrc) ? srcDir : rootDir;
-    process.stderr.write(`\n${bold}PromptJS v0.4.0 — Project Build${reset}\n`);
+    process.stderr.write(`\n${bold}PromptJS v0.8 — Project Build${reset}\n`);
     process.stderr.write(`  Source: ${cyan}${projectRoot}${reset}\n`);
-    process.stderr.write(`  Output: ${cyan}${distDir}${reset}\n\n`);
+    process.stderr.write(`  Output: ${cyan}${distDir}${reset}\n`);
+    if (adapter) {
+      process.stderr.write(`  Adapter: ${cyan}${adapter}${reset}\n`);
+    }
+    if (projectConfig.plugins.length > 0) {
+      process.stderr.write(`  Plugins: ${cyan}${projectConfig.plugins.length}${reset}\n`);
+    }
+    process.stderr.write('\n');
 
     const startTotal = process.hrtime();
     const result = Builder.buildProject({
       rootDir: projectRoot,
       outDir: distDir,
       pagesDir: 'pages',
+      adapter: adapter,
+      plugins: projectConfig.plugins,
+      meta: projectConfig.meta,
+      siteUrl: projectConfig.siteUrl,
+      apiUrl: projectConfig.apiUrl,
     });
 
     if (result.errors.length > 0) {
@@ -93,6 +119,24 @@ function runBuild(argv) {
     for (const page of result.pages) {
       process.stderr.write(`  ${green}✓${reset} ${page.htmlFile} (${page.route})\n`);
     }
+    // Report adapter results
+    if (result.adapter) {
+      if (result.adapter.hashedAssets) {
+        const ha = result.adapter.hashedAssets;
+        if (ha.js) process.stderr.write(`  ${gray}Asset hash:${reset} ${ha.js}\n`);
+        if (ha.css) process.stderr.write(`  ${gray}Asset hash:${reset} ${ha.css}\n`);
+      }
+      if (result.adapter.serverPath) {
+        process.stderr.write(`  ${gray}Generated:${reset} server.js + Dockerfile\n`);
+      }
+      if (result.adapter.vercelJsonPath) {
+        process.stderr.write(`  ${gray}Generated:${reset} vercel.json + .vercel/output/\n`);
+      }
+      if (result.adapter.sitemap) {
+        process.stderr.write(`  ${gray}Generated:${reset} sitemap.xml\n`);
+      }
+    }
+
     process.stderr.write(`\n  ${gray}Done in ${elapsed}${reset}\n\n`);
 
     if (result.errors.some((e) => e.severity === 'error')) {

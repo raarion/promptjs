@@ -166,12 +166,7 @@ function __promptjs_apakahAda(arr, item) {
 // ============================================================================
 // HELPERS YANG MEMBUTUHKAN REACTIVE INFRASTRUCTURE
 // ============================================================================
-const REACTIVE_HELPERS = new Set([
-  '__createReactive',
-  '__createComputed',
-  '__watch',
-  '__cleanup',
-]);
+const REACTIVE_HELPERS = new Set(['__createReactive', '__createComputed', '__watch', '__cleanup']);
 
 // ============================================================================
 // BACKWARD COMPAT: RUNTIME_HELPERS monolith (untuk snapshot tests)
@@ -182,8 +177,7 @@ const REACTIVE_HELPERS = new Set([
  * that imports RUNTIME_HELPERS directly.
  * @type {string}
  */
-const RUNTIME_HELPERS = REACTIVE_INFRA + '\n\n' +
-  Object.values(RUNTIME_HELPER_MAP).join('\n\n');
+const RUNTIME_HELPERS = REACTIVE_INFRA + '\n\n' + Object.values(RUNTIME_HELPER_MAP).join('\n\n');
 
 // ============================================================================
 // EMIT FUNCTION
@@ -211,7 +205,7 @@ function emitRuntimeHelpers(compiler) {
   compiler.emit('// === Runtime Helpers ===');
 
   // Emit shared reactive infrastructure jika ada helper reaktif yang dipakai
-  const needsReactive = [...needed].some(h => REACTIVE_HELPERS.has(h));
+  const needsReactive = [...needed].some((h) => REACTIVE_HELPERS.has(h));
   if (needsReactive) {
     compiler.output.push(REACTIVE_INFRA);
     compiler.emit('');

@@ -9,8 +9,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { compile } from '../src/engine/promptjs.js';
-import Codegen from '../src/compiler/utils/codegen.js';
-import RuntimeEmitter from '../src/compiler/emitters/runtime.js';
+import _Codegen from '../src/compiler/utils/codegen.js';
+import _RuntimeEmitter from '../src/compiler/emitters/runtime.js';
 import { ROUTER_RUNTIME } from '../src/engine/router-runtime.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -77,7 +77,9 @@ describe('v0.6 — 1.1 SPA Factory Function', () => {
 
   it('SPA mode: watchers are tracked for cleanup', () => {
     const source = [
-      '---', 'router: benar', '---',
+      '---',
+      'router: benar',
+      '---',
       'data hitung = 0',
       'Halaman Beranda:',
       '    Buat p #info:',
@@ -96,7 +98,9 @@ describe('v0.6 — 1.1 SPA Factory Function', () => {
     // dipasang is valid inside Komponen declarations (parser restriction)
     // Component must be declared before use
     const source = [
-      '---', 'router: benar', '---',
+      '---',
+      'router: benar',
+      '---',
       'Komponen InfoBox:',
       '    Buat p #msg:',
       '        teks = "Loading"',
@@ -116,7 +120,9 @@ describe('v0.6 — 1.1 SPA Factory Function', () => {
 
   it('SPA mode: dilepas hook collected for unmount() (inside component)', () => {
     const source = [
-      '---', 'router: benar', '---',
+      '---',
+      'router: benar',
+      '---',
       'Komponen InfoBox:',
       '    Buat p #msg:',
       '        teks = "Active"',

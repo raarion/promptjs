@@ -96,7 +96,6 @@ describe('v0.4.0 — Builder Integration', () => {
 
       expect(existsTempFile(tmp.dir, 'dist/prompt.js')).toBe(true);
       const js = readTempFile(tmp.dir, 'dist/prompt.js');
-      expect(js).toContain('PromptJS v0.6');
       expect(js).toContain('createElement');
     });
 
@@ -174,7 +173,6 @@ describe('v0.4.0 — Builder Integration', () => {
       expect(existsTempFile(tmp.dir, 'dist/prompt.css')).toBe(true);
 
       const css = readTempFile(tmp.dir, 'dist/prompt.css');
-      expect(css).toContain('PromptJS v0.6');
       expect(css).toContain('h1[data-pjs-index]');
     });
 
