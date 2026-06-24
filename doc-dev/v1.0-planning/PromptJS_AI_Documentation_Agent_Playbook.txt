@@ -1,0 +1,158 @@
+PROMPTJS AI DOCUMENTATION AGENT PLAYBOOK
+
+TUJUAN:
+Agent wajib menjadi peneliti, analis, penguji, reviewer, lalu penulis.
+Dilarang membuat dokumentasi sebelum fase penelitian selesai.
+
+FASE 0 — KONSTITUSI AGENT
+- Jangan menganggap diri sudah memahami PromptJS.
+- Jangan menyimpulkan tanpa bukti.
+- Jangan mengklaim fitur tanpa referensi file.
+- Kode adalah sumber kebenaran tertinggi.
+- Test dan examples lebih dipercaya daripada README.
+
+Output:
+- Daftar asumsi awal
+- Daftar hal yang belum diketahui
+
+FASE 1 — INVENTARISASI REPOSITORY
+- Clone repository
+- Telusuri seluruh struktur file
+- Kelompokkan file berdasarkan fungsi
+- Buat peta proyek
+
+Output:
+- Repository Map
+- Folder Classification
+- Dependency Overview
+- Daftar file penting
+
+FASE 2 — PEMBELAJARAN MENYELURUH
+Prioritas:
+1. README
+2. CHANGELOG
+3. docs-dev
+4. src
+5. tests
+6. examples
+
+Untuk setiap file:
+- Ringkasan
+- Konsep baru
+- Fitur baru
+- Pertanyaan yang muncul
+
+Output:
+Knowledge Ledger:
+- Konsep
+- Lokasi bukti
+- Status:
+  - Terverifikasi
+  - Hipotesis
+  - Tidak diketahui
+
+FASE 3 — MENTAL MODEL SYSTEM
+Petakan:
+Source → Lexer → Parser → Resolver → Analyzer → Compiler → Runtime
+
+Output:
+- Architecture Map
+- Feature Flow Map
+- Runtime Flow Map
+- Compiler Flow Map
+
+FASE 4 — FITUR DAN SINTAKS
+Untuk setiap fitur:
+- Nama
+- Tujuan
+- Sintaks
+- Implementasi
+- Test terkait
+- Example terkait
+
+Output:
+Feature Matrix
+
+FASE 5 — VALIDASI MELALUI TEST
+Analisis seluruh test.
+
+Output:
+- Coverage Knowledge Map
+- Area tanpa test
+- Area berisiko tinggi
+
+FASE 6 — VALIDASI MELALUI EXAMPLES
+Pelajari dan jalankan examples.
+
+Output:
+Example Matrix
+
+FASE 7 — EKSPERIMEN MANDIRI
+Buat:
+- Counter
+- Todo
+- Form
+- Routing
+- Auth
+- Nested Components
+- Derived State
+- Watchers
+- Plugin Usage
+- Adapter Usage
+
+Output:
+Experiment Report
+
+FASE 8 — BUG HUNT
+Bertindak sebagai pengguna nyata.
+
+Cari:
+- Bug
+- Desain membingungkan
+- Dokumentasi hilang
+- Inkonsistensi
+
+Output:
+Bug & Risk Report
+
+FASE 9 — GAP ANALYSIS
+Bandingkan:
+README
+Implementasi
+Tests
+Examples
+
+Output:
+Documentation Gap Report
+
+FASE 10 — GATE REVIEW
+Pertanyaan wajib:
+- Apakah fitur utama sudah dipetakan?
+- Apakah sintaks utama sudah dipahami?
+- Apakah implementasi sudah dipelajari?
+- Apakah test sudah dianalisis?
+- Apakah examples sudah dipelajari?
+- Apakah eksperimen sudah dilakukan?
+- Apakah gap report selesai?
+
+Jika ada satu jawaban TIDAK:
+JANGAN MENULIS DOKUMENTASI.
+
+FASE 11 — PENULISAN DOKUMENTASI
+Urutan:
+1. README
+2. docs/user
+3. docs/language
+4. docs/examples
+5. docs/reference
+6. docs/project
+
+FASE 12 — REVIEW INTERNAL
+Verifikasi:
+- Akurat
+- Konsisten
+- Sesuai implementasi
+- Tidak berlebihan
+
+ATURAN EMAS:
+Jangan pernah mengklaim sudah memahami PromptJS tanpa bukti yang dapat ditelusuri ke source code, tests, examples, dan dokumentasi proyek.
