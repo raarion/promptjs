@@ -1,7 +1,7 @@
 # PromptJS — Agent Handoff Document
 
 > **Terakhir diperbarui:** 2026-06-24
-> **Versi repo:** v0.8.0 (main, commit b3e5f31)
+> **Versi repo:** v0.9.9 (branch `feat/v0.9.9-maturation`, soon → main)
 > **Tujuan:** Memungkinkan AI agent atau developer baru melanjutkan development tanpa konteks percakapan sebelumnya.
 
 ---
@@ -10,18 +10,23 @@
 
 | Item | Status |
 |------|--------|
-| Branch | `main` saja (semua stale branch sudah dihapus) |
+| Branch | `feat/v0.9.9-maturation` (PR belum dibuat) |
 | CI | Hijau di GitHub Actions (Node 22.x + 24.x) |
-| Tests | 370 passed, 3 skipped, 15 test files |
-| Version | `0.4.0` di package.json (BELUM diupdate ke 0.8.0) |
-| CHANGELOG | Sudah ada entry v0.5.0 s/d v0.8.0 |
-| Fase selesai | FASE 0 (v0.5), FASE 1 (v0.6), FASE 2 (v0.7), FASE 3 (v0.8) |
-| Fase berikutnya | **FASE 4 — Protected Content & Auth Pattern (v0.9)** |
+| Tests | 392 passed, 3 skipped, 16 test files |
+| Version | `0.9.0` di package.json (akan di-bump ke 0.9.9) |
+| CHANGELOG | Sudah ada entry v0.5.0 s/d v0.9.0 |
+| Fase selesai | FASE 0 (v0.5), FASE 1 (v0.6), FASE 2 (v0.7), FASE 3 (v0.8), FASE 4 (v0.9), v0.9.9 Maturation |
+| Fase berikutnya | **v1.0.0 — FASE 5: Templates, Demo Apps, Docs, npm Publish** |
 
-### Yang Perlu Ditindaklanjuti Segera
+### Yang Sudah Selesai di v0.9.9
 
-1. **Bump package.json version ke `0.8.0`** — saat ini masih `0.4.0`
-2. **Pastikan Husky pre-commit hook bekerja** — `prepare` script ada, `.husky/` harus ada di repo
+1. `peran` role check — compiler now emits runtime guard (`__peran !== __allowedPeran → redirect`)
+2. `tokenKey` configurable token key — supports `tokenKey: auth_token` directive and dot notation `token: localStorage.auth_token`
+3. `tokenKey` added to KNOWN_DIRECTIVES in lexer for implicit front-matter detection
+4. 7 new auth tests (22 total in v0.9-auth.test.js)
+5. 3 new CLI init templates: `spa`, `fullstack`, `blog`
+6. doc-dev/ restructured by version/level/task/phase/type
+7. v1.0-planning/ folder created with handoff and planning docs
 
 ---
 
@@ -75,7 +80,7 @@ src/cli/commands/
     compile.js  → pjs compile file.pjs
     serve.js    → pjs serve (dev server + WebSocket live-reload)
     build.js    → pjs build [--adapter static|node|vercel] [--spa]
-    init.js     → pjs init -t <template>
+    init.js     → pjs init -t <template>  (6 templates: basic, counter, gallery, spa, fullstack, blog)
 src/cli/utils.js → shared utilities
 ```
 
@@ -93,12 +98,15 @@ promptjs/
 │   │   └── adapters/   (3 files: node.js, static.js, vercel.js)
 │   ├── cli/            (5 files: index, compile, serve, build, init, utils)
 │   └── utils/          (1 file: visitor.js)
-├── tests/              (15 test files, 370 tests)
+├── tests/              (16 test files, 392 tests)
 ├── examples/           (3 .pjs files: counter, gallery, todo)
 ├── scripts/            (build-pages.js)
-├── doc-dev/            (ROADMAP files, this handoff)
+├── doc-dev/            (restructured by version/level/type)
+│   ├── v0.x/           (historical: specs, roadmaps, reviews, decisions, reference)
+│   ├── v1.0-planning/  (v1.0.0 preparation materials)
+│   └── tutorial/       (tutorials)
 ├── assets/             (static assets for examples/showcase)
-├── .github/workflows/  (ci.yml, pages.yml)
+├── .github/workflows/  (ci.yml, pages.yml — updated to latest action versions)
 ├── .husky/             (pre-commit hooks)
 ├── jsconfig.json       (JSDoc + checkJs config)
 ├── vitest.config.js
@@ -120,13 +128,13 @@ promptjs/
 | Testing | Vitest 4.x | `npm test` = `vitest run` |
 | Type checking | TypeScript JSDoc (`checkJs: true`) | `jsconfig.json`, `npm run typecheck` |
 | Linting | ESLint + Prettier | `npm run lint` (zero warnings allowed) |
-| CI | GitHub Actions | `ci.yml` (lint+test+smoke), `pages.yml` (deploy) |
+| CI | GitHub Actions (checkout@v7, setup-node@v6) | `ci.yml` (lint+test+smoke), `pages.yml` (deploy) |
 | Git hooks | Husky + lint-staged | Pre-commit: format + lint |
 
 ### npm Scripts
 
 ```
-npm test          → vitest run (370 tests)
+npm test          → vitest run (392 tests)
 npm run typecheck → tsc --noEmit
 npm run lint      → eslint . --max-warnings=0
 npm run format    → prettier --write .
@@ -163,7 +171,7 @@ npm run pjs       → node src/cli/index.js (CLI access)
 ```
 
 **Setiap fitur baru HARUS diaudit terhadap prinsip ini.**
-Lihat `doc-dev/ROADMAP-FULLSTACK-REALISTIS-FIXED.md` untuk analisis lengkap.
+Lihat `doc-dev/v0.x/roadmap/ROADMAP-FULLSTACK-REALISTIS-FIXED.md` untuk analisis lengkap.
 
 ---
 
@@ -173,20 +181,17 @@ Lihat `doc-dev/ROADMAP-FULLSTACK-REALISTIS-FIXED.md` untuk analisis lengkap.
 - Source Maps V3 + VLQ encoding
 - Tree Shaking runtime helpers (emit hanya yang dipakai)
 - Error Boundaries (try/catch di event handlers + lifecycle hooks)
-- File: `src/compiler/utils/codegen.js`, `src/compiler/emitters/runtime.js`, `src/compiler/promptjs-compiler.js`
 - Tests: `tests/v0.5-compiler-infra.test.js`
 
 ### v0.6.0 — FASE 1: SPA Capability
 - Lifecycle mount/unmount (factory function pattern per halaman)
 - Client-side router (pushState + popstate, opt-in via `router: benar`)
 - Multi-page SPA bundling di builder
-- File: `src/engine/router-runtime.js`, `src/engine/builder.js`, `src/compiler/emitters/statements.js`
 - Tests: `tests/v0.6-spa.test.js`
 
 ### v0.7.0 — FASE 2: Data Fetching & Event Modifiers
 - `Ambil dari URL:` diperkuat (auto async/await wrapper, request options)
 - Event modifier `.cegah` (preventDefault)
-- File: `src/compiler/emitters/statements.js`, `src/parser/promptjs-parser.js`
 - Tests: `tests/v0.7-data-fetching.test.js`
 
 ### v0.8.0 — FASE 3: Plugin System & Deployment Adapters
@@ -195,38 +200,55 @@ Lihat `doc-dev/ROADMAP-FULLSTACK-REALISTIS-FIXED.md` untuk analisis lengkap.
 - Adapter Static: asset hashing, meta tags (OG), sitemap.xml, 404.html
 - Adapter Node: self-contained server.js + Dockerfile + API proxy
 - Adapter Vercel: Build Output API v3 (.vercel/output/)
-- `--adapter` flag di CLI build command
-- File: `src/engine/plugins.js`, `src/engine/config.js`, `src/engine/adapters/*`, `src/cli/commands/build.js`
-- Tests: `tests/v0.8-adapter.test.js` (42 tests)
+- Tests: `tests/v0.8-adapter.test.js`
+
+### v0.9.0 — FASE 4: Protected Content & Auth Pattern
+- `butuhAuth: benar` di front-matter → compiler emit auth guard
+- `redirect: "/login"` → redirect target jika tidak auth
+- `token: localStorage` / `sessionStorage` → configurable token source
+- `hapus localStorage.x` lowering → `localStorage.removeItem("x")`
+- Login form pattern support
+- Implicit front-matter detection for known directives
+- Tests: `tests/v0.9-auth.test.js`
+
+### v0.9.9 — Maturation & Documentation Overhaul
+- `peran: admin` → runtime role check in auth guard (token check + peran check)
+- `tokenKey: auth_token` → configurable token key name in `getItem()`
+- Dot notation in `token:` directive: `localStorage.auth_token` → source + key
+- `tokenKey` added to KNOWN_DIRECTIVES for implicit front-matter
+- 7 new auth tests (22 total)
+- 3 new CLI init templates: `spa` (SPA with routing), `fullstack` (auth + routing + peran), `blog` (data-driven)
+- doc-dev/ restructured by version/level/type
+- v1.0-planning/ folder with handoff, prerequisites, and demo app plans
+- SYNTAX-REFERENCE.md created
+- README.md rewritten for v0.9.9
 
 ---
 
-## 6. VERSI BERIKUTNYA: v0.9 — FASE 4
+## 6. VERSI BERIKUTNYA: v1.0.0 — FASE 5
 
-### Protected Content & Auth Pattern
+### Prerequisites (see `doc-dev/v1.0-planning/V1.0-PREREQUISITES.md`)
 
-**Scope (dari roadmap):**
-- `butuhAuth: benar` di front-matter → compiler emit auth guard (localStorage/sessionStorage check + redirect)
-- `redirect: "/login"` → redirect target jika tidak auth
-- `token: localStorage` / `sessionStorage` → configurable token source
-- `peran: "admin"` → optional role check (v1.0+)
-- `hapus localStorage.x` lowering → `localStorage.removeItem("x")`
-- Login form pattern (sudah bisa dengan fitur yang ada, hanya docs)
-- Core: ~50 baris tambahan
+v1.0.0 requires FASE 5 per the roadmap:
+- 6 init templates ✅ (done: basic, counter, gallery, spa, fullstack, blog)
+- 2 demo apps (need: todo-app, dashboard-app)
+- Complete tutorial for v1.0.0
+- Syntax reference ✅ (SYNTAX-REFERENCE.md created)
+- CI/CD hardening (branch protection, release workflow)
+- npm publish (package name, `npm publish --access public`)
 
-**File yang akan berubah:**
-- `src/parser/promptjs-parser.js` — parse `butuhAuth`, `redirect`, `token`, `peran` di front-matter
-- `src/compiler/emitters/statements.js` — emit auth guard wrapper
-- `src/compiler/lower/expression.js` — lowering `hapus` pada MemberExpression
-- `src/compiler/emitters/runtime.js` — mungkin helper baru untuk auth check
-- `tests/v0.9-auth.test.js` — baru
+### Critical Design Decisions for v1.0.0
 
-**Estimasi:** ~50 baris core + ~200 baris tests = 2 minggu
+1. **Package name** — `promptjs` vs `@promptjs/cli` vs `pjs` — must decide before npm publish
+2. **Peran storage** — currently reads `__peran` from storage; should this be a configurable key?
+3. **Multi-peran support** — current `peran: admin` is single-role; should v1.0 support `peran: admin,editor`?
+4. **Tutorial language** — bilingual (ID+EN) or Indonesia-only?
+5. **Breaking changes** — any API surface changes before 1.0.0 semver lock?
 
 ### Aturan Workflow
 
-1. Buat branch `feat/v0.9-auth`
-2. Implement per sub-fase, update CHANGELOG.md setelah tiap fase
+1. Buat branch `feat/v1.0.0-<scope>`
+2. Implement per sub-fase, update CHANGELOG.md
 3. Pastikan `npm run format:check && npm run typecheck && npm run lint && npm test` semua hijau
 4. Jika tambah dependency: **SELALU jalankan `npm install` dan commit package-lock.json**
 5. Commit, push, buat PR
@@ -234,60 +256,53 @@ Lihat `doc-dev/ROADMAP-FULLSTACK-REALISTIS-FIXED.md` untuk analisis lengkap.
 
 ---
 
-## 7. BUG YANG SUDAH DIFIX DI SESI INI (REFERENCE)
-
-| Bug | File | Fix |
-|-----|------|-----|
-| `spaJs` used before declaration | `src/engine/builder.js:292` | Tambah `let spaJs = '';` sebelum SPA block |
-| `adapterResult` scoping | `src/engine/builder.js:281,425` | Pindah deklarasi ke scope fungsi |
-| 16 JSDoc type errors | Multiple files | Buat params optional, fix @param names, tambah `plugins` + `sourceMap` |
-| package-lock.json out of sync | `package-lock.json` | `npm install` — 676 lines added (48 packages missing) |
-
----
-
-## 8. PITFALLS & LESSONS LEARNED
+## 7. PITFALLS & LESSONS LEARNED
 
 1. **SELALU commit package-lock.json** setelah `npm install` / `npm add`. `npm ci` di CI strict dan akan gagal jika lock file tidak cocok.
 
-2. **JSDoc params yang `opts = opts \|\| {}`** harus dideklarasikan optional (`[opts]`) di JSDoc, kalau tidak TypeScript akan error karena `{}` tidak punya required properties.
+2. **JSDoc params yang `opts = opts || {}`** harus dideklarasikan optional (`[opts]`) di JSDoc, kalau tidak TypeScript akan error.
 
-3. **`let` di dalam `try {}` block** tidak accessible di luar block. Jika variabel dipakai di `return` setelah try-catch, deklarasikan di luar.
+3. **`let` di dalam `try {}` block** tidak accessible di luar block. Deklarasikan di luar jika dipakai setelah try-catch.
 
-4. **Husky `prepare` script** memanggil `husky install` yang sudah deprecated. Masih bekerja tapi perlu diganti di v0.9.
+4. **PromptJS keyword `salah` = false, `benar` = true** — BUKAN `palsu`. Ini prinsip bilingual yang sudah ditetapkan.
 
-5. **CI `branches` filter** di YAML — pastikan `[main]` tidak ter-corrupt. Cek dengan `python3 -c "open(...,'rb').read()"` jika ada keraguan (terminal display bisa strip `[m` sebagai ANSI escape).
+5. **`Saat` ≠ `Ketika`** — `Saat` adalah reactive watcher pada data variable, `Ketika` adalah event/lifecycle handler. Jangan tertukar.
 
-6. **Version di package.json** tidak otomatis di-update. Harus manual. Saat ini masih `0.4.0`, harusnya `0.8.0`.
+6. **Auth guard IIFE** menutupi regular IIFE — jika `butuhAuth` aktif, compiler meng-suppress regular IIFE closing.
+
+7. **Implicit front-matter detection** hanya mengenali key di KNOWN_DIRECTIVES set. Key baru HARUS ditambahkan ke set tersebut.
+
+8. **Version di package.json** tidak otomatis di-update. Harus manual setiap release.
 
 ---
 
-## 9. CARA MEMULAI (UNTUK AGENT BARU)
+## 8. CARA MEMULAI (UNTUK AGENT BARU)
 
 ```bash
-cd /home/z/my-project/promptjs
+cd /path/to/promptjs
 git checkout main
 git pull origin main
 npm ci
-npm test                    # Pastikan 370 pass
+npm test                    # Pastikan 392 pass
 npm run typecheck           # Pastikan 0 errors
 npm run lint                # Pastikan 0 problems
 ```
 
-Untuk mulai v0.9:
+Untuk mulai v1.0.0:
 ```bash
-git checkout -b feat/v0.9-auth
+git checkout -b feat/v1.0.0-<scope>
 # ... implement ...
 npm run format:check && npm run typecheck && npm run lint && npm test
-git add -A && git commit -m "feat: v0.9.0 — ..."
-git push origin feat/v0.9-auth
+git add -A && git commit -m "feat: v1.0.0 — ..."
+git push origin feat/v1.0.0-<scope>
 # Buat PR via GitHub
 ```
 
 ---
 
-## 10. KONTeks ROADMAP LENGKAP
+## 9. KONTEKS ROADMAP LENGKAP
 
-Roadmap lengkap ada di: `doc-dev/ROADMAP-FULLSTACK-REALISTIS-FIXED.md`
+Roadmap lengkap ada di: `doc-dev/v0.x/roadmap/ROADMAP-FULLSTACK-REALISTIS-FIXED.md`
 
 Ringkasan timeline:
 ```
@@ -295,8 +310,9 @@ v0.5 (FASE 0) ✅  → Source maps, tree shake, error boundaries
 v0.6 (FASE 1) ✅  → Lifecycle mount/unmount, SPA router
 v0.7 (FASE 2) ✅  → Ambil dari (diperkuat), event modifiers
 v0.8 (FASE 3) ✅  → Plugin system, adapters (static/node/vercel)
-v0.9 (FASE 4) ⬜  → butuhAuth, auth pattern, login flow  (~2 minggu)
-v1.0 (FASE 5) ⬜  → Templates, demo apps, docs, npm publish  (~2-3 minggu)
+v0.9 (FASE 4) ✅  → butuhAuth, auth pattern, login flow
+v0.9.9          ✅  → peran role check, tokenKey, init templates, doc restructure
+v1.0 (FASE 5) ⬜  → Demo apps, tutorial, CI/CD, npm publish
 ```
 
 Setelah v1.0: LSP, hydration, component library, Rust/Go compiler port.

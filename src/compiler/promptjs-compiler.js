@@ -90,6 +90,7 @@ PromptJSCompiler.prototype.compile = function (ast) {
   this.butuhAuth = !!ast.butuhAuth;
   this.authRedirect = ast.authRedirect || '/login';
   this.authToken = ast.authToken || 'localStorage';
+  this.authTokenKey = ast.authTokenKey || 'token';
   this.authPeran = ast.authPeran || null;
 
   // Phase 1: Emit header
@@ -110,15 +111,24 @@ PromptJSCompiler.prototype.compile = function (ast) {
   // Phase 2: Traverse AST — this populates this.helpers via visitors
   this.emit('// === User Code ===');
 
-  // v0.9: Auth guard wrapper (before SPA factory or IIFE)
+  // v0.9.9: Auth guard wrapper (before SPA factory or IIFE)
   if (this.butuhAuth) {
     this.emit(`// Auth guard: check ${this.authToken} for token`);
     this.emit(`(function() {`);
-    this.emit(`  var __token = ${this.authToken}.getItem('token');`);
+    this.emit(`  var __token = ${this.authToken}.getItem('${this.authTokenKey}');`);
     this.emit(`  if (!__token) {`);
     this.emit(`    window.location.href = '${this.authRedirect}';`);
     this.emit(`    return;`);
     this.emit(`  }`);
+    // v0.9.9: Role-based access check (peran directive)
+    if (this.authPeran) {
+      this.emit(`  var __peran = ${this.authToken}.getItem('__peran');`);
+      this.emit(`  var __allowedPeran = '${this.authPeran}';`);
+      this.emit(`  if (__peran !== __allowedPeran) {`);
+      this.emit(`    window.location.href = '${this.authRedirect}';`);
+      this.emit(`    return;`);
+      this.emit(`  }`);
+    }
     this.emit('');
     this.indent++;
   }

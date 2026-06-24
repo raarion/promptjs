@@ -182,8 +182,8 @@ Halaman Login:
     });
   });
 
-  describe('4.5 Peran (Role) — v0.9 Syntax (v1.0 Evaluation)', () => {
-    it('should accept peran in front-matter (parsed but not evaluated in v0.9)', () => {
+  describe('4.5 Peran (Role) — v0.9.9 Runtime Guard', () => {
+    it('should emit peran role check when peran directive is present', () => {
       const source = `butuhAuth: benar
 redirect: "/login"
 token: localStorage
@@ -194,12 +194,115 @@ Buat ruang:
       const { js, errors } = compileSource(source);
       expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
       expect(js).toBeDefined();
-      // v0.9 parses peran but doesn't emit role check (v1.0 feature)
-      // Just ensure no errors during compilation
+      // v0.9.9 now emits runtime role check
+      expect(js).toContain('__peran');
+      expect(js).toContain('__allowedPeran');
+      expect(js).toContain('admin');
+    });
+
+    it('should emit peran check after token check (both guards active)', () => {
+      const source = `butuhAuth: benar
+redirect: "/forbidden"
+token: sessionStorage
+peran: editor
+---
+Buat ruang:
+  "Editor area"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      // Token check should come before peran check
+      const tokenIdx = js.indexOf('sessionStorage.getItem');
+      const peranIdx = js.indexOf('__peran');
+      expect(tokenIdx).toBeLessThan(peranIdx);
+      expect(js).toContain('/forbidden');
+      expect(js).toContain('editor');
+    });
+
+    it('should NOT emit peran check when peran is absent', () => {
+      const source = `butuhAuth: benar
+redirect: "/login"
+token: localStorage
+---
+Buat ruang:
+  "Protected"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      expect(js).not.toContain('__peran');
+      expect(js).not.toContain('__allowedPeran');
     });
   });
 
-  describe('4.6 Auth Guard with Dynamic Content', () => {
+  describe('4.6 Configurable Token Key (tokenKey / dot notation)', () => {
+    it('should use custom token key via tokenKey directive', () => {
+      const source = `butuhAuth: benar
+redirect: "/login"
+token: localStorage
+tokenKey: auth_token
+---
+Buat ruang:
+  "Protected"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      expect(js).toContain("localStorage.getItem('auth_token')");
+      expect(js).not.toContain("localStorage.getItem('token')");
+    });
+
+    it('should extract token key from dot notation in token directive', () => {
+      const source = `butuhAuth: benar
+redirect: "/login"
+token: sessionStorage.jwt
+---
+Buat ruang:
+  "Protected"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      expect(js).toContain("sessionStorage.getItem('jwt')");
+    });
+
+    it('should let tokenKey override dot notation key', () => {
+      const source = `butuhAuth: benar
+redirect: "/login"
+token: localStorage.auth_token
+tokenKey: access_token
+---
+Buat ruang:
+  "Protected"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      // tokenKey takes precedence over dot notation
+      expect(js).toContain("localStorage.getItem('access_token')");
+    });
+
+    it('should default to "token" key when no tokenKey or dot notation', () => {
+      const source = `butuhAuth: benar
+redirect: "/login"
+token: localStorage
+---
+Buat ruang:
+  "Protected"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      expect(js).toContain("localStorage.getItem('token')");
+    });
+
+    it('should use custom token key with peran role check', () => {
+      const source = `butuhAuth: benar
+redirect: "/login"
+token: localStorage
+tokenKey: session_id
+peran: admin
+---
+Buat ruang:
+  "Admin panel"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
+      expect(js).toContain("localStorage.getItem('session_id')");
+      expect(js).toContain('__peran');
+      expect(js).toContain('admin');
+    });
+  });
+
+  describe('4.7 Auth Guard with Dynamic Content', () => {
     it('should compile page with auth guard wrapping all content', () => {
       const source = `butuhAuth: benar
 redirect: "/login"
@@ -216,7 +319,7 @@ Halaman Dashboard:
     });
   });
 
-  describe('4.7 Multi-level Token Access Lowering', () => {
+  describe('4.8 Multi-level Token Access Lowering', () => {
     it('should handle getItem call on localStorage', () => {
       const source = `---
 judul: "Test"
@@ -249,7 +352,7 @@ Halaman Test:
     });
   });
 
-  describe('4.8 Auth Guard with SPA Mode (v0.6 + v0.9)', () => {
+  describe('4.9 Auth Guard with SPA Mode (v0.6 + v0.9.9)', () => {
     it('should combine SPA routing with auth guard', () => {
       const source = `butuhAuth: benar
 redirect: "/login"

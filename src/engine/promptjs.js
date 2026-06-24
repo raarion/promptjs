@@ -239,10 +239,11 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
     }
   }
 
-  // v0.9: Detect auth directives from front-matter (butuhAuth, redirect, token, peran)
+  // v0.9: Detect auth directives from front-matter (butuhAuth, redirect, token, tokenKey, peran)
   let butuhAuth = false;
   let authRedirect = '/login';
   let authToken = 'localStorage';
+  let authTokenKey = 'token';
   let authPeran = null;
   if (frontMatterData && frontMatterData.butuhAuth) {
     const authVal = frontMatterData.butuhAuth;
@@ -257,9 +258,22 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
       // Token source (localStorage atau sessionStorage)
       if (frontMatterData.token) {
         const tok = frontMatterData.token;
-        authToken = tok && tok.value !== undefined ? tok.value : tok;
+        const tokVal = tok && tok.value !== undefined ? tok.value : tok;
+        // Support dot notation: "localStorage.auth_token" → source=localStorage, key=auth_token
+        if (typeof tokVal === 'string' && tokVal.includes('.')) {
+          const dotIdx = tokVal.indexOf('.');
+          authToken = tokVal.substring(0, dotIdx);
+          authTokenKey = tokVal.substring(dotIdx + 1);
+        } else {
+          authToken = tokVal;
+        }
       }
-      // Role (v1.0 feature, parsed in v0.9)
+      // Token key name (explicit override, takes precedence over dot notation)
+      if (frontMatterData.tokenKey) {
+        const tk = frontMatterData.tokenKey;
+        authTokenKey = tk && tk.value !== undefined ? tk.value : tk;
+      }
+      // Role check (v0.9.9: now emits runtime guard)
       if (frontMatterData.peran) {
         const rol = frontMatterData.peran;
         authPeran = rol && rol.value !== undefined ? rol.value : rol;
@@ -276,6 +290,7 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
     analyzeResult.ast.butuhAuth = butuhAuth;
     analyzeResult.ast.authRedirect = authRedirect;
     analyzeResult.ast.authToken = authToken;
+    analyzeResult.ast.authTokenKey = authTokenKey;
     analyzeResult.ast.authPeran = authPeran;
   }
 
