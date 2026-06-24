@@ -934,13 +934,23 @@ PromptJSResolver.prototype.visitHapusStatement = function (node) {
 PromptJSResolver.prototype.visitHapusDariStatement = function (node) {
   // Resolve the item expression
   if (node.item) accept(node.item, this);
-  // Resolve the array identifier and attach metadata
-  const symbol = this.currentScope.lookup(node.fromArray);
-  if (symbol) {
-    node.fromArraySymbol = symbol;
-    node.fromArrayReactive = symbol.kind === 'data' || symbol.kind === 'turunan';
-  } else {
-    this.addError('E3001', 'Identifier "' + node.fromArray + '" tidak dideklarasikan', node.loc);
+  // Resolve the fromArray expression
+  if (node.fromArray) accept(node.fromArray, this);
+  // If fromArray is a simple Identifier, check reactivity
+  if (node.fromArray && node.fromArray.type === 'Identifier') {
+    const symbol = this.currentScope.lookup(node.fromArray.name);
+    if (symbol) {
+      node.fromArraySymbol = symbol;
+      node.fromArrayReactive = symbol.kind === 'data' || symbol.kind === 'turunan';
+      // Also resolve for the compiler: store the compiled variable name
+      node.fromArrayResolved = symbol.resolvedName || symbol.name;
+    } else {
+      this.addError(
+        'E3001',
+        'Identifier "' + node.fromArray.name + '" tidak dideklarasikan',
+        node.loc
+      );
+    }
   }
 };
 

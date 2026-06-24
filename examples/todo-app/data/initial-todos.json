@@ -1,0 +1,5 @@
+[
+  { "teks": "Belajar PromptJS", "selesai": true },
+  { "teks": "Buat aplikasi pertama", "selesai": false },
+  { "teks": "Deploy ke internet", "selesai": false }
+]

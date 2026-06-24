@@ -1,0 +1,16 @@
+---
+judul: "Pengaturan"
+---
+
+Halaman Pengaturan:
+    Buat div.kartu:
+        Buat h2: "Pengaturan"
+        Buat label: "Tema"
+        Buat pilihan#tema:
+            Buat opsi[value="terang"]: "Terang"
+            Buat opsi[value="gelap"]: "Gelap"
+        Buat tombol.merah#keluar-akun: "Keluar dari Akun"
+            Ketika diklik:
+                hapus localStorage.auth_token
+                hapus localStorage.__peran
+                arahkan "/login"

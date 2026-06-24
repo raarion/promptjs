@@ -1,0 +1,80 @@
+---
+judul: "Masuk"
+---
+
+Gaya:
+    body
+        font-family: system-ui, -apple-system, sans-serif
+        display: flex
+        justify-content: center
+        align-items: center
+        min-height: 100vh
+        background: #f8f9fa
+    .kartu-login
+        background: white
+        border-radius: 16px
+        padding: 32px
+        width: 100%
+        max-width: 400px
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1)
+    .kartu-login h2
+        margin-top: 0
+        color: #1a1a2e
+    .kartu-login label
+        display: block
+        color: #495057
+        margin-bottom: 4px
+        font-size: 0.9rem
+    .kartu-login masukan
+        width: 100%
+        padding: 10px 14px
+        border: 2px solid #dee2e6
+        border-radius: 8px
+        font-size: 1rem
+        margin-bottom: 16px
+        outline: none
+        box-sizing: border-box
+    .kartu-login masukan:focus
+        border-color: #4dabf7
+    .pesan
+        color: #e03131
+        font-size: 0.9rem
+        margin-bottom: 12px
+    tombol.masuk
+        width: 100%
+        padding: 12px
+        background: #4dabf7
+        color: white
+        border: none
+        border-radius: 8px
+        font-size: 1rem
+        cursor: pointer
+    tombol.masuk:hover
+        background: #339af0
+
+Halaman Login:
+    data nama = ""
+    data sandi = ""
+    data pesan = ""
+
+    Buat div.kartu-login:
+        Buat h2: "Masuk ke Dashboard"
+        Buat formulir:
+            Buat label: "Nama Pengguna"
+            Buat masukan#nama:
+                placeholder = "admin"
+                on_diketik = simpan document.querySelector("#nama").value ke nama
+            Buat label: "Kata Sandi"
+            Buat masukan#sandi:
+                tipe = "password"
+                placeholder = "••••••"
+                on_diketik = simpan document.querySelector("#sandi").value ke sandi
+            Buat span.pesan: $pesan
+            Buat tombol.masuk: "Masuk"
+                Ketika diklik:
+                    Jika nama === "admin":
+                        simpan "dummy-token-123" ke localStorage.auth_token
+                        simpan "admin" ke localStorage.__peran
+                        arahkan "/dashboard"
+                    Lainnya:
+                        simpan "Nama atau sandi salah" ke pesan

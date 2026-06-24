@@ -1,0 +1,19 @@
+---
+judul: "Profil"
+---
+
+Halaman Profil:
+    data nama = ""
+    data peran = ""
+
+    Ketika muat:
+        simpan localStorage.getItem("auth_token") ke nama
+        simpan localStorage.getItem("__peran") ke peran
+
+    Buat div.kartu:
+        Buat h2: "Profil Pengguna"
+        Buat div.profil-info:
+            Buat label: "Token"
+            Buat span: $nama
+            Buat label: "Peran"
+            Buat span: $peran
