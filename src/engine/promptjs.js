@@ -238,11 +238,45 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
       isSPA = true;
     }
   }
+
+  // v0.9: Detect auth directives from front-matter (butuhAuth, redirect, token, peran)
+  let butuhAuth = false;
+  let authRedirect = '/login';
+  let authToken = 'localStorage';
+  let authPeran = null;
+  if (frontMatterData && frontMatterData.butuhAuth) {
+    const authVal = frontMatterData.butuhAuth;
+    const rawVal = authVal && authVal.value !== undefined ? authVal.value : authVal;
+    if (rawVal === true || rawVal === 'benar' || rawVal === 'true') {
+      butuhAuth = true;
+      // Redirect target
+      if (frontMatterData.redirect) {
+        const redir = frontMatterData.redirect;
+        authRedirect = redir && redir.value !== undefined ? redir.value : redir;
+      }
+      // Token source (localStorage atau sessionStorage)
+      if (frontMatterData.token) {
+        const tok = frontMatterData.token;
+        authToken = tok && tok.value !== undefined ? tok.value : tok;
+      }
+      // Role (v1.0 feature, parsed in v0.9)
+      if (frontMatterData.peran) {
+        const rol = frontMatterData.peran;
+        authPeran = rol && rol.value !== undefined ? rol.value : rol;
+      }
+    }
+  }
+
   // Attach SPA flags to AST so the compiler can access them
   if (analyzeResult.ast) {
     analyzeResult.ast.isSPA = isSPA;
     analyzeResult.ast.pageName = pageName;
     analyzeResult.ast.pageRoute = pageRoute;
+    // v0.9: Attach auth directives
+    analyzeResult.ast.butuhAuth = butuhAuth;
+    analyzeResult.ast.authRedirect = authRedirect;
+    analyzeResult.ast.authToken = authToken;
+    analyzeResult.ast.authPeran = authPeran;
   }
 
   const compiler = new Compiler();
