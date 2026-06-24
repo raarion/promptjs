@@ -27,7 +27,8 @@
     "build": "node src/cli/index.js build --minify",
     "pjs": "node src/cli/index.js",
     "pages:build": "node scripts/build-pages.js",
-    "pages:dev": "node scripts/build-pages.js --watch"
+    "pages:dev": "node scripts/build-pages.js --watch",
+    "prepare": "husky install"
   },
   "keywords": [
     "dsl",
@@ -62,7 +63,9 @@
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "jsdom": "^24.0.0",
+    "lint-staged": "^15.2.11",
     "prettier": "^3.8.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
