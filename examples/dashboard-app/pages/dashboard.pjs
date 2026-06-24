@@ -1,0 +1,25 @@
+---
+judul: "Dashboard"
+peran: admin
+---
+
+Halaman Dashboard:
+    data hitung = 0
+    data pengunjung = 42
+
+    Ketika muat:
+        simpan 42 ke pengunjung
+
+    Buat h2: "Dashboard Admin"
+
+    Buat div.stats:
+        Buat div.kartu-stat:
+            Buat span.angka: $hitung
+            Buat span.label: "Counter"
+            Buat tombol.besar#tambah: "+"
+                on_klik = tambahkan 1 ke hitung
+            Buat tombol.besar#kurang: "−"
+                on_klik = kurangi 1 dari hitung
+        Buat div.kartu-stat:
+            Buat span.angka: $pengunjung
+            Buat span.label: "Pengunjung"

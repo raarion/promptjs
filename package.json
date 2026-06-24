@@ -1,6 +1,6 @@
 {
-  "name": "promptjs",
-  "version": "0.9.9",
+  "name": "prompt-js",
+  "version": "1.0.0",
   "description": "PromptJS — a mini-DSL template engine that compiles to vanilla JS with zero dependencies",
   "main": "src/engine/promptjs.js",
   "bin": {
@@ -8,7 +8,12 @@
   },
   "files": [
     "src/",
-    "examples/",
+    "examples/*.pjs",
+    "examples/dashboard-app/**/*.pjs",
+    "examples/dashboard-app/README.md",
+    "examples/todo-app/**/*.pjs",
+    "examples/todo-app/README.md",
+    "examples/multi-page/**/*.pjs",
     "assets/",
     "README.md",
     "CHANGELOG.md",

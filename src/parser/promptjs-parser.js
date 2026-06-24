@@ -253,7 +253,7 @@ PromptJSParser.prototype._parseStatement = function () {
     case TT.TK_SEMBUNYIKAN:
       return this._parseTargetStatement('SembunyikanStatement');
     case TT.TK_HAPUS:
-      return this._parseTargetStatement('HapusStatement');
+      return this._parseHapusStatement();
     case TT.TK_KOSONGKAN:
       return this._parseTargetStatement('KosongkanStatement');
     case TT.TK_ARAHKAN:
@@ -1124,14 +1124,21 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
   ) {
     const kwTok = this._advance();
     const target = this._parseExpression();
-    const nodeTypeMap = {
-      [TT.TK_SEMBUNYIKAN]: 'SembunyikanStatement',
-      [TT.TK_HAPUS]: 'HapusStatement',
-      [TT.TK_KOSONGKAN]: 'KosongkanStatement',
-      [TT.TK_TAMPILKAN]: 'TampilkanStatement',
-      [TT.TK_ARAHKAN]: 'ArahkanStatement',
-    };
-    return { type: nodeTypeMap[kwTok.type], loc: this._makeLoc(kwTok), target };
+    const loc = this._makeLoc(kwTok);
+    // v1.0: "hapus <item> dari <array>" → HapusDariStatement (inline expression path)
+    if (kwTok.type === TT.TK_HAPUS && this._peek() && this._peek().type === TT.TK_IN) {
+      this._advance(); // consume dari/from
+      const fromArray = this._parseExpression();
+      return AST.buatHapusDariStatement(target, fromArray, loc, null);
+    }
+    // Use AST factory functions for proper property names (url vs target, etc.)
+    if (kwTok.type === TT.TK_ARAHKAN) return AST.buatArahkanStatement(target, loc, null);
+    if (kwTok.type === TT.TK_SEMBUNYIKAN) return AST.buatSembunyikanStatement(target, loc, null);
+    if (kwTok.type === TT.TK_HAPUS) return AST.buatHapusStatement(target, loc, null);
+    if (kwTok.type === TT.TK_KOSONGKAN) return AST.buatKosongkanStatement(target, loc, null);
+    if (kwTok.type === TT.TK_TAMPILKAN) return AST.buatTampilkanStatement(target, loc, null);
+    // Fallback
+    return { type: 'ArahkanStatement', loc, target };
   }
   // simpan/tambahkan/kurangi/sisipkan as expression: parse value + ke + target
   if (
@@ -1294,6 +1301,28 @@ PromptJSParser.prototype._parseLifecycleStatement = function (kind) {
   const loc = this._makeLoc(tok);
   const body = this._parseBlock();
   return AST.buatLifecycleStatement(kind, body, loc, null);
+};
+
+/**
+ * Parse `hapus` statement with two forms:
+ * 1. `hapus <storage>.<key>` → HapusStatement (localStorage/sessionStorage removal)
+ * 2. `hapus <item> dari <array>` → HapusDariStatement (array item removal)
+ */
+PromptJSParser.prototype._parseHapusStatement = function () {
+  const tok = this._advance();
+  const item = this._parseExpression();
+  const loc = this._makeLoc(tok);
+
+  // Check if next token is `dari` / `from` (TK_IN)
+  // "hapus item dari daftar" → HapusDariStatement
+  if (this._peek() && this._peek().type === TT.TK_IN) {
+    this._advance(); // consume dari/from
+    const fromArray = this._parseExpression();
+    return AST.buatHapusDariStatement(item, fromArray, loc, null);
+  }
+
+  // Otherwise: "hapus localStorage.token" → HapusStatement
+  return AST.buatHapusStatement(item, loc, null);
 };
 
 /**

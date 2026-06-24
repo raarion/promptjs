@@ -53,3 +53,22 @@ jobs:
             echo "Compiling $f..."
             node src/cli/index.js compile "$f" --stdout > /dev/null
           done
+
+      - name: Compile multi-page example
+        run: |
+          for f in examples/multi-page/src/pages/*.pjs; do
+            echo "Compiling $f..."
+            node src/cli/index.js compile "$f" --stdout > /dev/null
+          done
+
+      - name: Compile demo apps (todo-app + dashboard-app)
+        run: |
+          # todo-app
+          echo "Compiling todo-app..."
+          node src/cli/index.js compile examples/todo-app/index.pjs --stdout > /dev/null
+
+          # dashboard-app (SPA with auth)
+          for f in examples/dashboard-app/index.pjs examples/dashboard-app/pages/*.pjs; do
+            echo "Compiling $f..."
+            node src/cli/index.js compile "$f" --stdout > /dev/null
+          done

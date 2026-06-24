@@ -5,6 +5,95 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] — 2026-06-24
+
+**Stable Release.** The first production-ready milestone of PromptJS. This release
+solidifies all previously experimental features, introduces demo applications,
+and prepares the package for public npm distribution as `prompt-js`.
+
+### Added — Demo Applications [EXAMPLES]
+
+- **`examples/todo-app/`** — A reactive to-do list application demonstrating
+  `data` declarations, `Ulangi` loops, inline `on_klik` handlers,
+  `hapus ... dari ...` array removal, and `simpan` localStorage persistence.
+  Includes its own README with build instructions.
+- **`examples/dashboard-app/`** — A full SPA dashboard with authentication,
+  role-based access control, client-side routing, and per-page settings.
+  Demonstrates `butuhAuth: benar`, `peran: admin`, `tokenKey: auth_token`,
+  `router: benar`, `arahkan` navigation, and `simpan`/`hapus` with
+  localStorage/sessionStorage. Five pages: index, login, dashboard, profil,
+  pengaturan. Includes its own README.
+
+### Added — `hapus <item> dari <array>` (HapusDariStatement) [CORE]
+
+- **Statement path** (inside `Ketika diklik:` blocks) — the resolver already
+  supported `HapusDariStatement`; now the expression path (inline
+  `on_klik = hapus item dari daftar`) also parses and compiles it correctly.
+- **Parser expression path** — added `dari`/`from` token check after parsing
+  `hapus` target in inline event handlers, emitting `buatHapusDariStatement`.
+- **Expression lowerer** — new `HapusDariStatement` case in
+  `src/compiler/lower/expression.js` handles both reactive (`.value.filter`
+  + `__setState`) and plain array filter output.
+- **English keyword** — `from` token accepted as alias for `dari` in expression
+  path, matching existing statement-path support.
+
+### Added — `simpan`/`hapus` Web Storage Lowering (Expression Path) [CORE]
+
+- **`simpan <value> ke localStorage.<key>`** in inline handlers now compiles
+  to `localStorage.setItem("key", value)` instead of the incorrect
+  `__setState(null, value)`.
+- **`hapus localStorage.<key>`** in inline handlers now compiles to
+  `localStorage.removeItem("key")` instead of the incorrect `.remove()`.
+- Both `localStorage` and `sessionStorage` are supported in the expression
+  lowerer (`src/compiler/lower/expression.js`), mirroring the existing
+  statement-path lowering in `src/compiler/emitters/statements.js`.
+
+### Fixed — `arahkan` Expression Path Compilation [CORE]
+
+- **Property name mismatch** — `buatArahkanStatement` creates AST nodes with
+  `url` property, but the parser expression path was creating generic nodes
+  with `target` property. The expression lowerer now checks both `node.url`
+  and `node.target` as fallback.
+- **AST factory usage in expression path** — replaced generic
+  `{ type, target }` object literals with proper AST factory calls
+  (`buatArahkanStatement`, `buatSembunyikanStatement`, `buatHapusStatement`,
+  `buatKosongkanStatement`, `buatTampilkanStatement`) to ensure correct
+  property names across the compilation pipeline.
+
+### Added — npm Publish Configuration [INFRA]
+
+- **Package name** — changed from `promptjs` (taken on npm) to `prompt-js`.
+- **`files` whitelist** — explicit list of included paths in `package.json`,
+  excluding compiled `.js` output from examples.
+- **`.npmignore`** — excludes dev files, tests, doc-dev, and compiled examples
+  from the npm package.
+- **CLI shebang** — added `#!/usr/bin/env node` to `src/cli/index.js` for
+  direct execution after global install.
+
+### Added — CI/CD Hardening [INFRA]
+
+- **Release workflow** (`.github/workflows/release.yml`) — triggered by `v*`
+  tags, runs quality gate (format + typecheck + lint + test), then publishes
+  to npm with provenance using `NPM_TOKEN` secret.
+- **CI workflow enhancements** — added demo app compilation steps:
+  multi-page example, todo-app, and dashboard-app (SPA with auth) are
+  compiled in CI to catch regressions.
+- **ESLint flat config** — added `examples/**/*.js` to ignores (compiled
+  output should not be linted).
+- **Prettier ignore** — added `examples/**/*.js` to `.prettierignore`
+  (compiled output should not be formatted).
+
+### Tests
+
+- 24 new v1.0-release tests (416 total across all test files):
+  - HapusDariStatement (6): inline expression, reactive array, plain hapus,
+    localStorage, Ulangi loop, English `from` keyword
+  - simpan localStorage/sessionStorage lowering (7): setItem for both stores,
+    expression values, non-lowering for regular vars, login flow, logout flow
+  - Demo app compilation (11): todo-app compilation, hapus...dari output,
+    __setState output, all 5 dashboard pages, login setItem,
+    pengaturan removeItem, auth guard, role check
+
 ## [0.9.9] — 2026-06-25
 
 **Maturation & Documentation Overhaul.** Role-based access control (peran runtime guard),
@@ -503,7 +592,10 @@ Baseline release audited for this effort (commit `9a60726`).
 - 64-code bilingual error registry with line:column and suggestions.
 - CLI: `compile`, `serve`, `build`, `init` (with `--minify` and jsdom prerender).
 
-[Unreleased]: https://github.com/raarion/promptjs/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/raarion/promptjs/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/raarion/promptjs/releases/tag/v1.0.0
+[0.9.9]: https://github.com/raarion/promptjs/releases/tag/v0.9.9
+[0.9.0]: https://github.com/raarion/promptjs/releases/tag/v0.9.0
 [0.8.0]: https://github.com/raarion/promptjs/releases/tag/v0.8.0
 [0.6.0]: https://github.com/raarion/promptjs/releases/tag/v0.6.0
 [0.2.0]: https://github.com/raarion/promptjs/releases/tag/v0.2.0

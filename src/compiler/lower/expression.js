@@ -160,15 +160,62 @@ function lowerExpression(compiler, node) {
       return 'break';
     case 'SembunyikanStatement':
       return `${compiler.resolveTarget(node.target)}.style.display = "none"`;
-    case 'HapusStatement':
+    case 'HapusStatement': {
+      // v1.0: Check if target adalah localStorage.x atau sessionStorage.x
+      if (
+        node.target &&
+        node.target.type === 'MemberExpression' &&
+        node.target.object &&
+        node.target.object.type === 'Identifier'
+      ) {
+        const objName = node.target.object.name;
+        const propName = node.target.property ? node.target.property.name : null;
+        if ((objName === 'localStorage' || objName === 'sessionStorage') && propName) {
+          return `${objName}.removeItem("${propName}")`;
+        }
+      }
       return `${compiler.resolveTarget(node.target)}.remove()`;
+    }
+    case 'HapusDariStatement': {
+      const item = lowerExpression(compiler, node.item);
+      const isReactive = node.fromArrayReactive;
+      let arr;
+      if (node.fromArrayResolved) {
+        arr = node.fromArrayResolved;
+      } else if (node.fromArray && node.fromArray.type === 'Identifier') {
+        arr = compiler.resolveTarget(node.fromArray);
+      } else {
+        arr = lowerExpression(compiler, node.fromArray);
+      }
+      if (isReactive) {
+        return `(${arr}.value = ${arr}.value.filter((__item) => __item !== ${item}), __setState(${arr}, [...${arr}.value]))`;
+      }
+      return `${arr} = ${arr}.filter((__item) => __item !== ${item})`;
+    }
     case 'KosongkanStatement':
       return `${compiler.resolveTarget(node.target)}.innerHTML = ""`;
     case 'TampilkanStatement':
       return `${compiler.resolveTarget(node.target)}.style.display = ""`;
-    case 'ArahkanStatement':
-      return `window.location.href = ${lowerExpression(compiler, node.target)}`;
+    case 'ArahkanStatement': {
+      // node.url (from AST factory) or node.target (fallback)
+      const url = node.url || node.target;
+      return `window.location.href = ${lowerExpression(compiler, url)}`;
+    }
     case 'SimpanStatement': {
+      // v1.0: Check if target adalah localStorage.x atau sessionStorage.x
+      if (
+        node.target &&
+        node.target.type === 'MemberExpression' &&
+        node.target.object &&
+        node.target.object.type === 'Identifier'
+      ) {
+        const objName = node.target.object.name;
+        const propName = node.target.property ? node.target.property.name : null;
+        if ((objName === 'localStorage' || objName === 'sessionStorage') && propName) {
+          const val = lowerExpression(compiler, node.value);
+          return `${objName}.setItem("${propName}", ${val})`;
+        }
+      }
       const val = lowerExpression(compiler, node.value);
       const tgt = compiler.resolveTarget(node.target);
       // Reactive target (data/turunan) → use __setState to trigger watchers.

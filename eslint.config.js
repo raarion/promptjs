@@ -11,7 +11,7 @@ const prettier = require('eslint-config-prettier');
 
 module.exports = [
   {
-    ignores: ['node_modules/**', 'dist/**', 'coverage/**'],
+    ignores: ['node_modules/**', 'dist/**', 'coverage/**', 'examples/**/*.js'],
   },
   js.configs.recommended,
   {

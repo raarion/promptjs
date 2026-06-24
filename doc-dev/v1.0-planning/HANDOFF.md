@@ -1,7 +1,7 @@
 # PromptJS — Agent Handoff Document
 
 > **Terakhir diperbarui:** 2026-06-24
-> **Versi repo:** v0.9.9 (branch `feat/v0.9.9-maturation`, soon → main)
+> **Versi repo:** v1.0.0 (branch `feat/v1.0.0-release`)
 > **Tujuan:** Memungkinkan AI agent atau developer baru melanjutkan development tanpa konteks percakapan sebelumnya.
 
 ---
@@ -10,23 +10,29 @@
 
 | Item | Status |
 |------|--------|
-| Branch | `feat/v0.9.9-maturation` (PR belum dibuat) |
+| Branch | `feat/v1.0.0-release` (PR belum dibuat) |
 | CI | Hijau di GitHub Actions (Node 22.x + 24.x) |
-| Tests | 392 passed, 3 skipped, 16 test files |
-| Version | `0.9.0` di package.json (akan di-bump ke 0.9.9) |
-| CHANGELOG | Sudah ada entry v0.5.0 s/d v0.9.0 |
-| Fase selesai | FASE 0 (v0.5), FASE 1 (v0.6), FASE 2 (v0.7), FASE 3 (v0.8), FASE 4 (v0.9), v0.9.9 Maturation |
-| Fase berikutnya | **v1.0.0 — FASE 5: Templates, Demo Apps, Docs, npm Publish** |
+| Tests | 416 passed, 3 skipped, 17 test files |
+| Version | `1.0.0` di package.json |
+| Package name | `prompt-js` (npm — `promptjs` sudah diambil) |
+| CHANGELOG | Sudah ada entry v0.5.0 s/d v1.0.0 |
+| Fase selesai | FASE 0 (v0.5), FASE 1 (v0.6), FASE 2 (v0.7), FASE 3 (v0.8), FASE 4 (v0.9), v0.9.9 Maturation, **v1.0.0 Stable** |
+| Fase berikutnya | **v1.1+ — LSP, hydration, component library, Rust/Go compiler port** |
+| Docs/Tutorial | Ditangguhkan sampai konten lengkap (per user directive) |
 
-### Yang Sudah Selesai di v0.9.9
+### Yang Sudah Selesai di v1.0.0
 
-1. `peran` role check — compiler now emits runtime guard (`__peran !== __allowedPeran → redirect`)
-2. `tokenKey` configurable token key — supports `tokenKey: auth_token` directive and dot notation `token: localStorage.auth_token`
-3. `tokenKey` added to KNOWN_DIRECTIVES in lexer for implicit front-matter detection
-4. 7 new auth tests (22 total in v0.9-auth.test.js)
-5. 3 new CLI init templates: `spa`, `fullstack`, `blog`
-6. doc-dev/ restructured by version/level/task/phase/type
-7. v1.0-planning/ folder created with handoff and planning docs
+1. `examples/todo-app/` — reactive to-do list with Ulangi, hapus-dari, localStorage persistence
+2. `examples/dashboard-app/` — SPA with auth, peran, routing, 5 pages
+3. `hapus <item> dari <array>` (HapusDariStatement) — both statement and expression paths
+4. `simpan`/`hapus` localStorage/sessionStorage lowering in expression path (expression.js)
+5. `arahkan` expression path fix — AST factory usage + property name alignment (node.url)
+6. 24 new v1.0-release tests (416 total)
+7. Package name `prompt-js`, version 1.0.0, files whitelist, .npmignore, CLI shebang
+8. Release workflow (`.github/workflows/release.yml`) — tag-triggered npm publish with provenance
+9. CI workflow enhanced with demo app compilation steps
+10. ESLint flat config + Prettier ignore updated for compiled example output
+11. CHANGELOG.md, README.md, HANDOFF.md updated for v1.0.0
 
 ---
 
@@ -98,8 +104,8 @@ promptjs/
 │   │   └── adapters/   (3 files: node.js, static.js, vercel.js)
 │   ├── cli/            (5 files: index, compile, serve, build, init, utils)
 │   └── utils/          (1 file: visitor.js)
-├── tests/              (16 test files, 392 tests)
-├── examples/           (3 .pjs files: counter, gallery, todo)
+├── tests/              (17 test files, 416 tests)
+├── examples/           (todo-app/, dashboard-app/, multi-page/, counter.pjs, gallery.pjs)
 ├── scripts/            (build-pages.js)
 ├── doc-dev/            (restructured by version/level/type)
 │   ├── v0.x/           (historical: specs, roadmaps, reviews, decisions, reference)
@@ -134,7 +140,7 @@ promptjs/
 ### npm Scripts
 
 ```
-npm test          → vitest run (392 tests)
+npm test          → vitest run (416 tests)
 npm run typecheck → tsc --noEmit
 npm run lint      → eslint . --max-warnings=0
 npm run format    → prettier --write .
@@ -152,7 +158,7 @@ npm run pjs       → node src/cli/index.js (CLI access)
 5. `npm run lint`
 6. `npm test`
 7. Smoke compile: `pjs compile` file test
-8. Compile all examples
+8. Compile all examples (multi-page, todo-app, dashboard-app)
 
 ---
 
@@ -223,27 +229,45 @@ Lihat `doc-dev/v0.x/roadmap/ROADMAP-FULLSTACK-REALISTIS-FIXED.md` untuk analisis
 - SYNTAX-REFERENCE.md created
 - README.md rewritten for v0.9.9
 
+### v1.0.0 — FASE 5: Stable Release
+- Demo apps: `examples/todo-app/` (reactive to-do list), `examples/dashboard-app/` (SPA with auth)
+- `hapus <item> dari <array>` (HapusDariStatement) — both statement and expression compilation paths
+- `simpan`/`hapus` localStorage/sessionStorage lowering in expression lowerer
+- `arahkan` expression path fix — AST factory usage + `node.url` property alignment
+- Package name `prompt-js`, version 1.0.0, files whitelist, .npmignore, CLI shebang
+- Release workflow (tag-triggered npm publish with provenance)
+- CI workflow enhanced with demo app compilation steps
+- 24 new v1.0-release tests (416 total)
+- CHANGELOG.md, README.md, HANDOFF.md updated for v1.0.0
+
 ---
 
-## 6. VERSI BERIKUTNYA: v1.0.0 — FASE 5
+## 6. VERSI BERIKUTNYA: v1.1+ — Post-1.0 Features
 
-### Prerequisites (see `doc-dev/v1.0-planning/V1.0-PREREQUISITES.md`)
+### Completed in v1.0.0 (FASE 5)
 
-v1.0.0 requires FASE 5 per the roadmap:
-- 6 init templates ✅ (done: basic, counter, gallery, spa, fullstack, blog)
-- 2 demo apps (need: todo-app, dashboard-app)
-- Complete tutorial for v1.0.0
-- Syntax reference ✅ (SYNTAX-REFERENCE.md created)
-- CI/CD hardening (branch protection, release workflow)
-- npm publish (package name, `npm publish --access public`)
+- ✅ 2 demo apps (todo-app, dashboard-app)
+- ✅ `hapus <item> dari <array>` expression path + HapusDariStatement lowerer
+- ✅ `simpan`/`hapus` web storage lowering in expression path
+- ✅ `arahkan` expression path fix (AST factory + node.url)
+- ✅ Package name `prompt-js`, npm publish configuration
+- ✅ Release workflow + CI/CD hardening
+- ✅ 416 tests, 17 test files
+- ✅ CHANGELOG.md, README.md, HANDOFF.md updated
 
-### Critical Design Decisions for v1.0.0
+### Remaining (deferred per user directive)
 
-1. **Package name** — `promptjs` vs `@promptjs/cli` vs `pjs` — must decide before npm publish
-2. **Peran storage** — currently reads `__peran` from storage; should this be a configurable key?
-3. **Multi-peran support** — current `peran: admin` is single-role; should v1.0 support `peran: admin,editor`?
-4. **Tutorial language** — bilingual (ID+EN) or Indonesia-only?
-5. **Breaking changes** — any API surface changes before 1.0.0 semver lock?
+- Tutorial and documentation — deferred until features are rich enough for comprehensive content
+- Multi-peran support — currently single-role (`peran: admin`); could support `peran: admin,editor`
+- Peran storage key configuration — currently hardcoded `__peran`
+- `arahkan ke` grammar support — currently only `arahkan "/path"` works (deferred post-v1.0)
+
+### Planned for v1.1+
+
+- LSP (Language Server Protocol) — IDE support
+- Hydration — SSR + client-side rehydration
+- Component library — reusable component patterns
+- Rust/Go compiler port — native-speed compilation
 
 ### Aturan Workflow
 
@@ -283,7 +307,7 @@ cd /path/to/promptjs
 git checkout main
 git pull origin main
 npm ci
-npm test                    # Pastikan 392 pass
+npm test                    # Pastikan 416 pass
 npm run typecheck           # Pastikan 0 errors
 npm run lint                # Pastikan 0 problems
 ```
@@ -312,7 +336,7 @@ v0.7 (FASE 2) ✅  → Ambil dari (diperkuat), event modifiers
 v0.8 (FASE 3) ✅  → Plugin system, adapters (static/node/vercel)
 v0.9 (FASE 4) ✅  → butuhAuth, auth pattern, login flow
 v0.9.9          ✅  → peran role check, tokenKey, init templates, doc restructure
-v1.0 (FASE 5) ⬜  → Demo apps, tutorial, CI/CD, npm publish
+v1.0 (FASE 5) ✅  → Demo apps, hapus-dari, web storage lowering, CI/CD, npm publish
 ```
 
 Setelah v1.0: LSP, hydration, component library, Rust/Go compiler port.

@@ -8,7 +8,7 @@
 
   <p>
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-0.9.9-86efac?style=for-the-badge&logo=git&logoColor=86efac">
+    <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
@@ -127,6 +127,10 @@ Halaman:
 ## Instalasi
 
 ```bash
+# Dari npm (segera tersedia)
+npm install prompt-js
+
+# Atau dari source
 git clone https://github.com/raarion/promptjs.git
 cd promptjs
 npm install
@@ -222,7 +226,7 @@ npm run lint      # ESLint
 npm run typecheck # JSDoc type checking
 ```
 
-392 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, auth guard compilation, SPA routing, CLI utilities, AST factory, dan visitor pattern.
+416 pengujian mencakup: snapshot codegen per statement type, matriks tes negatif untuk 20+ error codes, positive tests untuk semua statement type, auth guard compilation, SPA routing, CLI utilities, AST factory, visitor pattern, hapus-dari expression path, simpan/hapus web storage lowering, dan demo app compilation.
 
 <details>
 <summary><b>🧰 Semua Development Scripts</b></summary>
@@ -782,8 +786,8 @@ promptjs/
 - **v0.8** ✅ — Plugin system, deployment adapters (static/node/vercel)
 - **v0.9** ✅ — Auth guard, protected content, hapus lowering
 - **v0.9.9** ✅ — peran role check, tokenKey config, init templates (6), doc restructure
-- **v1.0** — Demo apps, complete tutorial, CI/CD hardening, npm publish
-- **v1.1+** — LSP, hydration, component library, Rust/Go compiler port
+- **v1.0** ✅ — Demo apps, hapus-dari expression path, web storage lowering, CI/CD hardening, npm publish (`prompt-js`)
+- **v1.1+** 🔮 — LSP, hydration, component library, Rust/Go compiler port
 
 ## Lisensi
 

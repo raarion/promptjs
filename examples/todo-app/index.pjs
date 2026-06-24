@@ -1,0 +1,102 @@
+---
+judul: "Todo App"
+todos: [{"teks":"Belajar PromptJS","selesai":benar},{"teks":"Buat aplikasi pertama","selesai":salah},{"teks":"Deploy ke internet","selesai":salah}]
+---
+
+Gaya:
+    body
+        font-family: system-ui, -apple-system, sans-serif
+        max-width: 600px
+        margin: 0 auto
+        padding: 20px
+        background: #f8f9fa
+        color: #212529
+    h1
+        color: #495057
+        border-bottom: 2px solid #dee2e6
+        padding-bottom: 10px
+    .input-bar
+        display: flex
+        gap: 8px
+        margin-bottom: 16px
+    .input-bar input
+        flex: 1
+        padding: 10px 14px
+        border: 2px solid #dee2e6
+        border-radius: 8px
+        font-size: 1rem
+        outline: none
+    .input-bar input:focus
+        border-color: #4dabf7
+    .input-bar button
+        padding: 10px 20px
+        background: #4dabf7
+        color: white
+        border: none
+        border-radius: 8px
+        font-size: 1rem
+        cursor: pointer
+    .input-bar button:hover
+        background: #339af0
+    .todo-list
+        list-style: none
+        padding: 0
+        margin: 0
+    .todo-item
+        display: flex
+        align-items: center
+        gap: 10px
+        padding: 12px
+        background: white
+        border-radius: 8px
+        margin-bottom: 8px
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08)
+    .todo-teks
+        flex: 1
+        font-size: 1rem
+    .hapus-btn
+        background: none
+        border: none
+        color: #ff6b6b
+        cursor: pointer
+        font-size: 1.2rem
+        padding: 0 4px
+    .hapus-btn:hover
+        color: #fa5252
+    .status
+        margin-top: 12px
+        color: #868e96
+        font-size: 0.9rem
+
+Halaman TodoApp:
+    data daftar = []
+    data tugas = ""
+
+    Ketika muat:
+        simpan $todos ke daftar
+
+    Buat h1: $judul
+
+    Buat div.input-bar:
+        Buat masukan:
+            placeholder = "Tulis tugas baru..."
+            on_diketik = simpan document.querySelector("input").value ke tugas
+        Buat tombol:
+            "Tambah"
+            on_klik = tambahkan tugas ke daftar
+
+    Buat daftar.todo-list:
+        Ulangi untuk item dari daftar:
+            Buat li.todo-item:
+                Buat span.todo-teks:
+                    item
+                Buat tombol.hapus-btn:
+                    "✕"
+                    on_klik = hapus item dari daftar
+
+    Saat daftar:
+        Buat div.status:
+            Buat span:
+                panjang(daftar)
+            Buat span:
+                " tugas"

@@ -507,13 +507,24 @@ function install(PromptJSCompiler, accept) {
    */
   PromptJSCompiler.prototype.visitHapusDariStatement = function (node) {
     const item = this.lowerExpression(node.item);
-    const arr = node.fromArray;
     const isReactive = node.fromArrayReactive;
+
+    // Resolve the array expression — prefer resolver-attached name, else lower the expression
+    let arr;
+    if (node.fromArrayResolved) {
+      arr = node.fromArrayResolved;
+    } else if (node.fromArray && node.fromArray.type === 'Identifier') {
+      arr = this.resolveTarget(node.fromArray);
+    } else {
+      arr = this.lowerExpression(node.fromArray);
+    }
 
     if (isReactive) {
       // Reactive array: use filter to remove item and trigger Proxy setter
       // arr.value = arr.value.filter(__item => __item !== item)
+      this.helpers.add('__setState');
       this.emit(`${arr}.value = ${arr}.value.filter((__item) => __item !== ${item});`);
+      this.emit(`__setState(${arr}, [...${arr}.value]);`);
     } else {
       // Non-reactive array: use filter with assignment
       this.emit(`${arr} = ${arr}.filter((__item) => __item !== ${item});`);
@@ -1063,6 +1074,24 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitSimpanStatement = function (node) {
+    // v1.0: Check if target adalah localStorage.x atau sessionStorage.x
+    if (
+      node.target &&
+      node.target.type === 'MemberExpression' &&
+      node.target.object &&
+      node.target.object.type === 'Identifier'
+    ) {
+      const objName = node.target.object.name; // localStorage atau sessionStorage
+      const propName = node.target.property ? node.target.property.name : null;
+
+      if ((objName === 'localStorage' || objName === 'sessionStorage') && propName) {
+        // Emit: localStorage.setItem("propertyName", value)
+        const val = this.lowerExpression(node.value);
+        this.emit(`${objName}.setItem("${propName}", ${val});`);
+        return;
+      }
+    }
+
     const tgt = this.resolveTarget(node.target);
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {

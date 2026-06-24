@@ -1,0 +1,99 @@
+butuhAuth: benar
+redirect: /login
+token: localStorage
+tokenKey: auth_token
+router: benar
+---
+
+Gaya:
+    body
+        font-family: system-ui, -apple-system, sans-serif
+        margin: 0
+        padding: 0
+        background: #f8f9fa
+        color: #212529
+    nav
+        display: flex
+        align-items: center
+        gap: 16px
+        background: #1a1a2e
+        color: white
+        padding: 12px 24px
+    nav .logo
+        font-weight: bold
+        font-size: 1.2rem
+    nav tombol
+        background: rgba(255,255,255,0.15)
+        color: white
+        border: none
+        padding: 8px 16px
+        border-radius: 6px
+        cursor: pointer
+    nav tombol:hover
+        background: rgba(255,255,255,0.25)
+    nav .keluar
+        margin-left: auto
+        background: #e03131
+    nav .keluar:hover
+        background: #c92a2a
+    .konten
+        max-width: 800px
+        margin: 24px auto
+        padding: 0 20px
+    .kartu
+        background: white
+        border-radius: 12px
+        padding: 24px
+        margin-bottom: 16px
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08)
+    .kartu h2
+        margin-top: 0
+    .stats
+        display: grid
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))
+        gap: 16px
+    .kartu-stat
+        background: white
+        border-radius: 12px
+        padding: 20px
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08)
+        text-align: center
+    .kartu-stat .angka
+        font-size: 2rem
+        font-weight: bold
+        color: #4dabf7
+    .kartu-stat .label
+        color: #868e96
+        font-size: 0.9rem
+    .profil-info
+        display: grid
+        grid-template-columns: auto 1fr
+        gap: 8px 16px
+    .profil-info label
+        color: #868e96
+        font-size: 0.9rem
+    tombol.besar
+        padding: 12px 24px
+        border: none
+        border-radius: 8px
+        font-size: 1rem
+        cursor: pointer
+        background: #4dabf7
+        color: white
+    tombol.besar:hover
+        background: #339af0
+    tombol.merah
+        background: #e03131
+        color: white
+    tombol.merah:hover
+        background: #c92a2a
+
+Halaman DashboardApp:
+    Buat nav#navigasi:
+        Buat span.logo: "Dashboard"
+        Buat tombol[data-halaman="dashboard"]: "Dashboard"
+        Buat tombol[data-halaman="profil"]: "Profil"
+        Buat tombol[data-halaman="pengaturan"]: "Pengaturan"
+        Buat tombol.keluar#keluar: "Keluar"
+    Buat div#konten:
+        Buat h2: "Memuat..."
