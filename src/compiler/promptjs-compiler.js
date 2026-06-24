@@ -111,7 +111,6 @@ PromptJSCompiler.prototype.compile = function (ast) {
   this.emit('// === User Code ===');
 
   // v0.9: Auth guard wrapper (before SPA factory or IIFE)
-  let authGuardStart = -1;
   if (this.butuhAuth) {
     this.emit(`// Auth guard: check ${this.authToken} for token`);
     this.emit(`(function() {`);
@@ -121,7 +120,6 @@ PromptJSCompiler.prototype.compile = function (ast) {
     this.emit(`    return;`);
     this.emit(`  }`);
     this.emit('');
-    authGuardStart = this.output.length;
     this.indent++;
   }
 
@@ -131,8 +129,12 @@ PromptJSCompiler.prototype.compile = function (ast) {
     this.emit('var __dipasangFns = [];');
     this.emit('var __dilepasFns = [];');
     this.emit('');
-  } else if (!this.butuhAuth) {
-    // Only emit IIFE if NOT using auth guard (auth guard is already an IIFE)
+  }
+  // When butuhAuth is on, the auth guard IIFE already wraps everything.
+  // No need for an extra IIFE — the auth guard body itself is the wrapper.
+  // For SPA+auth: the factory function body sits inside the auth guard.
+  // For non-SPA+auth: user code sits directly inside the auth guard.
+  if (!this.isSPA && !this.butuhAuth) {
     this.emit('(function() {');
   }
   this.indent++;
@@ -173,14 +175,15 @@ PromptJSCompiler.prototype.compile = function (ast) {
     this.emit('    if (' + pageRoot + ') ' + pageRoot + '.remove();');
     this.emit('  }');
     this.emit('};');
-  } else {
+  } else if (!this.butuhAuth) {
+    // Only close IIFE if we opened one (not in auth guard mode)
     this.emit('})();');
   }
 
   // v0.9: Close auth guard wrapper (if present)
   if (this.butuhAuth) {
     this.indent--;
-    this.emit('})();'); // Close auth guard IIFE
+    this.emit('})();');
   }
 
   // Phase 3: Generate tree-shaken runtime helpers

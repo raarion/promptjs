@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 /**
- * PromptJS v0.8 — Project Builder (Wave J + K + SPA + Adapters)
+ * PromptJS v0.9 — Project Builder (Wave J + K + SPA + Adapters)
  * ============================================================================
  *
  * Multi-file project builder. Compiles all .pjs files in src/pages/.
@@ -292,7 +292,7 @@ function buildProject(opts) {
       // ═══ SPA MODE ═══
       // Compile all pages as factory functions, generate route table + router
       let spaJs = '';
-      spaJs += '// PromptJS v0.8 — SPA Bundle\n';
+      spaJs += '// PromptJS v0.9 — SPA Bundle\n';
       spaJs += '// Auto-generated. Do not edit.\n\n';
 
       // Emit each page as a named factory function.
@@ -393,7 +393,7 @@ function buildProject(opts) {
 
       if (allJs) {
         const jsOutput =
-          '// PromptJS v0.8 — Bundled JavaScript\n' +
+          '// PromptJS v0.9 — Bundled JavaScript\n' +
           '// Auto-generated. Do not edit.\n' +
           'window.__PJS_ROUTE__ = window.location.pathname;\n' +
           allJs;

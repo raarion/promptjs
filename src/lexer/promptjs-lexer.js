@@ -515,24 +515,91 @@
 
     const lines = source.split('\n');
 
+    // v0.9: Pre-scan for implicit front-matter (compiler directives at start
+    // of file without --- delimiter). This handles patterns like:
+    //   butuhAuth: benar
+    //   redirect: "/login"
+    //   ---
+    //   Halo dunia
+    // Only KNOWN compiler directives are accepted — other keywords like
+    // "dipasang:" or "data:" are PromptJS syntax, not front-matter.
+    // Leading blank lines are skipped before scanning.
+    let implicitFmEnd = -1; // -1 = no implicit FM detected yet
+    let implicitFmStart = -1; // First non-blank line that starts implicit FM
+    const KNOWN_DIRECTIVES = new Set([
+      'router',
+      'adapter',
+      'butuhAuth',
+      'redirect',
+      'token',
+      'peran',
+    ]);
+    // Skip leading blank lines, then scan for consecutive known directives
+    let fmScanStarted = false;
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
+      if (!fmScanStarted) {
+        if (trimmed === '') continue; // skip leading blank lines
+        if (trimmed === '---') break; // explicit FM delimiter — not implicit
+        // First non-blank line — check if it's a known directive
+        const colonIdx = trimmed.indexOf(':');
+        if (colonIdx > 0) {
+          const key = trimmed.substring(0, colonIdx).trim();
+          if (KNOWN_DIRECTIVES.has(key)) {
+            fmScanStarted = true;
+            implicitFmStart = i;
+            implicitFmEnd = i;
+            continue;
+          }
+        }
+        // First non-blank line is not a known directive — no implicit FM
+        break;
+      }
+      // Already scanning — continue until non-directive or --- separator
+      if (trimmed === '' || trimmed === '---') break;
+      const colonIdx2 = trimmed.indexOf(':');
+      if (colonIdx2 > 0) {
+        const key = trimmed.substring(0, colonIdx2).trim();
+        if (KNOWN_DIRECTIVES.has(key)) {
+          implicitFmEnd = i;
+          continue;
+        }
+      }
+      // Not a known directive — end of implicit FM region
+      break;
+    }
+
     for (let i = 0; i < lines.length; i++) {
       const rawLine = lines[i];
       const lineNum = i + 1;
 
       // --- Front-matter detection ---
+      // v0.9: Support both --- delimited and implicit (known directives) front-matter
       if (i === 0 && rawLine.trim() === '---') {
         this.inFrontMatter = true;
         continue;
       }
+      // v0.9: Implicit front-matter (no --- opener, known directives at start)
+      // Starts when we're at the first non-blank line and implicitFmStart is set
+      if (implicitFmStart >= 0 && i >= implicitFmStart && !this.inFrontMatter) {
+        this.inFrontMatter = true;
+      }
       if (this.inFrontMatter) {
-        if (rawLine.trim() === '---') {
+        const trimmed = rawLine.trim();
+        if (trimmed === '---') {
           this.inFrontMatter = false;
+          continue;
+        } else if (implicitFmStart >= 0 && i > implicitFmEnd) {
+          // End of implicit front-matter region
+          this.inFrontMatter = false;
+          // Don't skip this line — re-process it as normal content
+          // fall through to normal line handling below
         } else {
           // Accumulate front-matter lines (parse later)
           if (!this.frontMatter) this.frontMatter = [];
           this.frontMatter.push(rawLine);
+          continue;
         }
-        continue;
       }
 
       // --- Blank lines ---
