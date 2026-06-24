@@ -33,17 +33,22 @@
 function applyHook(plugins, hookName, content, filename) {
   if (!plugins || plugins.length === 0) return content;
 
-  var result = content;
-  for (var i = 0; i < plugins.length; i++) {
-    var plugin = plugins[i];
+  let result = content;
+  for (let i = 0; i < plugins.length; i++) {
+    const plugin = plugins[i];
     if (plugin && typeof plugin[hookName] === 'function') {
       try {
         result = plugin[hookName](result, filename);
       } catch (e) {
         // Plugin errors are non-fatal — log and continue
         process.stderr.write(
-          '[PromptJS] Plugin "' + (plugin.name || 'unknown') + '" error in ' +
-          hookName + ': ' + e.message + '\n'
+          '[PromptJS] Plugin "' +
+            (plugin.name || 'unknown') +
+            '" error in ' +
+            hookName +
+            ': ' +
+            e.message +
+            '\n'
         );
       }
     }

@@ -257,7 +257,11 @@ function buildProject(opts) {
   let isSPA = false;
   const pageResults = [];
   for (const filePath of pageFiles) {
-    const pageResult = buildPage(filePath, { pagesDir, dev, scope: path.basename(filePath, '.pjs') });
+    const pageResult = buildPage(filePath, {
+      pagesDir,
+      dev,
+      scope: path.basename(filePath, '.pjs'),
+    });
     pageResults.push(pageResult);
     if (pageResult.isSPA) isSPA = true;
     if (!pageResult.success) errors.push(...pageResult.errors);
@@ -274,6 +278,8 @@ function buildProject(opts) {
     }
   }
 
+  let adapterResult = null;
+
   // Write output files
   try {
     // Clean dist
@@ -285,6 +291,7 @@ function buildProject(opts) {
     if (isSPA) {
       // ═══ SPA MODE ═══
       // Compile all pages as factory functions, generate route table + router
+      let spaJs = '';
       spaJs += '// PromptJS v0.8 — SPA Bundle\n';
       spaJs += '// Auto-generated. Do not edit.\n\n';
 
@@ -307,7 +314,7 @@ function buildProject(opts) {
         if (!pr.js) continue;
 
         const lines = pr.js.split('\n');
-        const userCodeIdx = lines.findIndex(l => l.includes('// === User Code ==='));
+        const userCodeIdx = lines.findIndex((l) => l.includes('// === User Code ==='));
 
         if (!runtimeExtracted && userCodeIdx > 0) {
           // Extract header + runtime helpers (everything before user code)
@@ -415,9 +422,14 @@ function buildProject(opts) {
     }
 
     // v0.8: Apply adapter post-processing
-    var adapterResult = null;
     if (adapter) {
-      var routes = pageResults.filter(function(pr) { return pr.success; }).map(function(pr) { return pr.route; });
+      const routes = pageResults
+        .filter(function (pr) {
+          return pr.success;
+        })
+        .map(function (pr) {
+          return pr.route;
+        });
       try {
         adapterResult = runAdapter(adapter, {
           outDir: outDir,
@@ -482,9 +494,9 @@ function copyDirRecursive(src, dest) {
  * @returns {Object} Adapter result
  */
 function runAdapter(name, opts) {
-  var AdapterStatic = require('./adapters/static');
-  var AdapterNode = require('./adapters/node');
-  var AdapterVercel = require('./adapters/vercel');
+  const AdapterStatic = require('./adapters/static');
+  const AdapterNode = require('./adapters/node');
+  const AdapterVercel = require('./adapters/vercel');
 
   switch (name) {
     case 'static':
@@ -494,7 +506,16 @@ function runAdapter(name, opts) {
     case 'vercel':
       return AdapterVercel.runVercelAdapter(opts);
     default:
-      return { errors: [{ code: 'E0000', severity: 'error', message: 'Unknown adapter: ' + name, suggestion: 'Use static, node, or vercel' }] };
+      return {
+        errors: [
+          {
+            code: 'E0000',
+            severity: 'error',
+            message: 'Unknown adapter: ' + name,
+            suggestion: 'Use static, node, or vercel',
+          },
+        ],
+      };
   }
 }
 
@@ -506,10 +527,10 @@ function runAdapter(name, opts) {
  */
 function applyHtmlPlugins(dir, plugins) {
   if (!plugins || plugins.length === 0) return;
-  var htmlFiles = findHtmlFiles(dir);
-  for (var i = 0; i < htmlFiles.length; i++) {
-    var htmlPath = htmlFiles[i];
-    var html = fs.readFileSync(htmlPath, 'utf-8');
+  const htmlFiles = findHtmlFiles(dir);
+  for (let i = 0; i < htmlFiles.length; i++) {
+    const htmlPath = htmlFiles[i];
+    let html = fs.readFileSync(htmlPath, 'utf-8');
     html = Plugins.transformHTML(plugins, html, path.basename(htmlPath));
     fs.writeFileSync(htmlPath, html, 'utf-8');
   }
@@ -522,14 +543,14 @@ function applyHtmlPlugins(dir, plugins) {
  * @returns {string[]} HTML file paths
  */
 function findHtmlFiles(dir) {
-  var results = [];
+  let results = [];
   try {
-    var entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (var i = 0; i < entries.length; i++) {
-      var entry = entries[i];
-      var fullPath = path.join(dir, entry.name);
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory() && entry.name !== 'node_modules') {
-        var sub = findHtmlFiles(fullPath);
+        const sub = findHtmlFiles(fullPath);
         results = results.concat(sub);
       } else if (entry.name.endsWith('.html')) {
         results.push(fullPath);

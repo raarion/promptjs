@@ -673,7 +673,14 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
   // v0.7: Parse modifiers from the event name string.
   // Lexer produces event name as "on_dikirim.cegah" (modifier embedded in string).
   const modifiers = [];
-  const VALID_MODIFIERS = { cegah: true, prevent: true, sekali: true, once: true, hentikan: true, stop: true };
+  const VALID_MODIFIERS = {
+    cegah: true,
+    prevent: true,
+    sekali: true,
+    once: true,
+    hentikan: true,
+    stop: true,
+  };
 
   if (rawEventName.includes('.')) {
     const parts = rawEventName.split('.');
@@ -1469,16 +1476,33 @@ PromptJSParser.prototype._parseAmbilStatement = function () {
     const options = [];
     const branches = [];
     const OPTION_KEYS = new Set([
-      'metode', 'method', 'isi', 'body', 'header', 'headers',
-      'mode', 'kredensial', 'credentials',
+      'metode',
+      'method',
+      'isi',
+      'body',
+      'header',
+      'headers',
+      'mode',
+      'kredensial',
+      'credentials',
     ]);
-    const BRANCH_KEYS = new Set([
-      'berhasil', 'success', 'gagal', 'error', 'selalu', 'always', 'finally',
+    const _BRANCH_KEYS = new Set([
+      'berhasil',
+      'success',
+      'gagal',
+      'error',
+      'selalu',
+      'always',
+      'finally',
     ]);
     const BRANCH_MAP = {
-      berhasil: 'berhasil', success: 'berhasil',
-      gagal: 'gagal', error: 'gagal',
-      selalu: 'selalu', always: 'selalu', finally: 'selalu',
+      berhasil: 'berhasil',
+      success: 'berhasil',
+      gagal: 'gagal',
+      error: 'gagal',
+      selalu: 'selalu',
+      always: 'selalu',
+      finally: 'selalu',
     };
 
     if (this._match(TT.TK_INDENT)) {

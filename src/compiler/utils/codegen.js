@@ -90,12 +90,12 @@ const VLQ_BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567
  */
 function encodeVLQ(value) {
   // Convert to signed 6-bit representation
-  let vlq = value < 0 ? ((-value) << 1) | 1 : value << 1;
+  let vlq = value < 0 ? (-value << 1) | 1 : value << 1;
 
   let encoded = '';
 
   do {
-    let digit = vlq & 0x1F; // 5 bits of data
+    let digit = vlq & 0x1f; // 5 bits of data
     vlq >>>= 5;
     if (vlq > 0) {
       digit |= 0x20; // Set continuation bit
@@ -116,7 +116,7 @@ function encodeVLQ(value) {
  * @returns {Object} Source Map V3 object
  */
 function generateSourceMap(compiler) {
-  const mappings = [];
+  const _mappings = [];
   const data = compiler.sourceMapData || [];
   const output = compiler.output || [];
   const sourceFile = compiler.currentSource || 'program.pjs';
@@ -141,11 +141,7 @@ function generateSourceMap(compiler) {
     const dSrcLine = sourceLine0 - prevSourceLine;
     const dSrcCol = sourceCol0 - prevSourceCol;
 
-    const segment =
-      encodeVLQ(dCol) +
-      encodeVLQ(dSrc) +
-      encodeVLQ(dSrcLine) +
-      encodeVLQ(dSrcCol);
+    const segment = encodeVLQ(dCol) + encodeVLQ(dSrc) + encodeVLQ(dSrcLine) + encodeVLQ(dSrcCol);
 
     lineToSegment.set(entry.outputLine, segment);
 

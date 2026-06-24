@@ -41,9 +41,9 @@ function contentHash(content, len) {
  * @returns {string} Hashed filename
  */
 function hashFilename(filename, content) {
-  var ext = path.extname(filename);
-  var base = filename.slice(0, -ext.length);
-  var hash = contentHash(content, 8);
+  const ext = path.extname(filename);
+  const base = filename.slice(0, -ext.length);
+  const hash = contentHash(content, 8);
   return base + '.' + hash + ext;
 }
 
@@ -52,14 +52,14 @@ function hashFilename(filename, content) {
  *
  * @param {string} html - Original HTML
  * @param {Object} meta - Meta config { title, description, ogImage, ... }
- * @param {Object} opts - Options
+ * @param {Object} [opts] - Options
  * @param {string} [opts.siteUrl] - Base URL for canonical
  * @param {string} [opts.route] - Current page route (for canonical)
  * @returns {string} HTML with meta tags injected
  */
 function injectMetaTags(html, meta, opts) {
   opts = opts || {};
-  var tags = [];
+  const tags = [];
 
   if (meta && meta.title) {
     tags.push('  <meta name="og:title" content="' + escapeAttr(meta.title) + '">');
@@ -75,13 +75,13 @@ function injectMetaTags(html, meta, opts) {
     tags.push('  <meta name="og:type" content="' + escapeAttr(meta.ogType) + '">');
   }
   if (opts.siteUrl && opts.route) {
-    var canonical = opts.siteUrl.replace(/\/$/, '') + opts.route;
+    const canonical = opts.siteUrl.replace(/\/$/, '') + opts.route;
     tags.push('  <link rel="canonical" href="' + escapeAttr(canonical) + '">');
   }
 
   if (tags.length === 0) return html;
 
-  var metaBlock = tags.join('\n') + '\n';
+  const metaBlock = tags.join('\n') + '\n';
   return html.replace('</head>', metaBlock + '</head>');
 }
 
@@ -93,15 +93,20 @@ function injectMetaTags(html, meta, opts) {
  * @returns {string} sitemap.xml content
  */
 function generateSitemap(routes, siteUrl) {
-  var urls = routes
+  const urls = routes
     .map(function (route) {
-      return '  <url>\n    <loc>' + escapeXml(siteUrl.replace(/\/$/, '') + route) + '</loc>\n  </url>';
+      return (
+        '  <url>\n    <loc>' + escapeXml(siteUrl.replace(/\/$/, '') + route) + '</loc>\n  </url>'
+      );
     })
     .join('\n');
 
-  return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+  return (
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    urls + '\n</urlset>\n';
+    urls +
+    '\n</urlset>\n'
+  );
 }
 
 /**
@@ -118,7 +123,8 @@ function generate404(htmlShell) {
     return htmlShell; // SPA: reuse shell
   }
 
-  return '<!DOCTYPE html>\n' +
+  return (
+    '<!DOCTYPE html>\n' +
     '<html lang="id">\n' +
     '<head>\n' +
     '  <meta charset="UTF-8">\n' +
@@ -130,43 +136,44 @@ function generate404(htmlShell) {
     '  <p>Halaman tidak ditemukan.</p>\n' +
     '  <a href="/">Kembali ke beranda</a>\n' +
     '</body>\n' +
-    '</html>\n';
+    '</html>\n'
+  );
 }
 
 /**
  * Run the static adapter: hash assets, inject meta, generate sitemap + 404.
  *
- * @param {Object} opts - Adapter options
- * @param {string} opts.outDir - Output directory
- * @param {string[]} opts.routes - Route paths
- * @param {boolean} opts.isSPA - Whether this is an SPA build
+ * @param {Object} [opts] - Adapter options
+ * @param {string} [opts.outDir] - Output directory
+ * @param {string[]} [opts.routes] - Route paths
+ * @param {boolean} [opts.isSPA] - Whether this is an SPA build
  * @param {Object} [opts.meta] - Meta tags config
  * @param {string} [opts.siteUrl] - Site URL for sitemap/canonical
  * @returns {{ hashedAssets: Object, sitemap: string, errors: Object[] }}
  */
 function runStaticAdapter(opts) {
   opts = opts || {};
-  var errors = [];
-  var hashedAssets = {};
+  const errors = [];
+  const hashedAssets = {};
 
-  var outDir = path.resolve(opts.outDir || 'dist');
-  var jsPath = path.join(outDir, 'prompt.js');
-  var cssPath = path.join(outDir, 'prompt.css');
-  var htmlIndexPath = path.join(outDir, 'index.html');
+  const outDir = path.resolve(opts.outDir || 'dist');
+  const jsPath = path.join(outDir, 'prompt.js');
+  const cssPath = path.join(outDir, 'prompt.css');
+  const htmlIndexPath = path.join(outDir, 'index.html');
 
   // Hash JS
   if (fs.existsSync(jsPath)) {
-    var jsContent = fs.readFileSync(jsPath, 'utf-8');
-    var hashedJsName = hashFilename('prompt.js', jsContent);
-    var hashedJsPath = path.join(outDir, hashedJsName);
+    const jsContent = fs.readFileSync(jsPath, 'utf-8');
+    const hashedJsName = hashFilename('prompt.js', jsContent);
+    const hashedJsPath = path.join(outDir, hashedJsName);
     fs.writeFileSync(hashedJsPath, jsContent, 'utf-8');
     hashedAssets.js = hashedJsName;
 
     // Update references in HTML files
-    var htmlFiles = findHtmlFiles(outDir);
-    for (var i = 0; i < htmlFiles.length; i++) {
-      var htmlPath = htmlFiles[i];
-      var html = fs.readFileSync(htmlPath, 'utf-8');
+    const htmlFiles = findHtmlFiles(outDir);
+    for (let i = 0; i < htmlFiles.length; i++) {
+      const htmlPath = htmlFiles[i];
+      let html = fs.readFileSync(htmlPath, 'utf-8');
       html = html.replace(/src=["']prompt\.js["']/g, 'src="' + hashedJsName + '"');
       fs.writeFileSync(htmlPath, html, 'utf-8');
     }
@@ -174,17 +181,17 @@ function runStaticAdapter(opts) {
 
   // Hash CSS
   if (fs.existsSync(cssPath)) {
-    var cssContent = fs.readFileSync(cssPath, 'utf-8');
-    var hashedCssName = hashFilename('prompt.css', cssContent);
-    var hashedCssPath = path.join(outDir, hashedCssName);
+    const cssContent = fs.readFileSync(cssPath, 'utf-8');
+    const hashedCssName = hashFilename('prompt.css', cssContent);
+    const hashedCssPath = path.join(outDir, hashedCssName);
     fs.writeFileSync(hashedCssPath, cssContent, 'utf-8');
     hashedAssets.css = hashedCssName;
 
     // Update references in HTML files
-    var htmlFiles2 = findHtmlFiles(outDir);
-    for (var j = 0; j < htmlFiles2.length; j++) {
-      var htmlPath2 = htmlFiles2[j];
-      var html2 = fs.readFileSync(htmlPath2, 'utf-8');
+    const htmlFiles2 = findHtmlFiles(outDir);
+    for (let j = 0; j < htmlFiles2.length; j++) {
+      const htmlPath2 = htmlFiles2[j];
+      let html2 = fs.readFileSync(htmlPath2, 'utf-8');
       html2 = html2.replace(/href=["']prompt\.css["']/g, 'href="' + hashedCssName + '"');
       fs.writeFileSync(htmlPath2, html2, 'utf-8');
     }
@@ -192,12 +199,12 @@ function runStaticAdapter(opts) {
 
   // Inject meta tags into HTML files
   if (opts.meta && Object.keys(opts.meta).length > 0) {
-    var htmlFiles3 = findHtmlFiles(outDir);
-    for (var k = 0; k < htmlFiles3.length; k++) {
-      var htmlPath3 = htmlFiles3[k];
-      var html3 = fs.readFileSync(htmlPath3, 'utf-8');
+    const htmlFiles3 = findHtmlFiles(outDir);
+    for (let k = 0; k < htmlFiles3.length; k++) {
+      const htmlPath3 = htmlFiles3[k];
+      let html3 = fs.readFileSync(htmlPath3, 'utf-8');
       // Derive route from filename for canonical
-      var route = deriveRouteFromHtml(htmlPath3, outDir);
+      const route = deriveRouteFromHtml(htmlPath3, outDir);
       html3 = injectMetaTags(html3, opts.meta, {
         siteUrl: opts.siteUrl,
         route: route,
@@ -207,7 +214,7 @@ function runStaticAdapter(opts) {
   }
 
   // Generate sitemap.xml
-  var sitemap = '';
+  let sitemap = '';
   if (opts.siteUrl && opts.routes && opts.routes.length > 0) {
     sitemap = generateSitemap(opts.routes, opts.siteUrl);
     fs.writeFileSync(path.join(outDir, 'sitemap.xml'), sitemap, 'utf-8');
@@ -215,11 +222,11 @@ function runStaticAdapter(opts) {
 
   // Generate 404.html
   if (opts.isSPA && fs.existsSync(htmlIndexPath)) {
-    var shellContent = fs.readFileSync(htmlIndexPath, 'utf-8');
-    var fourOhFour = generate404(shellContent);
+    const shellContent = fs.readFileSync(htmlIndexPath, 'utf-8');
+    const fourOhFour = generate404(shellContent);
     fs.writeFileSync(path.join(outDir, '404.html'), fourOhFour, 'utf-8');
   } else if (!opts.isSPA) {
-    var fourOhFourMpa = generate404(null);
+    const fourOhFourMpa = generate404(null);
     fs.writeFileSync(path.join(outDir, '404.html'), fourOhFourMpa, 'utf-8');
   }
 
@@ -233,14 +240,14 @@ function runStaticAdapter(opts) {
  * @returns {string[]} HTML file paths
  */
 function findHtmlFiles(dir) {
-  var results = [];
+  let results = [];
   try {
-    var entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (var i = 0; i < entries.length; i++) {
-      var entry = entries[i];
-      var fullPath = path.join(dir, entry.name);
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        var sub = findHtmlFiles(fullPath);
+        const sub = findHtmlFiles(fullPath);
         results = results.concat(sub);
       } else if (entry.name.endsWith('.html')) {
         results.push(fullPath);
@@ -256,7 +263,7 @@ function findHtmlFiles(dir) {
  * @returns {string} Route path
  */
 function deriveRouteFromHtml(htmlPath, outDir) {
-  var rel = path.relative(outDir, htmlPath);
+  const rel = path.relative(outDir, htmlPath);
   if (rel === 'index.html') return '/';
   return '/' + rel.replace(/\.html$/, '');
 }

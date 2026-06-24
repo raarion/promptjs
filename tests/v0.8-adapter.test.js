@@ -33,7 +33,9 @@ function makeTempDir() {
 
 function cleanup() {
   for (const dir of tmpDirs) {
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {}
   }
   tmpDirs.length = 0;
 }
@@ -80,7 +82,7 @@ describe('v0.8 — Config Loader', () => {
     const dir = makeTempDir();
     const cfgPath = path.join(dir, 'pjs.config.js');
     fs.writeFileSync(cfgPath, 'module.exports = { adapter: "cloudflare" };');
-    const { config, errors } = Config.loadConfigFile(cfgPath);
+    const { config: _config, errors } = Config.loadConfigFile(cfgPath);
     expect(errors.length).toBe(1);
     expect(errors[0].severity).toBe('warning');
   });
@@ -88,13 +90,16 @@ describe('v0.8 — Config Loader', () => {
   it('loads plugins from config', () => {
     const dir = makeTempDir();
     const cfgPath = path.join(dir, 'pjs.config.js');
-    fs.writeFileSync(cfgPath, `
+    fs.writeFileSync(
+      cfgPath,
+      `
       module.exports = {
         plugins: [
           { name: "test-plugin", transformJS(js) { return js + "\\n// injected"; } }
         ]
       };
-    `);
+    `
+    );
     const { config } = Config.loadConfigFile(cfgPath);
     expect(config.plugins.length).toBe(1);
     expect(config.plugins[0].name).toBe('test-plugin');
@@ -102,7 +107,7 @@ describe('v0.8 — Config Loader', () => {
 
   it('loadProjectConfig returns defaults', () => {
     const dir = makeTempDir();
-    const { config, errors, rootDir } = Config.loadProjectConfig(dir);
+    const { config, errors, rootDir: _rootDir } = Config.loadProjectConfig(dir);
     expect(config.adapter).toBeNull();
     expect(config.plugins).toEqual([]);
     expect(config.outDir).toBe('dist');
@@ -111,7 +116,10 @@ describe('v0.8 — Config Loader', () => {
 
   it('CLI args override config file values', () => {
     const dir = makeTempDir();
-    fs.writeFileSync(path.join(dir, 'pjs.config.js'), 'module.exports = { outDir: "build", adapter: "static" };');
+    fs.writeFileSync(
+      path.join(dir, 'pjs.config.js'),
+      'module.exports = { outDir: "build", adapter: "static" };'
+    );
     const { config } = Config.loadProjectConfig(dir, { 'out-dir': 'output', adapter: 'node' });
     expect(config.outDir).toBe('output');
     expect(config.adapter).toBe('node');
@@ -123,39 +131,59 @@ describe('v0.8 — Config Loader', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 describe('v0.8 — Plugin System', () => {
   it('transformSource modifies source before compile', () => {
-    const plugins = [{
-      name: 'add-comment',
-      transformSource(src) { return '// plugin injected\n' + src; },
-    }];
+    const plugins = [
+      {
+        name: 'add-comment',
+        transformSource(src) {
+          return '// plugin injected\n' + src;
+        },
+      },
+    ];
     const result = Plugins.transformSource(plugins, 'Buat h1: "Hi"', 'test.pjs');
     expect(result).toContain('// plugin injected');
     expect(result).toContain('Buat h1: "Hi"');
   });
 
   it('transformJS modifies compiled JS', () => {
-    const plugins = [{
-      name: 'append-comment',
-      transformJS(js) { return js + '\n// plugin appended'; },
-    }];
+    const plugins = [
+      {
+        name: 'append-comment',
+        transformJS(js) {
+          return js + '\n// plugin appended';
+        },
+      },
+    ];
     const result = Plugins.transformJS(plugins, 'var x = 1;', 'test.pjs');
     expect(result).toContain('// plugin appended');
   });
 
   it('transformCSS modifies compiled CSS', () => {
-    const plugins = [{
-      name: 'minify-css',
-      transformCSS(css) { return css.trim(); },
-    }];
+    const plugins = [
+      {
+        name: 'minify-css',
+        transformCSS(css) {
+          return css.trim();
+        },
+      },
+    ];
     const result = Plugins.transformCSS(plugins, '  .a { }  \n', 'test.pjs');
     expect(result).toBe('.a { }');
   });
 
   it('transformHTML modifies generated HTML', () => {
-    const plugins = [{
-      name: 'add-favicon',
-      transformHTML(html) { return html.replace('</head>', '<link rel="icon" href="/favicon.ico"></head>'); },
-    }];
-    const result = Plugins.transformHTML(plugins, '<html><head></head><body></body></html>', 'test.pjs');
+    const plugins = [
+      {
+        name: 'add-favicon',
+        transformHTML(html) {
+          return html.replace('</head>', '<link rel="icon" href="/favicon.ico"></head>');
+        },
+      },
+    ];
+    const result = Plugins.transformHTML(
+      plugins,
+      '<html><head></head><body></body></html>',
+      'test.pjs'
+    );
     expect(result).toContain('favicon.ico');
   });
 
@@ -167,10 +195,14 @@ describe('v0.8 — Plugin System', () => {
   });
 
   it('plugin errors are non-fatal (logged, not thrown)', () => {
-    const plugins = [{
-      name: 'bad-plugin',
-      transformJS() { throw new Error('boom'); },
-    }];
+    const plugins = [
+      {
+        name: 'bad-plugin',
+        transformJS() {
+          throw new Error('boom');
+        },
+      },
+    ];
     // Should not throw, returns original content
     const result = Plugins.transformJS(plugins, 'var x = 1;', 'test.pjs');
     expect(result).toBe('var x = 1;');
@@ -180,7 +212,9 @@ describe('v0.8 — Plugin System', () => {
     const engine = new Engine.PromptJSEngine();
     const injectComment = {
       name: 'test',
-      transformJS(js) { return js + '\n/* PLUGIN_RAN */'; },
+      transformJS(js) {
+        return js + '\n/* PLUGIN_RAN */';
+      },
     };
     const result = engine.compile('Buat h1: "Test"', { plugins: [injectComment] });
     expect(result.js).toContain('/* PLUGIN_RAN */');
@@ -214,7 +248,11 @@ describe('v0.8 — Adapter: Static', () => {
 
   it('injectMetaTags adds canonical URL when siteUrl provided', () => {
     const html = '<html><head></head><body></body></html>';
-    const result = AdapterStatic.injectMetaTags(html, {}, { siteUrl: 'https://example.com', route: '/about' });
+    const result = AdapterStatic.injectMetaTags(
+      html,
+      {},
+      { siteUrl: 'https://example.com', route: '/about' }
+    );
     expect(result).toContain('canonical');
     expect(result).toContain('https://example.com/about');
   });
@@ -252,7 +290,8 @@ describe('v0.8 — Adapter: Static', () => {
     // Write mock build output
     const jsContent = 'var __el_1 = document.createElement("h1");';
     const cssContent = 'h1 { color: red; }';
-    const htmlContent = '<!DOCTYPE html><html><head><link rel="stylesheet" href="prompt.css"></head><body><script src="prompt.js"></script></body></html>';
+    const htmlContent =
+      '<!DOCTYPE html><html><head><link rel="stylesheet" href="prompt.css"></head><body><script src="prompt.js"></script></body></html>';
 
     fs.writeFileSync(path.join(distDir, 'prompt.js'), jsContent);
     fs.writeFileSync(path.join(distDir, 'prompt.css'), cssContent);
@@ -311,7 +350,10 @@ describe('v0.8 — Adapter: Node', () => {
   });
 
   it('API proxy is included when apiUrl is configured', () => {
-    const serverJS = AdapterNode.generateServerJS({ isSPA: false, apiUrl: 'https://api.example.com' });
+    const serverJS = AdapterNode.generateServerJS({
+      isSPA: false,
+      apiUrl: 'https://api.example.com',
+    });
     expect(serverJS).toContain('API_URL');
     expect(serverJS).toContain('proxyApi');
     expect(serverJS).toContain('/api/');
@@ -396,9 +438,15 @@ describe('v0.8 — Adapter: Vercel', () => {
 
     // Check .vercel/output structure
     expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'config.json'))).toBe(true);
-    expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'static', 'index.html'))).toBe(true);
-    expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'static', 'prompt.js'))).toBe(true);
-    expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'static', 'assets', 'logo.png'))).toBe(true);
+    expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'static', 'index.html'))).toBe(
+      true
+    );
+    expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'static', 'prompt.js'))).toBe(
+      true
+    );
+    expect(
+      fs.existsSync(path.join(distDir, '.vercel', 'output', 'static', 'assets', 'logo.png'))
+    ).toBe(true);
 
     // Check functions dir exists
     expect(fs.existsSync(path.join(distDir, '.vercel', 'output', 'functions'))).toBe(true);

@@ -45,8 +45,11 @@ function runBuild(argv) {
   const rootDir = path.resolve(inputDir);
 
   // v0.8: Load project config
-  const { config: projectConfig, errors: configErrors, rootDir: configRootDir } =
-    Config.loadProjectConfig(rootDir, argv);
+  const {
+    config: projectConfig,
+    errors: _configErrors,
+    rootDir: _configRootDir,
+  } = Config.loadProjectConfig(rootDir, argv);
 
   const distDir = path.resolve(outDir || projectConfig.outDir || 'dist');
 

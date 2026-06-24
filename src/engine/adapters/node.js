@@ -24,19 +24,19 @@ const path = require('path');
 /**
  * Generate the server.js content for a Node.js adapter.
  *
- * @param {Object} opts - Adapter options
- * @param {string} opts.outDir - Output directory (where files were written)
- * @param {boolean} opts.isSPA - Whether this is an SPA build
- * @param {string[]} opts.routes - Route paths (for SPA route table)
+ * @param {Object} [opts] - Adapter options
+ * @param {string} [opts.outDir] - Output directory (where files were written)
+ * @param {boolean} [opts.isSPA] - Whether this is an SPA build
+ * @param {string[]} [opts.routes] - Route paths (for SPA route table)
  * @param {string} [opts.apiUrl] - Backend API URL for proxying
  * @returns {string} server.js content
  */
 function generateServerJS(opts) {
   opts = opts || {};
-  var isSPA = opts.isSPA;
-  var apiUrl = opts.apiUrl || '';
+  const isSPA = opts.isSPA;
+  const apiUrl = opts.apiUrl || '';
 
-  var serverCode = '';
+  let serverCode = '';
   serverCode += '// PromptJS v0.8 — Node.js Server\n';
   serverCode += '// Auto-generated. Do not edit.\n';
   serverCode += '// Usage: node server.js [PORT]\n\n';
@@ -69,7 +69,8 @@ function generateServerJS(opts) {
     // SPA: all routes serve index.html (client-side router handles it)
     serverCode += '// SPA mode: serve index.html for all non-static routes\n';
     serverCode += 'var INDEX_HTML = null;\n';
-    serverCode += 'try { INDEX_HTML = fs.readFileSync(path.join(STATIC_DIR, "index.html"), "utf-8"); }\n';
+    serverCode +=
+      'try { INDEX_HTML = fs.readFileSync(path.join(STATIC_DIR, "index.html"), "utf-8"); }\n';
     serverCode += 'catch(e) { INDEX_HTML = "<h1>Error: index.html not found</h1>"; }\n\n';
 
     serverCode += 'function serveSPA(req, res) {\n';
@@ -79,7 +80,8 @@ function generateServerJS(opts) {
     // Serve static files first (js, css, assets)
     serverCode += '  // Try static file first\n';
     serverCode += '  var filePath = path.join(STATIC_DIR, pathname);\n';
-    serverCode += '  if (pathname !== "/" && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {\n';
+    serverCode +=
+      '  if (pathname !== "/" && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {\n';
     serverCode += '    serveStaticFile(filePath, res);\n';
     serverCode += '    return;\n';
     serverCode += '  }\n\n';
@@ -99,7 +101,8 @@ function generateServerJS(opts) {
     serverCode += '  // Root → index.html\n';
     serverCode += '  if (pathname === "/") {\n';
     serverCode += '    pathname = "/index.html";\n';
-    serverCode += '  } else if (!pathname.endsWith(".html") && !pathname.endsWith(".js") && !pathname.endsWith(".css") && !path.extname(pathname)) {\n';
+    serverCode +=
+      '  } else if (!pathname.endsWith(".html") && !pathname.endsWith(".js") && !pathname.endsWith(".css") && !path.extname(pathname)) {\n';
     serverCode += '    pathname = pathname + ".html";\n';
     serverCode += '  }\n\n';
 
@@ -150,7 +153,8 @@ function generateServerJS(opts) {
     serverCode += '    var options = url.parse(proxyUrl);\n';
     serverCode += '    options.method = req.method;\n';
     serverCode += '    options.headers = Object.assign({}, req.headers, { host: options.host });\n';
-    serverCode += '    if (body.length > 0) options.headers["Content-Length"] = Buffer.concat(body).length;\n\n';
+    serverCode +=
+      '    if (body.length > 0) options.headers["Content-Length"] = Buffer.concat(body).length;\n\n';
     serverCode += '    var proxyReq = http.request(options, function(proxyRes) {\n';
     serverCode += '      res.writeHead(proxyRes.statusCode, proxyRes.headers);\n';
     serverCode += '      proxyRes.pipe(res);\n';
@@ -187,30 +191,31 @@ function generateServerJS(opts) {
 /**
  * Run the Node adapter: write server.js + Dockerfile.
  *
- * @param {Object} opts - Adapter options
- * @param {string} opts.outDir - Output directory
- * @param {boolean} opts.isSPA - SPA or MPA
- * @param {string[]} opts.routes - Route paths
+ * @param {Object} [opts] - Adapter options
+ * @param {string} [opts.outDir] - Output directory
+ * @param {boolean} [opts.isSPA] - SPA or MPA
+ * @param {string[]} [opts.routes] - Route paths
  * @param {string} [opts.apiUrl] - Backend API URL
  * @returns {{ serverPath: string, dockerfilePath: string, errors: Object[] }}
  */
 function runNodeAdapter(opts) {
   opts = opts || {};
-  var errors = [];
-  var outDir = path.resolve(opts.outDir || 'dist');
+  const errors = [];
+  const outDir = path.resolve(opts.outDir || 'dist');
 
-  var serverContent = generateServerJS(opts);
-  var serverPath = path.join(outDir, 'server.js');
+  const serverContent = generateServerJS(opts);
+  const serverPath = path.join(outDir, 'server.js');
   fs.writeFileSync(serverPath, serverContent, 'utf-8');
 
   // Generate Dockerfile
-  var dockerContent = 'FROM node:20-slim\n' +
+  const dockerContent =
+    'FROM node:20-slim\n' +
     'WORKDIR /app\n' +
     'COPY dist/ .\n' +
     'EXPOSE 3000\n' +
     'CMD ["node", "server.js"]\n';
 
-  var dockerfilePath = path.join(outDir, 'Dockerfile');
+  const dockerfilePath = path.join(outDir, 'Dockerfile');
   fs.writeFileSync(dockerfilePath, dockerContent, 'utf-8');
 
   return {

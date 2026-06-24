@@ -30,10 +30,7 @@ const fs = require('fs');
 const path = require('path');
 
 /** @type {Set<string>} Config file names to search (in order) */
-const CONFIG_FILENAMES = new Set([
-  'pjs.config.js',
-  'promptjs.config.js',
-]);
+const CONFIG_FILENAMES = new Set(['pjs.config.js', 'promptjs.config.js']);
 
 /** @type {Set<string>} Known adapter names */
 const KNOWN_ADAPTERS = new Set(['static', 'node', 'vercel']);
@@ -45,12 +42,12 @@ const KNOWN_ADAPTERS = new Set(['static', 'node', 'vercel']);
  * @returns {{ configPath: string|null, rootDir: string }} Found config path + project root
  */
 function findConfigFile(startDir) {
-  var dir = path.resolve(startDir);
-  var prevDir = '';
+  let dir = path.resolve(startDir);
+  let prevDir = '';
 
   while (dir !== prevDir) {
-    for (var name of CONFIG_FILENAMES) {
-      var candidate = path.join(dir, name);
+    for (const name of CONFIG_FILENAMES) {
+      const candidate = path.join(dir, name);
       if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
         return { configPath: candidate, rootDir: dir };
       }
@@ -69,10 +66,11 @@ function findConfigFile(startDir) {
  * @returns {{ config: Object, errors: Object[] }} Loaded config + any validation errors
  */
 function loadConfigFile(configPath) {
-  var errors = [];
+  const errors = [];
 
+  let raw;
   try {
-    var raw = require(configPath);
+    raw = require(configPath);
   } catch (e) {
     errors.push({
       code: 'E0000',
@@ -84,7 +82,7 @@ function loadConfigFile(configPath) {
   }
 
   // Support both `module.exports = { ... }` and `export default` (commonjs only)
-  var config = raw && raw.default ? raw.default : raw;
+  const config = raw && raw.default ? raw.default : raw;
 
   if (typeof config !== 'object' || config === null || Array.isArray(config)) {
     errors.push({
@@ -120,9 +118,9 @@ function loadConfigFile(configPath) {
       config.plugins = [];
     } else {
       // Validate each plugin has required shape
-      var validated = [];
-      for (var i = 0; i < config.plugins.length; i++) {
-        var plugin = config.plugins[i];
+      const validated = [];
+      for (let i = 0; i < config.plugins.length; i++) {
+        const plugin = config.plugins[i];
         if (typeof plugin === 'function') {
           validated.push(plugin());
         } else if (plugin && typeof plugin === 'object' && typeof plugin.name === 'string') {
@@ -153,7 +151,7 @@ function loadConfigFile(configPath) {
  * @returns {Object} Merged config
  */
 function mergeWithCliArgs(projectConfig, cliArgs) {
-  var merged = Object.assign({}, projectConfig);
+  const merged = Object.assign({}, projectConfig);
 
   // CLI args override config file
   if (cliArgs['out-dir'] || cliArgs.outDir) {
@@ -176,13 +174,13 @@ function mergeWithCliArgs(projectConfig, cliArgs) {
  */
 function loadProjectConfig(startDir, cliArgs) {
   startDir = startDir || process.cwd();
-  var allErrors = [];
+  const allErrors = [];
 
-  var found = findConfigFile(startDir);
-  var config = {};
+  const found = findConfigFile(startDir);
+  let config = {};
 
   if (found.configPath) {
-    var result = loadConfigFile(found.configPath);
+    const result = loadConfigFile(found.configPath);
     config = result.config;
     allErrors.push(...result.errors);
   }

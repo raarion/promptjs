@@ -59,7 +59,7 @@ function PromptJSEngine() {
 /**
  * Compile a PromptJS source string into vanilla JS.
  *
- * @param {string} source - PromptJS source code
+ * @param {string} sourceInput - PromptJS source code
  * @param {object} [options] - Compilation options
  * @param {string} [options.source] - Source identifier for comments
  * @param {boolean} [options.dev] - Dev mode (includes source maps, HMR helpers)
@@ -67,6 +67,7 @@ function PromptJSEngine() {
  * @param {boolean} [options.loadDataFiles] - Whether to load file-referenced data (default: true)
  * @param {string} [options.pageName] - Page name for SPA factory function (v0.6)
  * @param {string} [options.pageRoute] - Route path for SPA page (v0.6)
+ * @param {Array} [options.plugins] - Plugin instances (v0.8)
  * @returns {object} { js, css, errors, warnings, ast, sourceMap, success }
  */
 PromptJSEngine.prototype.compile = function (sourceInput, options) {
@@ -75,15 +76,15 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
   Object.assign(this.options, options || {});
 
   // v0.8: Apply transformSource hook (before any pipeline stage)
-  var plugins = this.options.plugins || [];
-  var filename = this.options.source || 'unknown.pjs';
-  var source = Plugins.transformSource(plugins, sourceInput, filename);
+  const plugins = this.options.plugins || [];
+  const filename = this.options.source || 'unknown.pjs';
+  const source = Plugins.transformSource(plugins, sourceInput, filename);
 
   // ── Wave I: CSS extraction (before lexing) ─────────────────────────────
   // Extract Gaya:/Style: blocks from source, produce CSS + clean source
-  var cssResult = CSS.processGayaBlocks(source, this.options.scope);
-  var css = cssResult.css;
-  var cleanSource = cssResult.cleanSource;
+  const cssResult = CSS.processGayaBlocks(source, this.options.scope);
+  let css = cssResult.css;
+  const cleanSource = cssResult.cleanSource;
 
   // ── Stage 1: LEXER ──────────────────────────────────────────────────────
   const lexResult = Lexer.tokenize(cleanSource);
@@ -136,7 +137,12 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
   // not user data. They should NOT become TetapDeclaration nodes in the AST
   // (which would emit `const router = "benar"` to output — wasteful).
   const FRONT_MATTER_DIRECTIVES = new Set([
-    'router', 'adapter', 'butuhAuth', 'redirect', 'token', 'peran',
+    'router',
+    'adapter',
+    'butuhAuth',
+    'redirect',
+    'token',
+    'peran',
   ]);
   let parserFrontMatter = frontMatterData;
   if (frontMatterData) {
@@ -222,12 +228,12 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
 
   // ── Stage 5: COMPILER ───────────────────────────────────────────────────
   // v0.6: Detect SPA mode from front-matter (router: benar / router: true)
-  var isSPA = false;
-  var pageName = this.options.pageName || 'page';
-  var pageRoute = this.options.pageRoute || null;
+  let isSPA = false;
+  const pageName = this.options.pageName || 'page';
+  const pageRoute = this.options.pageRoute || null;
   if (frontMatterData && frontMatterData.router) {
-    var routerVal = frontMatterData.router;
-    var rawVal = (routerVal && routerVal.value !== undefined) ? routerVal.value : routerVal;
+    const routerVal = frontMatterData.router;
+    const rawVal = routerVal && routerVal.value !== undefined ? routerVal.value : routerVal;
     if (rawVal === true || rawVal === 'benar' || rawVal === 'true') {
       isSPA = true;
     }
@@ -241,7 +247,7 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
 
   const compiler = new Compiler();
   let js;
-  let sourceMap = null;
+  let sourceMap;
   try {
     js = compiler.compile(analyzeResult.ast);
     // v0.5: Generate source map

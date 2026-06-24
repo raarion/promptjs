@@ -95,7 +95,7 @@ PromptJSCompiler.prototype.compile = function (ast) {
   this.emit('');
 
   // Record where helpers will be inserted (after header)
-  var helperInsertIdx = this.output.length;
+  const helperInsertIdx = this.output.length;
   this.output.push('');
 
   // Phase 2: Traverse AST — this populates this.helpers via visitors
@@ -113,8 +113,8 @@ PromptJSCompiler.prototype.compile = function (ast) {
   this.indent++;
 
   if (ast.body && ast.body.length > 0) {
-    for (var i = 0; i < ast.body.length; i++) {
-      var node = ast.body[i];
+    for (let i = 0; i < ast.body.length; i++) {
+      const node = ast.body[i];
       if (node && node.loc && node.loc.start) {
         this.emit(`// @source ${node.loc.start.line}:${node.loc.start.column} ${node.type}`);
         this.sourceMapData.push({
@@ -123,7 +123,7 @@ PromptJSCompiler.prototype.compile = function (ast) {
           outputLine: this.output.length - 1,
         });
       }
-      var result = accept(node, this);
+      const result = accept(node, this);
       if (typeof result === 'string' && result.length > 0) {
         this.emit(result + ';');
       }
@@ -134,7 +134,7 @@ PromptJSCompiler.prototype.compile = function (ast) {
 
   // v0.6: Close factory function or IIFE
   if (this.isSPA) {
-    var pageRoot = this._spaPageRoot || 'null';
+    const pageRoot = this._spaPageRoot || 'null';
     this.emit('');
     this.emit('return {');
     this.emit('  el: ' + pageRoot + ',');
@@ -153,25 +153,25 @@ PromptJSCompiler.prototype.compile = function (ast) {
   }
 
   // Phase 3: Generate tree-shaken runtime helpers
-  var savedOutput = this.output;
-  var savedIndent = this.indent;
+  const savedOutput = this.output;
+  const savedIndent = this.indent;
   this.output = [];
   this.indent = 0;
   RuntimeEmitter.emitRuntimeHelpers(this);
-  var helperLines = this.output;
+  const helperLines = this.output;
   this.output = savedOutput;
   this.indent = savedIndent;
 
   // Phase 4: Splice helpers into output at placeholder position
   if (helperLines.length > 0) {
     this.output.splice(helperInsertIdx, 1, ...helperLines);
-    var smOffset = helperLines.length - 1;
-    for (var s = 0; s < this.sourceMapData.length; s++) {
+    const smOffset = helperLines.length - 1;
+    for (let s = 0; s < this.sourceMapData.length; s++) {
       this.sourceMapData[s].outputLine += smOffset;
     }
   } else {
     this.output.splice(helperInsertIdx, 1);
-    for (var s2 = 0; s2 < this.sourceMapData.length; s2++) {
+    for (let s2 = 0; s2 < this.sourceMapData.length; s2++) {
       this.sourceMapData[s2].outputLine -= 1;
     }
   }

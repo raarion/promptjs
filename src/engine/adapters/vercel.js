@@ -28,34 +28,28 @@ const path = require('path');
 /**
  * Generate vercel.json configuration.
  *
- * @param {Object} opts - Options
- * @param {boolean} opts.isSPA - SPA mode
+ * @param {Object} [opts] - Options
+ * @param {boolean} [opts.isSPA] - SPA mode
  * @returns {string} vercel.json content
  */
 function generateVercelJson(opts) {
   opts = opts || {};
 
-  var config = {
+  const config = {
     version: 2,
   };
 
   if (opts.isSPA) {
     // SPA: rewrite all routes to index.html
-    config.rewrites = [
-      { source: '/(.*)', destination: '/index.html' },
-    ];
+    config.rewrites = [{ source: '/(.*)', destination: '/index.html' }];
     config.headers = [
       {
         source: '/assets/(.*)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/(.*)\\.(js|css)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ];
   }
@@ -72,7 +66,7 @@ function generateVercelJson(opts) {
 function generateOutputConfig(opts) {
   opts = opts || {};
 
-  var config = {
+  const config = {
     version: 3,
     routes: [],
   };
@@ -92,10 +86,10 @@ function generateOutputConfig(opts) {
       status: 200,
     });
     if (opts.routes) {
-      for (var i = 0; i < opts.routes.length; i++) {
-        var route = opts.routes[i];
+      for (let i = 0; i < opts.routes.length; i++) {
+        const route = opts.routes[i];
         if (route === '/') continue;
-        var htmlFile = route === '/' ? '/index.html' : route + '.html';
+        const htmlFile = route === '/' ? '/index.html' : route + '.html';
         config.routes.push({
           src: route + '/?',
           dest: htmlFile,
@@ -121,33 +115,33 @@ function generateOutputConfig(opts) {
 /**
  * Run the Vercel adapter: restructure output for Vercel Build Output API.
  *
- * @param {Object} opts - Adapter options
- * @param {string} opts.outDir - Output directory (dist/)
- * @param {boolean} opts.isSPA - SPA mode
- * @param {string[]} opts.routes - Route paths
+ * @param {Object} [opts] - Adapter options
+ * @param {string} [opts.outDir] - Output directory (dist/)
+ * @param {boolean} [opts.isSPA] - SPA mode
+ * @param {string[]} [opts.routes] - Route paths
  * @returns {{ vercelJsonPath: string, outputConfigPath: string, errors: Object[] }}
  */
 function runVercelAdapter(opts) {
   opts = opts || {};
-  var errors = [];
-  var outDir = path.resolve(opts.outDir || 'dist');
+  const errors = [];
+  const outDir = path.resolve(opts.outDir || 'dist');
 
-  var vercelDir = path.join(outDir, '.vercel', 'output');
-  var staticDir = path.join(vercelDir, 'static');
-  var functionsDir = path.join(vercelDir, 'functions');
+  const vercelDir = path.join(outDir, '.vercel', 'output');
+  const staticDir = path.join(vercelDir, 'static');
+  const functionsDir = path.join(vercelDir, 'functions');
 
   // Create output structure
   fs.mkdirSync(staticDir, { recursive: true });
   fs.mkdirSync(functionsDir, { recursive: true });
 
   // Move existing files (HTML, JS, CSS, assets) into static/
-  var entries = fs.readdirSync(outDir, { withFileTypes: true });
-  for (var i = 0; i < entries.length; i++) {
-    var entry = entries[i];
+  const entries = fs.readdirSync(outDir, { withFileTypes: true });
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     if (entry.name === '.vercel') continue;
 
-    var srcPath = path.join(outDir, entry.name);
-    var destPath = path.join(staticDir, entry.name);
+    const srcPath = path.join(outDir, entry.name);
+    const destPath = path.join(staticDir, entry.name);
 
     if (entry.isDirectory()) {
       copyDirRecursive(srcPath, destPath);
@@ -159,13 +153,13 @@ function runVercelAdapter(opts) {
   }
 
   // Write output config
-  var outputConfig = generateOutputConfig(opts);
-  var configPath = path.join(vercelDir, 'config.json');
+  const outputConfig = generateOutputConfig(opts);
+  const configPath = path.join(vercelDir, 'config.json');
   fs.writeFileSync(configPath, outputConfig, 'utf-8');
 
   // Write vercel.json at root
-  var vercelJson = generateVercelJson(opts);
-  var vercelJsonPath = path.join(outDir, 'vercel.json');
+  const vercelJson = generateVercelJson(opts);
+  const vercelJsonPath = path.join(outDir, 'vercel.json');
   fs.writeFileSync(vercelJsonPath, vercelJson, 'utf-8');
 
   return {
@@ -183,11 +177,11 @@ function runVercelAdapter(opts) {
  */
 function copyDirRecursive(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
-  var entries = fs.readdirSync(src, { withFileTypes: true });
-  for (var i = 0; i < entries.length; i++) {
-    var entry = entries[i];
-    var srcPath = path.join(src, entry.name);
-    var destPath = path.join(dest, entry.name);
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
       copyDirRecursive(srcPath, destPath);
     } else {
