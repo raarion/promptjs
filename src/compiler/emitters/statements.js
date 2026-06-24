@@ -467,12 +467,31 @@ function install(PromptJSCompiler, accept) {
 
   /**
    * Emit `<target>.remove();` untuk HapusStatement.
+   * v0.9: Jika target adalah localStorage/sessionStorage.property, emit removeItem()
    *
    * @this {any}
    * @param {Object} node - AST node HapusStatement
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitHapusStatement = function (node) {
+    // v0.9: Check if target adalah localStorage.x atau sessionStorage.x
+    if (
+      node.target &&
+      node.target.type === 'MemberExpression' &&
+      node.target.object &&
+      node.target.object.type === 'Identifier'
+    ) {
+      const objName = node.target.object.name; // localStorage atau sessionStorage
+      const propName = node.target.property ? node.target.property.name : null;
+
+      if ((objName === 'localStorage' || objName === 'sessionStorage') && propName) {
+        // Emit: localStorage.removeItem("propertyName")
+        this.emit(`${objName}.removeItem("${propName}");`);
+        return;
+      }
+    }
+
+    // Default behavior: remove DOM element
     const target = this.resolveTarget(node.target);
     this.emit(
       `{ const __el = ${target}; if (__el && __el.parentElement) __el.parentElement.removeChild(__el); };`

@@ -5,6 +5,63 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] — 2026-06-25
+
+**Protected Content & Auth Pattern.** Authentication guard compilation,
+token source configuration, `hapus` lowering for Web Storage API, and
+role (peran) front-matter parsing.
+
+### Added — 4.1 Auth Guard Compilation [CORE]
+
+- **`butuhAuth: benar` front-matter directive** — triggers IIFE-wrapped
+  auth guard that checks for token presence before executing page code.
+- **`redirect: "/path"` front-matter** — specifies the redirect target
+  when authentication fails (`window.location.href = '/path'`).
+- **`token: localStorage | sessionStorage` front-matter** — configures
+  which Web Storage API is checked for the auth token. Defaults to
+  `localStorage` when omitted.
+- Auth guard emits `(function() { var __token = <storage>.getItem('token'); if (!__token) { window.location.href = '<redirect>'; return; } ... })();`
+- No extra IIFE wrapping when auth guard is active (prevents double `})();`).
+
+### Added — 4.2 Token Source Configuration [CORE]
+
+- **localStorage token source** — `token: localStorage` emits
+  `localStorage.getItem('token')` in the auth guard.
+- **sessionStorage token source** — `token: sessionStorage` emits
+  `sessionStorage.getItem('token')` in the auth guard.
+- **Default fallback** — when `token` directive is omitted, defaults
+  to `localStorage.getItem('token')`.
+
+### Added — 4.3 `hapus` Lowering for Web Storage [CORE]
+
+- **`hapus localStorage.x` lowering** — `hapus localStorage.token`
+  compiles to `localStorage.removeItem("token")` instead of the
+  delete operator, which is ineffective on Web Storage API.
+- **`hapus sessionStorage.x` lowering** — same pattern for sessionStorage.
+- **Property name extraction** — dot-access property (`localStorage.token`)
+  is extracted as a string argument to `removeItem()`.
+- Works in all statement contexts: event handlers (`on_klik`), lifecycle
+  hooks (`Ketika muat:`), and standalone statements.
+
+### Added — 4.5 Peran (Role) Parsing [CORE]
+
+- **`peran: <role>` front-matter directive** — parsed and attached to
+  AST as `ast.authPeran`. Role-based access evaluation is a v1.0
+  feature; v0.9 parses the directive without emitting runtime checks.
+
+### Changed
+
+- **Lexer: Implicit front-matter detection** — bare key-value directives
+  (without `---` opener) are now recognized when keys match known compiler
+  directives (`router`, `adapter`, `butuhAuth`, `redirect`, `token`, `peran`).
+  Prevents E3001 errors for `butuhAuth: benar` at file start. Leading blank
+  lines are skipped during detection.
+- **Compiler: Auth guard + IIFE logic** — when `butuhAuth` is true, the
+  regular IIFE wrapper is suppressed (auth guard IIFE replaces it). Prevents
+  double `})();` in compiled output.
+- 15 new verification tests in `tests/v0.9-auth.test.js`.
+- **385 tests passing** (370 existing + 15 new).
+
 ## [0.8.0] — 2026-06-24
 
 **Full-Stack via Adapter.** Plugin system with 4 transform hooks,
