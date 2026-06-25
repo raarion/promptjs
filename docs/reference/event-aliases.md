@@ -1,280 +1,173 @@
-# Event Alias / Alias Event DOM
+# Alias Event / Event Aliases
 
 > docs/reference/ → **Event Aliases**
 > ← [Tag Aliases](tag-aliases.md) · [Keywords](../language/keywords.md) →
 
 ---
 
-PromptJS menyediakan alias event yang ramah bahasa Indonesia untuk mendengarkan event DOM. Setiap alias `on_*` dipetakan ke event handler PromptJS asli.
+PromptJS menyediakan 32 alias event (`on_*`) yang dipetakan ke event handler PromptJS asli. Alias mendukung bahasa Indonesia dan bahasa Inggris.
 
-PromptJS provides friendly Indonesian event aliases to listen for DOM events. Each `on_*` alias is mapped to a native PromptJS event handler.
+PromptJS provides 32 event aliases (`on_*`) mapped to native PromptJS event handlers. Aliases support both Indonesian and English.
 
 ---
 
-## Event Handler Syntax
+## Dua Bentuk Sintaksis / Two Syntax Forms
 
-### Statement Form (Ketika block)
+**Bentuk statement (Ketika block) / Statement form:**
 
 ```pjs
-Ketika diklik:
-    # handler code
+Buat tombol: "Click"
+    Ketika diklik:
+        tambahkan 1 ke hitung
 ```
 
-### Inline Form (on_* attribute)
+**Bentuk inline (on_* attribute) / Inline form:**
 
 ```pjs
 Buat tombol: "Click"
     on_klik = tambahkan 1 ke hitung
 ```
 
-Keduanya terdukung. Gunakan bentuk statement untuk handler kompleks, inline untuk aksi sederhana.
+Keduanya setara. Gunakan bentuk statement untuk handler kompleks, inline untuk aksi sederhana.
 
-Both forms supported. Use statement form for complex handlers, inline for simple actions.
-
----
-
-## Mouse Events / Event Mouse
-
-| Event Handler | on_* Alias | DOM Event | Deskripsi / Description |
-|---------------|-----------|-----------|--------------------------|
-| `diklik` | `on_klik` | click | Tombol mouse ditekan & dilepas |
-| `diarahkan` | `on_diarahkan` | mouseover | Mouse memasuki elemen |
-| `masuk` | `on_masuk` | mouseenter | Mouse masuk (no bubble) |
-| `keluar` | `on_keluar` | mouseleave | Mouse keluar (no bubble) |
-| `dikonteks` | `on_dikonteks` | contextmenu | Right-click context menu |
-| `diseret` | `on_diseret` | dragstart | Drag dimulai |
-
-### Examples
-```pjs
-Buat tombol: "Click"
-    Ketika diklik:
-        tampilkan "Diklik!"
-
-Buat div.tooltip: "Hover"
-    Ketika masuk:
-        tampilkan tooltipContent
-```
+Both are equivalent. Use statement form for complex handlers, inline for simple actions.
 
 ---
 
-## Input Events / Event Input
+## Modifikasi Event / Event Modifiers
 
-| Event Handler | on_* Alias | DOM Event | Deskripsi / Description |
-|---------------|-----------|-----------|--------------------------|
-| `diketik` | `on_diketik` | input | User mengetik di input |
-| `diubah` | `on_diubah` | change | Input berubah & focus hilang |
-| `difokus` | `on_difokus` | focus | Elemen dapat fokus |
-| `ditinggal` | `on_ditinggal` | blur | Elemen kehilangan fokus |
-
-### Examples
-```pjs
-Buat masukan#search:
-    Ketika diketik:
-        simpan search.value ke query
-
-Buat masukan#email[type="email"]:
-    Ketika ditinggal:
-        validasi email
-```
-
----
-
-## Keyboard Events / Event Keyboard
-
-| Event Handler | on_* Alias | DOM Event | Deskripsi / Description |
-|---------------|-----------|-----------|--------------------------|
-| `ditekan` | `on_ditekan` | keydown | Tombol keyboard ditekan |
-| `dilepas` | `on_dilepas` | keyup | Tombol keyboard dilepas |
-
-### Examples
-```pjs
-Buat masukan#password[type="password"]:
-    Ketika ditekan:
-        perbarui strengthIndicator
-```
-
----
-
-## Form Events / Event Formulir
-
-| Event Handler | on_* Alias | DOM Event | Deskripsi / Description |
-|---------------|-----------|-----------|--------------------------|
-| `disubmit` | `on_disubmit` | submit | Formulir disubmit |
-| `dikirim` | `on_dikirim` | submit | Formulir disubmit (alternate) |
-
-### Examples
-```pjs
-Buat formulir#loginForm:
-    Ketika disubmit .cegah:
-        ambil dari "/api/login"
-            simpan result ko user
-```
-
----
-
-## Document & Window Events / Event Dokumen & Jendela
-
-| Event Handler | on_* Alias | DOM Event | Deskripsi / Description |
-|---------------|-----------|-----------|--------------------------|
-| `dimuat` | `on_dimuat` | load | Halaman/elemen dimuat |
-| `digulir` | `on_digulir` | scroll | Halaman digulir |
-| `diubahukuran` | `on_diubahukuran` | resize | Jendela diubah ukuran |
-| `salah` | `on_salah` | error | Error terjadi |
-| `dilewat` | `on_dilewat` | paste | Konten dipaste |
-
-### Examples
-```pjs
-Ketika dimuat:
-    simpan "Page loaded" ke status
-    ambil dari "/api/init"
-
-Ketika digulir:
-    Jika scrollPosition.bottom:
-        ambil dari "/api/items?page=" + nextPage
-```
-
----
-
-## Event Modifiers / Modifikasi Event
-
-### `.cegah` → preventDefault()
-
-Mencegah perilaku default browser untuk event.
-
-Prevents default browser behavior for the event.
+| Modifier | Efek / Effect |
+|----------|---------------|
+| `.cegah` | Memanggil `preventDefault()` / Calls `preventDefault()` |
+| `.hentikan` | Memanggil `stopPropagation()` / Calls `stopPropagation()` |
 
 ```pjs
-Buat tautan#deleteBtn[href="/?delete=1"]: "Delete"
+Buat tautan[href="/?delete=1"]: "Delete"
     Ketika diklik .cegah:
-        # Prevent link navigation
         hapus item dari daftar
-
-Buat formulir#form:
-    Ketika disubmit .cegah:
-        # Prevent default form submission
-        jalankan sendForm()
-```
-
-**Kegunaan umum / Common uses:**
-- `.cegah` pada `<a>` click → cegah navigasi
-- `.cegah` pada form submit → handle dengan kode custom
-
----
-
-## Event Handler Categories
-
-### 🖱️ Mouse (6 events)
-diklik, diarahkan, masuk, keluar, dikonteks, diseret
-
-### ⌨️ Keyboard (2 events)
-ditekan, dilepas
-
-### 📝 Input (4 events)
-diketik, diubah, difokus, ditinggal
-
-### 📋 Form (2 events)
-disubmit, dikirim
-
-### 📄 Document (5 events)
-dimuat, digulir, diubahukuran, salah, dilewat
-
----
-
-## Quick Reference Card / Kartu Referensi Cepat
-
-```
-MOUSE:      diklik, diarahkan, masuk, keluar, dikonteks, diseret
-KEYBOARD:   ditekan, dilepas
-INPUT:      diketik, diubah, difokus, ditinggal
-FORM:       disubmit, dikirim
-DOCUMENT:   dimuat, digulir, diubahukuran, salah, dilewat
-MODIFIER:   .cegah (preventDefault)
 ```
 
 ---
 
-## Both Syntaxes Comparison
+## Daftar Lengkap Alias / Complete Alias List
+
+Sumber: `src/lexer/promptjs-lexer.js` baris 303-339 (32 entri)
+
+Source: `src/lexer/promptjs-lexer.js` lines 303-339 (32 entries)
+
+### Mouse (10 alias)
+
+| Alias `on_*` | Event Handler | DOM Event |
+|-------------|---------------|-----------|
+| `on_klik` | `diklik` | `click` |
+| `on_diklik` | `diklik` | `click` |
+| `on_click` | `diklik` | `click` |
+| `on_diarahkan` | `diarahkan` | `mouseover` |
+| `on_mouseover` | `diarahkan` | `mouseover` |
+| `on_mouseout` | `ditinggal-kursor` | `mouseout` |
+| `on_dragstart` | `diseret` | `dragstart` |
+| `on_contextmenu` | `dikonteks` | `contextmenu` |
+| `on_mouseenter` | `masuk` | `mouseenter` |
+| `on_mouseleave` | `keluar` | `mouseleave` |
+
+### Keyboard (4 alias)
+
+| Alias `on_*` | Event Handler | DOM Event |
+|-------------|---------------|-----------|
+| `on_ditekan` | `ditekan` | `keydown` |
+| `on_dilepas` | `dilepas` | `keyup` |
+| `on_keydown` | `ditekan` | `keydown` |
+| `on_keyup` | `dilepas` | `keyup` |
+
+### Input (8 alias)
+
+| Alias `on_*` | Event Handler | DOM Event |
+|-------------|---------------|-----------|
+| `on_diketik` | `diketik` | `input` |
+| `on_input` | `diketik` | `input` |
+| `on_diubah` | `diubah` | `change` |
+| `on_change` | `diubah` | `change` |
+| `on_difokus` | `difokus` | `focus` |
+| `on_ditinggal` | `ditinggal` | `blur` |
+| `on_focus` | `difokus` | `focus` |
+| `on_blur` | `ditinggal` | `blur` |
+
+### Form (3 alias)
+
+| Alias `on_*` | Event Handler | DOM Event |
+|-------------|---------------|-----------|
+| `on_disubmit` | `disubmit` | `submit` |
+| `on_dikirim` | `dikirim` | `submit` |
+| `on_submit` | `disubmit` | `submit` |
+
+### Document (7 alias)
+
+| Alias `on_*` | Event Handler | DOM Event |
+|-------------|---------------|-----------|
+| `on_dimuat` | `dimuat` | `load` |
+| `on_load` | `dimuat` | `load` |
+| `on_digulir` | `digulir` | `scroll` |
+| `on_scroll` | `digulir` | `scroll` |
+| `on_resize` | `diubahukuran` | `resize` |
+| `on_error` | `salah` | `error` |
+| `on_paste` | `dilewat` | `paste` |
+
+---
+
+## Event Khusus / Special Events
+
+### Ketika muat: (DOMContentLoaded)
+
+`Ketika muat:` dipetakan ke `DOMContentLoaded`, bukan `load`. Diperbaiki sejak v1.0.
+
+`Ketika muat:` maps to `DOMContentLoaded`, not `load`. Fixed since v1.0.
 
 ```pjs
-# Statement form
-Buat tombol#btn1: "Click 1"
+Ketika muat:
+    ambil dari "/api/init"
+        simpan result ke data
+```
+
+### Ketika dipasang: / Ketika dilepas: (Lifecycle SPA)
+
+Ini adalah lifecycle hook SPA, bukan event DOM. Hanya valid di dalam blok komponen.
+
+These are SPA lifecycle hooks, not DOM events. Only valid inside component blocks.
+
+```pjs
+Komponen MyWidget:
+    Ketika dipasang:
+        tampilkan "Widget mounted"
+    Ketika dilepas:
+        tampilkan "Widget unmounted"
+```
+
+---
+
+## Contoh Penggunaan / Usage Examples
+
+```pjs
+# Counter dengan statement form
+data hitung = 0
+Buat tombol: $hitung
     Ketika diklik:
         tambahkan 1 ke hitung
 
-# Inline form
-Buat tombol#btn2: "Click 2"
-    on_klik = tambahkan 1 ke hitung
-
-# With modifier
-Buat tautan: "Delete"
-    Ketika diklik .cegah:
-        jalankan deleteItem()
-```
-
-Keduanya setara. Pilih sesuai kebutuhan kompleksitas.
-
-Both are equivalent. Choose based on complexity.
-
----
-
-## Bilingual Event Names
-
-Event handlers mendukung bilingual:
-
-```pjs
-# Indonesian
-Ketika diklik:
-    # ...
-
-# English
-When click:
-    # ...
-
-# Inline English style
-on_click = tambahkan 1 ke hitung
-```
-
----
-
-## Common Patterns
-
-### Counter Button
-```pjs
-data counter = 0
-
-Buat tombol: $counter
-    Ketika diklik:
-        tambahkan 1 ke counter
-```
-
-### Search with Listener
-```pjs
+# Search dengan inline form
 Buat masukan#search:
-    Ketika diketik:
-        simpan search.value ke query
-        ambil dari "/api/search?q=" + query
-```
+    on_diketik = simpan search.value ke query
 
-### Form Validation
-```pjs
+# Form dengan modifier
 Buat formulir#form:
-    Buat masukan#email:
-        Ketika ditinggal:
-            validasi email
+    Ketika disubmit .cegah:
+        ambil dari "/api/submit"
 
-    Buat tombol[type="submit"]: "Submit"
-        Ketika diklik .cegah:
-            Jika $formValid:
-                ambil dari "/api/submit"
+# Keyboard shortcut
+Buat masukan:
+    Ketika ditekan:
+        Jika event.key == "Enter":
+            jalankan submit()
 ```
-
----
-
-## Verification / Verifikasi
-
-✅ [VERIFIED: src/lexer/promptjs-lexer.js lines 296-332]
-
-18 event aliases confirmed against source code.
 
 ---
 

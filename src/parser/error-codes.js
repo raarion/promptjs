@@ -55,7 +55,7 @@ const E2015 = 'E2015'; // Selector CSS tidak valid
 const E2016 = 'E2016'; // Token '->' diharapkan
 const E2017 = 'E2017'; // Target event tidak valid
 const E2018 = 'E2018'; // Nama event tidak valid
-const E2019 = 'E2019'; // 'jika tidak' hanya valid di akhir rantai jika/kalau
+const E2019 = 'E2019'; // lainnya hanya valid di akhir rantai jika/kalau
 const E2020 = 'E2020'; // Indentasi tidak konsisten
 const E2021 = 'E2021'; // Sumber data ulangi tidak valid
 const E2022 = 'E2022'; // Target tampilkan tidak valid
@@ -160,6 +160,7 @@ ERROR_MESSAGES[E1006] = 'Komentar blok "[[" tidak ditutup dengan "]]"';
 ERROR_MESSAGES[E1007] = 'Blok DocString "[[" tidak ditutup dengan "]]"';
 ERROR_MESSAGES[E1008] = 'Angka literal tidak valid';
 ERROR_MESSAGES[E1009] = 'Selector CSS tidak valid';
+ERROR_MESSAGES[W1001] = 'DocString tidak menempel ke node manapun';
 
 // -- Parser --
 ERROR_MESSAGES[E2001] = 'Diharapkan {expected}, tetapi ditemukan "{actual}"';
@@ -180,7 +181,7 @@ ERROR_MESSAGES[E2015] = 'Selector CSS tidak valid';
 ERROR_MESSAGES[E2016] = 'Token "->" diharapkan';
 ERROR_MESSAGES[E2017] = 'Target event tidak valid';
 ERROR_MESSAGES[E2018] = 'Nama event tidak valid';
-ERROR_MESSAGES[E2019] = '"jika tidak" hanya valid di akhir rantai "jika"/"kalau"';
+ERROR_MESSAGES[E2019] = '"lainnya" hanya valid di akhir rantai "jika"/"kalau"';
 ERROR_MESSAGES[E2020] = 'Indentasi tidak konsisten';
 ERROR_MESSAGES[E2021] = 'Sumber data ulangi tidak valid';
 ERROR_MESSAGES[E2022] = 'Target "tampilkan" tidak valid';
@@ -190,6 +191,10 @@ ERROR_MESSAGES[E2025] = 'Daftar props "gunakan" tidak valid';
 ERROR_MESSAGES[E2026] = 'Ekspresi kosong tidak valid';
 ERROR_MESSAGES[E2027] = 'Properti perbarui tidak dikenali';
 ERROR_MESSAGES[E2028] = 'Body komponen/fungsi kosong';
+ERROR_MESSAGES[W2001] = 'DocString tidak menempel ke node manapun';
+ERROR_MESSAGES[W2002] = 'Blok kosong terdeteksi';
+ERROR_MESSAGES[W2003] = 'Rantai "jika" tanpa cabang "lainnya"';
+ERROR_MESSAGES[W2004] = 'Jumlah argumen mungkin tidak sesuai';
 
 // -- Resolver --
 ERROR_MESSAGES[E3001] = 'Identifier "{name}" tidak dideklarasikan';
@@ -197,6 +202,9 @@ ERROR_MESSAGES[E3002] = 'Simbol "{name}" sudah dideklarasikan dalam scope yang s
 ERROR_MESSAGES[E3003] = 'Variabel tetap "{name}" tidak dapat diubah setelah inisialisasi';
 ERROR_MESSAGES[E3004] = 'Komponen "{name}" digunakan sebelum dideklarasi';
 ERROR_MESSAGES[E3005] = '"ketika" tanpa target hanya boleh di dalam blok "buat" atau "komponen"';
+ERROR_MESSAGES[W3001] = 'Variabel "{name}" dideklarasikan tapi tidak pernah digunakan';
+ERROR_MESSAGES[W3002] = 'Variabel "{name}" shadowing variabel di scope luar';
+ERROR_MESSAGES[W3003] = 'Watcher target bukan data reaktif';
 
 // -- Analyzer --
 ERROR_MESSAGES[E4001] = 'Lifecycle hook hanya valid di dalam komponen';
@@ -223,6 +231,8 @@ ERROR_MESSAGES[E4201] = 'Dependency cycle pada data turunan';
 ERROR_MESSAGES[E5001] = 'Node AST bertipe "{type}" tidak didukung oleh compiler';
 ERROR_MESSAGES[E5002] = 'Gagal menurunkan ekspresi ke JavaScript';
 ERROR_MESSAGES[E5003] = 'Selector tidak dapat dikompilasi';
+ERROR_MESSAGES[W5001] = 'Kode yang dihasilkan mungkin tidak berjalan sesuai harapan';
+ERROR_MESSAGES[W5002] = 'Fitur eksperimental digunakan';
 
 // -- Runtime --
 ERROR_MESSAGES[E6001] = '"berhenti" tidak valid di luar loop atau handler';
@@ -263,7 +273,7 @@ ERROR_SUGGESTIONS[E2007] = 'Tambahkan "]" pada akhir array/atribut';
 ERROR_SUGGESTIONS[E2008] = 'Tambahkan nilai setelah "="';
 ERROR_SUGGESTIONS[E2009] = 'Periksa ekspresi kondisi';
 ERROR_SUGGESTIONS[E2010] = 'Periksa konteks penggunaan keyword';
-ERROR_SUGGESTIONS[E2011] = 'Gunakan "langsung:" untuk operasi yang tidak didukung';
+ERROR_SUGGESTIONS[E2011] = 'Periksa kembali sintaks, atau gunakan fungsi jalankan untuk JS murni';
 ERROR_SUGGESTIONS[E2012] = 'Periksa sintaksis argumen';
 ERROR_SUGGESTIONS[E2013] = 'Periksa sintaksis parameter';
 ERROR_SUGGESTIONS[E2014] = 'Periksa sintaksis objek literal';
@@ -271,7 +281,7 @@ ERROR_SUGGESTIONS[E2015] = 'Periksa konteks penggunaan selector';
 ERROR_SUGGESTIONS[E2016] = 'Gunakan pola: perbarui <properti> <target> -> <nilai>';
 ERROR_SUGGESTIONS[E2017] = 'Periksa target dan nama event';
 ERROR_SUGGESTIONS[E2018] = 'Periksa nama event (diklik, diketik, dsb.)';
-ERROR_SUGGESTIONS[E2019] = 'Pastikan "jika tidak" mengikuti "jika" atau "kalau"';
+ERROR_SUGGESTIONS[E2019] = 'Pastikan "lainnya" mengikuti "jika" atau "kalau"';
 ERROR_SUGGESTIONS[E2020] = 'Periksa indentasi (2 spasi per level)';
 ERROR_SUGGESTIONS[E2021] =
   'Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>:';
@@ -319,7 +329,7 @@ ERROR_SUGGESTIONS[E4201] =
 
 // -- Compiler --
 ERROR_SUGGESTIONS[E5001] = 'Periksa apakah node type sudah didukung oleh compiler';
-ERROR_SUGGESTIONS[E5002] = 'Sederhanakan ekspresi atau gunakan "langsung:" untuk JS interop';
+ERROR_SUGGESTIONS[E5002] = 'Sederhanakan ekspresi, atau gunakan fungsi jalankan untuk JS murni';
 ERROR_SUGGESTIONS[E5003] = 'Periksa format selector CSS';
 
 // -- Runtime --

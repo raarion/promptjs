@@ -1,182 +1,191 @@
-# Tag Alias / Alias Tag HTML
+# Alias Tag / Tag Aliases
 
 > docs/reference/ → **Tag Aliases**
 > ← [Keywords](../language/keywords.md) · [Event Aliases](event-aliases.md) →
 
 ---
 
-PromptJS menyediakan alias nama tag yang ramah bahasa Indonesia untuk menggantikan tag HTML standar. Setiap alias dipetakan ke tag HTML asli saat kompilasi.
+PromptJS menyediakan 65 alias nama tag yang dipetakan ke tag HTML standar saat kompilasi. Termasuk alias bahasa Indonesia dan nama tag HTML standar yang didaftarkan ulang.
 
-PromptJS provides friendly Indonesian tag aliases to replace standard HTML tag names. Each alias is mapped to its native HTML tag during compilation.
-
----
-
-## Text & Content / Teks & Konten
-
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `tombol` | `<button>` | Tombol interaktif / Interactive button |
-| `tautan` | `<a>` | Tautan / Hyperlink |
-| `judul` | `<h1>` | Judul utama / Main heading |
-| `subjudul` | `<h2>` | Subjudul / Subheading |
-| `paragraf` | `<p>` | Paragraf / Paragraph |
-| `rentang` | `<span>` | Rentang teks / Inline text |
-| `pemisah` | `<hr>` | Pemisah garis / Horizontal rule |
-| `label` | `<label>` | Label form / Form label |
+PromptJS provides 65 tag name aliases mapped to standard HTML tags during compilation. Includes Indonesian language aliases and re-registered standard HTML tag names.
 
 ---
 
-## Container / Wadah
+## Teks & Konten / Text & Content (16 alias)
 
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `ruang` | `<div>` | Kontainer generik / Generic container |
-| `wadah` | `<div>` | Wadah semantik / Semantic container |
-| `bagian` | `<section>` | Bagian semantik / Semantic section |
-| `artikel` | `<article>` | Artikel / Article |
-| `utama` | `<main>` | Konten utama / Main content |
-| `samping` | `<aside>` | Sidebar / Sidebar |
-| `fragmen` | DocumentFragment | Wrapper tanpa render / No-render wrapper |
-
----
-
-## Navigation / Navigasi
-
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `navigasi` | `<nav>` | Navigasi / Navigation menu |
-| `kepala` | `<header>` | Header halaman / Page header |
-| `kaki` | `<footer>` | Footer halaman / Page footer |
-
----
-
-## Form & Input / Formulir & Masukan
-
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `formulir` / `form` | `<form>` | Formulir / Form container |
-| `masukan` | `<input>` | Masukan teks / Text input |
-| `pilihan` | `<select>` | Pilihan dropdown / Select dropdown |
-| `opsi` | `<option>` | Opsi dalam select / Option in select |
-| `kolom` | `<textarea>` | Kolom teks multibaris / Multiline textarea |
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `tombol` | `<button>` | Alias Indonesia / Indonesian alias |
+| `button` | `<button>` | Standar / Standard |
+| `judul` | `<h1>` | Alias Indonesia / Indonesian alias |
+| `h1` | `<h1>` | Standar / Standard |
+| `subjudul` | `<h2>` | Alias Indonesia / Indonesian alias |
+| `h2` | `<h2>` | Standar / Standard |
+| `h3` | `<h3>` | Standar / Standard |
+| `h4` | `<h4>` | Standar / Standard |
+| `h5` | `<h5>` | Standar / Standard |
+| `h6` | `<h6>` | Standar / Standard |
+| `paragraf` | `<p>` | Alias Indonesia / Indonesian alias |
+| `p` | `<p>` | Standar / Standard |
+| `span` | `<span>` | Standar / Standard |
+| `rentang` | `<span>` | Alias Indonesia / Indonesian alias |
+| `tautan` | `<a>` | Alias Indonesia / Indonesian alias |
+| `a` | `<a>` | Standar / Standard |
 
 ---
 
-## List / Daftar
+## Kontainer / Container (13 alias)
 
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `daftar` | `<ul>` | Daftar tidak terurut / Unordered list |
-| `daftarterurut` | `<ol>` | Daftar terurut / Ordered list |
-| `item` | `<li>` | Item daftar / List item |
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `ruang` | `<div>` | Alias Indonesia / Indonesian alias |
+| `div` | `<div>` | Standar / Standard |
+| `wadah` | `<div>` | Alias Indonesia / Indonesian alias |
+| `artikel` | `<article>` | Alias Indonesia / Indonesian alias |
+| `article` | `<article>` | Standar / Standard |
+| `section` | `<section>` | Standar / Standard |
+| `bagian` | `<section>` | Alias Indonesia / Indonesian alias |
+| `main` | `<main>` | Standar / Standard |
+| `utama` | `<main>` | Alias Indonesia / Indonesian alias |
+| `aside` | `<aside>` | Standar / Standard |
+| `samping` | `<aside>` | Alias Indonesia / Indonesian alias |
+| `fragmen` | `fragment` | Alias Indonesia / Indonesian alias |
+| `fragment` | `fragment` | Standar / Standard |
 
----
+`fragmen` dan `fragment` adalah wrapper transparan pada waktu kompilasi — tidak menghasilkan elemen DOM. Child element langsung di-append ke parent.
 
-## Media / Media
-
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `gambar` | `<img>` | Gambar / Image |
-| `kanvas` | `<canvas>` | Canvas drawing / Canvas |
-| `video` | `<video>` | Video / Video |
-| `audio` | `<audio>` | Audio / Audio |
-| `bingkai` | `<iframe>` | Bingkai tertanam / Embedded iframe |
-
----
-
-## Table / Tabel
-
-| Alias | HTML Tag | Deskripsi / Description |
-|-------|----------|-------------------------|
-| `tabel` | `<table>` | Tabel / Table |
-
-Standard tags `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>` tidak punya alias (gunakan nama standar).
+`fragmen` and `fragment` are transparent compile-time wrappers — they produce no DOM element. Child elements are appended directly to the parent.
 
 ---
 
-## CSS Classes & IDs / Kelas & ID CSS
+## Navigasi / Navigation (6 alias)
 
-Semua alias mendukung CSS classes dan IDs:
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `nav` | `<nav>` | Standar / Standard |
+| `navigasi` | `<nav>` | Alias Indonesia / Indonesian alias |
+| `header` | `<header>` | Standar / Standard |
+| `kepala` | `<header>` | Alias Indonesia / Indonesian alias |
+| `footer` | `<footer>` | Standar / Standard |
+| `kaki` | `<footer>` | Alias Indonesia / Indonesian alias |
 
-All aliases support CSS classes and IDs:
+---
+
+## Form & Masukan / Form & Input (12 alias)
+
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `masukan` | `<input>` | Alias Indonesia / Indonesian alias |
+| `input` | `<input>` | Standar / Standard |
+| `pilihan` | `<select>` | Alias Indonesia / Indonesian alias |
+| `select` | `<select>` | Standar / Standard |
+| `opsi` | `<option>` | Alias Indonesia / Indonesian alias |
+| `option` | `<option>` | Standar / Standard |
+| `kolom` | `<textarea>` | Alias Indonesia / Indonesian alias |
+| `textarea` | `<textarea>` | Standar / Standard |
+| `formulir` | `<form>` | Alias Indonesia / Indonesian alias |
+| `form` | `<form>` | Standar / Standard |
+| `frm` | `<form>` | Alias pendek / Short alias |
+| `label` | `<label>` | Standar / Standard |
+
+---
+
+## Daftar / List (6 alias)
+
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `ul` | `<ul>` | Standar / Standard |
+| `daftar` | `<ul>` | Alias Indonesia / Indonesian alias |
+| `ol` | `<ol>` | Standar / Standard |
+| `daftarterurut` | `<ol>` | Alias Indonesia (satu kata) / Indonesian alias (one word) |
+| `li` | `<li>` | Standar / Standard |
+| `item` | `<li>` | Alias Indonesia / Indonesian alias |
+
+`daftarterurut` ditulis sebagai satu kata tanpa spasi atau tanda hubung.
+
+`daftarterurut` is written as one word without spaces or hyphens.
+
+---
+
+## Media (8 alias)
+
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `gambar` | `<img>` | Alias Indonesia / Indonesian alias |
+| `img` | `<img>` | Standar / Standard |
+| `kanvas` | `<canvas>` | Alias Indonesia / Indonesian alias |
+| `canvas` | `<canvas>` | Standar / Standard |
+| `video` | `<video>` | Standar / Standard |
+| `audio` | `<audio>` | Standar / Standard |
+| `iframe` | `<iframe>` | Standar / Standard |
+| `bingkai` | `<iframe>` | Alias Indonesia / Indonesian alias |
+
+---
+
+## Lainnya / Other (4 alias)
+
+| Alias | Tag HTML | Catatan / Note |
+|-------|----------|----------------|
+| `tabel` | `<table>` | Alias Indonesia / Indonesian alias |
+| `table` | `<table>` | Standar / Standard |
+| `pemisah` | `<hr>` | Alias Indonesia / Indonesian alias |
+| `hr` | `<hr>` | Standar / Standard |
+
+Tag turunan tabel `thead`, `tbody`, `tr`, `th`, `td` tidak memiliki alias. Gunakan nama standar.
+
+Table child tags `thead`, `tbody`, `tr`, `th`, `td` have no alias. Use standard names.
+
+---
+
+## Tag Tanpa Alias / Tags Without Alias
+
+Tag HTML standar berikut tidak memiliki alias dan harus digunakan dengan nama aslinya:
+
+The following standard HTML tags have no alias and must be used by their original names:
+
+`thead`, `tbody`, `tr`, `th`, `td`, `br`, `svg`, `style`, `script`, `link`, `meta`, `head`, `body`, `html`
+
+---
+
+## Contoh Penggunaan / Usage Examples
 
 ```pjs
-Buat tombol#submitBtn.btn.btn-primary: "Submit"
-Buat ruang.kontainer.dengan-padding: ""
-Buat daftar.list-inline#navigation: ""
-```
-
----
-
-## Examples / Contoh
-
-### Card Pattern
-```pjs
+# Menggunakan alias Indonesia
 Buat ruang.kartu:
-    Buat gambar[src="/image.jpg" alt="Product"]: ""
-    Buat judul: "Product Name"
-    Buat paragraf: "Description"
-    Buat tombol: "Buy"
-```
+    Buat judul: "Produk"
+    Buat paragraf: "Deskripsi produk"
+    Buat gambar[src="/img.jpg" alt="Foto"]: ""
+    Buat tombol: "Beli"
 
-### Form
-```pjs
+# Menggunakan nama standar
+Buat div.container:
+    Buat h1: "Title"
+    Buat p: "Content"
+    Buat img[src="/photo.jpg"]: ""
+
+# Dengan CSS classes dan IDs
+Buat tombol#submitBtn.btn.btn-primary: "Submit"
 Buat formulir#loginForm:
     Buat label: "Email"
     Buat masukan#email[type="email"]: ""
-    
-    Buat label: "Password"
-    Buat masukan#password[type="password"]: ""
-    
-    Buat tombol[type="submit"]: "Login"
-```
 
-### Navigation
-```pjs
+# Navigasi
 Buat kepala:
     Buat navigasi:
         Buat tautan[href="/"]: "Home"
-        Buat tautan[href="/about"]: "About"
-
 Buat kaki:
-    Buat paragraf: "© 2026 Company"
+    Buat paragraf: "2026 Company"
+
+# Daftar
+Buat daftar:
+    Ulangi item dari data.items:
+        Buat item: $item.nama
+
+# Fragment (tidak merender wrapper)
+Buat fragmen:
+    Buat paragraf: "Baris 1"
+    Buat paragraf: "Baris 2"
 ```
-
----
-
-## Quick Reference Card / Kartu Referensi Cepat
-
-```
-TEXT:       tombol, tautan, judul, subjudul, paragraf, rentang, pemisah
-CONTAINER:  ruang, wadah, bagian, artikel, utama, samping, fragmen
-NAVIGATION: navigasi, kepala, kaki
-FORM:       formulir, masukan, pilihan, opsi, kolom
-LIST:       daftar, daftarterurut, item
-MEDIA:      gambar, kanvas, video, audio, bingkai
-TABLE:      tabel
-```
-
----
-
-## Fallback ke HTML Standar
-
-Jika alias tidak ada, gunakan nama tag HTML standar:
-
-If an alias doesn't exist, use standard HTML tag name:
-
-```pjs
-Buat video[src="/movie.mp4"]: ""
-Buat svg: ""
-Buat br: ""
-```
-
----
-
-## Verification / Verifikasi
-
-✅ [VERIFIED: src/lexer/promptjs-lexer.js lines 337-402]
-
-32 tag aliases confirmed against source code.
 
 ---
 
