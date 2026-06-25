@@ -169,6 +169,9 @@ function runStaticAdapter(opts) {
     fs.writeFileSync(hashedJsPath, jsContent, 'utf-8');
     hashedAssets.js = hashedJsName;
 
+    // Remove the original unhashed file to avoid duplication (BUG-10 fix)
+    fs.rmSync(jsPath, { force: true });
+
     // Update references in HTML files
     const htmlFiles = findHtmlFiles(outDir);
     for (let i = 0; i < htmlFiles.length; i++) {
@@ -186,6 +189,9 @@ function runStaticAdapter(opts) {
     const hashedCssPath = path.join(outDir, hashedCssName);
     fs.writeFileSync(hashedCssPath, cssContent, 'utf-8');
     hashedAssets.css = hashedCssName;
+
+    // Remove the original unhashed file to avoid duplication (BUG-10 fix)
+    fs.rmSync(cssPath, { force: true });
 
     // Update references in HTML files
     const htmlFiles2 = findHtmlFiles(outDir);

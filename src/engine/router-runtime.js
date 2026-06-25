@@ -32,11 +32,9 @@ function __pjsRouter(routes, options) {
   options = options || {};
   var appEl = options.appEl || document.getElementById("app") || document.body;
   var current = null;
-  var currentCleanup = null;
 
   function navigate(path, pushState) {
     if (current && typeof current.unmount === "function") {
-      if (currentCleanup) { currentCleanup(); currentCleanup = null; }
       current.unmount();
       current = null;
     }
@@ -112,7 +110,6 @@ function __pjsRouter(routes, options) {
       document.removeEventListener("click", handleClick);
       window.removeEventListener("popstate", handlePopState);
       if (current && typeof current.unmount === "function") {
-        if (currentCleanup) { currentCleanup(); currentCleanup = null; }
         current.unmount();
         current = null;
       }

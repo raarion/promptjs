@@ -265,9 +265,10 @@ function buildProject(opts) {
     pageResults.push(pageResult);
     if (pageResult.isSPA) isSPA = true;
     if (!pageResult.success) errors.push(...pageResult.errors);
-    // v0.8: Apply plugin transform hooks per page
-    pageResult.js = Plugins.transformJS(plugins, pageResult.js, path.basename(filePath));
-    pageResult.css = Plugins.transformCSS(plugins, pageResult.css, path.basename(filePath));
+    // Note: transformJS and transformCSS hooks are already applied inside
+    // Engine.compile() (see promptjs.js lines 314-316). Do NOT re-apply them
+    // here — doing so would cause plugins to run twice on the same content,
+    // which breaks non-idempotent transforms (BUG-8 fix).
   }
 
   // Collect CSS from all pages

@@ -1,47 +1,61 @@
 # Direktif / Directives
 
 > docs/language/ → **Directives**
-> ← [Keywords](keywords.md) · [Auth](auth.md) →
+> ← [Keywords](keywords.md) · [Expressions](expressions.md) →
 
 ---
 
-Direktif adalah konfigurasi yang ditempatkan di bagian atas file `.pjs`, sebelum kode halaman. Direktif mengontrol perilaku kompilator dan mesin PromptJS tanpa menulis kode imperatif.
+Direktif adalah konfigurasi yang ditempatkan di bagian atas file `.pjs`. Direktif mengontrol perilaku kompilator dan mesin PromptJS tanpa menulis kode imperatif. Ada dua jenis: direktif data (dimuat sebagai variabel) dan direktif perilaku (mengubah cara kompilasi).
 
-Directives are configurations placed at the top of a `.pjs` file, before page code. Directives control compiler and engine behavior without writing imperative code.
+Directives are configurations placed at the top of a `.pjs` file. They control compiler and engine behavior without writing imperative code. There are two types: data directives (loaded as variables) and behavioral directives (that change compilation behavior).
 
 ---
 
-## Daftar Direktif / Directive List
+## Daftar Direktif Perilaku / Behavioral Directive List
 
-Ada 7 direktif yang dikenali oleh PromptJS:
+Direktif berikut mengubah perilaku kompilasi. Enam di antaranya dikenali dalam bentuk implisit (tanpa `---`):
 
-There are 7 directives recognized by PromptJS:
+The following directives change compilation behavior. Six of these are recognized in implicit form (without `---`):
+
+| Direktif | Tipe Nilai | Default | Deskripsi / Description |
+|----------|-----------|---------|-------------------------|
+| `router` | `benar` / `true` | `salah` | Aktifkan SPA routing / Enable SPA client-side routing |
+| `adapter` | string | — | Adapter deployment: `static`, `node`, `vercel` |
+| `butuhAuth` | `benar` / `true` | `salah` | Aktifkan auth guard / Enable auth guard |
+| `redirect` | string (path) | `/login` | Redirect jika tidak terautentikasi / Redirect if unauthenticated |
+| `tokenKey` | string | `token` | Kunci penyimpanan token / Storage key for auth token |
+| `peran` | string | — | Peran yang diizinkan / Required role for access |
+
+## Daftar Direktif Data / Data Directive List
+
+Direktif berikut dimuat sebagai data front-matter dan hanya tersedia dalam bentuk eksplisit (`---`):
+
+The following directives are loaded as front-matter data and are only available in explicit form (`---`):
 
 | Direktif | Tipe Nilai | Deskripsi / Description |
 |----------|-----------|-------------------------|
-| `router` | `benar` / `true` | Aktifkan SPA routing / Enable SPA routing |
-| `adapter` | `static` · `node` · `vercel` | Adapter deployment / Deployment adapter |
-| `butuhAuth` | `benar` / `true` | Aktifkan auth guard / Enable auth guard |
-| `redirect` | string (path) | Redirect jika tidak auth / Redirect if unauthenticated |
-| `token` | string | Nilai token awal / Initial token value |
-| `tokenKey` | string | Kunci localStorage untuk token / localStorage key for token |
-| `peran` | string (mis. `admin`) | Peran yang diizinkan / Required role |
+| `judul` | string | Judul halaman / Page title |
+| `deskripsi` | string | Deskripsi halaman / Page description |
+| `produk` | string (path) | Sumber data: `./data/x.json` / Data source path |
+| `token` | string | Sumber penyimpanan token: `localStorage` atau `sessionStorage`. Mendukung dot notation: `localStorage.jwt` / Token storage source with optional dot notation |
 
 ---
 
 ## Sintaksis / Syntax
 
-Direktif dapat ditulis dalam dua bentuk: **eksplisit** (dengan pembatas `---`) atau **implisit** (tanpa pembatas).
-
-Directives can be written in two forms: **explicit** (with `---` delimiters) or **implicit** (without delimiters).
-
 ### Bentuk Eksplisit / Explicit Form
+
+Pembatas `---` wajib di awal dan akhir. Semua direktif (data maupun perilaku) tersedia dalam bentuk ini:
+
+The `---` delimiters are required at start and end. All directives (both data and behavioral) are available in this form:
 
 ```pjs
 ---
+judul: "Dashboard Admin"
 router: benar
-adapter: node
 butuhAuth: benar
+redirect: "/login"
+token: localStorage
 tokenKey: auth_token
 peran: admin
 ---
@@ -50,65 +64,27 @@ Halaman:
     Buat judul: "Dashboard Admin"
 ```
 
-Pembatas `---` wajib di awal dan akhir blok direktif. Konten apa pun setelah pembatas penutup diperlakukan sebagai kode halaman.
-
-The `---` delimiters are required at the start and end of the directive block. Any content after the closing delimiter is treated as page code.
-
 ### Bentuk Implisit / Implicit Form
 
-```pjs
-router: benar
-adapter: node
+Hanya 6 direktif perilaku yang dikenali tanpa pembatas. Pemindaian berhenti pada baris kosong, baris bukan-direktif, atau `---`.
 
-Halaman:
-    Buat judul: "Dashboard Admin"
-```
+Only 6 behavioral directives are recognized without delimiters. Scanning stops at a blank line, non-directive line, or `---`.
 
-Dalam bentuk implisit, kompilator memindai baris-baris awal file. Jika baris pertama yang tidak kosong berisi direktif yang dikenali (`key: value` di mana `key` adalah salah satu dari 7 direktif), kompilator melanjutkan pemindaian hingga menemukan baris yang bukan direktif atau baris kosong.
-
-In implicit form, the compiler scans the initial lines of the file. If the first non-blank line contains a recognized directive (`key: value` where `key` is one of the 7 directives), the compiler continues scanning until it finds a non-directive line or a blank line.
-
-**Aturan implisit / Implicit rules:**
-1. Baris pertama harus berisi direktif yang dikenali / First line must contain a recognized directive
-2. Pemindaian berhenti pada baris kosong, baris bukan-direktif, atau `---` / Scanning stops at a blank line, non-directive line, or `---`
-3. Jika baris pertama bukan direktif, seluruh file diperlakukan sebagai kode halaman / If the first line is not a directive, the entire file is treated as page code
-
----
-
-## Kombinasi Direktif / Directive Combinations
-
-### SPA dengan Auth / SPA with Auth
+**Direktif yang dikenali secara implisit / Implicitly recognized directives:**
+`router`, `adapter`, `butuhAuth`, `redirect`, `tokenKey`, `peran`
 
 ```pjs
----
-router: benar
 butuhAuth: benar
-tokenKey: my_app_token
-redirect: /login
----
+tokenKey: auth_token
+peran: admin
 
 Halaman:
     Buat judul: "Halaman Terlindungi"
 ```
 
-### Full-stack dengan Adapter / Full-stack with Adapter
+**Penting / Important:** Direktif `token` TIDAK dikenali secara implisit. Jika Anda perlu menentukan sumber token, gunakan bentuk eksplisit dengan `---`.
 
-```pjs
----
-router: benar
-adapter: node
-butuhAuth: benar
-peran: admin
-tokenKey: admin_token
----
-
-Halaman:
-    Buat judul: "Admin Panel"
-```
-
-### Multi-peran (penundaan) / Multi-role (deferred)
-
-> **Catatan / Note:** Saat ini `peran` hanya mendukung satu peran per halaman. Dukungan multi-peran (`peran: admin, editor`) direncanakan untuk v1.1+.
+The `token` directive is NOT recognized implicitly. If you need to specify a token source, use the explicit form with `---`.
 
 ---
 
@@ -116,97 +92,46 @@ Halaman:
 
 ### `router: benar`
 
-Mengaktifkan mode SPA. Kompilator menghasilkan pola factory function dan menyematkan runtime router untuk navigasi sisi klien. Semua halaman dalam proyek dikompilasi sebagai rute yang terdaftar di router.
+Mengaktifkan mode SPA. Kompilator menghasilkan pola factory function untuk setiap halaman dan menyematkan runtime router untuk navigasi sisi klien. Lihat [Routing](routing.md) untuk detail lengkap.
 
-Enables SPA mode. The compiler produces a factory function pattern and embeds the runtime router for client-side navigation. All pages in the project are compiled as routes registered in the router.
-
-→ Lihat [Routing](routing.md) untuk detail lengkap.
-
----
+Enables SPA mode. The compiler produces factory functions for each page and embeds the runtime router for client-side navigation. See [Routing](routing.md) for details.
 
 ### `adapter: <nama>`
 
-Menentukan adapter deployment. Mempengaruhi cara `pjs build` menghasilkan output.
+Menentukan adapter deployment. Mempengaruhi output `pjs build`. Lihat [Adapters](adapters.md) untuk perbandingan lengkap.
 
-Specifies the deployment adapter. Affects how `pjs build` produces output.
-
-| Adapter | Deskripsi / Description |
-|---------|-------------------------|
-| `static` | HTML + JS statis, cocok untuk hosting statis / Static HTML + JS, suitable for static hosting |
-| `node` | Server Node.js dengan Express-style routing / Node.js server with Express-style routing |
-| `vercel` | Serverless functions untuk Vercel / Serverless functions for Vercel |
-
----
+Specifies the deployment adapter. Affects `pjs build` output. See [Adapters](adapters.md) for full comparison.
 
 ### `butuhAuth: benar`
 
-Mengaktifkan auth guard. Kompilator menghasilkan IIFE guard yang memeriksa keberadaan token di `localStorage` sebelum mengeksekusi kode halaman. Jika token tidak ada, halaman tidak di-render.
+Mengaktifkan auth guard. Kompilator menghasilkan IIFE yang memeriksa token di storage sebelum mengeksekusi kode halaman. Jika token tidak ada, halaman langsung redirect. Lihat [Auth](auth.md) untuk detail lengkap.
 
-Enables auth guard. The compiler generates an IIFE guard that checks for a token in `localStorage` before executing page code. If no token exists, the page is not rendered.
-
-→ Lihat [Auth](auth.md) untuk detail lengkap.
-
----
+Enables auth guard. The compiler generates an IIFE checking for a token in storage before executing page code. If no token exists, the page redirects immediately. See [Auth](auth.md) for details.
 
 ### `redirect: <path>`
 
-Digunakan bersama `butuhAuth: benar`. Jika pengguna tidak terautentikasi, router mengarahkan ke path ini.
+Path tujuan redirect jika autentikasi gagal. Default: `/login`.
 
-Used alongside `butuhAuth: benar`. If the user is unauthenticated, the router redirects to this path.
+Redirect destination if authentication fails. Default: `/login`.
 
-**Examples:**
-```pjs
-redirect: /login
-redirect: /masuk
-redirect: /auth/signin
-```
+### `token: <source>`
 
----
+Menentukan sumber penyimpanan token. Nilai yang valid: `localStorage`, `sessionStorage`, atau dengan dot notation untuk kunci khusus (misalnya `localStorage.jwt` menunjukkan source=`localStorage`, key=`jwt`). Hanya tersedia dalam bentuk eksplisit.
 
-### `token: <nilai>`
-
-Menetapkan nilai token awal (biasanya untuk keperluan testing). Token disimpan di `localStorage` dengan kunci yang ditentukan `tokenKey`.
-
-Sets an initial token value (typically for testing). The token is stored in `localStorage` under the key specified by `tokenKey`.
-
----
+Specifies the token storage source. Valid values: `localStorage`, `sessionStorage`, or with dot notation for specific keys (e.g. `localStorage.jwt` means source=`localStorage`, key=`jwt`). Only available in explicit form.
 
 ### `tokenKey: <nama>`
 
-Menentukan kunci `localStorage` untuk menyimpan token autentikasi. Default: `'pjs_token'`.
+Kunci penyimpanan untuk token. Default: `token`. Mendahului kunci yang diekstrak dari dot notation pada direktif `token`.
 
-Specifies the `localStorage` key for storing the authentication token. Default: `'pjs_token'`.
-
-**Examples:**
-```pjs
-tokenKey: auth_token
-tokenKey: jwt
-tokenKey: session_id
-```
-
----
+Storage key for the auth token. Default: `token`. Overrides the key extracted from dot notation in the `token` directive.
 
 ### `peran: <nama>`
 
-Menentukan peran yang diizinkan mengakses halaman. Setelah pengecekan token, kompilator menghasilkan pengecekan peran tambahan. Jika peran pengguna tidak cocok, akses ditolak.
+Peran yang diizinkan mengakses halaman. Setelah pengecekan token, kompilator menambahkan pengecekan peran tambahan. Jika `localStorage.getItem('__peran')` tidak cocok, akses ditolak. Saat ini hanya mendukung satu peran per halaman.
 
-Specifies the role allowed to access the page. After token check, the compiler generates an additional role check. If the user's role doesn't match, access is denied.
-
-**Examples:**
-```pjs
-peran: admin
-peran: editor
-peran: user
-```
+Role allowed to access the page. After token check, the compiler adds an additional role check. If `localStorage.getItem('__peran')` doesn't match, access is denied. Currently supports only a single role per page.
 
 ---
 
-## Verification / Verifikasi
-
-✅ [VERIFIED: src/lexer/promptjs-lexer.js lines 529-537]
-
-7 directives and scanning rules confirmed against source code.
-
----
-
-← [Keywords](keywords.md) · [Auth](auth.md) →
+← [Keywords](keywords.md) · [Expressions](expressions.md) →

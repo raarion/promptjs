@@ -347,3 +347,93 @@ Halaman Dashboard:
     });
   });
 });
+
+// ──────────────────────────────────────────────────────────────
+// v1.0 Bug Fixes — Regression Tests
+// ──────────────────────────────────────────────────────────────
+describe('v1.0 — Bug Fix Regression Tests', () => {
+  // BUG-1: Sibling Buat+Ketika loses resolver context (E3005)
+  describe('BUG-1: Sibling Buat+Ketika', () => {
+    it('two sibling Buat with Ketika each — no E3005', () => {
+      const source = `Halaman App:
+  Buat tombol: "1"
+    Ketika diklik:
+      tampilkan "satu"
+  Buat tombol: "2"
+    Ketika diklik:
+      tampilkan "dua"`;
+      const { js, errors } = compileSource(source);
+      const e3005 = errors.filter((e) => e.code === 'E3005');
+      expect(e3005).toEqual([]);
+      const clickListeners = js.match(/addEventListener\("click"/g);
+      expect(clickListeners.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('three sibling Buat with Ketika each — no E3005', () => {
+      const source = `Halaman App:
+  Buat tombol: "A"
+    Ketika diklik:
+      tampilkan "a"
+  Buat tombol: "B"
+    Ketika diklik:
+      tampilkan "b"
+  Buat tombol: "C"
+    Ketika diklik:
+      tampilkan "c"`;
+      const { js, errors } = compileSource(source);
+      const e3005 = errors.filter((e) => e.code === 'E3005');
+      expect(e3005).toEqual([]);
+      const clickListeners = js.match(/addEventListener\("click"/g);
+      expect(clickListeners.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('inline content + indented Ketika merges correctly', () => {
+      const source = `Halaman App:
+  Buat tombol#btn: "Click"
+    Ketika diklik:
+      tampilkan "clicked"`;
+      const { js, errors } = compileSource(source);
+      expect(errors.filter((e) => e.code === 'E3005')).toEqual([]);
+      expect(js).toContain('createElement("button")');
+      expect(js).toContain('addEventListener("click"');
+      // The text "Click" should be a child of the button
+      expect(js).toContain('createTextNode("Click")');
+    });
+  });
+
+  // BUG-2: tampilkan "string" lowered to querySelector instead of alert
+  describe('BUG-2: tampilkan string → alert', () => {
+    it('tampilkan "Hello World" → alert("Hello World")', () => {
+      const source = `Halaman App:
+  Buat tombol: "Klik"
+    Ketika diklik:
+      tampilkan "Hello World"`;
+      const { js } = compileSource(source);
+      expect(js).toContain('alert("Hello World")');
+      expect(js).not.toContain('querySelector("Hello World")');
+    });
+
+    it('tampilkan "Count: " + 5 → alert with expression', () => {
+      const source = `Halaman App:
+  Buat tombol: "Show"
+    Ketika diklik:
+      tampilkan "Count: " + 5`;
+      const { js } = compileSource(source);
+      expect(js).toContain('alert(');
+      expect(js).not.toContain('querySelector(');
+    });
+  });
+
+  // BUG-3: Ketika muat: should be DOMContentLoaded, not load
+  describe('BUG-3: Ketika muat: → DOMContentLoaded', () => {
+    it('Ketika muat: produces DOMContentLoaded listener', () => {
+      const source = `Halaman App:
+  data x = 0
+  Ketika muat:
+    simpan 42 ke x`;
+      const { js } = compileSource(source);
+      expect(js).toContain('DOMContentLoaded');
+      expect(js).not.toContain('addEventListener("load"');
+    });
+  });
+});

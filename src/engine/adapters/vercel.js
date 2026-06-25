@@ -135,20 +135,24 @@ function runVercelAdapter(opts) {
   fs.mkdirSync(functionsDir, { recursive: true });
 
   // Move existing files (HTML, JS, CSS, assets) into static/
+  // Files are MOVED (not copied) to avoid duplication in dist/ (BUG-10 fix).
+  // Only vercel.json and .vercel/ remain at dist/ root after this.
   const entries = fs.readdirSync(outDir, { withFileTypes: true });
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    if (entry.name === '.vercel') continue;
+    if (entry.name === '.vercel' || entry.name === 'vercel.json') continue;
 
     const srcPath = path.join(outDir, entry.name);
     const destPath = path.join(staticDir, entry.name);
 
     if (entry.isDirectory()) {
       copyDirRecursive(srcPath, destPath);
+      fs.rmSync(srcPath, { recursive: true, force: true });
     } else {
       // Ensure parent exists
       fs.mkdirSync(path.dirname(destPath), { recursive: true });
       fs.copyFileSync(srcPath, destPath);
+      fs.unlinkSync(srcPath);
     }
   }
 

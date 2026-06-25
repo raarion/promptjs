@@ -160,6 +160,7 @@ ERROR_MESSAGES[E1006] = 'Komentar blok "[[" tidak ditutup dengan "]]"';
 ERROR_MESSAGES[E1007] = 'Blok DocString "[[" tidak ditutup dengan "]]"';
 ERROR_MESSAGES[E1008] = 'Angka literal tidak valid';
 ERROR_MESSAGES[E1009] = 'Selector CSS tidak valid';
+ERROR_MESSAGES[W1001] = 'DocString tidak menempel ke node manapun';
 
 // -- Parser --
 ERROR_MESSAGES[E2001] = 'Diharapkan {expected}, tetapi ditemukan "{actual}"';
@@ -190,6 +191,10 @@ ERROR_MESSAGES[E2025] = 'Daftar props "gunakan" tidak valid';
 ERROR_MESSAGES[E2026] = 'Ekspresi kosong tidak valid';
 ERROR_MESSAGES[E2027] = 'Properti perbarui tidak dikenali';
 ERROR_MESSAGES[E2028] = 'Body komponen/fungsi kosong';
+ERROR_MESSAGES[W2001] = 'DocString tidak menempel ke node manapun';
+ERROR_MESSAGES[W2002] = 'Blok kosong terdeteksi';
+ERROR_MESSAGES[W2003] = 'Rantai "jika" tanpa cabang "jika tidak"';
+ERROR_MESSAGES[W2004] = 'Jumlah argumen mungkin tidak sesuai';
 
 // -- Resolver --
 ERROR_MESSAGES[E3001] = 'Identifier "{name}" tidak dideklarasikan';
@@ -197,6 +202,9 @@ ERROR_MESSAGES[E3002] = 'Simbol "{name}" sudah dideklarasikan dalam scope yang s
 ERROR_MESSAGES[E3003] = 'Variabel tetap "{name}" tidak dapat diubah setelah inisialisasi';
 ERROR_MESSAGES[E3004] = 'Komponen "{name}" digunakan sebelum dideklarasi';
 ERROR_MESSAGES[E3005] = '"ketika" tanpa target hanya boleh di dalam blok "buat" atau "komponen"';
+ERROR_MESSAGES[W3001] = 'Variabel "{name}" dideklarasikan tapi tidak pernah digunakan';
+ERROR_MESSAGES[W3002] = 'Variabel "{name}" shadowing variabel di scope luar';
+ERROR_MESSAGES[W3003] = 'Watcher target bukan data reaktif';
 
 // -- Analyzer --
 ERROR_MESSAGES[E4001] = 'Lifecycle hook hanya valid di dalam komponen';
@@ -223,6 +231,8 @@ ERROR_MESSAGES[E4201] = 'Dependency cycle pada data turunan';
 ERROR_MESSAGES[E5001] = 'Node AST bertipe "{type}" tidak didukung oleh compiler';
 ERROR_MESSAGES[E5002] = 'Gagal menurunkan ekspresi ke JavaScript';
 ERROR_MESSAGES[E5003] = 'Selector tidak dapat dikompilasi';
+ERROR_MESSAGES[W5001] = 'Kode yang dihasilkan mungkin tidak berjalan sesuai harapan';
+ERROR_MESSAGES[W5002] = 'Fitur eksperimental digunakan';
 
 // -- Runtime --
 ERROR_MESSAGES[E6001] = '"berhenti" tidak valid di luar loop atau handler';

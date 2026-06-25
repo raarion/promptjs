@@ -441,11 +441,27 @@ function install(PromptJSCompiler, accept) {
       return;
     }
 
+    // Auto-detect: if target is a string literal (or expression that's not a
+    // DOM selector/identifier), treat as a message (alert). This prevents the
+    // confusing behavior where `tampilkan "Hello"` was lowered to
+    // `document.querySelector("Hello")` instead of `alert("Hello")`.
+    if (
+      node.target &&
+      (node.target.type === 'Literal' ||
+        node.target.type === 'BinaryExpression' ||
+        node.target.type === 'TemplateLiteral')
+    ) {
+      const msgVal = this.lowerExpression(node.target);
+      this.emit(`alert(${msgVal});`);
+      return;
+    }
+
     // Normal element show/mount
     const target = this.resolveTarget(node.target);
     const mountTarget = node.mountTarget ? this.resolveTarget(node.mountTarget) : null;
 
     if (mountTarget) {
+      this.helpers.add('__mount');
       this.emit(`__mount(${target}, ${mountTarget});`);
     } else {
       // Show element (remove display:none if hidden)
@@ -599,6 +615,7 @@ function install(PromptJSCompiler, accept) {
       diubah: 'change',
       ditekan: 'keydown',
       dilepas: 'keyup',
+      muat: 'DOMContentLoaded',
       dimuat: 'DOMContentLoaded',
       difokus: 'focus',
       diblur: 'blur',
@@ -617,7 +634,6 @@ function install(PromptJSCompiler, accept) {
       keluar: 'mouseleave',
       aktif: 'focus',
       nonaktif: 'blur',
-      muat: 'load',
       salah: 'error',
       dipasang: '__promptjs_mounted',
       'dilepas-dari-dom': '__promptjs_unmounted',
@@ -1427,27 +1443,6 @@ function install(PromptJSCompiler, accept) {
 
     if (this.currentParent) {
       // Jika dipanggil sebagai statement di dalam blok 'buat'
-      this.emit(`${code};`);
-    } else {
-      return code;
-    }
-  };
-
-  /**
-   * Lower JalankanExpression ke pemanggilan fungsi PromptJS.
-   *
-   * @this {any}
-   * @param {Object} node - AST node JalankanExpression
-   * @returns {void | string}
-   */
-  PromptJSCompiler.prototype.visitJalankanExpression = function (node) {
-    // Hanya gunakan node.arguments atau node.withArgs
-    const args = (node.arguments || node.withArgs || []).map((a) => this.lowerExpression(a));
-    const code = `${node.callee}(${args.join(', ')})`;
-
-    // Jika dipakai sebagai statement di dalam blok 'buat' (ada currentParent),
-    // emit langsung; jika tidak, kembalikan sebagai ekspresi.
-    if (this.currentParent) {
       this.emit(`${code};`);
     } else {
       return code;
