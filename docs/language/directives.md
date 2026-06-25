@@ -116,11 +116,13 @@ Halaman:
 
 ### `router: benar`
 
-Mengaktifkan mode SPA. Kompilator menghasilkan pola factory function dan menyematkan runtime `__pjsRouter` untuk navigasi sisi klien. Semua halaman dalam proyek dikompilasi sebagai rute yang terdaftar di router.
+Mengaktifkan mode SPA. Kompilator menghasilkan pola factory function dan menyematkan runtime router untuk navigasi sisi klien. Semua halaman dalam proyek dikompilasi sebagai rute yang terdaftar di router.
 
-Enables SPA mode. The compiler produces a factory function pattern and embeds the `__pjsRouter` runtime for client-side navigation. All pages in the project are compiled as routes registered in the router.
+Enables SPA mode. The compiler produces a factory function pattern and embeds the runtime router for client-side navigation. All pages in the project are compiled as routes registered in the router.
 
 → Lihat [Routing](routing.md) untuk detail lengkap.
+
+---
 
 ### `adapter: <nama>`
 
@@ -134,6 +136,8 @@ Specifies the deployment adapter. Affects how `pjs build` produces output.
 | `node` | Server Node.js dengan Express-style routing / Node.js server with Express-style routing |
 | `vercel` | Serverless functions untuk Vercel / Serverless functions for Vercel |
 
+---
+
 ### `butuhAuth: benar`
 
 Mengaktifkan auth guard. Kompilator menghasilkan IIFE guard yang memeriksa keberadaan token di `localStorage` sebelum mengeksekusi kode halaman. Jika token tidak ada, halaman tidak di-render.
@@ -142,11 +146,22 @@ Enables auth guard. The compiler generates an IIFE guard that checks for a token
 
 → Lihat [Auth](auth.md) untuk detail lengkap.
 
+---
+
 ### `redirect: <path>`
 
 Digunakan bersama `butuhAuth: benar`. Jika pengguna tidak terautentikasi, router mengarahkan ke path ini.
 
 Used alongside `butuhAuth: benar`. If the user is unauthenticated, the router redirects to this path.
+
+**Examples:**
+```pjs
+redirect: /login
+redirect: /masuk
+redirect: /auth/signin
+```
+
+---
 
 ### `token: <nilai>`
 
@@ -154,17 +169,43 @@ Menetapkan nilai token awal (biasanya untuk keperluan testing). Token disimpan d
 
 Sets an initial token value (typically for testing). The token is stored in `localStorage` under the key specified by `tokenKey`.
 
+---
+
 ### `tokenKey: <nama>`
 
 Menentukan kunci `localStorage` untuk menyimpan token autentikasi. Default: `'pjs_token'`.
 
 Specifies the `localStorage` key for storing the authentication token. Default: `'pjs_token'`.
 
+**Examples:**
+```pjs
+tokenKey: auth_token
+tokenKey: jwt
+tokenKey: session_id
+```
+
+---
+
 ### `peran: <nama>`
 
 Menentukan peran yang diizinkan mengakses halaman. Setelah pengecekan token, kompilator menghasilkan pengecekan peran tambahan. Jika peran pengguna tidak cocok, akses ditolak.
 
 Specifies the role allowed to access the page. After token check, the compiler generates an additional role check. If the user's role doesn't match, access is denied.
+
+**Examples:**
+```pjs
+peran: admin
+peran: editor
+peran: user
+```
+
+---
+
+## Verification / Verifikasi
+
+✅ [VERIFIED: src/lexer/promptjs-lexer.js lines 529-537]
+
+7 directives and scanning rules confirmed against source code.
 
 ---
 

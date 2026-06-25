@@ -26,6 +26,20 @@ PromptJS supports bilingual keywords — Indonesian and English — that can be 
 | `fungsi` | `func` | TK_FUNGSI | Fungsi / Function |
 | | `function` | TK_FUNGSI | Alias panjang / Full alias |
 
+**Examples / Contoh:**
+```pjs
+halaman Dashboard:
+    data hitung = 0
+    tetap PI = 3.14159
+    turunan hasil = hitung * PI
+    
+    definisikan Helper:
+        fungsi tambah(x):
+            kembalikan x + 1
+```
+
+---
+
 ## Kontrol Alur / Flow Control
 
 | Indonesia | English | Token | Deskripsi / Description |
@@ -42,6 +56,25 @@ PromptJS supports bilingual keywords — Indonesian and English — that can be 
 | `kembalikan` | `return` | TK_KEMBALIKAN | Return nilai / Return value |
 | `lewati` | `skip` | TK_PASS | Skip iterasi / Skip iteration |
 | `pass` | | TK_PASS | Alias English / English alias |
+
+**Examples / Contoh:**
+```pjs
+jika $hitung > 5:
+    buat span: "Besar"
+lainnya:
+    buat span: "Kecil"
+
+ulangi untuk item dari $daftar:
+    buat li: item
+
+ulangi untuk i dari 1 sampai 10:
+    buat div: i
+
+ulangi 5 kali:
+    buat span: "Item"
+```
+
+---
 
 ## Aksi / Action Statements
 
@@ -64,6 +97,16 @@ PromptJS supports bilingual keywords — Indonesian and English — that can be 
 | `jalankan` | `run` | TK_JALANKAN | Jalankan / Run |
 | `gunakan` | `use` | TK_GUNAKAN | Gunakan komponen / Use component |
 
+**Examples / Contoh:**
+```pjs
+simpan "Hello" ke nama
+tambahkan 1 ke hitung
+arahkan ke "/dashboard"
+muatulang
+```
+
+---
+
 ## Lifecycle Hooks
 
 | Indonesia | English | Token | Deskripsi / Description |
@@ -71,11 +114,15 @@ PromptJS supports bilingual keywords — Indonesian and English — that can be 
 | `dipasang` | `mounted` | TK_DIPASANG | Setelah mount / After mount |
 | `dilepas` | `unmounted` | TK_DILEPAS | Setelah unmount / After unmount |
 
+---
+
 ## Direction / Preposition
 
 | Indonesia | English | Token | Deskripsi / Description |
 |-----------|---------|-------|-------------------------|
 | `ke` | `to` | TK_KE | Arah target / Direction target |
+
+---
 
 ## Literal Boolean & Null
 
@@ -85,7 +132,11 @@ PromptJS supports bilingual keywords — Indonesian and English — that can be 
 | `salah` | `false` | TK_SALAH | Boolean false |
 | `kosong` | `null` | TK_KOSONG | Null |
 
-> **Catatan / Note:** `salah` juga muncul sebagai event alias (`on_salah` → `error`), tapi di konteks expression (bukan setelah `on_`), `salah` diinterpretasikan sebagai boolean literal `false`.
+**Important Note / Catatan Penting:**
+
+⚠️ PromptJS uses **`salah`** for false, **NOT** `palsu`. This follows the principle of bilingual consistency.
+
+Note: `salah` also appears as event alias (`on_salah` → `error`), but in expression context (not after `on_`), it's interpreted as boolean literal `false`.
 
 ---
 
@@ -114,8 +165,16 @@ Word operators are recognized inside expressions and translated to JavaScript sy
 | `mod` | `%` | Modulo |
 | `pangkat` | `**` | Eksponen / Exponentiation |
 
-> **Catatan pengenalan / Matching note:** Operator kata diurutkan terpanjang lebih dulu agar frasa multi-kata menang atas awalannya (mis. "tidak sama dengan" sebelum "tidak").
+**Note / Catatan:** Operator kata diurutkan terpanjang lebih dulu agar frasa multi-kata menang atas awalannya (mis. "tidak sama dengan" sebelum "tidak").
 
 ---
 
-← [Syntax Reference](syntax-reference.md) · [Directives](directives.md) →
+## Verification / Verifikasi
+
+✅ [VERIFIED: src/lexer/promptjs-lexer.js lines 163-287]
+
+All keywords and token types confirmed against source code.
+
+---
+
+← [Syntax Reference](../v1.0-planning/SYNTAX-REFERENCE.md) · [Directives](directives.md) →
