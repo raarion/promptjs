@@ -5,6 +5,54 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — v1.0 Documentation & Bug Fixes
+
+### Fixed — Compiler & Parser Bugs
+
+- **BUG-1 (HIGH)**: Sibling `Buat` blocks with `Ketika` event handlers no longer
+  trigger E3005. The parser's `_parseBuatStatement` now correctly merges inline
+  content (e.g. `Buat tombol: "Click"`) with a subsequent indented block body
+  (e.g. `Ketika diklik:`). Previously, the `Ketika` was parsed as a sibling
+  rather than a child, causing the resolver to lose the `buatStack` context.
+  Files: `src/parser/promptjs-parser.js`
+- **BUG-2 (MEDIUM)**: `tampilkan "string"` now correctly lowers to `alert("string")`
+  instead of `document.querySelector("string")`. The compiler auto-detects when
+  the target is a string literal or expression (not a DOM selector) and treats
+  it as a message. Files: `src/compiler/emitters/statements.js`
+- **BUG-3 (LOW)**: `Ketika muat:` now maps to `DOMContentLoaded` (same as
+  `Ketika dimuat:`) instead of the `load` event which never fires on non-resource
+  elements. Files: `src/compiler/emitters/statements.js`
+- **BUG-4 (LOW)**: Removed duplicate `visitJalankanExpression` definition in
+  `statements.js` (lines 1459 and 1628). The second definition silently overrode
+  the first; the surviving one delegates to `lowerExpression` for robustness.
+- **BUG-5 (LOW)**: `__mount` runtime helper is now registered in `compiler.helpers`
+  Set when emitted by `visitTampilkanStatement` mount path, preventing potential
+  `ReferenceError` at runtime.
+- **BUG-6 (LOW)**: Removed dead `currentCleanup` variable from router-runtime.
+  The cleanup was already handled inside `unmount()` via `__cleanupFns`; the
+  separate `currentCleanup` hook was never assigned.
+- **BUG-7 (LOW)**: Populated `ERROR_MESSAGES` for 9 warning codes that previously
+  had no message template: W1001, W2001–W2004, W3001–W3003, W5001, W5002.
+  These now display proper messages instead of falling back to "Error tidak
+  dikenal". Files: `src/parser/error-codes.js`
+- **BUG-8 (LOW)**: Removed redundant `transformJS`/`transformCSS` plugin hook
+  calls in `builder.js` that were duplicating work already done inside
+  `Engine.compile()`. Non-idempotent plugins no longer double-apply transforms.
+- **BUG-10 (LOW)**: Static adapter now removes original `prompt.js`/`prompt.css`
+  after writing hashed copies. Vercel adapter now moves (not copies) files into
+  `.vercel/output/static/`, eliminating duplicate files in `dist/`.
+
+### Changed — Documentation
+
+- **README.md** rewritten as concise landing page (~160 lines, down from 795).
+  Repositioned from "mini-DSL template engine" to "bahasa frontend deklaratif
+  bilingual". Content moved to structured `docs/` directory.
+
+### Added — Tests
+
+- 7 new regression tests in `tests/v1.0-release.test.js` covering BUG-1, BUG-2,
+  and BUG-3 fixes.
+
 ## [1.0.0] — 2026-06-24
 
 **Stable Release.** The first production-ready milestone of PromptJS. This release

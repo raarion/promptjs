@@ -327,6 +327,7 @@ PromptJSParser.prototype._parseBuatStatement = function () {
   // If the next token is NOT an INDENT, we have inline content
   let body = null;
   let properties = null;
+  let inlineChildren = null;
 
   if (this._peek().type !== TT.TK_INDENT && this._peek().type !== TT.TK_DEDENT && !this._atEnd()) {
     // Inline content — parse as expression and create a TextNode or property
@@ -341,16 +342,34 @@ PromptJSParser.prototype._parseBuatStatement = function () {
           loc: inlineExpr.loc || loc,
           value: inlineExpr.value,
         };
-        const blockBody = AST.buatBlockStatement([textNode], null);
-        body = blockBody;
+        inlineChildren = [textNode];
       } else {
         // Expression → set as 'teks' property (compatible with PromptJS's BuatStatement.properties.teks)
         properties = { teks: inlineExpr };
       }
     }
-  } else {
-    // Parse block body (indented children)
-    body = this._parseBlock();
+  }
+
+  // After inline content, also check for an indented block body.
+  // This supports the pattern: `Buat tombol: "Click"` followed by an indented
+  // `Ketika diklik:` block. The inline content becomes the first child of the
+  // block, and the indented statements become subsequent children.
+  if (this._peek().type === TT.TK_INDENT) {
+    const blockBody = this._parseBlock();
+    if (blockBody && blockBody.body) {
+      if (inlineChildren && inlineChildren.length > 0) {
+        // Merge inline children as first children, then block body children
+        const mergedChildren = inlineChildren.concat(blockBody.body);
+        body = AST.buatBlockStatement(mergedChildren, null);
+      } else {
+        body = blockBody;
+      }
+    } else if (inlineChildren && inlineChildren.length > 0) {
+      body = AST.buatBlockStatement(inlineChildren, null);
+    }
+  } else if (inlineChildren && inlineChildren.length > 0) {
+    // Only inline content, no indented block
+    body = AST.buatBlockStatement(inlineChildren, null);
   }
 
   // Check if this is a component invocation (selector.tag matches known component)
