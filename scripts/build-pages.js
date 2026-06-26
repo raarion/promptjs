@@ -64,22 +64,95 @@ const EXAMPLE_META = {
       'Galeri kartu foto dari front-matter data binding. Demonstrasi `$external` reference dan nested `Buat`.',
     tags: ['front-matter', 'data binding', 'nested'],
   },
+  'todo-app': {
+    title: 'Todo App Lengkap',
+    description:
+      'Aplikasi todo list production-ready dengan reaktivitas, localStorage persistence, dan input handling.',
+    tags: ['app', 'localStorage', 'reactive'],
+  },
+  'dashboard-app': {
+    title: 'Dashboard SPA',
+    description:
+      'Full SPA dashboard dengan autentikasi, role-based access, client-side routing, dan 5 halaman.',
+    tags: ['spa', 'auth', 'routing'],
+  },
+  'multi-page': {
+    title: 'Multi-Page Site',
+    description: 'Website multi-halaman dengan routing dan shared layout — blog, tentang, beranda.',
+    tags: ['multi-page', 'routing', 'layout'],
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 /**
- * Baca semua file `.pjs` di folder `examples/`.
+ * Baca semua file `.pjs` di folder `examples/` (rekursif).
  *
  * @returns {string[]} Daftar path absolut ke file `.pjs`
  */
 function findPjsFiles() {
   if (!fs.existsSync(EXAMPLES_DIR)) return [];
-  return fs
-    .readdirSync(EXAMPLES_DIR)
-    .filter((f) => f.endsWith('.pjs'))
-    .sort()
-    .map((f) => path.join(EXAMPLES_DIR, f));
+  const results = [];
+  function walk(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name !== 'data') {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith('.pjs')) {
+        results.push(fullPath);
+      }
+    }
+  }
+  walk(EXAMPLES_DIR);
+  return results.sort();
+}
+
+/**
+ * Dapatkan nama display untuk example file.
+ * Top-level:     counter.pjs → "counter"
+ * One level:     todo-app/index.pjs → "todo-app"
+ * Two levels:    dashboard-app/pages/dashboard.pjs → "dashboard-app-dashboard"
+ *
+ * @param {string} filePath - Path absolut ke file .pjs
+ * @returns {string} Nama example
+ */
+function getExampleName(filePath) {
+  const rel = path.relative(EXAMPLES_DIR, filePath);
+  const parts = rel.split(path.sep);
+  if (parts.length === 1) {
+    return path.basename(filePath, '.pjs');
+  }
+  if (parts.length === 2) {
+    return parts[0];
+  }
+  // parts.length >= 3: join all but the filename with hyphens
+  const dirParts = parts.slice(0, -1);
+  const fileName = path.basename(parts[parts.length - 1], '.pjs');
+  if (fileName === 'index') return dirParts.join('-');
+  return dirParts.join('-') + '-' + fileName;
+}
+
+/**
+ * Key untuk metadata lookup — selalu pakai folder parent untuk nested file.
+ *
+ * @param {string} filePath
+ * @returns {string}
+ */
+function getMetaKey(filePath) {
+  const rel = path.relative(EXAMPLES_DIR, filePath);
+  const parts = rel.split(path.sep);
+  return parts.length === 1 ? path.basename(filePath, '.pjs') : parts[0];
+}
+
+/**
+ * Dapatkan output filename untuk example.
+ *
+ * @param {string} filePath - Path absolut ke file .pjs
+ * @returns {string} Nama file output HTML
+ */
+function getExampleOutputName(filePath) {
+  return getExampleName(filePath) + '.html';
 }
 
 /**
@@ -114,17 +187,6 @@ function rmDirRecursive(dirPath) {
     }
   }
   fs.rmdirSync(dirPath);
-}
-
-/**
- * Pastikan direktori untuk file tertentu ada sebelum `writeFileSync`.
- *
- * @param {string} filePath - Path file target
- * @returns {void}
- */
-function ensureDirForFile(filePath) {
-  const dir = path.dirname(filePath);
-  fs.mkdirSync(dir, { recursive: true });
 }
 
 /**
@@ -363,9 +425,20 @@ ${jsCode}
  * @returns {string} String HTML landing page
  */
 function buildIndexPage(examples, version) {
-  const cards = examples
+  // Deduplicate: 1 card per parent example (metaKey)
+  const seen = new Set();
+  const unique = [];
+  for (const ex of examples) {
+    const key = ex.metaKey || ex.name;
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(ex);
+    }
+  }
+
+  const cards = unique
     .map(
-      (ex) => `      <a class="example-card" href="${escapeHtml(ex.name)}.html">
+      (ex) => `      <a class="example-card" href="${escapeHtml(ex.outName)}">
         <div class="card-header">
           <h3>${escapeHtml(ex.meta.title)}</h3>
           <span class="card-size">${(ex.jsSize / 1024).toFixed(1)} KB JS</span>
@@ -420,12 +493,30 @@ function buildIndexPage(examples, version) {
         Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.
       </p>
       <p class="hero-sub">
-        Mini-DSL template engine yang compile ke vanilla JS dengan zero dependencies.
-        Lihat contoh langsung di bawah — semua preview berjalan dari hasil compile nyata.
+        Bahasa frontend deklaratif dwibahasa yang dikompilasi ke vanilla JavaScript — dengan reaktivitas, komponen, routing, auth, plugin, dan adapter deployment.
       </p>
+      <div class="hero-stats">
+        <div class="stat-pill">
+          <span class="stat-value">0</span>
+          <span class="stat-label">Runtime Deps</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">3.5 KB</span>
+          <span class="stat-label">Counter App</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">431</span>
+          <span class="stat-label">Tests Passing</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">ID+EN</span>
+          <span class="stat-label">Bilingual</span>
+        </div>
+      </div>
       <div class="hero-actions">
         <a href="#examples" class="btn btn-primary">Lihat Contoh</a>
         <a href="https://github.com/raarion/promptjs" class="btn btn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
+        <a href="https://github.com/raarion/promptjs/blob/main/README.md" class="btn btn-ghost" target="_blank" rel="noopener">Dokumentasi</a>
       </div>
     </div>
   </section>
@@ -441,20 +532,125 @@ ${cards}
     <h2 class="section-title">Kenapa PromptJS?</h2>
     <div class="feature-grid">
       <div class="feature">
-        <h3>Bilingual</h3>
-        <p>Kata kunci Indonesia &amp; English — <code>Buat</code>/<code>Create</code>, <code>Jika</code>/<code>If</code>, <code>Ulangi</code>/<code>Loop</code>.</p>
+        <h3>🌐 Bilingual</h3>
+        <p>Keyword dwibahasa Indonesia &amp; English — <code>Buat</code>/<code>Create</code>, <code>Jika</code>/<code>If</code>, <code>Ulangi</code>/<code>Loop</code>. Semua error message juga bilingual.</p>
       </div>
       <div class="feature">
-        <h3>Zero Runtime Deps</h3>
-        <p>Output JS vanilla murni. Tidak ada framework, tidak ada bundler wajib. Cukup browser modern.</p>
+        <h3>📦 Zero Runtime Deps</h3>
+        <p>Output JS vanilla murni. Tidak ada framework, tidak ada virtual DOM. Node.js cuma dibutuhkan untuk kompilasi — output bisa jalan di browser apa aja.</p>
       </div>
       <div class="feature">
-        <h3>Reaktif</h3>
-        <p>Proxy-based reactivity dengan <code>data</code>/<code>turunan</code>/<code>Saat</code> — seperti <code>useState</code> tanpa React.</p>
+        <h3>⚡ Reaktivitas</h3>
+        <p>Proxy-based reactivity dengan <code>data</code>, computed <code>turunan</code>, dan <code>Saat</code> watcher. Serasa <code>useState</code> + <code>useEffect</code> — tanpa React.</p>
       </div>
       <div class="feature">
-        <h3>Pipeline 5 Tahap</h3>
-        <p>Lexer → Parser → Resolver → Analyzer → Compiler. Setiap tahap punya error reporting berkode.</p>
+        <h3>🔧 Pipeline 5 Tahap</h3>
+        <p><strong>Lexer → Parser → Resolver → Analyzer → Compiler</strong>. Setiap tahap punya error reporting berkode (70+ kode) dengan saran bilingual.</p>
+      </div>
+      <div class="feature">
+        <h3>🌳 AST-Based</h3>
+        <p>Full Abstract Syntax Tree dengan recursive-descent parser. Bukan string replacement — kompilasi sungguhan dengan semantic analysis.</p>
+      </div>
+      <div class="feature">
+        <h3>🛡️ CSP Ready</h3>
+        <p>Zero <code>eval()</code>, zero <code>new Function()</code>, semua event pakai <code>addEventListener</code>. Flag <code>--csp</code> untuk nonce injection.</p>
+      </div>
+      <div class="feature">
+        <h3>🧩 Komponen</h3>
+        <p><code>Komponen Nama(props):</code> — composeable component system dengan props, children, dan lifecycle.</p>
+      </div>
+      <div class="feature">
+        <h3>🗺️ SPA + Auth</h3>
+        <p>Client-side routing (<code>router: benar</code>), dynamic segments, auth guard (<code>butuhAuth</code>), role-based access.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container pipeline-section">
+    <h2 class="section-title">Pipeline Kompilasi</h2>
+    <div class="pipeline-flow">
+      <div class="pipeline-step">
+        <div class="step-icon">🔤</div>
+        <div class="step-title">Lexer</div>
+        <div class="step-desc">Tokenisasi bilingual, indentasi → INDENT/DEDENT</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="step-icon">🌲</div>
+        <div class="step-title">Parser</div>
+        <div class="step-desc">Recursive-descent AST builder</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="step-icon">🔍</div>
+        <div class="step-title">Resolver</div>
+        <div class="step-desc">Scope resolution, write tracking</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="step-icon">📊</div>
+        <div class="step-title">Analyzer</div>
+        <div class="step-desc">Semantic analysis, type hints</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="step-icon">⚙️</div>
+        <div class="step-title">Compiler</div>
+        <div class="step-desc">Vanilla JS + source maps</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container benchmark-teaser">
+    <h2 class="section-title">Perbandingan</h2>
+    <p class="section-sub">Counter app sederhana yang sama. <a href="https://github.com/raarion/promptjs/blob/main/BENCHMARK.md" target="_blank" rel="noopener">Lihat benchmark lengkap →</a></p>
+    <div class="bench-mini">
+      <div class="bench-bar">
+        <span class="bench-name">PromptJS</span>
+        <span class="bench-bar-track"><span class="bench-bar-fill" style="width:8%">3.5 KB</span></span>
+      </div>
+      <div class="bench-bar">
+        <span class="bench-name">Svelte 5</span>
+        <span class="bench-bar-track"><span class="bench-bar-fill bench-accent-2" style="width:12%">~5 KB</span></span>
+      </div>
+      <div class="bench-bar">
+        <span class="bench-name">SolidJS</span>
+        <span class="bench-bar-track"><span class="bench-bar-fill bench-accent-3" style="width:48%">22 KB</span></span>
+      </div>
+      <div class="bench-bar">
+        <span class="bench-name">Alpine.js</span>
+        <span class="bench-bar-track"><span class="bench-bar-fill bench-accent-3" style="width:95%">45 KB</span></span>
+      </div>
+      <div class="bench-bar">
+        <span class="bench-name">Vue 3</span>
+        <span class="bench-bar-track"><span class="bench-bar-fill bench-accent-3" style="width:100%">46 KB</span></span>
+      </div>
+    </div>
+    <p class="bench-note">Ukuran runtime production (gzip) — PromptJS &amp; Svelte: output compiled app.</p>
+  </section>
+
+  <section class="container qa-section">
+    <h2 class="section-title">Quality Assurance</h2>
+    <div class="qa-grid">
+      <div class="qa-badge">
+        <span class="qa-icon">🧪</span>
+        <span class="qa-num">431</span>
+        <span class="qa-label">Tests</span>
+      </div>
+      <div class="qa-badge">
+        <span class="qa-icon">✅</span>
+        <span class="qa-num">0</span>
+        <span class="qa-label">ESLint Warnings</span>
+      </div>
+      <div class="qa-badge">
+        <span class="qa-icon">📐</span>
+        <span class="qa-num">0</span>
+        <span class="qa-label">Type Errors</span>
+      </div>
+      <div class="qa-badge">
+        <span class="qa-icon">🎨</span>
+        <span class="qa-num">100%</span>
+        <span class="qa-label">Prettier</span>
       </div>
     </div>
   </section>
@@ -595,7 +791,40 @@ a:hover { text-decoration: underline; }
 .hero-sub {
   font-size: 1rem;
   color: var(--text-muted);
-  margin: 0 0 2rem;
+  margin: 0 0 1.5rem;
+  max-width: 600px;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 90px;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .hero-actions {
@@ -851,6 +1080,122 @@ a:hover { text-decoration: underline; }
 .warnings ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
 .warnings code { background: #ffedd5; padding: 0.1rem 0.3rem; border-radius: 3px; }
 
+/* ── Pipeline Flow ─────────────────────────────────────────────────────── */
+
+.pipeline-section { margin-bottom: 3rem; }
+
+.pipeline-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.pipeline-step {
+  text-align: center;
+  padding: 0.8rem;
+  min-width: 100px;
+}
+
+.step-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.step-title { font-weight: 700; font-size: 0.9rem; color: var(--accent); }
+.step-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+.pipeline-arrow {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .pipeline-flow { flex-direction: column; }
+  .pipeline-arrow { transform: rotate(90deg); }
+}
+
+/* ── Benchmark Teaser ─────────────────────────────────────────────────── */
+
+.benchmark-teaser { margin-bottom: 3rem; }
+
+.section-sub { color: var(--text-muted); font-size: 0.9rem; margin: -1rem 0 1.5rem; }
+
+.bench-mini { max-width: 500px; }
+
+.bench-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.bench-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 80px;
+  color: var(--text);
+}
+
+.bench-bar-track {
+  flex: 1;
+  height: 24px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bench-bar-fill {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  background: var(--accent-3);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  padding-right: 0.5rem;
+  min-width: fit-content;
+}
+
+.bench-accent-2 { background: var(--accent-2); }
+.bench-accent-3 { background: var(--accent); }
+
+.bench-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.8rem;
+}
+
+/* ── QA Section ───────────────────────────────────────────────────────── */
+
+.qa-section { margin-bottom: 3rem; }
+
+.qa-grid {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.qa-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 120px;
+}
+
+.qa-icon { font-size: 1.3rem; margin-bottom: 0.3rem; }
+.qa-num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+.qa-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 
 .site-footer {
@@ -924,24 +1269,29 @@ function build() {
   const examples = [];
 
   for (const filePath of pjsFiles) {
-    const name = path.basename(filePath, '.pjs');
-    const meta = EXAMPLE_META[name] || {
-      title: name,
-      description: '',
-      tags: [],
-    };
+    const name = getExampleName(filePath);
+    const metaKey = getMetaKey(filePath);
+    const meta = EXAMPLE_META[metaKey] ||
+      EXAMPLE_META[name] || {
+        title: name,
+        description: '',
+        tags: [],
+      };
 
-    process.stderr.write(`  Compiling ${name}.pjs ... `);
+    const shortPath = path.relative(EXAMPLES_DIR, filePath);
+    process.stderr.write(`  Compiling ${shortPath} ... `);
     const compiled = compileExample(filePath);
     process.stderr.write(`${compiled.js.length} bytes\n`);
 
     // Write example page
     const html = buildExamplePage(name, compiled, version);
-    ensureDirForFile(path.join(OUT_DIR, `${name}.html`));
-    fs.writeFileSync(path.join(OUT_DIR, `${name}.html`), html, 'utf-8');
+    const outName = getExampleOutputName(filePath);
+    fs.writeFileSync(path.join(OUT_DIR, outName), html, 'utf-8');
 
     examples.push({
       name,
+      outName,
+      metaKey,
       meta,
       source: compiled.source,
       jsSize: compiled.js.length,
