@@ -204,6 +204,33 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+// ── SVG Icons (emoji replacements) ──────────────────────────────────────────
+
+const ICONS = {
+  lexer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
+  parser: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5.5 6.5 12 3l6.5 3.5"/><path d="M3 12l2-2 2 2"/><path d="M17 12l2 2 2-2"/></svg>',
+  resolver: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  analyzer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  compiler: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  globe: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  package: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+  zap: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  wrench: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+  tree: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8"/><path d="M5 12h14"/><path d="M8 12v4a4 4 0 0 0 8 0v-4"/><circle cx="12" cy="5" r="3"/></svg>',
+  shield: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>',
+  puzzle: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  map: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>',
+  flask: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 9V3h4v6l5 8.5a2 2 0 0 1-1.7 3H6.7a2 2 0 0 1-1.7-3L10 9z"/></svg>',
+  check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  ruler: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>',
+  palette: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1" fill="currentColor"/><circle cx="17.5" cy="10.5" r="1" fill="currentColor"/><circle cx="8.5" cy="7.5" r="1" fill="currentColor"/><circle cx="6.5" cy="12.5" r="1" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
+  arrowRight: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+  chevronLeft: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  externalLink: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+};
+
+const COMPLEX_EXAMPLES = new Set(['todo-app', 'dashboard-app', 'multi-page']);
+
 // ── Compile pipeline ───────────────────────────────────────────────────────
 
 /**
@@ -230,6 +257,7 @@ function compileExample(filePath) {
 
   return {
     js: result.js,
+    css: result.css || '',
     warnings: result.warnings || [],
     errors: result.errors || [],
     source,
@@ -254,7 +282,7 @@ function buildExamplePage(name, compiled, version) {
     tags: [],
   };
 
-  const previewHtml = buildPreviewIframe(compiled.js, meta.title);
+  const previewHtml = buildPreviewIframe(compiled.js, meta.title, compiled.css);
   const sourceHtml = escapeHtml(compiled.source);
 
   return `<!DOCTYPE html>
@@ -372,20 +400,123 @@ function buildExamplePage(name, compiled, version) {
 }
 
 /**
- * Bangun HTML untuk iframe preview — bungkus JS hasil compile menjadi
- * dokumen HTML minimal dengan mount point `<div id="app">`.
- *
- * @param {string} jsCode - Kode JS hasil compile
- * @param {string} title - Judul halaman (untuk `<title>`)
- * @returns {string} String HTML untuk `srcdoc`
+ * Bangun HTML full-page untuk single-file complex app (todo-app style).
  */
-function buildPreviewIframe(jsCode, title) {
+function buildFullAppHtml(jsCode, css, title) {
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
+  ${css ? `<style>\n${css}\n  </style>` : ''}
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+${jsCode}
+  </script>
+</body>
+</html>`;
+}
+
+function buildComplexExamplePage(name, meta, source, version) {
+  const sourceHtml = escapeHtml(source);
+
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(meta.title)} — PromptJS Showcase</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="assets/PromptJS-logo.svg">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo-link">
+        <img src="assets/PromptJS-logo.svg" alt="PromptJS" class="logo-mark" width="36" height="36">
+        <span class="logo-text">PromptJS</span>
+        <span class="version-pill">v${escapeHtml(version)}</span>
+      </a>
+      <nav class="header-nav">
+        <a href="https://github.com/raarion/promptjs" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/raarion/promptjs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container example-page">
+    <a href="index.html" class="back-link"><span class="back-icon">${ICONS.chevronLeft}</span> Kembali ke showcase</a>
+
+    <div class="example-header">
+      <h1>${escapeHtml(meta.title)}</h1>
+      <p class="example-description">${escapeHtml(meta.description)}</p>
+      <div class="tag-row">
+        ${meta.tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('\n        ')}
+      </div>
+    </div>
+
+    <div class="app-open-section">
+      <a href="${escapeHtml(name)}/index.html" target="_blank" class="app-open-btn">
+        Buka Aplikasi ${ICONS.externalLink}
+      </a>
+      <p class="app-note">Aplikasi terbuka di tab baru dengan navigasi penuh.</p>
+    </div>
+
+    <section class="source-panel" aria-label="Source code">
+      <div class="panel-header">
+        <span class="panel-title">${escapeHtml(name)}/index.pjs</span>
+        <button type="button" class="copy-btn" data-copy-target="source-${escapeHtml(name)}">Copy</button>
+      </div>
+      <pre class="source-code" id="source-${escapeHtml(name)}"><code>${sourceHtml}</code></pre>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>
+        PromptJS v${escapeHtml(version)} — MIT License.
+        <a href="https://github.com/raarion/promptjs">github.com/raarion/promptjs</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = document.getElementById(btn.getAttribute('data-copy-target'));
+        if (!target) return;
+        var text = target.innerText;
+        navigator.clipboard.writeText(text).then(function() {
+          var prev = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = prev; }, 1500);
+        });
+      });
+    });
+  </script>
+</body>
+</html>`;
+}
+
+/**
+ * Bangun HTML untuk iframe preview — bungkus JS hasil compile menjadi
+ * dokumen HTML minimal dengan mount point `<div id="app">`.
+ *
+ * @param {string} jsCode - Kode JS hasil compile
+ * @param {string} title - Judul halaman (untuk `<title>`)
+ * @param {string} css - CSS hasil compile
+ * @returns {string} String HTML untuk `srcdoc`
+ */
+function buildPreviewIframe(jsCode, title, css) {
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)}</title>${css ? `\n  <style>\n${css}\n  </style>` : ''}
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 1.5rem; color: #1f2937; background: #fafafa; }
     button { font: inherit; padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; margin-right: 0.4rem; }
@@ -438,9 +569,9 @@ function buildIndexPage(examples, version) {
 
   const cards = unique
     .map(
-      (ex) => `      <a class="example-card" href="${escapeHtml(ex.outName)}">
+      (ex) => `      <a class="example-card${ex.isComplex ? ' card-complex' : ''}" href="${escapeHtml(ex.outName)}">
         <div class="card-header">
-          <h3>${escapeHtml(ex.meta.title)}</h3>
+          <h3>${escapeHtml(ex.meta.title)}${ex.isComplex ? '<span class="card-badge">App</span>' : ''}</h3>
           <span class="card-size">${(ex.jsSize / 1024).toFixed(1)} KB JS</span>
         </div>
         <p class="card-description">${escapeHtml(ex.meta.description)}</p>
@@ -452,7 +583,7 @@ function buildIndexPage(examples, version) {
         <pre class="card-snippet"><code>${escapeHtml(ex.source.split('\n').slice(0, 8).join('\n'))}${
           ex.source.split('\n').length > 8 ? '\n…' : ''
         }</code></pre>
-        <span class="card-cta">Lihat live →</span>
+        <span class="card-cta">${ex.isComplex ? 'Buka Aplikasi' : 'Lihat live'} ${ICONS.arrowRight}</span>
       </a>`
     )
     .join('\n');
@@ -532,35 +663,35 @@ ${cards}
     <h2 class="section-title">Kenapa PromptJS?</h2>
     <div class="feature-grid">
       <div class="feature">
-        <h3>🌐 Bilingual</h3>
+        <h3><span class="feature-icon">${ICONS.globe}</span> Bilingual</h3>
         <p>Keyword dwibahasa Indonesia &amp; English — <code>Buat</code>/<code>Create</code>, <code>Jika</code>/<code>If</code>, <code>Ulangi</code>/<code>Loop</code>. Semua error message juga bilingual.</p>
       </div>
       <div class="feature">
-        <h3>📦 Zero Runtime Deps</h3>
+        <h3><span class="feature-icon">${ICONS.package}</span> Zero Runtime Deps</h3>
         <p>Output JS vanilla murni. Tidak ada framework, tidak ada virtual DOM. Node.js cuma dibutuhkan untuk kompilasi — output bisa jalan di browser apa aja.</p>
       </div>
       <div class="feature">
-        <h3>⚡ Reaktivitas</h3>
+        <h3><span class="feature-icon">${ICONS.zap}</span> Reaktivitas</h3>
         <p>Proxy-based reactivity dengan <code>data</code>, computed <code>turunan</code>, dan <code>Saat</code> watcher. Serasa <code>useState</code> + <code>useEffect</code> — tanpa React.</p>
       </div>
       <div class="feature">
-        <h3>🔧 Pipeline 5 Tahap</h3>
+        <h3><span class="feature-icon">${ICONS.wrench}</span> Pipeline 5 Tahap</h3>
         <p><strong>Lexer → Parser → Resolver → Analyzer → Compiler</strong>. Setiap tahap punya error reporting berkode (70+ kode) dengan saran bilingual.</p>
       </div>
       <div class="feature">
-        <h3>🌳 AST-Based</h3>
+        <h3><span class="feature-icon">${ICONS.tree}</span> AST-Based</h3>
         <p>Full Abstract Syntax Tree dengan recursive-descent parser. Bukan string replacement — kompilasi sungguhan dengan semantic analysis.</p>
       </div>
       <div class="feature">
-        <h3>🛡️ CSP Ready</h3>
+        <h3><span class="feature-icon">${ICONS.shield}</span> CSP Ready</h3>
         <p>Zero <code>eval()</code>, zero <code>new Function()</code>, semua event pakai <code>addEventListener</code>. Flag <code>--csp</code> untuk nonce injection.</p>
       </div>
       <div class="feature">
-        <h3>🧩 Komponen</h3>
+        <h3><span class="feature-icon">${ICONS.puzzle}</span> Komponen</h3>
         <p><code>Komponen Nama(props):</code> — composeable component system dengan props, children, dan lifecycle.</p>
       </div>
       <div class="feature">
-        <h3>🗺️ SPA + Auth</h3>
+        <h3><span class="feature-icon">${ICONS.map}</span> SPA + Auth</h3>
         <p>Client-side routing (<code>router: benar</code>), dynamic segments, auth guard (<code>butuhAuth</code>), role-based access.</p>
       </div>
     </div>
@@ -569,35 +700,28 @@ ${cards}
   <section class="container pipeline-section">
     <h2 class="section-title">Pipeline Kompilasi</h2>
     <div class="pipeline-flow">
-      <div class="pipeline-step">
-        <div class="step-icon">🔤</div>
-        <div class="step-title">Lexer</div>
-        <div class="step-desc">Tokenisasi bilingual, indentasi → INDENT/DEDENT</div>
-      </div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-icon">🌲</div>
-        <div class="step-title">Parser</div>
-        <div class="step-desc">Recursive-descent AST builder</div>
-      </div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-icon">🔍</div>
-        <div class="step-title">Resolver</div>
-        <div class="step-desc">Scope resolution, write tracking</div>
-      </div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-icon">📊</div>
-        <div class="step-title">Analyzer</div>
-        <div class="step-desc">Semantic analysis, type hints</div>
-      </div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step">
-        <div class="step-icon">⚙️</div>
-        <div class="step-title">Compiler</div>
-        <div class="step-desc">Vanilla JS + source maps</div>
-      </div>
+      <svg viewBox="0 0 900 120" xmlns="http://www.w3.org/2000/svg" class="pipeline-svg" role="img" aria-label="Pipeline Kompilasi PromptJS">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#a66fb5"/>
+          </marker>
+          <linearGradient id="stageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#d3b6e9;stop-opacity:0.4"/>
+            <stop offset="100%" style="stop-color:#7dd3fc;stop-opacity:0.4"/>
+          </linearGradient>
+        </defs>
+        <g><rect x="10" y="20" width="140" height="70" rx="12" fill="url(#stageGrad)" stroke="#a66fb5" stroke-width="1.5"/><text x="80" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#a66fb5" font-family="system-ui,sans-serif">Lexer</text><text x="80" y="68" text-anchor="middle" font-size="10" fill="#6b7280" font-family="system-ui,sans-serif">Tokenisasi bilingual</text></g>
+        <line x1="155" y1="55" x2="180" y2="55" stroke="#a66fb5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <g><rect x="185" y="20" width="140" height="70" rx="12" fill="url(#stageGrad)" stroke="#a66fb5" stroke-width="1.5"/><text x="255" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#a66fb5" font-family="system-ui,sans-serif">Parser</text><text x="255" y="68" text-anchor="middle" font-size="10" fill="#6b7280" font-family="system-ui,sans-serif">Recursive-descent AST</text></g>
+        <line x1="330" y1="55" x2="355" y2="55" stroke="#a66fb5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <g><rect x="360" y="20" width="140" height="70" rx="12" fill="url(#stageGrad)" stroke="#a66fb5" stroke-width="1.5"/><text x="430" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#a66fb5" font-family="system-ui,sans-serif">Resolver</text><text x="430" y="68" text-anchor="middle" font-size="10" fill="#6b7280" font-family="system-ui,sans-serif">Scope resolution</text></g>
+        <line x1="505" y1="55" x2="530" y2="55" stroke="#a66fb5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <g><rect x="535" y="20" width="140" height="70" rx="12" fill="url(#stageGrad)" stroke="#a66fb5" stroke-width="1.5"/><text x="605" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#a66fb5" font-family="system-ui,sans-serif">Analyzer</text><text x="605" y="68" text-anchor="middle" font-size="10" fill="#6b7280" font-family="system-ui,sans-serif">Semantic analysis</text></g>
+        <line x1="680" y1="55" x2="705" y2="55" stroke="#a66fb5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <g><rect x="710" y="20" width="140" height="70" rx="12" fill="url(#stageGrad)" stroke="#86efac" stroke-width="1.5"/><text x="780" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#059669" font-family="system-ui,sans-serif">Compiler</text><text x="780" y="68" text-anchor="middle" font-size="10" fill="#6b7280" font-family="system-ui,sans-serif">Vanilla JS output</text></g>
+        <text x="10" y="108" font-size="9" fill="#9ca3af" font-family="system-ui,sans-serif">.pjs source</text>
+        <text x="845" y="108" font-size="9" fill="#9ca3af" font-family="system-ui,sans-serif" text-anchor="end">.js + .css</text>
+      </svg>
     </div>
   </section>
 
@@ -633,22 +757,22 @@ ${cards}
     <h2 class="section-title">Quality Assurance</h2>
     <div class="qa-grid">
       <div class="qa-badge">
-        <span class="qa-icon">🧪</span>
+        <span class="qa-icon">${ICONS.flask}</span>
         <span class="qa-num">431</span>
         <span class="qa-label">Tests</span>
       </div>
       <div class="qa-badge">
-        <span class="qa-icon">✅</span>
+        <span class="qa-icon">${ICONS.check}</span>
         <span class="qa-num">0</span>
         <span class="qa-label">ESLint Warnings</span>
       </div>
       <div class="qa-badge">
-        <span class="qa-icon">📐</span>
+        <span class="qa-icon">${ICONS.ruler}</span>
         <span class="qa-num">0</span>
         <span class="qa-label">Type Errors</span>
       </div>
       <div class="qa-badge">
-        <span class="qa-icon">🎨</span>
+        <span class="qa-icon">${ICONS.palette}</span>
         <span class="qa-num">100%</span>
         <span class="qa-label">Prettier</span>
       </div>
@@ -1085,36 +1209,10 @@ a:hover { text-decoration: underline; }
 .pipeline-section { margin-bottom: 3rem; }
 
 .pipeline-flow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-}
-
-.pipeline-step {
-  text-align: center;
-  padding: 0.8rem;
-  min-width: 100px;
-}
-
-.step-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
-.step-title { font-weight: 700; font-size: 0.9rem; color: var(--accent); }
-.step-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
-
-.pipeline-arrow {
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-@media (max-width: 700px) {
-  .pipeline-flow { flex-direction: column; }
-  .pipeline-arrow { transform: rotate(90deg); }
 }
 
 /* ── Benchmark Teaser ─────────────────────────────────────────────────── */
@@ -1196,6 +1294,65 @@ a:hover { text-decoration: underline; }
 .qa-num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
 .qa-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
+/* ── SVG Icons ─────────────────────────────────────────────────────────── */
+
+.feature-icon { display: inline-block; vertical-align: middle; margin-right: 0.3rem; }
+.feature-icon svg { vertical-align: -3px; }
+.qa-icon svg { display: block; margin: 0 auto; }
+
+.pipeline-svg { width: 100%; max-width: 900px; height: auto; display: block; margin: 0 auto; }
+
+/* ── Complex App Cards ────────────────────────────────────────────────── */
+
+.card-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.app-open-section {
+  margin: 2rem 0;
+  text-align: center;
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.app-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.5rem;
+  background: #059669;
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.app-open-btn:hover { background: #047857; color: #fff; text-decoration: none; }
+
+.app-open-btn svg { vertical-align: -2px; }
+
+.app-note {
+  margin-top: 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.back-icon { vertical-align: -3px; display: inline-block; }
+
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 
 .site-footer {
@@ -1269,8 +1426,11 @@ function build() {
   const examples = [];
 
   for (const filePath of pjsFiles) {
-    const name = getExampleName(filePath);
+    // Skip complex examples — handled by Builder below
     const metaKey = getMetaKey(filePath);
+    if (COMPLEX_EXAMPLES.has(metaKey)) continue;
+
+    const name = getExampleName(filePath);
     const meta = EXAMPLE_META[metaKey] ||
       EXAMPLE_META[name] || {
         title: name,
@@ -1299,6 +1459,82 @@ function build() {
     });
   }
 
+  // ── Build complex examples ──────────────────────────────────────────────
+  const Builder = require('../src/engine/builder');
+  for (const complexName of COMPLEX_EXAMPLES) {
+    const complexDir = path.join(EXAMPLES_DIR, complexName);
+    if (!fs.existsSync(complexDir)) continue;
+
+    // Detect structure: multi-page (has pages/) vs single-file (has index.pjs at root)
+    const pagesInRoot = path.join(complexDir, 'pages');
+    const pagesInSrc = path.join(complexDir, 'src', 'pages');
+    const hasMultiPage = fs.existsSync(pagesInRoot) || fs.existsSync(pagesInSrc);
+    const mainPjsPath = fs.existsSync(path.join(complexDir, 'index.pjs'))
+      ? path.join(complexDir, 'index.pjs')
+      : fs.existsSync(path.join(complexDir, 'src', 'pages', 'index.pjs'))
+        ? path.join(complexDir, 'src', 'pages', 'index.pjs')
+        : null;
+
+    if (!mainPjsPath) { process.stderr.write(`  Skipping ${complexName} (no index.pjs)\n`); continue; }
+
+    const mainSource = fs.readFileSync(mainPjsPath, 'utf-8');
+    const mainMeta = EXAMPLE_META[complexName] || { title: complexName, description: '', tags: [] };
+    const complexOutDir = path.join(OUT_DIR, complexName);
+    process.stderr.write(`  Building ${complexName} ... `);
+
+    try {
+      if (hasMultiPage) {
+        // Multi-page/SPA: use Builder for proper routing & CSS bundling
+        let pagesDir = 'pages';
+        let projectRoot = complexDir;
+        if (fs.existsSync(pagesInSrc)) { pagesDir = 'src/pages'; projectRoot = complexDir; }
+        else if (fs.existsSync(pagesInRoot)) { pagesDir = 'pages'; projectRoot = complexDir; }
+
+        const result = Builder.buildProject({
+          rootDir: projectRoot,
+          outDir: complexOutDir,
+          pagesDir: pagesDir,
+          adapter: null,
+          plugins: [],
+          meta: {},
+          siteUrl: '',
+          apiUrl: '',
+        });
+        process.stderr.write(`${result.pages.length} pages`);
+      } else {
+        // Single-file app (e.g. todo-app): compile & wrap in full-page HTML
+        fs.mkdirSync(complexOutDir, { recursive: true });
+        const compiled = compileExample(mainPjsPath);
+        const fullHtml = buildFullAppHtml(compiled.js, compiled.css, mainMeta.title);
+        fs.writeFileSync(path.join(complexOutDir, 'index.html'), fullHtml, 'utf-8');
+        if (compiled.css) {
+          fs.writeFileSync(path.join(complexOutDir, 'style.css'), compiled.css, 'utf-8');
+        }
+        process.stderr.write(`1 page`);
+      }
+
+      process.stderr.write('\n');
+
+      // Build showcase page for complex example
+      const html = buildComplexExamplePage(complexName, mainMeta, mainSource, version);
+      const outName = complexName + '.html';
+      fs.writeFileSync(path.join(OUT_DIR, outName), html, 'utf-8');
+
+      examples.push({
+        name: complexName,
+        outName,
+        metaKey: complexName,
+        meta: mainMeta,
+        source: mainSource,
+        jsSize: 0,
+        compiled: { js: '', css: '', warnings: [], errors: [] },
+        isComplex: true,
+      });
+    } catch (err) {
+      process.stderr.write(`failed: ${err.message}\n`);
+    }
+  }
+
   // Write index page
   const indexHtml = buildIndexPage(examples, version);
   fs.writeFileSync(path.join(OUT_DIR, 'index.html'), indexHtml, 'utf-8');
@@ -1313,7 +1549,7 @@ function build() {
   const ms = (elapsed[0] * 1000 + elapsed[1] / 1e6).toFixed(1);
   const totalBytes = examples.reduce((sum, ex) => sum + ex.jsSize, 0);
 
-  process.stderr.write(`\n✓ Built ${examples.length} example(s) in ${ms}ms\n`);
+  process.stderr.write(`\n[OK] Built ${examples.length} example(s) in ${ms}ms\n`);
   process.stderr.write(`  Total JS: ${(totalBytes / 1024).toFixed(1)} KB\n`);
   process.stderr.write(`  Output:   ${OUT_DIR}\n\n`);
 
@@ -1358,7 +1594,7 @@ if (require.main === module) {
       build();
     }
   } catch (err) {
-    process.stderr.write(`\n✗ Build failed: ${err.message}\n`);
+    process.stderr.write(`\n[FAIL] Build failed: ${err.message}\n`);
     if (err.stack) process.stderr.write(err.stack + '\n');
     process.exit(1);
   }
