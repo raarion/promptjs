@@ -74,6 +74,9 @@ PromptJSCompiler.prototype.genericVisit;
  * @returns {string} Kode JavaScript hasil kompilasi
  */
 PromptJSCompiler.prototype.compile = function (ast) {
+  // v1.0.1: Validate unsupported AST node types (E5001)
+  this._validateNodeTypes(ast);
+
   this.output = [];
   this.varCounter = 0;
   this.componentCount = 0;
@@ -333,6 +336,113 @@ PromptJSCompiler.prototype.generateSourceMap = function () {
 };
 
 // Statement emitters dipasang dari compiler/emitters/statements.js.
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AST VALIDATION (v1.0.1)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Validasi tipe node AST — throw E5001 jika tipe tidak dikenal.
+ * Rekursif traversing semua child nodes via getChildKeys.
+ *
+ * @param {Object} node - AST node
+ * @throws {Error} E5001 jika node type tidak dikenali
+ */
+PromptJSCompiler.prototype._validateNodeTypes = function (node) {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) this._validateNodeTypes(node[i]);
+    return;
+  }
+  if (!node.type) return;
+
+  const { getChildKeys } = require('../utils/visitor');
+
+  // Build valid types from getChildKeys registry + known leaf types
+  const validTypes = new Set();
+  // Known node types in the AST pipeline (including leaf/synthetic types)
+  const allTypes = [
+    'Program',
+    'BlockStatement',
+    'BuatStatement',
+    'TampilkanStatement',
+    'SembunyikanStatement',
+    'HapusStatement',
+    'KosongkanStatement',
+    'PerbaruiStatement',
+    'KetikaStatement',
+    'SaatStatement',
+    'LifecycleStatement',
+    'SetelahStatement',
+    'JikaStatement',
+    'UlangiStatement',
+    'SelamaStatement',
+    'KembalikanStatement',
+    'SimpanStatement',
+    'TambahkanStatement',
+    'KurangiStatement',
+    'SisipkanStatement',
+    'AmbilDomStatement',
+    'AmbilLuarStatement',
+    'KomponenDeclaration',
+    'FungsiDeclaration',
+    'GunakanStatement',
+    'JalankanExpression',
+    'RantaiAksi',
+    'BinaryExpression',
+    'UnaryExpression',
+    'ConditionalExpression',
+    'MemberExpression',
+    'CallExpression',
+    'PanggilNativeExpression',
+    'ObjectLiteral',
+    'ArrayLiteral',
+    'Selector',
+    'PropertyNode',
+    'AttributeNode',
+    'Parameter',
+    'SelfReference',
+    'DataDeclaration',
+    'TetapDeclaration',
+    'UbahDeclaration',
+    'TurunanDeclaration',
+    'DefinisikanDeclaration',
+    'HapusDariStatement',
+    'ArahkanStatement',
+    'BerhentiStatement',
+    'LewatiStatement',
+    'PassStatement',
+    'Identifier',
+    'Literal',
+    'ErrorNode',
+    'DocString',
+    'AmbilStatement',
+    'FetchBranch',
+    'FetchOption',
+    'UbahStatement',
+    'TextNode',
+    'TernaryExpression',
+    'HapusDariExpression',
+    'SimpanExpression',
+  ];
+  for (let i = 0; i < allTypes.length; i++) {
+    validTypes.add(allTypes[i]);
+  }
+
+  if (!validTypes.has(node.type)) {
+    const err = new Error(`[E5001] Node AST bertipe "${node.type}" tidak didukung oleh compiler`);
+    throw err;
+  }
+
+  // Rekursi ke child nodes
+  const childKeys = getChildKeys(node.type);
+  if (childKeys) {
+    for (let i = 0; i < childKeys.length; i++) {
+      const child = node[childKeys[i]];
+      if (child) this._validateNodeTypes(child);
+    }
+  }
+};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPRESSION LOWERING

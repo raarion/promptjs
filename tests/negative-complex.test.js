@@ -84,19 +84,30 @@ describe('D2.1 — Complex setup tests', () => {
     // ke variabel. Tanpa `simpan`, writes hanya terjadi via init
     // (data/tetap/ubah = value) dan property assignment (x = value di
     // Buat body, yang di-parse sebagai atribut elemen, bukan SimpanStatement).
-    it.skip('W4102: simbol ditulis tapi tidak pernah dibaca (needs `simpan` keyword)', () => {
+    it('W4102: simbol ditulis tapi tidak pernah dibaca', () => {
       expectDiagnostic('ubah x = 5\nsimpan 10 ke x', 'W4102');
     });
 
-    it.skip('W4103: data reaktif dimutasi tapi tidak dibaca (needs `simpan` keyword)', () => {
+    it('W4103: data reaktif dimutasi tapi tidak dibaca', () => {
       expectDiagnostic('data x = 5\nsimpan 10 ke x', 'W4103');
     });
 
     // E5001: compiler silently ignores unknown AST node types instead
     // of throwing. E5001 only fires if compiler.compile() throws an
     // exception, which doesn't happen with current code.
-    it.skip('E5001: node AST tidak didukung compiler (needs compiler validation)', () => {
-      // Would need synthetic AST injection or compiler to validate node types
+    it('E5001: node AST tidak didukung compiler', () => {
+      // Inject synthetic unknown AST node type directly into compiler
+      const compiler = new (require('../src/compiler/promptjs-compiler'))();
+      const ast = {
+        type: 'Program',
+        body: [
+          {
+            type: 'NodeTidakDikenal',
+            loc: { start: { line: 1, column: 1 }, end: { line: 1, column: 10 } },
+          },
+        ],
+      };
+      expect(() => compiler.compile(ast)).toThrow(/E5001/);
     });
   });
 });

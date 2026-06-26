@@ -16,10 +16,10 @@ module.exports = defineConfig({
       // Path to ≥80% overall: implement missing keywords (simpan, ketika,
       // berhenti, dll.) which will naturally exercise more code paths.
       thresholds: {
-        statements: 60,
-        branches: 50,
-        functions: 55,
-        lines: 60,
+        statements: 70,
+        branches: 60,
+        functions: 75,
+        lines: 70,
         perFile: false,
       },
     },

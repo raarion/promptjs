@@ -376,7 +376,8 @@ function install(PromptJSCompiler, accept) {
     if (key === 'teks') {
       this.emit(`${parent}.innerText = ${val};`);
     } else if (key === 'html') {
-      this.emit(`${parent}.innerHTML = ${val};`);
+      this.helpers.add('__sanitizeHTML');
+      this.emit(`${parent}.innerHTML = __sanitizeHTML(${val});`);
     } else if (key === 'kelas') {
       this.emit(`${parent}.className = ${val};`);
     } else if (key === 'nilai') {
@@ -592,7 +593,12 @@ function install(PromptJSCompiler, accept) {
 
     const jsProp = propertyMap[node.property];
     if (jsProp) {
-      this.emit(`${target}.${jsProp} = ${val};`);
+      if (jsProp === 'innerHTML') {
+        this.helpers.add('__sanitizeHTML');
+        this.emit(`${target}.${jsProp} = __sanitizeHTML(${val});`);
+      } else {
+        this.emit(`${target}.${jsProp} = ${val};`);
+      }
     } else {
       this.emit(`${target}.setAttribute("${node.property}", ${val});`);
     }

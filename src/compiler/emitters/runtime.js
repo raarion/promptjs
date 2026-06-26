@@ -161,6 +161,20 @@ function __promptjs_apakahAda(arr, item) {
   if (typeof arr === 'string') return arr.indexOf(item) !== -1;
   return false;
 }`.trim(),
+
+  // ── HTML Sanitizer (v1.0.1) ────────────────────────────────────────
+  __sanitizeHTML: `
+function __sanitizeHTML(html) {
+  if (typeof html !== 'string') return String(html == null ? '' : html);
+  // Strip <script> tags and event handlers to prevent XSS
+  return html
+    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')
+    .replace(/<script\\b[^>]*\\/>/gi, '')
+    .replace(/<script\\b[^>]*>/gi, '')
+    .replace(/\\bon\\w+\\s*=\\s*["'][^"']*["']/gi, '')
+    .replace(/\\bon\\w+\\s*=\\s*[^\\s>]+/gi, '')
+    .replace(/javascript\\s*:/gi, 'blocked:');
+}`.trim(),
 };
 
 // ============================================================================
@@ -225,6 +239,7 @@ function emitRuntimeHelpers(compiler) {
     '__promptjs_panjang',
     '__promptjs_apakahKosong',
     '__promptjs_apakahAda',
+    '__sanitizeHTML',
   ];
 
   for (const name of emitOrder) {

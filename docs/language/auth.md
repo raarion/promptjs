@@ -5,6 +5,25 @@
 
 ---
 
+> ⚠️ **PERINGATAN KEAMANAN / SECURITY WARNING**
+>
+> Auth guard PromptJS adalah **client-side guard** — bukan mekanisme keamanan
+> yang sesungguhnya. Token disimpan di `localStorage`/`sessionStorage` dan
+> **dapat dengan mudah di-bypass melalui browser DevTools**. Seorang
+> penyerang bisa menghapus guard, membaca token, atau memodifikasi kode
+> JavaScript kapan saja.
+>
+> Guard ini hanya berguna untuk **UX flow** (mengarahkan user ke login)
+> dan **bukan pengganti autentikasi server-side**. Semua data sensitif
+> **WAJIB** dilindungi di sisi server/API — jangan pernah mengandalkan
+> auth guard PromptJS sebagai satu-satunya lapisan keamanan.
+>
+> ⚠️ *The PromptJS auth guard is a **client-side guard** — not real security.*
+> *Tokens are stored in localStorage/sessionStorage and **can be easily bypassed***
+> *via browser DevTools. Always protect sensitive data server-side.*
+
+---
+
 Auth guard di PromptJS melindungi halaman dengan memeriksa keberadaan token di storage sebelum mengeksekusi kode halaman. Jika token tidak ada atau peran tidak cocok, pengguna di-redirect ke halaman login. Semua logika auth dikompilasi menjadi JavaScript vanila — tidak ada library eksternal.
 
 Auth guard in PromptJS protects pages by checking for a token in storage before executing page code. If the token is missing or the role doesn't match, the user is redirected to the login page. All auth logic compiles to vanilla JavaScript — no external library.
