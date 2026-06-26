@@ -51,6 +51,8 @@ function runBuild(argv) {
     rootDir: _configRootDir,
   } = Config.loadProjectConfig(rootDir, argv);
 
+  const csp = argv.csp || projectConfig.csp || false;
+
   const distDir = path.resolve(outDir || projectConfig.outDir || 'dist');
 
   if (!fs.existsSync(rootDir)) {
@@ -81,6 +83,9 @@ function runBuild(argv) {
     if (adapter) {
       process.stderr.write(`  Adapter: ${cyan}${adapter}${reset}\n`);
     }
+    if (csp) {
+      process.stderr.write(`  CSP: ${cyan}enabled${reset} (nonce injection)\n`);
+    }
     if (projectConfig.plugins.length > 0) {
       process.stderr.write(`  Plugins: ${cyan}${projectConfig.plugins.length}${reset}\n`);
     }
@@ -96,6 +101,7 @@ function runBuild(argv) {
       meta: projectConfig.meta,
       siteUrl: projectConfig.siteUrl,
       apiUrl: projectConfig.apiUrl,
+      csp: csp,
     });
 
     if (result.errors.length > 0) {
@@ -125,6 +131,9 @@ function runBuild(argv) {
         const ha = result.adapter.hashedAssets;
         if (ha.js) process.stderr.write(`  ${gray}Asset hash:${reset} ${ha.js}\n`);
         if (ha.css) process.stderr.write(`  ${gray}Asset hash:${reset} ${ha.css}\n`);
+      }
+      if (result.adapter.nonce) {
+        process.stderr.write(`  ${gray}CSP nonce:${reset} ${result.adapter.nonce}\n`);
       }
       if (result.adapter.serverPath) {
         process.stderr.write(`  ${gray}Generated:${reset} server.js + Dockerfile\n`);

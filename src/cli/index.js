@@ -59,6 +59,7 @@ Serve options:
 Build options:
   --out-dir <dir>      Output directory (default: dist)
   --adapter <name>     Build adapter (static|node|vercel)
+  --csp                Enable CSP with nonce injection for inline scripts/styles
   --prerender          Pre-render HTML with jsdom
   --minify             Minify output JS
 
