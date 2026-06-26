@@ -11,7 +11,7 @@ Halaman Profil:
         simpan localStorage.getItem("__peran") ke peran
 
     Buat div.kartu:
-        Buat h2: "Profil Pengguna"
+        Buat h2: $judul
         Buat div.profil-info:
             Buat label: "Token"
             Buat span: $nama

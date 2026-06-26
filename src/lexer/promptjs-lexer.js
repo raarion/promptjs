@@ -1758,8 +1758,11 @@
       const key = trimmed.substring(0, colonIdx).trim();
       const value = trimmed.substring(colonIdx + 1).trim();
 
-      // File reference: starts with ./ or /
-      if (value.startsWith('./') || value.startsWith('/')) {
+      // File reference: starts with ./ or / AND ends with a data file extension
+      if (
+        (value.startsWith('./') || value.startsWith('/')) &&
+        /\.(json|csv|txt|yml|yaml|xml)$/i.test(value)
+      ) {
         result[key] = { type: 'file', path: value };
       }
       // Inline JSON object: starts with {

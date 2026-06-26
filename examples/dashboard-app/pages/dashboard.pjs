@@ -10,7 +10,7 @@ Halaman Dashboard:
     Ketika muat:
         simpan 42 ke pengunjung
 
-    Buat h2: "Dashboard Admin"
+    Buat h2: $judul
 
     Buat div.stats:
         Buat div.kartu-stat:
