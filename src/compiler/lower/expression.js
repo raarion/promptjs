@@ -256,7 +256,7 @@ function lowerExpression(compiler, node) {
       const tgt = compiler.resolveTarget(node.target);
       const val = lowerExpression(compiler, node.value);
       if (node.property === 'teks') return `${tgt}.innerText = ${val}`;
-      if (node.property === 'html') return `${tgt}.innerHTML = ${val}`;
+      if (node.property === 'html') { compiler.helpers.add('__sanitizeHTML'); return `${tgt}.innerHTML = __sanitizeHTML(${val})`; }
       if (node.property === 'kelas') return `${tgt}.className = ${val}`;
       if (node.property === 'nilai') return `${tgt}.value = ${val}`;
       return `${tgt}.setAttribute("${node.property}", ${val})`;
