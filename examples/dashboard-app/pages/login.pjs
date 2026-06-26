@@ -58,7 +58,7 @@ Halaman Login:
     data pesan = ""
 
     Buat div.kartu-login:
-        Buat h2: "Masuk ke Dashboard"
+        Buat h2: $judul
         Buat formulir:
             Buat label: "Nama Pengguna"
             Buat masukan#nama:
@@ -77,4 +77,4 @@ Halaman Login:
                         simpan "admin" ke localStorage.__peran
                         arahkan "/dashboard"
                     Lainnya:
-                        simpan "Nama atau sandi salah" ke pesan
+                        simpan "Nama atau sandi salah (diketik: " + sandi + ")" ke pesan

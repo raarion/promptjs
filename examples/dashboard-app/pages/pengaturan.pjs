@@ -4,7 +4,7 @@ judul: "Pengaturan"
 
 Halaman Pengaturan:
     Buat div.kartu:
-        Buat h2: "Pengaturan"
+        Buat h2: $judul
         Buat label: "Tema"
         Buat pilihan#tema:
             Buat opsi[value="terang"]: "Terang"
