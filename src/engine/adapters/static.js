@@ -141,7 +141,57 @@ function generate404(htmlShell) {
 }
 
 /**
+ * Generate a cryptographically random nonce for CSP.
+ *
+ * @param {number} [len=24] - Nonce length in bytes (48 hex chars)
+ * @returns {string} Base64-encoded nonce
+ */
+function generateNonce(len) {
+  len = len || 24;
+  return crypto.randomBytes(len).toString('base64');
+}
+
+/**
+ * Inject CSP meta tag and nonce attributes into HTML.
+ *
+ * Adds:
+ * - <meta http-equiv="Content-Security-Policy"> tag
+ * - nonce="..." to <script> and <style> tags
+ *
+ * @param {string} html - Original HTML
+ * @param {string} nonce - CSP nonce value
+ * @returns {string} HTML with CSP injection
+ */
+function injectCSP(html, nonce) {
+  // Add CSP meta tag before </head>
+  const cspMeta =
+    '  <meta http-equiv="Content-Security-Policy" content="' +
+    "default-src 'self'; " +
+    "script-src 'self' 'nonce-" +
+    nonce +
+    "'; " +
+    "style-src 'self' 'nonce-" +
+    nonce +
+    "'; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' https:; " +
+    "font-src 'self'; " +
+    "frame-src 'none'\">\n";
+
+  html = html.replace('</head>', cspMeta + '</head>');
+
+  // Add nonce to all <script> tags
+  html = html.replace(/<script(?![^>]*\bnonce=)/g, '<script nonce="' + nonce + '"');
+
+  // Add nonce to all <style> tags
+  html = html.replace(/<style(?![^>]*\bnonce=)/g, '<style nonce="' + nonce + '"');
+
+  return html;
+}
+
+/**
  * Run the static adapter: hash assets, inject meta, generate sitemap + 404.
+ * v1.0.1: Add CSP support via `opts.csp`.
  *
  * @param {Object} [opts] - Adapter options
  * @param {string} [opts.outDir] - Output directory
@@ -149,7 +199,8 @@ function generate404(htmlShell) {
  * @param {boolean} [opts.isSPA] - Whether this is an SPA build
  * @param {Object} [opts.meta] - Meta tags config
  * @param {string} [opts.siteUrl] - Site URL for sitemap/canonical
- * @returns {{ hashedAssets: Object, sitemap: string, errors: Object[] }}
+ * @param {boolean} [opts.csp] - Enable CSP nonce injection (v1.0.1)
+ * @returns {{ hashedAssets: Object, sitemap: string, errors: Object[], nonce: string|null }}
  */
 function runStaticAdapter(opts) {
   opts = opts || {};
@@ -236,7 +287,20 @@ function runStaticAdapter(opts) {
     fs.writeFileSync(path.join(outDir, '404.html'), fourOhFourMpa, 'utf-8');
   }
 
-  return { hashedAssets: hashedAssets, sitemap: sitemap, errors: errors };
+  // v1.0.1: CSP injection
+  let nonce = null;
+  if (opts.csp) {
+    nonce = generateNonce();
+    const htmlFiles4 = findHtmlFiles(outDir);
+    for (let m = 0; m < htmlFiles4.length; m++) {
+      const htmlPath4 = htmlFiles4[m];
+      let html4 = fs.readFileSync(htmlPath4, 'utf-8');
+      html4 = injectCSP(html4, nonce);
+      fs.writeFileSync(htmlPath4, html4, 'utf-8');
+    }
+  }
+
+  return { hashedAssets: hashedAssets, sitemap: sitemap, errors: errors, nonce: nonce };
 }
 
 // ── Helpers ──

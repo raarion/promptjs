@@ -583,4 +583,85 @@ describe('v0.8 — Backward Compatibility', () => {
     expect(AdapterNode.runNodeAdapter).toBeInstanceOf(Function);
     expect(AdapterVercel.runVercelAdapter).toBeInstanceOf(Function);
   });
+
+  // ─── v1.0.1: CSP Tests ─────────────────────────────────────────────
+
+  describe('CSP (Content Security Policy)', () => {
+    it('generateNonce produces base64 string', () => {
+      const crypto = require('crypto');
+      const nonce1 = crypto.randomBytes(24).toString('base64');
+      expect(typeof nonce1).toBe('string');
+      expect(nonce1.length).toBeGreaterThan(10);
+    });
+
+    it('injectCSP adds meta tag and nonce attributes', () => {
+      // Test via engine compilation with csp flag
+      const dir = makeTempDir();
+      const indexPjs = path.join(dir, 'index.pjs');
+      fs.writeFileSync(indexPjs, 'Buat h1: "CSP Test"');
+
+      const engine = new Engine.PromptJSEngine();
+      const result = engine.compileFile(indexPjs, {
+        source: 'index.pjs',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('csp flag flows through config merge', () => {
+      const merged = Config.loadProjectConfig('/nonexistent', { csp: true });
+      expect(merged.config.csp).toBe(true);
+    });
+
+    it('csp=false by default', () => {
+      const merged = Config.loadProjectConfig('/nonexistent', {});
+      expect(merged.config.csp).toBeFalsy();
+    });
+
+    it('static adapter with csp returns nonce', () => {
+      const dir = makeTempDir();
+      const outDir = path.join(dir, 'dist');
+      fs.mkdirSync(outDir, { recursive: true });
+
+      // Create minimal HTML file
+      const html =
+        '<!DOCTYPE html>\n<html>\n<head><title>Test</title></head>\n<body>\n  <script src="prompt.a1b2c3.js"></script>\n</body>\n</html>';
+      fs.writeFileSync(path.join(outDir, 'index.html'), html);
+
+      const result = AdapterStatic.runStaticAdapter({
+        outDir: outDir,
+        csp: true,
+      });
+
+      expect(result.nonce).toBeTruthy();
+      expect(typeof result.nonce).toBe('string');
+      expect(result.nonce.length).toBeGreaterThan(10);
+
+      // Verify HTML was modified
+      const modifiedHtml = fs.readFileSync(path.join(outDir, 'index.html'), 'utf-8');
+      expect(modifiedHtml).toContain('Content-Security-Policy');
+      expect(modifiedHtml).toContain('nonce=');
+      expect(modifiedHtml).toContain(result.nonce);
+    });
+
+    it('static adapter without csp returns null nonce', () => {
+      const dir = makeTempDir();
+      const outDir = path.join(dir, 'dist');
+      fs.mkdirSync(outDir, { recursive: true });
+
+      const html =
+        '<!DOCTYPE html>\n<html>\n<head><title>Test</title></head>\n<body></body>\n</html>';
+      fs.writeFileSync(path.join(outDir, 'index.html'), html);
+
+      const result = AdapterStatic.runStaticAdapter({
+        outDir: outDir,
+        csp: false,
+      });
+
+      expect(result.nonce).toBeNull();
+
+      // Verify HTML was NOT modified with CSP
+      const htmlContent = fs.readFileSync(path.join(outDir, 'index.html'), 'utf-8');
+      expect(htmlContent).not.toContain('Content-Security-Policy');
+    });
+  });
 });

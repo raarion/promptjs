@@ -113,6 +113,60 @@ dist/
 
 ---
 
+## CSP (Content Security Policy) — v1.0.1
+
+PromptJS mendukung Content Security Policy dengan flag `--csp` pada perintah `build`. Saat diaktifkan, adapter static akan:
+
+PromptJS supports Content Security Policy via the `--csp` flag on the `build` command. When enabled, the static adapter will:
+
+- Menghasilkan `<meta http-equiv="Content-Security-Policy">` tag di HTML
+- Menginjeksi `nonce="..."` ke semua `<script>` dan `<style>` tag
+- Nonce di-generate secara kriptografis per build (Base64, 24 bytes)
+
+- Generate a `<meta http-equiv="Content-Security-Policy">` tag in HTML
+- Inject `nonce="..."` into all `<script>` and `<style>` tags
+- Nonce is cryptographically generated per build (Base64, 24 bytes)
+
+### Penggunaan / Usage
+
+```bash
+# CLI flag
+pjs build --adapter static --csp
+
+# Atau via pjs.config.js
+# Or via pjs.config.js
+module.exports = {
+  csp: true,
+  adapter: 'static'
+};
+```
+
+### Kebijakan default / Default policy
+
+```
+default-src 'self'
+script-src 'self' 'nonce-{NONCE}'
+style-src 'self' 'nonce-{NONCE}'
+img-src 'self' data: https:
+connect-src 'self' https:
+font-src 'self'
+frame-src 'none'
+```
+
+### Kompatibilitas / Compatibility
+
+PromptJS secara default sudah kompatibel dengan CSP ketat — semua event handler
+menggunakan `addEventListener` (bukan inline `onclick`), tidak ada `eval()`, dan
+tidak ada `javascript:` URL. Flag `--csp` menambahkan lapisan nonce untuk
+mengamankan inline `<script>` dan `<style>` tag di HTML shell.
+
+PromptJS is already CSP-compatible by default — all event handlers use
+`addEventListener` (not inline `onclick`), no `eval()`, and no `javascript:`
+URLs. The `--csp` flag adds the nonce layer to secure inline `<script>` and
+`<style>` tags in the HTML shell.
+
+---
+
 ## Perbandingan / Comparison
 
 | Aspek / Aspect | Static | Node | Vercel |
@@ -123,7 +177,7 @@ dist/
 | 404 page | Ya (jika ada) / Yes | Tidak / No | Tidak / No |
 | API proxy | Tidak / No | Ya (jika apiUrl) / Yes | Ya (jika apiUrl) / Yes |
 | Server-side | Tidak / No | Ya (Node.js HTTP) / Yes | Ya (serverless) / Yes |
-| Target deployment / Target deploy | Hosting statis / Static hosting | VPS / Docker / VPS / Docker | Vercel / Vercel |
+| CSP support | Ya / Yes | Tidak / No | Tidak / No |
 | Konfigurasi tambahan / Extra config | `siteUrl` untuk sitemap | `apiUrl` untuk API proxy | `apiUrl` untuk API proxy |
 
 ---

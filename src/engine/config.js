@@ -19,6 +19,7 @@
  *   meta: { title, description, ogImage, ... },
  *   siteUrl: string,          // for sitemap generation
  *   apiUrl: string,           // for Node adapter API proxy
+ *   csp: boolean,             // enable CSP nonce injection (v1.0.1)
  * }
  *
  * Zero-dependency. Only reads .js config files (no .json/.yaml/.toml).
@@ -159,6 +160,9 @@ function mergeWithCliArgs(projectConfig, cliArgs) {
   }
   if (cliArgs.adapter) {
     merged.adapter = cliArgs.adapter;
+  }
+  if (cliArgs.csp !== undefined) {
+    merged.csp = !!cliArgs.csp;
   }
 
   return merged;

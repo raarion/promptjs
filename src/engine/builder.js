@@ -225,6 +225,7 @@ function generateSPAHTML(title, opts) {
  * @param {Object} [opts.meta={}] - Meta tags for static adapter
  * @param {string} [opts.siteUrl=''] - Site URL for sitemap/canonical
  * @param {string} [opts.apiUrl=''] - API URL for Node adapter proxy
+ * @param {boolean} [opts.csp=false] - Enable CSP nonce injection (v1.0.1)
  * @returns {{ pages: Object[], js: string, css: string, errors: Object[], isSPA: boolean, adapter: Object|null }}
  */
 function buildProject(opts) {
@@ -439,6 +440,7 @@ function buildProject(opts) {
           meta: opts.meta || {},
           siteUrl: opts.siteUrl || '',
           apiUrl: opts.apiUrl || '',
+          csp: !!opts.csp,
         });
         if (adapterResult.errors && adapterResult.errors.length > 0) {
           errors.push(...adapterResult.errors);
