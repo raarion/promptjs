@@ -5,9 +5,9 @@
 
 ---
 
-PromptJS menggunakan sistem kode error/warning 5 digit. Total 85 kode: 66 error (`E`) dan 19 warning (`W`). Setiap kode dikaitkan dengan tahap kompilasi.
+PromptJS menggunakan sistem kode error/warning 5 digit. Total 84 kode: 65 error (`E`) dan 19 warning (`W`). Setiap kode dikaitkan dengan tahap kompilasi.
 
-PromptJS uses a 5-digit error/warning code system. Total of 85 codes: 66 errors (`E`) and 19 warnings (`W`). Each code is associated with a compilation stage.
+PromptJS uses a 5-digit error/warning code system. Total of 84 codes: 65 errors (`E`) and 19 warnings (`W`). Each code is associated with a compilation stage.
 
 **Konvensi penomoran / Numbering convention:**
 
@@ -16,7 +16,7 @@ PromptJS uses a 5-digit error/warning code system. Total of 85 codes: 66 errors 
 | E1xxx / W1xxx | Lexer | 9E + 1W = 10 |
 | E2xxx / W2xxx | Parser | 28E + 4W = 32 |
 | E3xxx / W3xxx | Resolver | 5E + 3W = 8 |
-| E4xxx / W4xxx | Analyzer | 16E + 7W = 23 |
+| E4xxx / W4xxx | Analyzer | 15E + 8W = 23 |
 | E5xxx / W5xxx | Compiler | 3E + 2W = 5 |
 | E6xxx / W6xxx | Runtime | 4E + 0W = 4 |
 | E0xxx / W0xxx | System | 1E + 1W = 2 |
@@ -74,7 +74,7 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | E2016 | Error | Token "->" diharapkan | Gunakan pola: perbarui <properti> <target> -> <nilai> |
 | E2017 | Error | Target event tidak valid | Periksa target dan nama event |
 | E2018 | Error | Nama event tidak valid | Periksa nama event (diklik, diketik, ditekan, dll.) |
-| E2019 | Error | "jika tidak" hanya valid di akhir rantai "jika"/"kalau" | Pastikan "jika tidak" mengikuti "jika" atau "kalau" |
+| E2019 | Error | "lainnya" hanya valid di akhir rantai "jika"/"kalau" | Pastikan "lainnya" mengikuti "jika" atau "kalau" |
 | E2020 | Error | Indentasi tidak konsisten | Periksa indentasi (2 spasi per level) |
 | E2021 | Error | Sumber data ulangi tidak valid | Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>: |
 | E2022 | Error | Target "tampilkan" tidak valid | Periksa target tampilkan |
@@ -86,7 +86,7 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | E2028 | Error | Body komponen/fungsi kosong | Tambahkan setidaknya satu statement di dalam body |
 | W2001 | Warning | DocString tidak menempel ke node manapun | - |
 | W2002 | Warning | Blok kosong terdeteksi | - |
-| W2003 | Warning | Rantai "jika" tanpa cabang "jika tidak" | - |
+| W2003 | Warning | Rantai "jika" tanpa cabang "lainnya" | - |
 | W2004 | Warning | Jumlah argumen mungkin tidak sesuai | - |
 
 ---

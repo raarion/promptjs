@@ -242,6 +242,8 @@ PromptJSParser.prototype._parseStatement = function () {
     // ─── Wave G: Action statement dispatch ────────────────────────────
     case TT.TK_BERHENTI:
       return this._parseSimpleStatement('BerhentiStatement');
+    case TT.TK_SELAMA:
+      return this._parseSelamaStatement();
     case TT.TK_MUAT_ULANG:
       return this._parseSimpleStatement('MuatUlangStatement');
     case TT.TK_KEMBALI:
@@ -275,6 +277,8 @@ PromptJSParser.prototype._parseStatement = function () {
       return this._parseAmbilStatement();
     case TT.TK_JALANKAN:
       return this._parseJalankanStatement();
+    case TT.TK_SETELAH:
+      return this._parseSetelahStatement();
     case TT.TK_IDENT:
       return this._parsePropertyOrExpr();
     default:
@@ -500,15 +504,158 @@ PromptJSParser.prototype._parseJikaStatement = function () {
   // Parse consequent block
   const consequent = this._parseBlock();
 
-  // Check for Lainnya/Else
+  // Check for Lainnya/Else or multi-word else aliases
   let alternate = null;
   if (this._peek().type === TT.TK_LAINNYA) {
     this._advance(); // consume Lainnya/Else
     if (this._peek().type === TT.TK_COLON) this._advance(); // optional colon
     alternate = this._parseBlock();
+  } else if (this._isMultiWordElse()) {
+    // "selain itu" → plain else (no condition)
+    this._advance(); // consume "selain"
+    this._advance(); // consume "itu"
+    if (this._peek().type === TT.TK_COLON) this._advance(); // optional colon
+    alternate = this._parseBlock();
+  } else if (this._isMultiWordElseIf()) {
+    // "namun jika" / "tapi kalau" → else-if (with new condition)
+    this._advance(); // consume "namun"/"tapi"
+    this._advance(); // consume "jika"/"kalau"
+    const elifCond = this._parseExpression();
+    this._expect(TT.TK_COLON, 'Expected ":" after else-if condition');
+    const elifBody = this._parseBlock();
+    // Recursively check for further else/else-if chains
+    const elifAlternate = this._parseElseChain();
+    alternate = AST.buatJikaStatement(elifCond, elifBody, loc, null, elifAlternate);
   }
 
   return AST.buatJikaStatement(condition, consequent, loc, null, alternate);
+};
+
+/**
+ * Check if current position starts a multi-word "else" pattern.
+ * Recognized: `selain itu`
+ *
+ * @returns {boolean}
+ */
+PromptJSParser.prototype._isMultiWordElse = function () {
+  const cur = this._peek();
+  const nxt = this._peekAt(1);
+  return (
+    cur.type === TT.TK_IDENT &&
+    cur.value === 'selain' &&
+    nxt.type === TT.TK_IDENT &&
+    nxt.value === 'itu'
+  );
+};
+
+/**
+ * Check if current position starts a multi-word "else-if" pattern.
+ * Recognized: `namun jika`, `namun kalau`, `tapi jika`, `tapi kalau`
+ *
+ * @returns {boolean}
+ */
+PromptJSParser.prototype._isMultiWordElseIf = function () {
+  const cur = this._peek();
+  const nxt = this._peekAt(1);
+  if (cur.type !== TT.TK_IDENT) return false;
+  if (cur.value !== 'namun' && cur.value !== 'tapi') return false;
+  return nxt.type === TT.TK_JIKA;
+};
+
+/**
+ * Parse trailing else / else-if chain after a Jika consequent block.
+ * Used by multi-word else-if to support chaining: "namun jika ... : ... namun jika ... : ... selain itu: ..."
+ *
+ * @returns {Object|null} AST node (JikaStatement for else-if, BlockStatement for else), or null
+ */
+PromptJSParser.prototype._parseElseChain = function () {
+  if (this._peek().type === TT.TK_LAINNYA) {
+    this._advance(); // consume Lainnya/Else
+    if (this._peek().type === TT.TK_COLON) this._advance();
+    return this._parseBlock();
+  }
+  if (this._isMultiWordElse()) {
+    this._advance(); // consume "selain"
+    this._advance(); // consume "itu"
+    if (this._peek().type === TT.TK_COLON) this._advance();
+    return this._parseBlock();
+  }
+  if (this._isMultiWordElseIf()) {
+    const loc = this._makeLoc(this._peek());
+    this._advance(); // consume "namun"/"tapi"
+    this._advance(); // consume "jika"/"kalau"
+    const elifCond = this._parseExpression();
+    this._expect(TT.TK_COLON, 'Expected ":" after else-if condition');
+    const elifBody = this._parseBlock();
+    const elifAlternate = this._parseElseChain();
+    return AST.buatJikaStatement(elifCond, elifBody, loc, null, elifAlternate);
+  }
+  return null;
+};
+
+// --- Selama Statement ---
+/**
+ * Parse `Selama`/`while` statement — while loop.
+ *
+ * Sintaks: `Selama <kondisi>: <body>`
+ *         `while <condition>: <body>`
+ *
+ * @returns {Object} AST node SelamaStatement
+ */
+PromptJSParser.prototype._parseSelamaStatement = function () {
+  const startTok = this._advance(); // consume Selama/while
+
+  // Parse condition expression
+  const condition = this._parseExpression();
+
+  // Expect colon
+  this._expect(TT.TK_COLON, 'Expected ":" after while condition');
+
+  const loc = this._makeLoc(startTok);
+
+  // Parse body block
+  const body = this._parseBlock();
+
+  return AST.buatSelamaStatement(condition, body, loc, null);
+};
+
+// --- Setelah Statement ---
+/**
+ * Parse `Setelah`/`after` statement — post-completion hook.
+ *
+ * Sintaks: `Setelah <target> selesai: <body>`
+ *          `Setelah <target>: -> <aksi>`
+ *          `after <target> completed: <body>`
+ *
+ * Kata "selesai"/"completed" adalah opsional (dekoratif).
+ * Target adalah nama fungsi/operasi yang akan dipanggil,
+ * lalu body dieksekusi setelah Promise-nya resolve.
+ *
+ * @returns {Object} AST node SetelahStatement
+ */
+PromptJSParser.prototype._parseSetelahStatement = function () {
+  const startTok = this._advance(); // consume Setelah/after
+
+  // Parse target identifier (nama fungsi/operasi)
+  const targetTok = this._expect(TT.TK_IDENT, 'Expected target name after "setelah"');
+  const target = targetTok ? targetTok.value : '_unknown';
+
+  // Optionally consume decorative word "selesai" (completed) if present as IDENT
+  if (
+    this._peek() &&
+    this._peek().type === TT.TK_IDENT &&
+    (this._peek().value === 'selesai' || this._peek().value === 'completed')
+  ) {
+    this._advance(); // skip decorative word
+  }
+
+  const loc = this._makeLoc(startTok);
+
+  // Expect `:` then INDENT block
+  this._expect(TT.TK_COLON, 'Expected ":" after setelah target');
+  const body = this._parseBlock();
+
+  return AST.buatSetelahStatement(target, loc, null, body, null);
 };
 
 // --- Ulangi Statement ---

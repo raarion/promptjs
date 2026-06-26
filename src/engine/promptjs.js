@@ -142,7 +142,13 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
     'butuhAuth',
     'redirect',
     'token',
+    'tokenKey',
     'peran',
+    // Module directives — handled by modules.js, not the parser
+    'kirim',
+    'share',
+    'terima',
+    'get',
   ]);
   let parserFrontMatter = frontMatterData;
   if (frontMatterData) {

@@ -11,7 +11,7 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 
 ---
 
-## Teks & Konten / Text & Content (18 alias)
+## Teks & Konten / Text & Content (16 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
@@ -31,8 +31,6 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 | `rentang` | `<span>` | Alias Indonesia / Indonesian alias |
 | `tautan` | `<a>` | Alias Indonesia / Indonesian alias |
 | `a` | `<a>` | Standar / Standard |
-| `pemisah` | `<hr>` | Alias Indonesia / Indonesian alias |
-| `hr` | `<hr>` | Standar / Standard |
 
 ---
 
@@ -51,12 +49,12 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 | `utama` | `<main>` | Alias Indonesia / Indonesian alias |
 | `aside` | `<aside>` | Standar / Standard |
 | `samping` | `<aside>` | Alias Indonesia / Indonesian alias |
-| `fragmen` | `DocumentFragment` | Alias Indonesia / Indonesian alias |
-| `fragment` | `DocumentFragment` | Standar / Standard |
+| `fragmen` | `fragment` | Alias Indonesia / Indonesian alias |
+| `fragment` | `fragment` | Standar / Standard |
 
-`fragmen` dan `fragment` dipetakan ke `DocumentFragment`, bukan tag HTML. Digunakan sebagai wrapper yang tidak menghasilkan elemen DOM.
+`fragmen` dan `fragment` adalah wrapper transparan pada waktu kompilasi — tidak menghasilkan elemen DOM. Child element langsung di-append ke parent.
 
-`fragmen` and `fragment` map to `DocumentFragment`, not an HTML tag. Used as a no-render wrapper.
+`fragmen` and `fragment` are transparent compile-time wrappers — they produce no DOM element. Child elements are appended directly to the parent.
 
 ---
 
@@ -73,7 +71,7 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 
 ---
 
-## Form & Masukan / Form & Input (10 alias)
+## Form & Masukan / Form & Input (12 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
@@ -109,7 +107,7 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 
 ---
 
-## Media (7 alias)
+## Media (8 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
@@ -124,12 +122,14 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 
 ---
 
-## Tabel / Table (2 alias)
+## Lainnya / Other (4 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
 | `tabel` | `<table>` | Alias Indonesia / Indonesian alias |
 | `table` | `<table>` | Standar / Standard |
+| `pemisah` | `<hr>` | Alias Indonesia / Indonesian alias |
+| `hr` | `<hr>` | Standar / Standard |
 
 Tag turunan tabel `thead`, `tbody`, `tr`, `th`, `td` tidak memiliki alias. Gunakan nama standar.
 

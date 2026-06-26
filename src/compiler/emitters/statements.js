@@ -243,6 +243,8 @@ function install(PromptJSCompiler, accept) {
       item: 'li',
       rentang: 'span',
       bingkai: 'iframe',
+      formulir: 'form',
+      daftarterurut: 'ol',
     };
 
     const tag = tagAliases[node.selector.tag] || node.selector.tag;

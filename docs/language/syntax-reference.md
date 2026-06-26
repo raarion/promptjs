@@ -74,7 +74,7 @@ Buat div.kartu:
     Buat p: "Deskripsi"
 ```
 
-Semua 63 tag alias tersedia (`tombol`, `ruang`, `navigasi`, dll). Lihat [Tag Aliases](../reference/tag-aliases.md). Sibling `Buat` blocks dengan `Ketika` didukung (BUG-1 fixed).
+Semua 65 tag alias tersedia (`tombol`, `ruang`, `navigasi`, dll). Lihat [Tag Aliases](../reference/tag-aliases.md). Sibling `Buat` blocks dengan `Ketika` didukung (BUG-1 fixed).
 
 ---
 
@@ -100,6 +100,16 @@ Jika x > 0:
 Lainnya:
     Buat span: "Nol"
 
+# Else-if chaining
+Jika x > 10:
+    Buat span: "Besar"
+namun jika x > 5:
+    Buat span: "Sedang"
+tapi kalau x > 0:
+    Buat span: "Kecil"
+selain itu:
+    Buat span: "Negatif atau Nol"
+
 # Loop array
 Ulangi untuk item dari $daftar:
     Buat li: $item
@@ -115,6 +125,10 @@ Ulangi untuk i dari 1 sampai 10:
 # While
 Selama x > 0:
     simpan x kurang 1 ke x
+
+# Post-completion hook
+setelah prosesData selesai:
+    tampilkan "Selesai!"
 
 # Break
 Berhenti
@@ -309,8 +323,10 @@ Comments are stripped during compilation and do not appear in the output JavaScr
 HALAMAN:       Halaman / Page
 ELEMEN:       Buat / Create
 STATE:        data / state | tetap / const | ubah / let | turunan / derived
-KONDISI:      Jika / If | Lainnya / Else
+KONDISI:      Jika / If | Lainnya / Else | selain itu (multi-kata else)
+              namun jika/kalau, tapi jika/kalau (multi-kata else-if)
 LOOP:         Ulangi / Loop | untuk / for | dari / from | sampai / until | kali / times | Selama / while
+HOOK:         setelah / after (post-completion hook)
 WATCHER:      Saat / Watch (data reaktif, bukan event)
 EVENT:        Ketika / When (event DOM dan lifecycle)
 ACTION:       simpan / save | tambahkan / append | kurangi / remove | hapus / delete

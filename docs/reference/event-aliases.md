@@ -51,9 +51,9 @@ Buat tautan[href="/?delete=1"]: "Delete"
 
 ## Daftar Lengkap Alias / Complete Alias List
 
-Sumber: `src/lexer/promptjs-lexer.js` baris 296-332 (32 entri)
+Sumber: `src/lexer/promptjs-lexer.js` baris 303-339 (32 entri)
 
-Source: `src/lexer/promptjs-lexer.js` lines 296-332 (32 entries)
+Source: `src/lexer/promptjs-lexer.js` lines 303-339 (32 entries)
 
 ### Mouse (10 alias)
 

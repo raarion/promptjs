@@ -55,7 +55,7 @@ const E2015 = 'E2015'; // Selector CSS tidak valid
 const E2016 = 'E2016'; // Token '->' diharapkan
 const E2017 = 'E2017'; // Target event tidak valid
 const E2018 = 'E2018'; // Nama event tidak valid
-const E2019 = 'E2019'; // 'jika tidak' hanya valid di akhir rantai jika/kalau
+const E2019 = 'E2019'; // lainnya hanya valid di akhir rantai jika/kalau
 const E2020 = 'E2020'; // Indentasi tidak konsisten
 const E2021 = 'E2021'; // Sumber data ulangi tidak valid
 const E2022 = 'E2022'; // Target tampilkan tidak valid
@@ -68,7 +68,7 @@ const E2028 = 'E2028'; // Body komponen/fungsi kosong
 
 const W2001 = 'W2001'; // DocString tidak menempel ke node manapun
 const W2002 = 'W2002'; // Blok kosong terdeteksi
-const W2003 = 'W2003'; // Rantai jika tanpa cabang jika tidak
+const W2003 = 'W2003'; // Rantai jika tanpa cabang lainnya
 const W2004 = 'W2004'; // Jumlah argumen mungkin tidak sesuai
 
 // ═══════════════════════════════════════════════════════════════
@@ -181,7 +181,7 @@ ERROR_MESSAGES[E2015] = 'Selector CSS tidak valid';
 ERROR_MESSAGES[E2016] = 'Token "->" diharapkan';
 ERROR_MESSAGES[E2017] = 'Target event tidak valid';
 ERROR_MESSAGES[E2018] = 'Nama event tidak valid';
-ERROR_MESSAGES[E2019] = '"jika tidak" hanya valid di akhir rantai "jika"/"kalau"';
+ERROR_MESSAGES[E2019] = '"lainnya" hanya valid di akhir rantai "jika"/"kalau"';
 ERROR_MESSAGES[E2020] = 'Indentasi tidak konsisten';
 ERROR_MESSAGES[E2021] = 'Sumber data ulangi tidak valid';
 ERROR_MESSAGES[E2022] = 'Target "tampilkan" tidak valid';
@@ -193,7 +193,7 @@ ERROR_MESSAGES[E2027] = 'Properti perbarui tidak dikenali';
 ERROR_MESSAGES[E2028] = 'Body komponen/fungsi kosong';
 ERROR_MESSAGES[W2001] = 'DocString tidak menempel ke node manapun';
 ERROR_MESSAGES[W2002] = 'Blok kosong terdeteksi';
-ERROR_MESSAGES[W2003] = 'Rantai "jika" tanpa cabang "jika tidak"';
+ERROR_MESSAGES[W2003] = 'Rantai "jika" tanpa cabang "lainnya"';
 ERROR_MESSAGES[W2004] = 'Jumlah argumen mungkin tidak sesuai';
 
 // -- Resolver --
@@ -281,7 +281,7 @@ ERROR_SUGGESTIONS[E2015] = 'Periksa konteks penggunaan selector';
 ERROR_SUGGESTIONS[E2016] = 'Gunakan pola: perbarui <properti> <target> -> <nilai>';
 ERROR_SUGGESTIONS[E2017] = 'Periksa target dan nama event';
 ERROR_SUGGESTIONS[E2018] = 'Periksa nama event (diklik, diketik, dsb.)';
-ERROR_SUGGESTIONS[E2019] = 'Pastikan "jika tidak" mengikuti "jika" atau "kalau"';
+ERROR_SUGGESTIONS[E2019] = 'Pastikan "lainnya" mengikuti "jika" atau "kalau"';
 ERROR_SUGGESTIONS[E2020] = 'Periksa indentasi (2 spasi per level)';
 ERROR_SUGGESTIONS[E2021] =
   'Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>:';

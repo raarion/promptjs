@@ -99,6 +99,8 @@
     TK_SISIPKAN: 'TK_SISIPKAN', // sisipkan / insert
     TK_KETIKA: 'TK_KETIKA', // ketika / when (event handler with target)
     TK_BERHENTI: 'TK_BERHENTI', // berhenti / break
+    TK_SELAMA: 'TK_SELAMA', // [FIX] selama / while (while loop)
+    TK_SETELAH: 'TK_SETELAH', // [FIX] setelah / after (post-completion hook)
     TK_TAMPILKAN: 'TK_TAMPILKAN', // tampilkan / show
     TK_SEMBUNYIKAN: 'TK_SEMBUNYIKAN', // sembunyikan / hide
     TK_HAPUS: 'TK_HAPUS', // hapus / remove
@@ -164,6 +166,7 @@
     // Indonesia
     buat: TT.TK_BUAT,
     jika: TT.TK_JIKA,
+    kalau: TT.TK_JIKA, // [FIX] alias Indonesia untuk if/jika
     lainnya: TT.TK_LAINNYA,
     ulangi: TT.TK_ULANGI,
     untuk: TT.TK_UNTUK,
@@ -229,6 +232,8 @@
     when: TT.TK_KETIKA,
     berhenti: TT.TK_BERHENTI,
     break: TT.TK_BERHENTI,
+    selama: TT.TK_SELAMA, // [FIX] while loop
+    while: TT.TK_SELAMA, // [FIX] English alias
     tampilkan: TT.TK_TAMPILKAN,
     show: TT.TK_TAMPILKAN,
     sembunyikan: TT.TK_SEMBUNYIKAN,
@@ -257,6 +262,8 @@
     unmounted: TT.TK_DILEPAS,
     ke: TT.TK_KE,
     to: TT.TK_KE,
+    setelah: TT.TK_SETELAH, // [FIX] setelah <target> selesai: (post-completion hook)
+    after: TT.TK_SETELAH, // [FIX] English alias
   };
 
   /* ==========================================================================
@@ -335,70 +342,84 @@
    * 4. TAG ALIASES (PromptJS tag → HTML tag, merged with PromptJS's)
    * ========================================================================== */
   const TAG_ALIASES = {
+    // ─── Teks & Heading ──────────────────────────────────────
     tombol: 'button',
     button: 'button',
-    ruang: 'div',
-    div: 'div',
     judul: 'h1',
     h1: 'h1',
     subjudul: 'h2',
     h2: 'h2',
-    paragraf: 'p',
-    p: 'p',
-    gambar: 'img',
-    img: 'img',
-    tautan: 'a',
-    a: 'a',
-    masukan: 'input',
-    input: 'input',
-    pilihan: 'select',
-    select: 'select',
-    kolom: 'textarea',
-    textarea: 'textarea',
-    tabel: 'table',
-    table: 'table',
-    artikel: 'article',
-    article: 'article',
-    kanvas: 'canvas',
-    canvas: 'canvas',
-    opsi: 'option',
-    option: 'option',
-    fragmen: 'fragment',
-    fragment: 'fragment',
-    wadah: 'div',
-    pemisah: 'hr',
-    hr: 'hr',
-    form: 'form',
-    frm: 'form',
-    nav: 'nav',
-    navigasi: 'nav',
-    header: 'header',
-    kepala: 'header',
-    footer: 'footer',
-    kaki: 'footer',
-    section: 'section',
-    bagian: 'section',
-    main: 'main',
-    utama: 'main',
-    aside: 'aside',
-    samping: 'aside',
-    ul: 'ul',
-    daftar: 'ul',
-    ol: 'ol',
-    daftarterurut: 'ol',
-    li: 'li',
-    item: 'li',
-    span: 'span',
-    rentang: 'span',
-    label: 'label',
     h3: 'h3',
     h4: 'h4',
     h5: 'h5',
     h6: 'h6',
+    paragraf: 'p',
+    p: 'p',
+    rentang: 'span',
+    span: 'span',
+    tautan: 'a',
+    a: 'a',
+
+    // ─── Kontainer ───────────────────────────────────────────
+    ruang: 'div',
+    div: 'div',
+    wadah: 'div',
+    artikel: 'article',
+    article: 'article',
+    bagian: 'section',
+    section: 'section',
+    utama: 'main',
+    main: 'main',
+    samping: 'aside',
+    aside: 'aside',
+    fragmen: 'fragment',
+    fragment: 'fragment',
+
+    // ─── Navigasi ────────────────────────────────────────────
+    navigasi: 'nav',
+    nav: 'nav',
+    kepala: 'header',
+    header: 'header',
+    kaki: 'footer',
+    footer: 'footer',
+
+    // ─── Form & Masukan ──────────────────────────────────────
+    masukan: 'input',
+    input: 'input',
+    pilihan: 'select',
+    select: 'select',
+    opsi: 'option',
+    option: 'option',
+    kolom: 'textarea',
+    textarea: 'textarea',
+    label: 'label',
+    formulir: 'form',
+    form: 'form',
+    frm: 'form',
+
+    // ─── Daftar ──────────────────────────────────────────────
+    daftar: 'ul',
+    ul: 'ul',
+    daftarterurut: 'ol',
+    ol: 'ol',
+    item: 'li',
+    li: 'li',
+
+    // ─── Media ───────────────────────────────────────────────
+    gambar: 'img',
+    img: 'img',
+    kanvas: 'canvas',
+    canvas: 'canvas',
     video: 'video',
     audio: 'audio',
-    iframe: 'iframe',
     bingkai: 'iframe',
+    iframe: 'iframe',
+
+    // ─── Lainnya ─────────────────────────────────────────────
+    tabel: 'table',
+    table: 'table',
+    pemisah: 'hr',
+    hr: 'hr',
   };
 
   /* ==========================================================================
@@ -534,6 +555,11 @@
       'token',
       'tokenKey',
       'peran',
+      // Module directives
+      'kirim',
+      'share',
+      'terima',
+      'get',
     ]);
     // Skip leading blank lines, then scan for consecutive known directives
     let fmScanStarted = false;

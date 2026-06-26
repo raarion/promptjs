@@ -20,7 +20,7 @@ A list of important terms in PromptJS with translations and descriptions.
 | Ketika | When | Event handler statement / Event handler statement |
 | Saat | Watch | Watcher reaktivitas, bukan event handler / Reactivity watcher, not an event handler |
 | Jika | If | Kondisional / Conditional |
-| Lainnya | Else | Cabang else dari kondisional / Else branch of conditional |
+| Lainnya | Else | Cabang else dari kondisional. Multi-kata: `selain itu` / Else branch of conditional. Multi-word: `selain itu` |
 | Ulangi | Loop | Perulangan (ulangi ... dari ... :, ulangi ... kali :, ulangi ... dari ... sampai ... :) / Loop construct |
 | Jalankan | Run | Menjalankan fungsi / Executes a function |
 | Berhenti | Break | Keluar dari loop atau event handler / Exits loop or event handler |
@@ -75,6 +75,7 @@ A list of important terms in PromptJS with translations and descriptions.
 | arahkan | navigate | Navigasi ke halaman lain / Navigate to another page |
 | muatulang | reload | Memuat ulang halaman (satu kata, concatenated) / Reloads the page (one word, concatenated) |
 | kembali | back | Kembali ke halaman sebelumnya / Goes back to previous page |
+| setelah | after | Hook post-completion: `setelah <target> selesai:` / Post-completion hook |
 
 ---
 

@@ -5,38 +5,26 @@
 
 ---
 
-PromptJS mendukung kata kunci dwibahasa — Indonesia dan English — yang dapat dicampur dalam satu file. Setiap kata kunci bahasa Indonesia memiliki padanan bahasa Inggris yang menghasilkan output JavaScript identik.
+PromptJS mendukung kata kunci dwibahasa — Indonesia dan English — yang dapat dicampur dalam satu file. Setiap kata kunci Indonesia memiliki padanan English yang menghasilkan output JavaScript identik.
 
-PromptJS supports bilingual keywords — Indonesian and English — that can be mixed in a single file. Every Indonesian keyword has an English counterpart that produces identical JavaScript output.
+PromptJS supports bilingual keywords — Indonesian and English — that can be mixed in a single file. Every Indonesian keyword has an English counterpart producing identical JavaScript output.
 
 ---
 
-## Struktur & Deklarasi / Structure & Declaration
+## Struktur dan Deklarasi / Structure and Declaration
 
 | Indonesia | English | Token | Deskripsi / Description |
 |-----------|---------|-------|-------------------------|
 | `halaman` | `page` | TK_BUAT | Root halaman / Page root |
-| `buat` | `create` | TK_BUAT | Buat elemen DOM / Create DOM element |
+| `buat` | `create` | TK_BUAT | Buat elemen DOM / Create element |
 | `komponen` | `component` | TK_DEFINSIKAN | Deklarasi komponen / Component declaration |
 | `definisikan` | `define` | TK_DEFINSIKAN | Definisi umum / General definition |
 | `data` | `state` | TK_DATA | State reaktif (Proxy-based) / Reactive state |
-| `tetap` | `const` | TK_TETAP | Konstanta / Constant |
-| `ubah` | `let` | TK_UBAH | Variabel mutable / Mutable variable |
-| `turunan` | `derived` | TK_TURUNAN | Nilai turunan (computed, read-only) / Derived computed |
+| `tetap` | `const` | TK_TETAP | Konstanta (tidak dapat diubah) / Constant |
+| `ubah` | `let` | TK_UBAH | Variabel mutable non-reaktif / Mutable variable |
+| `turunan` | `derived` | TK_TURUNAN | Computed value (read-only reaktif) / Derived computed |
 | `fungsi` | `func` | TK_FUNGSI | Deklarasi fungsi / Function declaration |
 | | `function` | TK_FUNGSI | Alias panjang / Full-form alias |
-
-**Contoh / Example:**
-```pjs
-halaman Dashboard:
-    data hitung = 0
-    tetap PI = 3.14159
-    turunan hasil = hitung * PI
-
-    definisikan Helper:
-        fungsi tambah(x):
-            kembalikan x + 1
-```
 
 ---
 
@@ -45,35 +33,53 @@ halaman Dashboard:
 | Indonesia | English | Token | Deskripsi / Description |
 |-----------|---------|-------|-------------------------|
 | `jika` | `if` | TK_JIKA | Kondisional / Conditional |
+| `kalau` | | TK_JIKA | Alias Indonesia / Indonesian alias |
 | `lainnya` | `else` | TK_LAINNYA | Cabang alternatif / Else branch |
 | `ulangi` | `loop` | TK_ULANGI | Perulangan / Loop |
-| `untuk` | `for` | TK_UNTUK | Pengulangan dengan iterator / For loop |
+| `untuk` | `for` | TK_UNTUK | Pengulangan for / For loop |
 | `dari` | `from` | TK_IN | Sumber iterasi / Iteration source |
-| | `in` | TK_IN | Alias English untuk `dari` / English alias |
 | `sampai` | `until` | TK_SAMPAI | Batas atas range / Range upper bound |
 | `kali` | `times` | TK_KALI | Pengulangan N kali / Repeat N times |
-| `saat` | `watch` | TK_SAAT | Watcher reaktif / Reactive watcher |
+| `saat` | `watch` | TK_SAAT | Watcher reaktif (bukan event) / Reactive watcher |
 | `berhenti` | `break` | TK_BERHENTI | Keluar dari loop / Break out of loop |
 | `kembalikan` | `return` | TK_KEMBALIKAN | Return nilai / Return value |
 | `lewati` | `skip` | TK_PASS | Lewati iterasi / Skip iteration |
 | | `pass` | TK_PASS | Alias English / English alias |
+| `selama` | `while` | TK_SELAMA | Loop kondisi / While loop |
+| `setelah` | `after` | TK_SETELAH | Post-completion hook / Hook setelah selesai |
+
+---
+
+## Alias Multi-Kata / Multi-Word Aliases
+
+Beberapa alias menggunakan dua kata yang dikenali oleh parser via lookahead. Ini BUKAN token tunggal — parser mendeteksi pola dua token berurutan.
+
+Some aliases use two words recognized by the parser via lookahead. These are NOT single tokens — the parser detects a two-token pattern.
+
+| Pola / Pattern | Token | Setara / Equivalent | Catatan / Note |
+|----------------|-------|---------------------|------------------|
+| `selain itu` | `TK_IDENT` + `TK_IDENT` | `lainnya` / `else` | Hanya valid setelah blok `jika`/`kalau` / Only valid after `jika`/`kalau` block |
+| `namun jika` | `TK_IDENT` + `TK_JIKA` | `else if` | Else-if pertama / First else-if form |
+| `namun kalau` | `TK_IDENT` + `TK_JIKA` | `else if` | Variant `kalau` / `kalau` variant |
+| `tapi jika` | `TK_IDENT` + `TK_JIKA` | `else if` | Else-if alternatif / Alternative else-if form |
+| `tapi kalau` | `TK_IDENT` + `TK_JIKA` | `else if` | Variant `kalau` / `kalau` variant |
 
 **Contoh / Example:**
+
 ```pjs
-jika $hitung > 5:
-    buat span: "Besar"
-lainnya:
-    buat span: "Kecil"
-
-ulangi untuk item dari $daftar:
-    buat li: item
-
-ulangi untuk i dari 1 sampai 10:
-    buat div: i
-
-ulangi 5 kali:
-    buat span: "Item"
+Jika x > 10:
+    Buat span: "Besar"
+namun jika x > 5:
+    Buat span: "Sedang"
+tapi kalau x > 0:
+    Buat span: "Kecil"
+selain itu:
+    Buat span: "Negatif"
 ```
+
+**Catatan / Note:** `jika tidak` TIDAK didukung sebagai alias else karena `tidak` adalah token operator `TK_NOT` yang menyebabkan konflik parsing.
+
+`jika tidak` is NOT supported as an else alias because `tidak` is the `TK_NOT` operator token, which causes parsing conflicts.
 
 ---
 
@@ -81,33 +87,22 @@ ulangi 5 kali:
 
 | Indonesia | English | Token | Deskripsi / Description |
 |-----------|---------|-------|-------------------------|
-| `ketika` | `when` | TK_KETIKA | Event handler / Penangan event |
+| `ketika` | `when` | TK_KETIKA | Event handler / Event handler |
 | `simpan` | `save` | TK_SIMPAN | Simpan nilai ke variabel / Save value to variable |
 | `tambahkan` | `append` | TK_TAMBAHKAN | Tambah item ke array / Append to array |
-| `kurangi` | `remove` | TK_KURANGI | Kurangi nilai atau hapus dari array / Decrement or remove from array |
+| `kurangi` | `remove` | TK_KURANGI | Kurangi nilai / Remove from value |
 | `sisipkan` | `insert` | TK_SISIPKAN | Sisipkan item ke array / Insert into array |
-| `tampilkan` | `show` | TK_TAMPILKAN | Tampilkan pesan (alert) atau elemen / Show message or element |
+| `tampilkan` | `show` | TK_TAMPILKAN | Tampilkan pesan atau elemen / Show message or element |
 | `sembunyikan` | `hide` | TK_SEMBUNYIKAN | Sembunyikan elemen / Hide element |
-| `hapus` | `delete` | TK_HAPUS | Hapus data / Delete data |
+| `hapus` | `delete` | TK_HAPUS | Hapus data atau elemen / Delete data or element |
 | `kosongkan` | `clear` | TK_KOSONGKAN | Kosongkan konten elemen / Clear element content |
-| `perbarui` | `update` | TK_PERBARUI | Perbarui properti / Update property |
+| `perbarui` | `update` | TK_PERBARUI | Perbarui properti elemen / Update element property |
 | `ambil` | `fetch` | TK_AMBIL | HTTP request async / Async HTTP fetch |
 | `arahkan` | `navigate` | TK_ARAHKAN | Navigasi halaman / Navigate to page |
 | `muatulang` | `reload` | TK_MUAT_ULANG | Muat ulang halaman / Reload page |
 | `kembali` | `back` | TK_KEMBALI | Kembali ke halaman sebelumnya / Go back |
 | `jalankan` | `run` | TK_JALANKAN | Jalankan fungsi / Run function |
 | `gunakan` | `use` | TK_GUNAKAN | Gunakan komponen / Use component |
-
-**Catatan / Note:** `tampilkan` memiliki 3 mode: (1) string literal atau ekspresi otomatis menjadi `alert()`, (2) `pesan-error` menghasilkan `console.error()`, (3) identifier elemen menghasilkan `__mount()` atau menghapus `display:none`. `simpan` men-emit `__setState()` untuk variabel reaktif, serta mendukung `localStorage.setItem()` / `sessionStorage.setItem()` untuk penyimpanan browser.
-
-**Contoh / Example:**
-```pjs
-simpan "Hello" ke nama
-tambahkan 1 ke hitung
-arahkan ke "/dashboard"
-muatulang
-tampilkan "Selamat datang"
-```
 
 ---
 
@@ -124,11 +119,11 @@ tampilkan "Selamat datang"
 
 | Indonesia | English | Token | Deskripsi / Description |
 |-----------|---------|-------|-------------------------|
-| `ke` | `to` | TK_KE | Arah target / Direction target |
+| `ke` | `to` | TK_KE | Arah penyimpanan / Storage direction |
 
 ---
 
-## Literal Boolean & Null
+## Literal Boolean dan Null / Boolean and Null Literals
 
 | Indonesia | English | Token | Deskripsi / Description |
 |-----------|---------|-------|-------------------------|
@@ -136,9 +131,7 @@ tampilkan "Selamat datang"
 | `salah` | `false` | TK_SALAH | Boolean false |
 | `kosong` | `null` | TK_KOSONG | Null |
 
-**Catatan Penting / Important Note:**
-
-PromptJS menggunakan `salah` untuk false, bukan `palsu`. Ini mengikuti prinsip konsistensi dwibahasa — `salah` juga muncul sebagai event alias (`on_salah` menghasilkan `error`), tetapi di konteks ekspresi (bukan setelah `on_`), ia diinterpretasikan sebagai literal boolean `false`.
+**Catatan penting / Important note:** PromptJS menggunakan `salah` untuk false, bukan `palsu`. `salah` juga muncul sebagai event alias (`on_salah` menghasilkan `error`), tetapi di konteks ekspresi (bukan setelah `on_`), ia diinterpretasikan sebagai literal boolean `false`.
 
 ---
 
@@ -169,15 +162,11 @@ Word operators are recognized inside expressions and translated to JavaScript sy
 
 **Contoh / Example:**
 ```pjs
-jika hitung sama dengan 10 dan nama tidak sama dengan "":
-    buat span: "Ditemukan"
+Jika hitung sama dengan 10 dan nama tidak sama dengan "":
+    Buat span: "Ditemukan"
+
+tambahkan hitung tambah 1
 ```
-
----
-
-## Verifikasi / Verification
-
-Diverifikasi terhadap source code: `src/lexer/promptjs-lexer.js` (KEYWORDS, baris 163-260; WORD_OPERATORS, baris 268-291), `src/parser/token-types.js`, dan `src/parser/promptjs-parser.js` (_parseStatement, baris 211-284).
 
 ---
 
