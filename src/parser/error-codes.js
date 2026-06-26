@@ -68,7 +68,7 @@ const E2028 = 'E2028'; // Body komponen/fungsi kosong
 
 const W2001 = 'W2001'; // DocString tidak menempel ke node manapun
 const W2002 = 'W2002'; // Blok kosong terdeteksi
-const W2003 = 'W2003'; // Rantai jika tanpa cabang jika tidak
+const W2003 = 'W2003'; // Rantai jika tanpa cabang lainnya
 const W2004 = 'W2004'; // Jumlah argumen mungkin tidak sesuai
 
 // ═══════════════════════════════════════════════════════════════
@@ -273,7 +273,7 @@ ERROR_SUGGESTIONS[E2007] = 'Tambahkan "]" pada akhir array/atribut';
 ERROR_SUGGESTIONS[E2008] = 'Tambahkan nilai setelah "="';
 ERROR_SUGGESTIONS[E2009] = 'Periksa ekspresi kondisi';
 ERROR_SUGGESTIONS[E2010] = 'Periksa konteks penggunaan keyword';
-ERROR_SUGGESTIONS[E2011] = 'Periksa kembali sintaks, atau gunakan fungsi jalankan untuk JS murni';
+ERROR_SUGGESTIONS[E2011] = 'Gunakan "langsung:" untuk operasi yang tidak didukung';
 ERROR_SUGGESTIONS[E2012] = 'Periksa sintaksis argumen';
 ERROR_SUGGESTIONS[E2013] = 'Periksa sintaksis parameter';
 ERROR_SUGGESTIONS[E2014] = 'Periksa sintaksis objek literal';
@@ -329,7 +329,7 @@ ERROR_SUGGESTIONS[E4201] =
 
 // -- Compiler --
 ERROR_SUGGESTIONS[E5001] = 'Periksa apakah node type sudah didukung oleh compiler';
-ERROR_SUGGESTIONS[E5002] = 'Sederhanakan ekspresi, atau gunakan fungsi jalankan untuk JS murni';
+ERROR_SUGGESTIONS[E5002] = 'Sederhanakan ekspresi atau gunakan "langsung:" untuk JS interop';
 ERROR_SUGGESTIONS[E5003] = 'Periksa format selector CSS';
 
 // -- Runtime --

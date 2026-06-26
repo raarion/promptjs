@@ -13,7 +13,7 @@
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
-  <p><strong>Bahasa frontend deklaratif bilingual yang dikompilasi ke vanilla JavaScript — dengan reaktivitas, komponen, routing, auth, plugin, dan adapter deployment.</strong></p>
+  <p><strong>Bahasa frontend deklaratif dwibahasa yang dikompilasi ke vanilla JavaScript — dengan reaktivitas, komponen, routing, auth, plugin, dan adapter deployment.</strong></p>
 
   <p><em>Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.</em></p>
 </div>
