@@ -90,8 +90,9 @@ const EXAMPLE_META = {
  *
  * @returns {string[]} Daftar path absolut ke file `.pjs`
  */
-function findPjsFiles() {
-  if (!fs.existsSync(EXAMPLES_DIR)) return [];
+function findPjsFiles(startDir) {
+  const root = startDir || EXAMPLES_DIR;
+  if (!fs.existsSync(root)) return [];
   const results = [];
   function walk(dir) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -104,7 +105,7 @@ function findPjsFiles() {
       }
     }
   }
-  walk(EXAMPLES_DIR);
+  walk(root);
   return results.sort();
 }
 
@@ -247,6 +248,14 @@ const ICONS = {
 };
 
 const COMPLEX_EXAMPLES = new Set(['todo-app', 'dashboard-app', 'multi-page']);
+
+/**
+ * Complex example page definitions — maps example name to its page files.
+ * Populated during build by scanning directories.
+ *
+ * @type {Record<string, { pages: { name: string; htmlFile: string; route: string; title: string; source: string; js: string; css: string }[]; isMultiPage: boolean; indexPage: string|null; defaultPage: string|null }>}
+ */
+const _COMPLEX_BUILD = {};
 
 // ── Compile pipeline ───────────────────────────────────────────────────────
 
@@ -417,9 +426,17 @@ function buildExamplePage(name, compiled, version) {
 }
 
 /**
- * Bangun HTML full-page untuk single-file complex app (todo-app style).
+ * Build a standalone HTML page for a complex example's sub-page.
+ * Each page is fully self-contained with inline JS + CSS.
+ *
+ * @param {string} jsCode - Compiled JS (with absolute paths already fixed)
+ * @param {string} css - Compiled CSS
+ * @param {string} title - Page title
+ * @param {string} navHtml - Navigation bar HTML
+ * @param {string} backLink - Link back to showcase
+ * @returns {string} Complete HTML page
  */
-function buildFullAppHtml(jsCode, css, title) {
+function buildStandalonePageHtml(jsCode, css, title, navHtml, _backLink) {
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -427,14 +444,89 @@ function buildFullAppHtml(jsCode, css, title) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
   ${css ? `<style>\n${css}\n  </style>` : ''}
+  <style>
+    .app-nav {
+      display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 1rem;
+      background: #1a1a2e; color: #fff; font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+    .app-nav a { color: #62d2fd; text-decoration: none; }
+    .app-nav a:hover { text-decoration: underline; }
+    .app-nav .nav-sep { color: #555; }
+    .app-nav .nav-brand { font-weight: 700; color: #fff; margin-right: auto; }
+    .app-nav .nav-back { color: #a66fb5; font-size: 0.8rem; }
+    .__promptjs_watcher_marker { display: inline; }
+  </style>
 </head>
 <body>
+  ${navHtml}
   <div id="app"></div>
   <script>
 ${jsCode}
   </script>
 </body>
 </html>`;
+}
+
+/**
+ * Fix absolute path references in compiled JS so they work as relative
+ * links within a subdirectory on GitHub Pages.
+ *
+ * - "/page.html" → "page.html"
+ * - "/page" (redirect/arahkan) → "page.html"
+ * - "/" (root redirect) → "index.html"
+ *
+ * @param {string} jsCode - Compiled JS code
+ * @param {string[]} knownPages - List of known page names (without .html)
+ * @returns {string} Fixed JS code
+ */
+function fixAbsolutePaths(jsCode, knownPages) {
+  let result = jsCode;
+
+  // Fix "/page.html" → "page.html"
+  result = result.replace(/(["'])\/([a-zA-Z][a-zA-Z0-9_-]*\.html)\1/g, '$1$2$1');
+
+  // Fix "/page" (redirects/arahkan) → "page.html" for known pages
+  for (const page of knownPages) {
+    const escaped = escapeRegex(page);
+    // Match: "/pageName" followed by quote, space, or paren
+    const re = new RegExp('(["\'])\\/' + escaped + '(?=["\'\\s)])', 'g');
+    result = result.replace(re, '$1' + page + '.html');
+  }
+
+  // Fix "/" (root redirect) → "index.html"
+  result = result.replace(/(["'])\/(["')\s;,)])/g, '$1index.html$2');
+
+  return result;
+}
+
+/**
+ * Escape special regex characters in a string.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Build navigation bar HTML for a complex example.
+ *
+ * @param {string} complexName - Example name
+ * @param {{ name: string; htmlFile: string; title: string }[]} pages - List of pages
+ * @returns {string} HTML nav bar
+ */
+function buildNavBar(complexName, pages) {
+  const links = pages
+    .map((p) => `<a href="${escapeHtml(p.htmlFile)}">${escapeHtml(p.title)}</a>`)
+    .join('<span class="nav-sep">|</span>\n    ');
+
+  return `  <nav class="app-nav">
+    <span class="nav-brand">${escapeHtml(complexName)}</span>
+    <a href="../${complexName}.html" class="nav-back">${ICONS.chevronLeft} Showcase</a>
+    ${links}
+  </nav>`;
 }
 
 function buildComplexExamplePage(name, meta, source, version) {
@@ -1478,71 +1570,143 @@ function build() {
     });
   }
 
-  // ── Build complex examples ──────────────────────────────────────────────
-  const Builder = require('../src/engine/builder');
+  // ── Build complex examples (standalone pages, no Builder routing) ─────────
   for (const complexName of COMPLEX_EXAMPLES) {
     const complexDir = path.join(EXAMPLES_DIR, complexName);
     if (!fs.existsSync(complexDir)) continue;
 
-    // Detect structure: multi-page (has pages/) vs single-file (has index.pjs at root)
+    const mainMeta = EXAMPLE_META[complexName] || { title: complexName, description: '', tags: [] };
+    const complexOutDir = path.join(OUT_DIR, complexName);
+    fs.mkdirSync(complexOutDir, { recursive: true });
+
+    // Detect structure
     const pagesInRoot = path.join(complexDir, 'pages');
     const pagesInSrc = path.join(complexDir, 'src', 'pages');
     const hasMultiPage = fs.existsSync(pagesInRoot) || fs.existsSync(pagesInSrc);
+
+    // Determine the main pjs file for source display on showcase card
     const mainPjsPath = fs.existsSync(path.join(complexDir, 'index.pjs'))
       ? path.join(complexDir, 'index.pjs')
       : fs.existsSync(path.join(complexDir, 'src', 'pages', 'index.pjs'))
         ? path.join(complexDir, 'src', 'pages', 'index.pjs')
         : null;
 
-    if (!mainPjsPath) {
-      process.stderr.write(`  Skipping ${complexName} (no index.pjs)\n`);
-      continue;
-    }
-
-    const mainSource = fs.readFileSync(mainPjsPath, 'utf-8');
-    const mainMeta = EXAMPLE_META[complexName] || { title: complexName, description: '', tags: [] };
-    const complexOutDir = path.join(OUT_DIR, complexName);
     process.stderr.write(`  Building ${complexName} ... `);
 
     try {
       if (hasMultiPage) {
-        // Multi-page/SPA: use Builder for proper routing & CSS bundling
-        let pagesDir = 'pages';
-        let projectRoot = complexDir;
-        if (fs.existsSync(pagesInSrc)) {
-          pagesDir = 'src/pages';
-          projectRoot = complexDir;
-        } else if (fs.existsSync(pagesInRoot)) {
-          pagesDir = 'pages';
-          projectRoot = complexDir;
+        // ── Multi-page: compile each .pjs as a standalone page ──────────
+        const pagesDirPath = fs.existsSync(pagesInSrc) ? pagesInSrc : pagesInRoot;
+        const pjsFiles = findPjsFiles(pagesDirPath);
+
+        /** @type {{ name: string; htmlFile: string; route: string; title: string; source: string; js: string; css: string }[]} */
+        const builtPages = [];
+        const pageNames = [];
+
+        for (const pjsPath of pjsFiles) {
+          const fileName = path.basename(pjsPath, '.pjs');
+          const htmlFile = fileName === 'index' ? 'index.html' : fileName + '.html';
+          const compiled = compileExample(pjsPath);
+          pageNames.push(fileName);
+
+          builtPages.push({
+            name: fileName,
+            htmlFile,
+            route: '/' + fileName,
+            title:
+              fileName === 'index'
+                ? 'Beranda'
+                : fileName.charAt(0).toUpperCase() + fileName.slice(1),
+            source: compiled.source,
+            js: compiled.js,
+            css: compiled.css || '',
+          });
         }
 
-        const result = Builder.buildProject({
-          rootDir: projectRoot,
-          outDir: complexOutDir,
-          pagesDir: pagesDir,
-          adapter: null,
-          plugins: [],
-          meta: {},
-          siteUrl: '',
-          apiUrl: '',
-        });
-        process.stderr.write(`${result.pages.length} pages`);
-      } else {
-        // Single-file app (e.g. todo-app): compile & wrap in full-page HTML
-        fs.mkdirSync(complexOutDir, { recursive: true });
-        const compiled = compileExample(mainPjsPath);
-        const fullHtml = buildFullAppHtml(compiled.js, compiled.css, mainMeta.title);
-        fs.writeFileSync(path.join(complexOutDir, 'index.html'), fullHtml, 'utf-8');
-        if (compiled.css) {
-          fs.writeFileSync(path.join(complexOutDir, 'style.css'), compiled.css, 'utf-8');
+        // If no index.html page exists, create a redirect to the first page
+        const hasIndex = builtPages.some((p) => p.htmlFile === 'index.html');
+        const defaultPage = builtPages.find((p) => p.htmlFile !== 'index.html') || builtPages[0];
+
+        // Build nav bar (will be the same for all pages in this example)
+        const navHtml = buildNavBar(complexName, builtPages);
+
+        // Generate standalone HTML for each page
+        let _totalJsSize = 0;
+        for (const page of builtPages) {
+          // Fix absolute paths in compiled JS for relative navigation
+          const fixedJs = fixAbsolutePaths(page.js, pageNames);
+          _totalJsSize += fixedJs.length;
+          const pageHtml = buildStandalonePageHtml(
+            fixedJs,
+            page.css,
+            page.title,
+            navHtml,
+            complexName
+          );
+          fs.writeFileSync(path.join(complexOutDir, page.htmlFile), pageHtml, 'utf-8');
         }
+
+        // Create index.html redirect if missing
+        if (!hasIndex && defaultPage) {
+          const redirectHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(defaultPage.htmlFile)}">
+  <title>${escapeHtml(mainMeta.title)}</title>
+</head>
+<body>
+  <p>Mengalihkan ke <a href="${escapeHtml(defaultPage.htmlFile)}">${escapeHtml(defaultPage.title)}</a>...</p>
+</body>
+</html>`;
+          fs.writeFileSync(path.join(complexOutDir, 'index.html'), redirectHtml, 'utf-8');
+        }
+
+        process.stderr.write(`${builtPages.length} pages`);
+      } else {
+        // ── Single-file app (e.g. todo-app): compile & wrap standalone ─────
+        if (!mainPjsPath) {
+          process.stderr.write(`skipped (no index.pjs)\n`);
+          continue;
+        }
+
+        const compiled = compileExample(mainPjsPath);
+
+        // Fix front-matter data: compiler serializes arrays/objects as JSON strings
+        // with Indonesian keywords (benar/salah) that aren't valid JSON.
+        // Match: const varName = "[{...}]"  →  const varName = JSON.parse("[{...}]".replace(/benar/g,'true').replace(/salah/g,'false'))
+        let fixedJs = compiled.js;
+        fixedJs = fixedJs.replace(
+          /(const\s+\w+\s*=\s*)"(\[[\s\S]*?\])"/g,
+          function (_match, prefix, jsonStr) {
+            if (jsonStr.startsWith('[') && jsonStr.endsWith(']')) {
+              return (
+                prefix +
+                'JSON.parse("' +
+                jsonStr +
+                '".replace(/benar/g,"true").replace(/salah/g,"false"))'
+              );
+            }
+            return _match;
+          }
+        );
+
+        const fullHtml = buildStandalonePageHtml(
+          fixedJs,
+          compiled.css,
+          mainMeta.title,
+          '',
+          complexName
+        );
+        fs.writeFileSync(path.join(complexOutDir, 'index.html'), fullHtml, 'utf-8');
+
         process.stderr.write(`1 page`);
       }
 
       process.stderr.write('\n');
 
       // Build showcase page for complex example
+      const mainSource = mainPjsPath ? fs.readFileSync(mainPjsPath, 'utf-8') : '';
       const html = buildComplexExamplePage(complexName, mainMeta, mainSource, version);
       const outName = complexName + '.html';
       fs.writeFileSync(path.join(OUT_DIR, outName), html, 'utf-8');
