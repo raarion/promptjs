@@ -17,14 +17,14 @@ const path = require('path');
 /**
  * Dapatkan versi PromptJS dari `package.json`.
  *
- * @returns {string} String versi (mis. `'0.2.0'`)
+ * @returns {string} String versi (mis. `'1.0.0'`)
  */
 function getVersion() {
   try {
     const pkg = require(path.resolve(__dirname, '../../../package.json'));
-    return pkg.version || '0.2.0';
+    return pkg.version || '1.0.0';
   } catch {
-    return '0.2.0';
+    return '1.0.0';
   }
 }
 
@@ -64,7 +64,7 @@ Build options:
   --minify             Minify output JS
 
 Init options:
-  -t, --template       Project template (basic|counter|gallery)
+  -t, --template       Project template (basic|counter|gallery|spa|fullstack|blog)
   --force              Overwrite existing files
 
 Examples:
