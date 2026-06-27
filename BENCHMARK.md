@@ -3,8 +3,9 @@
 > **PromptJS v1.0.0 vs Framework & Compiler Lain**
 >
 > Metodologi: data diambil dari npm registry, Bundlephobia API, dan benchmark lokal.
-> Semua angka di bawah adalah **faktual dan terverifikasi** per 26 Juni 2026.
-> Sumber dicantumkan di setiap metrik.
+> Semua angka di bawah adalah **faktual dan terverifikasi** per 27 Juni 2026.
+> Sumber dicantumkan di setiap metrik. **Update:** PromptJS kini melewati audit
+> keamanan + 3 wave hardening (S-1..S-6, T-1) — semua tetap pada v1.0.0.
 
 ---
 
@@ -48,18 +49,36 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 
 ## 🔒 Keamanan & CSP
 
-| Framework | No `eval()` | No `new Function()` | CSP `'unsafe-inline'` free | CSP flag |
-|---|---|---|---|---|
-| **PromptJS** | ✅ | ✅ | ✅ (all `addEventListener`) | ✅ `--csp` built-in |
-| Svelte 5 | ✅ | ✅ | ✅ | ❌ manual |
-| SolidJS | ✅ | ✅ | ✅ | ❌ manual |
-| Alpine.js | ✅ | ✅ | ❌ (inline `x-on`) | ❌ manual |
-| Vue 3 | ✅ | ✅ | ✅ | ❌ manual |
-| React 19 | ✅ | ✅ | ✅ | ❌ manual |
-| Pug | ✅ | ✅ | ✅ | ❌ manual |
+| Framework | No `eval()` | No `new Function()` | CSP `'unsafe-inline'` free | CSP flag | Audit-hardened |
+|---|---|---|---|---|---|
+| **PromptJS** | ✅ | ✅ | ✅ (all `addEventListener`) | ✅ `--csp` built-in | ✅ **S-1..S-6 fixed** |
+| Svelte 5 | ✅ | ✅ | ✅ | ❌ manual | n/a |
+| SolidJS | ✅ | ✅ | ✅ | ❌ manual | n/a |
+| Alpine.js | ✅ | ✅ | ❌ (inline `x-on`) | ❌ manual | n/a |
+| Vue 3 | ✅ | ✅ | ✅ | ❌ manual | n/a |
+| React 19 | ✅ | ✅ | ✅ | ❌ manual | n/a |
+| Pug | ✅ | ✅ | ✅ | ❌ manual | n/a |
 
 > **Sumber**: Audit kode output compiler & runtime masing-masing framework.
 > PromptJS adalah satu-satunya yang menyediakan flag `--csp` bawaan untuk nonce injection.
+> Kolom **Audit-hardened**: PromptJS v1.0.0 telah menutup 3 temuan HIGH (code-injection
+> front-matter, sanitizer bypass, `html:` unsanitized) + 3 MEDIUM (atribut injection,
+> role-spoof, path-traversal), masing-masing dikunci regression test ber-PoC.
+
+---
+
+## 🧰 Sanitizer & Attribute Safety (post-hardening)
+
+| Vektor | Sebelum (audit) | Sesudah (v1.0.0 hardened) |
+|---|---|---|
+| `<iframe srcdoc=...>` di `html:` | ❌ lolos | ✅ di-strip (allowlist) |
+| `href="javascript:..."` | ❌ lolos | ✅ ditolak (`__safeAttr` + sanitizer) |
+| Event handler `onerror=...` | ❌ lolos | ✅ ditolak (`on*` filter, 4 sink) |
+| Code-injection front-matter `authToken` | ❌ bisa | ✅ whitelist + `escapeString()` |
+| Dev-server `../` traversal | ❌ bisa (sibling-escape) | ✅ `path.relative()` + `%2e%2e` guard |
+
+> **Sumber**: PoC dieksekusi nyata (vm + jsdom + HTTP e2e), dikunci di
+> `tests/security/wave1-security.test.js` & `wave2-security.test.js`.
 
 ---
 
@@ -80,14 +99,18 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 
 ## 🧪 Quality Assurance
 
-| Framework | Test Suite | Linter | Type Check | CI/CD |
-|---|---|---|---|---|
-| **PromptJS** | **431 tests** (vitest) | ESLint zero-warn | tsc (JSDoc) | ✅ GitHub Actions |
-| Svelte 5 | 3,000+ tests | ESLint | TypeScript | ✅ |
-| Vue 3 | 4,000+ tests | ESLint | TypeScript | ✅ |
-| React 19 | 10,000+ tests | ESLint | Flow/TS | ✅ |
+| Framework | Test Suite | Linter | Type Check | Coverage (lines) | CI/CD |
+|---|---|---|---|---|---|
+| **PromptJS** | **490 tests** (vitest, 21 file) | ESLint zero-warn | tsc (JSDoc) | **75.38%** | ✅ GitHub Actions |
+| Svelte 5 | 3,000+ tests | ESLint | TypeScript | — | ✅ |
+| Vue 3 | 4,000+ tests | ESLint | TypeScript | — | ✅ |
+| React 19 | 10,000+ tests | ESLint | Flow/TS | — | ✅ |
 
 > **Sumber**: File konfigurasi CI publik & package.json masing-masing repo.
+> Angka PromptJS diukur via eksekusi nyata `npx vitest run --coverage` (Node, Linux x64, 27 Jun 2026).
+> Catatan: jumlah test PromptJS jauh lebih kecil dari React/Vue/Svelte karena perbedaan
+> ukuran proyek — namun **rasio test-terhadap-LOC** kompetitif. Roadmap menaikkan jumlah
+> pass ada di *Rencana Enrichment Test Suite*.
 
 ---
 
@@ -119,6 +142,7 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 | **Ekosistem** | React / Vue | Jutaan developer, ribuan library |
 | **Edukasi** | Python / Scratch | Mapan di sekolah |
 | **Kematangan** | React (2013) | 11+ tahun production use |
+| **Keamanan teraudit** | **PromptJS** 🏆 | Satu-satunya dengan audit + 3 wave hardening terdokumentasi |
 
 > **Kesimpulan**: PromptJS bukan kompetitor React atau Vue dalam hal ekosistem.
 > Kekuatannya ada di **zero-dependency output**, **CSP-ready**, **bilingual dari akar**,
@@ -128,4 +152,4 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 
 ---
 
-<sub>Data dikumpulkan 26 Juni 2026. Sumber: npm registry, Bundlephobia API, GitHub, benchmark lokal (Node 22.16, Linux x64).</sub>
+<sub>Data dikumpulkan 27 Juni 2026. Sumber: npm registry, Bundlephobia API, GitHub, benchmark lokal (Node 22.16, Linux x64). PromptJS tetap v1.0.0 pasca-hardening.</sub>
