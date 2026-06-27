@@ -101,7 +101,7 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 
 | Framework | Test Suite | Linter | Type Check | Coverage (lines) | CI/CD |
 |---|---|---|---|---|---|
-| **PromptJS** | **490 tests** (vitest, 21 file) | ESLint zero-warn | tsc (JSDoc) | **75.38%** | ✅ GitHub Actions |
+| **PromptJS** | **507 tests** (vitest, 24 file) | ESLint zero-warn | tsc (JSDoc) | **75.38%** | ✅ GitHub Actions |
 | Svelte 5 | 3,000+ tests | ESLint | TypeScript | — | ✅ |
 | Vue 3 | 4,000+ tests | ESLint | TypeScript | — | ✅ |
 | React 19 | 10,000+ tests | ESLint | Flow/TS | — | ✅ |
