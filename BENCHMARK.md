@@ -118,7 +118,7 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 
 | Framework | Modul Ajar | Kurikulum Sekolah | Slide Presentasi | Target Umur |
 |---|---|---|---|---|
-| **PromptJS** | 🚧 Pre-release (Academy) | 🚧 K13 & Merdeka | 🚧 Direncanakan | 14+ |
+| **PromptJS** | 🚧 Pre-release (Academy) | 🚧 Disesuaikan | 🚧 Direncanakan | 14+ |
 | Svelte 5 | ✅ Tutorial interaktif | ❌ | ❌ | 18+ |
 | React 19 | ✅ Banyak kursus | ❌ | ❌ | 18+ |
 | Vue 3 | ✅ Dokumentasi ramah | ❌ | ❌ | 16+ |

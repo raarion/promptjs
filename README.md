@@ -10,7 +10,7 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-490%20passing-a78bfa?style=for-the-badge&logo=vitest&logoColor=a78bfa">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-507%20passing-a78bfa?style=for-the-badge&logo=vitest&logoColor=a78bfa">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
@@ -111,7 +111,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **CSP Built-in** (`--csp` flag) | **✅** 🏆 | ❌ manual | ❌ manual | ❌ manual | ❌ manual | ❌ manual |
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
-| **Test Suite** | 490 tests | 3,000+ | — | 4,000+ | 10,000+ | — |
+| **Test Suite** | 507 tests | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |
 
@@ -262,7 +262,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 <details>
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
-- `tests/` ← 490 tests, 21 test files
+- `tests/` ← 507 tests, 24 test files
   - [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
   - [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
   - [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
@@ -314,9 +314,24 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 | **S-6** Dev-server path traversal | 🟡 MED | ✅ Fixed | `path.relative()` + `decodeURIComponent` anti-`%2e%2e` |
 | **T-1** CLI coverage 0% | ⚪ Test | ✅ Fixed | Suite integrasi CLI (spawn binary + serve e2e) |
 
-**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **490/490 test lulus** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
+**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **507/507 test lulus** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
 
 > ⚠️ **Catatan jujur:** auth guard PromptJS bersifat **client-side/advisory** — bukan kontrol keamanan server. Untuk otorisasi sesungguhnya, verifikasi peran **wajib** dilakukan di server (gunakan seam `window.__pjs_verifyPeran`).
+
+### 🔧 Audit Follow-ups & DX Hardening (PR #37 · `2e19456`)
+
+Setelah tiga gelombang keamanan, satu PR lanjutan menutup temuan audit & DX yang terverifikasi — **tetap v1.0.0**, keamanan **fail-closed** terjaga, nol regresi:
+
+| # | Perbaikan | Dampak |
+|---|---|---|
+| 1 | **Scoped CSS translate tag-alias** (`css.js`) | `tombol[data-pjs-x]` → `button[data-pjs-x]` — komponen scoped + tag Indonesia kini ter-style benar |
+| 2 | **Router regex escape** (`router-runtime.js`) | Bagian literal route di-escape sebelum `RegExp` — guard ReDoS |
+| 3 | **Kanal warning terstruktur** (Lapis 2) | `console.warn` ad-hoc → format berkode `[PromptJS] PJS-Wxxxx: pesan (saran)`; atribut bahaya tetap diblokir |
+| 4 | **Konsolidasi `findPjsFiles()`** | 3 salinan → 1 sumber kebenaran di `cli/utils.js` dengan opsi `{ignoreDirs, sort}` |
+| 5 | **Hapus `@ts-nocheck`** (`builder.js`, `css.js`) | Blanket-suppress dihapus; typecheck tetap 0 error |
+| 6 | **Normalisasi version banner** | Banner identitas `v0.x` → `v1.0.0` (marker historis dipertahankan) |
+
+**QA gate PR #37:** **507/507 test** (24 file, +17 test regresi baru) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · **v1.0.0**.
 
 ---
 
@@ -369,7 +384,7 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 ## ✔️ Quality Assurance
 
 ```bash
-npm test          # 490 tests, 21 test files
+npm test          # 507 tests, 24 test files
 npm run lint      # ESLint — zero warnings
 npm run typecheck # tsc — zero errors
 npm run format    # Prettier

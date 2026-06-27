@@ -9,6 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
 
+### Audit Follow-ups & DX — PR #37 · commit `2e19456`
+
+> Lanjutan setelah tiga wave keamanan. Menutup temuan audit & DX yang terverifikasi
+> BENAR melalui pembacaan kode nyata. **Tetap v1.0.0**, keamanan **fail-closed**
+> terjaga, nol regresi. Total suite naik **490 → 507 test** (24 file, +17 regresi baru).
+
+#### Fixed
+
+- **Scoped CSS tidak men-translate tag-alias** (`src/engine/css.js`). CSS scoped
+  melewati `translateCSSSelector()` sebelum `scopeSelector()`, sehingga komponen
+  dengan CSS scoped + tag Indonesia menghasilkan selector tak-eksis
+  (`tombol[data-pjs-kartu]`). Kini `translateCSSSelector()` dipanggil sebelum
+  scoping di kedua cabang → `button[data-pjs-kartu]`. +6 test regresi (termasuk
+  compound `tombol.primary:hover` & non-alias `.card h3`).
+- **Router regex tidak di-escape** (`src/engine/router-runtime.js`). Bagian literal
+  route pattern kini di-escape sebelum dibangun jadi `RegExp` (hanya `:param` yang
+  menjadi capture group), menutup potensi ReDoS. +5 test guard.
+
+#### Changed
+
+- **Kanal warning terstruktur (Lapis 2)** — `console.warn` ad-hoc di
+  `runtime.js` (`__safeAttr`) & `expression.js` diseragamkan ke format berkode
+  `[PromptJS] PJS-Wxxxx: pesan (saran: …)` berbahasa Indonesia (W1001/W1002/W2001).
+  Perilaku **fail-closed** dipertahankan — atribut event-handler & URL berbahaya
+  **tetap diblokir**.
+- **Konsolidasi `findPjsFiles()`** — tiga salinan independen (`cli/utils.js`,
+  `engine/builder.js`, `scripts/build-pages.js`) yang sudah drift disatukan menjadi
+  satu sumber kebenaran di `cli/utils.js` dengan opsi `{ ignoreDirs, sort }`.
+  Perilaku build tiap pemanggil dipertahankan via parameter (zero perubahan output).
+
+#### Removed
+
+- **`@ts-nocheck` blanket** dihapus dari `src/engine/builder.js` & `src/engine/css.js`.
+  Typecheck tetap **0 error** tanpa perlu `@ts-expect-error` per-baris.
+
+#### Docs
+
+- **Normalisasi version banner** — banner identitas `v0.2`/`v0.4`/`v0.5`/`v0.8`/`v0.9`
+  di `src/` diseragamkan menjadi **v1.0.0**. Marker historis (mis. `// v0.6: SPA`)
+  sengaja dipertahankan agar jejak sejarah tetap akurat.
+
+#### Quality gates (PR #37)
+
+- **507/507 test lulus** (24 file) · ESLint `--max-warnings=0` exit 0 ·
+  tsc 0 error · Prettier `--check` clean · `package.json` = **1.0.0**.
+
 ### Security — Wave 1 (HIGH) · PR #34 · commit `9d33538`
 
 - **S-1 (HIGH)** — Code-injection lewat front-matter auth. Nilai `authToken` &
@@ -56,7 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sebelum fix, lulus sesudah) sebagai gerbang permanen.
 - `tests/security/wave2-security.test.js` — PoC regresi S-4, S-5, S-6 (vm+jsdom
   mengeksekusi `__safeAttr`, seam verifyPeran, guard traversal).
-- Total suite: **490 test lulus** (21 file), naik dari 431 (17 file).
+- Total suite: **507 test lulus** (24 file), naik dari 431 (17 file) → 490 (21 file) → 507 (24 file) seiring wave keamanan & audit follow-ups.
   Verifikasi akhir di `main`: ESLint 0 warning · tsc 0 error · Prettier clean ·
   `npm audit` 0 kerentanan · `package.json` = **1.0.0**.
 
