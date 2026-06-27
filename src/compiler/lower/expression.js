@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Expression Lowering / Penurunan Ekspresi
+ * PromptJS v1.0.0 — Expression Lowering / Penurunan Ekspresi
  * ============================================================================
  *
  * Expression lowering separated from the main compiler.
@@ -265,8 +265,10 @@ function lowerExpression(compiler, node) {
       return `${tgt}.setAttribute("${node.property}", ${val})`;
     }
     default:
-      // Unknown node type — emit warning comment
-      console.warn(`[PromptJS Compiler] Unknown expression type: ${node.type}`);
+      // Unknown node type — emit a coded, actionable warning (Indonesian).
+      console.warn(
+        `[PromptJS] PJS-W2001: tipe ekspresi tidak dikenal saat kompilasi: ${node.type} (saran: periksa sintaks ekspresi pada .pjs Anda; bila ini fitur baru, daftarkan handler-nya di lower/expression.js)`
+      );
       return 'undefined';
   }
 }

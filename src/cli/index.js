@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — CLI Entry Point / Titik Masuk CLI
+ * PromptJS v1.0.0 — CLI Entry Point / Titik Masuk CLI
  * ============================================================================
  *
  * Entry point untuk `pjs` CLI. Parse argv, dispatch ke sub-command

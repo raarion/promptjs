@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
+ * PromptJS v1.0.0 — Engine (Pipeline Orchestrator) / Orkestrator Pipeline
  * ============================================================================
  *
  * Wires: Lexer → Parser → Resolver → Analyzer → Compiler.

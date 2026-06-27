@@ -1,7 +1,5 @@
-// @ts-nocheck
-
 /**
- * PromptJS v0.9 — Project Builder (Wave J + K + SPA + Adapters)
+ * PromptJS v1.0.0 — Project Builder (Wave J + K + SPA + Adapters)
  * ============================================================================
  *
  * Multi-file project builder. Compiles all .pjs files in src/pages/.
@@ -25,39 +23,27 @@ const path = require('path');
 const Engine = require('./promptjs');
 const { ROUTER_RUNTIME } = require('./router-runtime');
 const Plugins = require('./plugins');
+const { findPjsFiles: findPjsFilesCore } = require('../cli/utils');
+
+// Default ignore-set khusus build proyek: selain node_modules/.git/dist, juga
+// lewati direktori dokumentasi & test agar tidak ikut ter-build.
+const BUILDER_IGNORE_DIRS = ['node_modules', '.git', 'dist', 'doc-dev', 'tests'];
 
 /**
  * Find all .pjs files recursively in a directory.
  *
+ * Delegasi tipis ke sumber kebenaran tunggal di `src/cli/utils.js` dengan
+ * ignore-set & pengurutan khusus builder. (Sebelumnya fungsi ini diduplikasi.)
+ *
  * @param {string} dir - Root directory
- * @param {string[]} [ignore] - Directories to ignore
- * @returns {string[]} Array of absolute paths
+ * @param {string[]} [ignore] - Directories to ignore (default: BUILDER_IGNORE_DIRS)
+ * @returns {string[]} Array of absolute paths (sorted)
  */
 function findPjsFiles(dir, ignore) {
-  ignore = ignore || ['node_modules', '.git', 'dist', 'doc-dev', 'tests'];
-  const results = [];
-
-  function walk(current) {
-    let entries;
-    try {
-      entries = fs.readdirSync(current, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      const fullPath = path.join(current, entry.name);
-      if (entry.isDirectory()) {
-        if (!ignore.includes(entry.name)) {
-          walk(fullPath);
-        }
-      } else if (entry.isFile() && entry.name.endsWith('.pjs')) {
-        results.push(fullPath);
-      }
-    }
-  }
-
-  walk(dir);
-  return results.sort();
+  return findPjsFilesCore(dir, {
+    ignoreDirs: ignore || BUILDER_IGNORE_DIRS,
+    sort: true,
+  });
 }
 
 /**
@@ -294,7 +280,7 @@ function buildProject(opts) {
       // ═══ SPA MODE ═══
       // Compile all pages as factory functions, generate route table + router
       let spaJs = '';
-      spaJs += '// PromptJS v0.9 — SPA Bundle\n';
+      spaJs += '// PromptJS v1.0.0 — SPA Bundle\n';
       spaJs += '// Auto-generated. Do not edit.\n\n';
 
       // Emit each page as a named factory function.
@@ -395,7 +381,7 @@ function buildProject(opts) {
 
       if (allJs) {
         const jsOutput =
-          '// PromptJS v0.9 — Bundled JavaScript\n' +
+          '// PromptJS v1.0.0 — Bundled JavaScript\n' +
           '// Auto-generated. Do not edit.\n' +
           'window.__PJS_ROUTE__ = window.location.pathname;\n' +
           allJs;
@@ -413,7 +399,7 @@ function buildProject(opts) {
     // Write CSS
     if (allCss) {
       const cssOutput =
-        '/* PromptJS v0.8 — Bundled CSS */\n' + '/* Auto-generated. Do not edit. */\n' + allCss;
+        '/* PromptJS v1.0.0 — Bundled CSS */\n' + '/* Auto-generated. Do not edit. */\n' + allCss;
       fs.writeFileSync(path.join(outDir, 'prompt.css'), cssOutput, 'utf-8');
     }
 

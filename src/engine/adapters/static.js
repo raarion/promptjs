@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — Adapter: Static Export
+ * PromptJS v1.0.0 — Adapter: Static Export
  * ============================================================================
  *
  * Enhances the default `pjs build` output for production CDN deployment.

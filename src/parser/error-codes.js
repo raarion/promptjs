@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Unified Error Code Registry / Registri Kode Error Terpadu
+ * PromptJS v1.0.0 — Unified Error Code Registry / Registri Kode Error Terpadu
  * ============================================================================
  *
  * Registers all error and warning codes across the PromptJS pipeline stages.

@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.5 — Runtime Helper Emitter / Emitor Helper Runtime
+ * PromptJS v1.0.0 — Runtime Helper Emitter / Emitor Helper Runtime
  * ============================================================================
  *
  * v0.5 changes:
@@ -247,14 +247,14 @@ function __safeAttr(el, name, value) {
   var lname = name.toLowerCase();
   // Tolak semua event-handler inline (onclick, onerror, onmouseover, ...).
   if (lname.indexOf('on') === 0) {
-    if (typeof console !== 'undefined') console.warn('[PromptJS] atribut event-handler diblokir: ' + name);
+    if (typeof console !== 'undefined') console.warn('[PromptJS] PJS-W1001: atribut event-handler diblokir demi keamanan: ' + name + ' (saran: gunakan addEventListener atau pengikat acara PromptJS, jangan atribut on* inline)');
     return false;
   }
   var URL_ATTR = { href:1, src:1, action:1, formaction:1, poster:1, 'xlink:href':1, background:1, cite:1, srcset:1, 'data':1 };
   if (URL_ATTR[lname]) {
     var s = String(value == null ? '' : value).replace(/[\\u0000-\\u001F\\u007F\\s]/g, '').toLowerCase();
     if (/^(javascript|data|vbscript):/.test(s)) {
-      if (typeof console !== 'undefined') console.warn('[PromptJS] URL skema tidak aman diblokir pada ' + name + ': ' + value);
+      if (typeof console !== 'undefined') console.warn('[PromptJS] PJS-W1002: URL skema tidak aman diblokir pada atribut ' + name + ': ' + value + ' (saran: gunakan URL http(s):, mailto:, atau path relatif)');
       return false;
     }
   }

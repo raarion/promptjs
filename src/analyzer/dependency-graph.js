@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Dependency Graph Utilities / Utilitas Dependency Graph
+ * PromptJS v1.0.0 — Dependency Graph Utilities / Utilitas Dependency Graph
  * ============================================================================
  *
  * Builds a simple static dependency graph from resolver metadata,

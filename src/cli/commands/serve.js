@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — CLI: `serve` Command / Perintah `serve`
+ * PromptJS v1.0.0 — CLI: `serve` Command / Perintah `serve`
  * ============================================================================
  *
  * Dev server dengan live-reload via WebSocket. Compile `.pjs` on-the-fly,
@@ -23,7 +23,7 @@ const {
 
 // Minimal WebSocket server for live-reload
 const LIVE_RELOAD_JS = `
-// PromptJS v0.4.0 Live Reload
+// PromptJS v1.0.0 Live Reload
 (function() {
   var ws = new WebSocket('ws://' + location.host + '/__pjs_reload__');
   ws.onmessage = function(e) {
@@ -74,7 +74,7 @@ const LIVE_RELOAD_JS = `
 
 // Error overlay script (injected alongside live-reload)
 const ERROR_OVERLAY_JS = `
-// PromptJS v0.4.0 Error Overlay — auto-clear on successful compile
+// PromptJS v1.0.0 Error Overlay — auto-clear on successful compile
 (function() {
   window.addEventListener('error', function(e) {
     var overlay = document.getElementById('pjs-error-overlay');

@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — LEXER (Tahap 1)
+ * PromptJS v1.0.0 — LEXER (Tahap 1)
  * ============================================================================
  *
  * Converts raw PromptJS (.pjs) character stream into a stream of tokens.

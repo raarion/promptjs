@@ -58,6 +58,9 @@ describe('S-4 — __safeAttr runtime memblokir atribut berbahaya', () => {
     expect(ok).toBe(false);
     expect(el.hasAttribute('onclick')).toBe(false);
     expect(warns.join(' ')).toMatch(/event-handler diblokir/i);
+    // Lapis 2 (kanal warning terstruktur): pesan memakai kode PJS-W1001 + saran.
+    expect(warns.join(' ')).toMatch(/PJS-W1001/);
+    expect(warns.join(' ')).toMatch(/saran:/i);
   });
 
   it('audit PoC: onerror / onmouseover (semua on*) DITOLAK', () => {

@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — CLI Utility Functions / Fungsi Utilitas CLI
+ * PromptJS v1.0.0 — CLI Utility Functions / Fungsi Utilitas CLI
  * ============================================================================
  *
  * Shared helpers for the CLI commands: formatting, file discovery, etc.
@@ -30,12 +30,30 @@ const path = require('path');
 /**
  * Cari semua file `.pjs` dalam direktori (rekursif).
  *
+ * Sumber kebenaran tunggal untuk penelusuran `.pjs` di seluruh proyek
+ * (CLI, engine builder, dan skrip build-pages mengimpor dari sini). Perilaku
+ * spesifik tiap pemanggil diatur lewat `options`, BUKAN dengan menyalin fungsi.
+ *
  * @param {string} dir - Path direktori akar pencarian
- * @param {string[]} [ignoreDirs] - Daftar nama direktori yang di-skip (default: `['node_modules', '.git', 'dist']`)
+ * @param {string[]|{ ignoreDirs?: string[], sort?: boolean }} [options]
+ *   - Bila array: daftar nama direktori yang di-skip (kompatibilitas mundur).
+ *   - Bila objek: `{ ignoreDirs, sort }`.
+ *   - `ignoreDirs` default: `['node_modules', '.git', 'dist']`.
+ *   - `sort` default: `false` (urutkan hasil secara alfabetis bila `true`).
  * @returns {string[]} Daftar path absolut file `.pjs` yang ditemukan
  */
-function findPjsFiles(dir, ignoreDirs) {
-  const ignore = ignoreDirs || ['node_modules', '.git', 'dist'];
+function findPjsFiles(dir, options) {
+  // Normalisasi argumen: dukung bentuk lama (array) dan bentuk baru (objek opsi).
+  let ignore;
+  let sort = false;
+  if (Array.isArray(options)) {
+    ignore = options;
+  } else if (options && typeof options === 'object') {
+    ignore = options.ignoreDirs;
+    sort = options.sort === true;
+  }
+  if (!ignore) ignore = ['node_modules', '.git', 'dist'];
+
   const results = [];
 
   function walk(current) {
@@ -43,7 +61,7 @@ function findPjsFiles(dir, ignoreDirs) {
     try {
       entries = fs.readdirSync(current, { withFileTypes: true });
     } catch {
-      return; // Skip unreadable dirs
+      return; // Skip unreadable / non-existent dirs
     }
 
     for (const entry of entries) {
@@ -59,7 +77,7 @@ function findPjsFiles(dir, ignoreDirs) {
   }
 
   walk(dir);
-  return results;
+  return sort ? results.sort() : results;
 }
 
 /**

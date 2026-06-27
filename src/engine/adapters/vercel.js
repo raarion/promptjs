@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — Adapter: Vercel
+ * PromptJS v1.0.0 — Adapter: Vercel
  * ============================================================================
  *
  * Generates Vercel Build Output API v3 compatible output.

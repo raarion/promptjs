@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — Adapter: Node Server
+ * PromptJS v1.0.0 — Adapter: Node Server
  * ============================================================================
  *
  * Generates a self-contained Node.js HTTP server (`server.js`) from
@@ -37,7 +37,7 @@ function generateServerJS(opts) {
   const apiUrl = opts.apiUrl || '';
 
   let serverCode = '';
-  serverCode += '// PromptJS v0.8 — Node.js Server\n';
+  serverCode += '// PromptJS v1.0.0 — Node.js Server\n';
   serverCode += '// Auto-generated. Do not edit.\n';
   serverCode += '// Usage: node server.js [PORT]\n\n';
   serverCode += 'var http = require("http");\n';

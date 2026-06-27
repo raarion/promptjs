@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Visitor Pattern / Pola Visitor
+ * PromptJS v1.0.0 — Visitor Pattern / Pola Visitor
  * ============================================================================
  *
  * Implements the visitor pattern for AST traversal.

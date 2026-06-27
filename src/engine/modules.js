@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.4.0 — Module System (Wave H)
+ * PromptJS v1.0.0 — Module System (Wave H)
  * ============================================================================
  *
  * Handles `kirim`/`share` and `terima`/`get` front-matter directives

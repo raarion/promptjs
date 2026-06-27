@@ -1,7 +1,5 @@
-// @ts-nocheck
-
 /**
- * PromptJS v0.4.0 — CSS Support (Wave I)
+ * PromptJS v1.0.0 — CSS Support (Wave I)
  * ============================================================================
  *
  * Handles `Gaya:`/`Style:` blocks in .pjs source files.
@@ -264,7 +262,7 @@ function compileCSS(rules, scoped) {
       for (const child of rule.children) {
         const sel =
           scoped && child.scope
-            ? scopeSelector(child.selector, child.scope)
+            ? scopeSelector(translateCSSSelector(child.selector), child.scope)
             : translateCSSSelector(child.selector);
         lines.push(`  ${sel} {`);
         for (const prop of child.properties) {
@@ -279,7 +277,7 @@ function compileCSS(rules, scoped) {
     // Regular rule
     const sel =
       scoped && rule.scope
-        ? scopeSelector(rule.selector, rule.scope)
+        ? scopeSelector(translateCSSSelector(rule.selector), rule.scope)
         : translateCSSSelector(rule.selector);
     lines.push(`${sel} {`);
     for (const prop of rule.properties) {
