@@ -528,4 +528,4 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-module.exports = { runServe };
+module.exports = { runServe, wrapInHtml, escapeHtml };

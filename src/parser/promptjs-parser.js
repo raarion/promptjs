@@ -48,7 +48,20 @@ function PromptJSParser() {
   this.pos = 0;
   this.errors = [];
   this.componentNames = new Set(); // Track defined components
+  this._exprDepth = 0; // LOW-4: kedalaman rekursi ekspresi saat ini
 }
+
+/**
+ * Batas kedalaman rekursi ekspresi. Input patologis (mis. ribuan tanda kurung
+ * bersarang `(((...)))` atau unary `!!!!...`) sebelumnya bisa membuat call
+ * stack JS overflow (RangeError mentah). Dengan guard ini, parser memancarkan
+ * error terstruktur E2029 alih-alih crash (LOW-4 dari audit 2026-06).
+ * @type {number}
+ */
+PromptJSParser.MAX_EXPR_DEPTH = 350;
+
+/** Sentinel internal untuk menghentikan rekursi ekspresi yang terlalu dalam. */
+const EXPR_DEPTH_EXCEEDED = Symbol('EXPR_DEPTH_EXCEEDED');
 
 /**
  * Parse token stream menjadi AST.
@@ -65,6 +78,7 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   this.pos = 0;
   this.errors = [];
   this.frontMatterDecls = [];
+  this._exprDepth = 0; // LOW-4: guard kedalaman rekursi ekspresi
 
   // Pre-populate external data from front-matter as TetapDeclaration nodes
   if (frontMatterData) {
@@ -1065,18 +1079,49 @@ PromptJSParser.prototype._parseReturnStatement = function () {
  * @returns {Object} AST node expression
  */
 PromptJSParser.prototype._parseExpression = function () {
-  const test = this._parseBinaryExpression(0);
-
-  // Ternary conditional: test ? consequent : alternate (right-associative).
-  if (this._peek().type === TT.TK_QUESTION) {
-    const qTok = this._advance(); // consume "?"
-    const consequent = this._parseExpression();
-    this._expect(TT.TK_COLON, 'Expected ":" in ternary expression');
-    const alternate = this._parseExpression();
-    return AST.buatConditionalExpression(test, consequent, alternate, this._makeLoc(qTok));
+  // LOW-4: lindungi dari rekursi ekspresi yang terlalu dalam (stack overflow).
+  // Entry terluar (depth 0 → 1) menangkap sentinel agar parser memancarkan
+  // E2029 dan tetap mengembalikan node, bukan melempar RangeError mentah.
+  const isOutermost = this._exprDepth === 0;
+  this._exprDepth++;
+  if (this._exprDepth > PromptJSParser.MAX_EXPR_DEPTH) {
+    this._exprDepth--;
+    throw EXPR_DEPTH_EXCEEDED;
   }
+  try {
+    const test = this._parseBinaryExpression(0);
 
-  return test;
+    // Ternary conditional: test ? consequent : alternate (right-associative).
+    if (this._peek().type === TT.TK_QUESTION) {
+      const qTok = this._advance(); // consume "?"
+      const consequent = this._parseExpression();
+      this._expect(TT.TK_COLON, 'Expected ":" in ternary expression');
+      const alternate = this._parseExpression();
+      return AST.buatConditionalExpression(test, consequent, alternate, this._makeLoc(qTok));
+    }
+
+    return test;
+  } catch (err) {
+    if (err === EXPR_DEPTH_EXCEEDED) {
+      if (isOutermost) {
+        const tok = this._peek();
+        this.errors.push({
+          code: 'E2029',
+          severity: 'error',
+          message: `Ekspresi terlalu dalam (melebihi batas kedalaman ${PromptJSParser.MAX_EXPR_DEPTH})`,
+          line: tok ? tok.line : 0,
+          column: tok ? tok.col : 0,
+          suggestion: 'Sederhanakan ekspresi atau pecah menjadi beberapa langkah/variabel.',
+        });
+        // Kembalikan node literal placeholder agar caller tetap mendapat AST valid.
+        return AST.buatLiteral(null, 'null', this._makeLoc(tok || this._peek()));
+      }
+      throw err; // teruskan ke entry terluar
+    }
+    throw err;
+  } finally {
+    this._exprDepth--;
+  }
 };
 
 /**

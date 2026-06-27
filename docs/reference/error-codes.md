@@ -48,6 +48,7 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | E1007 | Error | Blok DocString "[[" tidak ditutup dengan "]]" | Tambahkan "]]" untuk menutup blok DocString |
 | E1008 | Error | Angka literal tidak valid | Periksa format angka (desimal, heksadesimal, dll.) |
 | E1009 | Error | Selector CSS tidak valid | Pastikan selector CSS valid (#id, .class, tag) |
+| E1010 | Error | Block opener tanpa tanda titik dua ":" | Tambahkan ":" di akhir baris untuk membuka blok. Contoh: `Halaman Beranda:` |
 | W1001 | Warning | DocString tidak menempel ke node manapun | - |
 
 ---
@@ -84,6 +85,7 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | E2026 | Error | Ekspresi kosong tidak valid | Tambahkan ekspresi yang valid |
 | E2027 | Error | Properti perbarui tidak dikenali | Gunakan properti yang didukung: teks, html, kelas, src, href, dll. |
 | E2028 | Error | Body komponen/fungsi kosong | Tambahkan setidaknya satu statement di dalam body |
+| E2029 | Error | Ekspresi terlalu dalam (melebihi batas kedalaman) | Sederhanakan ekspresi atau pecah menjadi beberapa langkah/variabel |
 | W2001 | Warning | DocString tidak menempel ke node manapun | - |
 | W2002 | Warning | Blok kosong terdeteksi | - |
 | W2003 | Warning | Rantai "jika" tanpa cabang "lainnya" | - |

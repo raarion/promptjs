@@ -636,11 +636,25 @@
 
       // --- Indentation handling ---
       const indent = this._measureIndent(rawLine);
+      if (indent === -2) {
+        // TAB character found in indentation
+        this.errors.push(
+          createError(
+            'E1002',
+            `Indentasi tidak valid di baris ${lineNum}: karakter TAB ditemukan`,
+            lineNum,
+            1,
+            'Ganti semua tab menjadi spasi (2, 4, 6, ...).'
+          )
+        );
+        continue;
+      }
       if (indent < 0) {
+        // Odd indent (not a multiple of 2)
         this.errors.push(
           createError(
             'E1001',
-            `Indentasi ganjil di baris ${lineNum}: ${indent} spasi (harus kelipatan 2)`,
+            `Indentasi ganjil di baris ${lineNum}: bukan kelipatan 2 spasi`,
             lineNum,
             1,
             'Gunakan kelipatan 2 spasi untuk indentasi.'
@@ -683,12 +697,12 @@
       if (ch === ' ') {
         count++;
       } else if (ch === '\t') {
-        return -1; // Tab detected — error
+        return -2; // Tab detected — distinct error (E1002)
       } else {
         break;
       }
     }
-    if (count % 2 !== 0) return -1; // Odd indent
+    if (count % 2 !== 0) return -1; // Odd indent (E1001)
     return count;
   };
 
@@ -721,7 +735,7 @@
       if (this.indentStack[this.indentStack.length - 1] !== indent) {
         this.errors.push(
           createError(
-            'E1002',
+            'E1003',
             `Indentasi tidak konsisten di baris ${lineNum}: expected ${this.indentStack[this.indentStack.length - 1]}, got ${indent}`,
             lineNum,
             1,
@@ -845,7 +859,7 @@
       this.tokens.push(new Token(TT.TK_STRING, text, lineNum, baseCol + 1, content));
       this.errors.push(
         createError(
-          'E1003',
+          'E1004',
           `String tidak tertutup di baris ${lineNum}`,
           lineNum,
           baseCol + 1,
@@ -982,7 +996,7 @@
       } else {
         this.errors.push(
           createError(
-            'E1004',
+            'E1010',
             `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
             lineNum,
             baseCol + 1,
@@ -1018,7 +1032,7 @@
       } else {
         this.errors.push(
           createError(
-            'E1004',
+            'E1010',
             `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
             lineNum,
             baseCol + 1,
@@ -1095,7 +1109,7 @@
       this._tokenizeSelector(afterKeyword, lineNum, baseCol + keyword.length + 1);
       this.errors.push(
         createError(
-          'E1004',
+          'E1010',
           `Block opener tanpa colon di baris ${lineNum}: "${content}"`,
           lineNum,
           baseCol + 1,
@@ -1507,17 +1521,34 @@
         (ch === '-' && pos + 1 < len && expr[pos + 1] >= '0' && expr[pos + 1] <= '9')
       ) {
         let num = '';
+        const numStartCol = baseCol + pos;
         if (ch === '-') {
           num += '-';
           pos++;
         }
+        let dotCount = 0;
         while (pos < len && ((expr[pos] >= '0' && expr[pos] <= '9') || expr[pos] === '.')) {
+          if (expr[pos] === '.') dotCount++;
           num += expr[pos];
           pos++;
         }
-        this.tokens.push(
-          new Token(TT.TK_NUMBER, parseFloat(num), lineNum, baseCol + pos - num.length)
-        );
+        // Validate numeric literal: at most one decimal point, must not be a
+        // lone/trailing dot. Malformed literals (e.g. "1.2.3", "1.", ".") were
+        // previously accepted silently with the trailing part dropped (BUG-L1).
+        const digits = num.replace('-', '');
+        const isMalformed = dotCount > 1 || digits === '.' || digits === '' || digits.endsWith('.');
+        if (isMalformed) {
+          this.errors.push(
+            createError(
+              'E1008',
+              `Angka literal tidak valid di baris ${lineNum}: "${num}"`,
+              lineNum,
+              numStartCol + 1,
+              'Gunakan format angka yang valid (mis. 42, 3.14, -7). Hanya satu titik desimal yang diizinkan.'
+            )
+          );
+        }
+        this.tokens.push(new Token(TT.TK_NUMBER, parseFloat(num), lineNum, numStartCol + 1));
         continue;
       }
 

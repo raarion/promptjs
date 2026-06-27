@@ -250,10 +250,35 @@ function __safeAttr(el, name, value) {
     if (typeof console !== 'undefined') console.warn('[PromptJS] PJS-W1001: atribut event-handler diblokir demi keamanan: ' + name + ' (saran: gunakan addEventListener atau pengikat acara PromptJS, jangan atribut on* inline)');
     return false;
   }
+  // Atribut 'style' tidak boleh memuat skema/ekspresi aktif (clickjacking,
+  // CSS expression injection). Difilter secara konservatif (LOW-3).
+  if (lname === 'style') {
+    var sv = String(value == null ? '' : value).replace(/[\\u0000-\\u001F\\u007F]/g, '').toLowerCase();
+    if (/(javascript:|vbscript:|expression\\s*\\(|-moz-binding|behavior\\s*:)/.test(sv)) {
+      if (typeof console !== 'undefined') console.warn('[PromptJS] PJS-W1003: nilai style tidak aman diblokir: ' + value + ' (saran: hindari javascript:, expression(), atau -moz-binding di CSS inline)');
+      return false;
+    }
+    el.setAttribute(name, value == null ? '' : value);
+    return true;
+  }
+  function __badScheme(raw) {
+    var cs = String(raw == null ? '' : raw).replace(/[\\u0000-\\u001F\\u007F\\s]/g, '').toLowerCase();
+    return /^(javascript|data|vbscript):/.test(cs);
+  }
   var URL_ATTR = { href:1, src:1, action:1, formaction:1, poster:1, 'xlink:href':1, background:1, cite:1, srcset:1, 'data':1 };
   if (URL_ATTR[lname]) {
-    var s = String(value == null ? '' : value).replace(/[\\u0000-\\u001F\\u007F\\s]/g, '').toLowerCase();
-    if (/^(javascript|data|vbscript):/.test(s)) {
+    if (lname === 'srcset') {
+      // srcset = daftar kandidat dipisah koma; skema dicek PER kandidat,
+      // bukan hanya di awal string (LOW-2).
+      var cands = String(value == null ? '' : value).split(',');
+      for (var ci = 0; ci < cands.length; ci++) {
+        var url = cands[ci].trim().split(/\\s+/)[0];
+        if (url && __badScheme(url)) {
+          if (typeof console !== 'undefined') console.warn('[PromptJS] PJS-W1002: URL skema tidak aman diblokir pada atribut ' + name + ': ' + value + ' (saran: gunakan URL http(s): atau path relatif)');
+          return false;
+        }
+      }
+    } else if (__badScheme(value)) {
       if (typeof console !== 'undefined') console.warn('[PromptJS] PJS-W1002: URL skema tidak aman diblokir pada atribut ' + name + ': ' + value + ' (saran: gunakan URL http(s):, mailto:, atau path relatif)');
       return false;
     }
