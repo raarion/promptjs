@@ -23,6 +23,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { findPjsFiles: findPjsFilesCore } = require('../src/cli/utils');
 const { PromptJSEngine } = require('../src/engine/promptjs');
 
 // ── CLI args ────────────────────────────────────────────────────────────────
@@ -92,21 +93,10 @@ const EXAMPLE_META = {
  */
 function findPjsFiles(startDir) {
   const root = startDir || EXAMPLES_DIR;
-  if (!fs.existsSync(root)) return [];
-  const results = [];
-  function walk(dir) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory() && entry.name !== 'data') {
-        walk(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith('.pjs')) {
-        results.push(fullPath);
-      }
-    }
-  }
-  walk(root);
-  return results.sort();
+  // Delegasi ke sumber kebenaran tunggal (src/cli/utils.js). Ignore-set khusus
+  // build-pages: hanya lewati direktori bernama `data`. Pengurutan dipertahankan.
+  // Fungsi inti sudah aman terhadap direktori tak-ada (mengembalikan []).
+  return findPjsFilesCore(root, { ignoreDirs: ['data'], sort: true });
 }
 
 /**
