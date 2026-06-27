@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — ANALYZER (Tahap 4) / Analis Semantik
+ * PromptJS v1.0.0 — ANALYZER (Tahap 4) / Analis Semantik
  * ============================================================================
  *
  * Performs semantic validation: types, reactivity, control flow, and lifecycle.

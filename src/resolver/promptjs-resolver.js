@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — RESOLVER (Merged) / Resolver Terpadu
+ * PromptJS v1.0.0 — RESOLVER (Merged) / Resolver Terpadu
  * ============================================================================
  *
  * Merges the best of Team A & Team B resolver implementations.

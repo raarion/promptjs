@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.9.9 — CLI: `init` Command / Perintah `init`
+ * PromptJS v1.0.0 — CLI: `init` Command / Perintah `init`
  * ============================================================================
  *
  * Scaffold proyek PromptJS baru. Buat folder `src/`, `src/pages/`,

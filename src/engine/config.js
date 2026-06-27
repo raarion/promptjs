@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — Config Loader
+ * PromptJS v1.0.0 — Config Loader
  * ============================================================================
  *
  * Loads project configuration from `pjs.config.js` (or `promptjs.config.js`)

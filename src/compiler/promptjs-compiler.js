@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.5 — Compiler (Tahap 5) / Kompilator
+ * PromptJS v1.0.0 — Compiler (Tahap 5) / Kompilator
  * ============================================================================
  *
  * Lowers the AST into Vanilla JavaScript DOM API calls.

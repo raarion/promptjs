@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.5 — Compiler Codegen Utilities / Utilitas Codegen Kompilator
+ * PromptJS v1.0.0 — Compiler Codegen Utilities / Utilitas Codegen Kompilator
  * ============================================================================
  *
  * v0.5 additions:

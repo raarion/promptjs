@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — Plugin System
+ * PromptJS v1.0.0 — Plugin System
  * ============================================================================
  *
  * Provides 4 transform hooks that plugins can use to modify compilation

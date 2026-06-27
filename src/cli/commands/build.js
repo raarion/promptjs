@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.8 — CLI: `build` Command / Perintah `build`
+ * PromptJS v1.0.0 — CLI: `build` Command / Perintah `build`
  * ============================================================================
  *
  * Build production: compile + minify + prerender HTML via jsdom.
@@ -77,7 +77,7 @@ function runBuild(argv) {
 
   if (pagesDir && fs.statSync(pagesDir).isDirectory()) {
     const projectRoot = fs.existsSync(pagesInSrc) ? srcDir : rootDir;
-    process.stderr.write(`\n${bold}PromptJS v0.8 — Project Build${reset}\n`);
+    process.stderr.write(`\n${bold}PromptJS v1.0.0 — Project Build${reset}\n`);
     process.stderr.write(`  Source: ${cyan}${projectRoot}${reset}\n`);
     process.stderr.write(`  Output: ${cyan}${distDir}${reset}\n`);
     if (adapter) {

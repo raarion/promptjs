@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — CLI: `compile` Command / Perintah `compile`
+ * PromptJS v1.0.0 — CLI: `compile` Command / Perintah `compile`
  * ============================================================================
  *
  * Compile file `.pjs` menjadi `.js`. Mendukung:

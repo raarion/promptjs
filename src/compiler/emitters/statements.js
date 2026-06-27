@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — Statement Emitters / Emitor Statement
+ * PromptJS v1.0.0 — Statement Emitters / Emitor Statement
  * ============================================================================
  *
  * Statement visitor emitters separated from the main compiler.

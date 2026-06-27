@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.2 — AST Node Factory / Pabrik Node AST
+ * PromptJS v1.0.0 — AST Node Factory / Pabrik Node AST
  * ============================================================================
  *
  * Factory functions that build AST nodes. Guarantees / Jaminan:
