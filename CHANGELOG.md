@@ -5,7 +5,60 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — v1.0 Documentation & Bug Fixes
+## [Unreleased] — v1.0 Security Hardening, Documentation & Bug Fixes
+
+> **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
+
+### Security — Wave 1 (HIGH) · PR #34 · commit `9d33538`
+
+- **S-1 (HIGH)** — Code-injection lewat front-matter auth. Nilai `authToken` &
+  storage key kini di-*whitelist* (`localStorage`/`sessionStorage`) dan di-escape
+  via `escapeString()` sebelum di-emit, sehingga tidak bisa keluar dari string
+  literal target. Files: `src/compiler/promptjs-compiler.js`,
+  `src/compiler/utils/codegen.js`, `src/engine/promptjs.js`.
+- **S-2 (HIGH)** — Sanitizer `__sanitizeHTML` berbasis blocklist regex bisa
+  di-bypass (`<iframe srcdoc>`, `href="javascript&colon;…"`). Diganti dengan
+  strategi **safe-by-default berbasis allowlist**: Sanitizer API native
+  (`Element.setHTML`) bila tersedia, fallback parsing DOM dengan allowlist
+  tag/atribut + penolakan URL `javascript:`/`data:`/`vbscript:` dan event-handler
+  `on*`. Tanpa DOM (SSR) → escape penuh. Files: `src/compiler/emitters/runtime.js`.
+- **S-3 (HIGH)** — Properti `html:` tersanitasi pada satu jalur tapi tidak pada
+  jalur element-creation. Semua emit `html:` kini melewati **satu jalur sanitizer
+  tunggal**. Files: `src/compiler/emitters/statements.js`.
+
+### Security — Wave 2 (MEDIUM) · PR #35 · commit `a3d7624`
+
+- **S-4 (MEDIUM)** — Injeksi atribut/event-handler. Helper runtime tunggal
+  `__safeAttr` menolak event-handler `on*` dan URL berbahaya, merutekan 4 sink
+  `setAttribute` (selector-attr, property fallback, `visitPropertyNode` termasuk
+  `href`/`src` direct-assign, `Perbarui`). Files:
+  `src/compiler/emitters/statements.js`, `src/compiler/emitters/runtime.js`.
+- **S-5 (MEDIUM)** — Peran auth mudah dipalsukan. Role-guard diperkuat (multi-peran
+  + normalisasi) dengan seam `window.__pjs_verifyPeran` untuk verifikasi
+  server-side, plus `console.warn` jujur bahwa pengecekan peran bersifat
+  **client-side/advisory** (bukan kontrol keamanan server).
+  Files: `src/engine/promptjs.js`.
+- **S-6 (MEDIUM)** — Dev-server path traversal. Guard `startsWith()` yang cacat
+  diganti `path.relative()` (menutup sibling-escape) + `decodeURIComponent`
+  anti-`%2e%2e`; URL malformed → HTTP 400. Files: `src/cli/commands/serve.js`.
+
+### Testing — Wave 3 (T-1) · PR #36 · commit `4dc2b08`
+
+- **T-1** — Coverage lapisan CLI yang sebelumnya 0% kini ditutup dengan suite
+  integrasi nyata (spawn binary + serve live yang memvalidasi ulang S-6 lewat
+  HTTP). Hasil: `cli/` 41.5%→**70.13%**, `index.js` 0→**51.35%**, `build.js`
+  0→**55.55%**, `init.js` 0→**80.43%**, overall lines 72%→**75.38%**.
+  Files: `tests/cli-integration.test.js`, `tests/cli-commands-coverage.test.js`.
+
+### Added — Security Regression Tests
+
+- `tests/security/wave1-security.test.js` — PoC regresi S-1, S-2, S-3 (gagal
+  sebelum fix, lulus sesudah) sebagai gerbang permanen.
+- `tests/security/wave2-security.test.js` — PoC regresi S-4, S-5, S-6 (vm+jsdom
+  mengeksekusi `__safeAttr`, seam verifyPeran, guard traversal).
+- Total suite: **490 test lulus** (21 file), naik dari 431 (17 file).
+  Verifikasi akhir di `main`: ESLint 0 warning · tsc 0 error · Prettier clean ·
+  `npm audit` 0 kerentanan · `package.json` = **1.0.0**.
 
 ### Fixed — Compiler & Parser Bugs
 
