@@ -151,9 +151,15 @@ Halaman Pengaturan:
                     Buat span.setting-label: "Warna Aksen"
                     Buat div.setting-desc: "Ubah warna utama aplikasi"
                 Buat pilihan.pilih-tema#tema:
-                    Buat opsi[value="biru"]: "🔵 Biru"
-                    Buat opsi[value="ungu"]: "🟣 Ungu"
-                    Buat opsi[value="hijau"]: "🟢 Hijau"
+                    Buat opsi:
+                        value = "biru"
+                        teks = "🔵 Biru"
+                    Buat opsi:
+                        value = "ungu"
+                        teks = "🟣 Ungu"
+                    Buat opsi:
+                        value = "hijau"
+                        teks = "🟢 Hijau"
 
         Buat div.settings-card:
             Buat h3: "🔔 Notifikasi"
