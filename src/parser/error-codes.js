@@ -121,6 +121,8 @@ const E4201 = 'E4201'; // Dependency cycle pada data turunan
 const E5001 = 'E5001'; // Node AST tidak didukung oleh compiler
 const E5002 = 'E5002'; // Gagal menurunkan ekspresi ke JavaScript
 const E5003 = 'E5003'; // Selector tidak dapat dikompilasi
+const E5004 = 'E5004'; // Sumber penyimpanan token auth tidak valid (whitelist)
+const E5005 = 'E5005'; // Skema URL redirect auth tidak aman (javascript:/data:)
 
 const W5001 = 'W5001'; // Kode yang dihasilkan mungkin tidak berjalan sesuai harapan
 const W5002 = 'W5002'; // Fitur eksperimental digunakan
@@ -231,6 +233,10 @@ ERROR_MESSAGES[E4201] = 'Dependency cycle pada data turunan';
 ERROR_MESSAGES[E5001] = 'Node AST bertipe "{type}" tidak didukung oleh compiler';
 ERROR_MESSAGES[E5002] = 'Gagal menurunkan ekspresi ke JavaScript';
 ERROR_MESSAGES[E5003] = 'Selector tidak dapat dikompilasi';
+ERROR_MESSAGES[E5004] =
+  'Sumber penyimpanan token auth tidak valid: "{token}". Hanya "localStorage" atau "sessionStorage" yang diizinkan';
+ERROR_MESSAGES[E5005] =
+  'Target redirect auth memakai skema tidak aman: "{redirect}". Gunakan path relatif/absolut, bukan "javascript:" atau "data:"';
 ERROR_MESSAGES[W5001] = 'Kode yang dihasilkan mungkin tidak berjalan sesuai harapan';
 ERROR_MESSAGES[W5002] = 'Fitur eksperimental digunakan';
 
@@ -331,6 +337,10 @@ ERROR_SUGGESTIONS[E4201] =
 ERROR_SUGGESTIONS[E5001] = 'Periksa apakah node type sudah didukung oleh compiler';
 ERROR_SUGGESTIONS[E5002] = 'Sederhanakan ekspresi atau gunakan "langsung:" untuk JS interop';
 ERROR_SUGGESTIONS[E5003] = 'Periksa format selector CSS';
+ERROR_SUGGESTIONS[E5004] =
+  'Setel front-matter "token:" ke "localStorage" atau "sessionStorage" (opsional dengan ".namaKunci")';
+ERROR_SUGGESTIONS[E5005] =
+  'Setel "redirect:" ke path seperti "/login" atau URL http(s), bukan skema "javascript:"/"data:"';
 
 // -- Runtime --
 ERROR_SUGGESTIONS[E6001] = '"berhenti" hanya valid di dalam loop atau event handler';
@@ -622,6 +632,8 @@ module.exports = {
   E5001: E5001,
   E5002: E5002,
   E5003: E5003,
+  E5004: E5004,
+  E5005: E5005,
   W5001: W5001,
   W5002: W5002,
 

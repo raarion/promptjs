@@ -57,13 +57,30 @@ function genVar(ctx, prefix) {
  * Escape nilai menjadi string literal JavaScript yang aman (dengan quote).
  *
  * Memakai `JSON.stringify` untuk konsistensi penanganan escape
- * (newlines, tabs, unicode, dll.).
+ * (newlines, tabs, unicode, dll.), lalu memperketat dua celah yang TIDAK
+ * ditangani `JSON.stringify` saat hasilnya disisipkan ke dalam sumber JS:
+ *
+ *  1. **U+2028 / U+2029** (LINE/PARAGRAPH SEPARATOR) — di-emit mentah oleh
+ *     `JSON.stringify`. Pada parser/bundler pra-ES2019 keduanya adalah
+ *     terminator baris dan akan memecah string literal. Di-escape menjadi
+ *     `\u2028` / `\u2029` agar aman di semua target.
+ *  2. **`</script` & `<!--`** — bila output JS ditanam langsung di dalam tag
+ *     `<script>` HTML, substring `</script>` menutup blok script lebih awal
+ *     (XSS klasik). Backslash disisipkan setelah `<` (`<\/script`, `<\!--`)
+ *     tanpa mengubah nilai string saat runtime.
+ *
+ * Fondasi keamanan bersama: dipakai ulang oleh guard auth (S-1) dan jalur
+ * emit HTML (S-3) agar tidak ada nilai mentah yang dijahit ke output.
  *
  * @param {*} value - Nilai yang akan di-escape (akan dikonversi ke String dulu)
  * @returns {string} String literal JavaScript (mis. `"hello\nworld"`)
  */
 function escapeString(value) {
-  return JSON.stringify(String(value));
+  return JSON.stringify(String(value))
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029')
+    .replace(/<\/(script)/gi, '<\\/$1')
+    .replace(/<!--/g, '<\\!--');
 }
 
 // ============================================================================

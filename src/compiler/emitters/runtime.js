@@ -162,18 +162,73 @@ function __promptjs_apakahAda(arr, item) {
   return false;
 }`.trim(),
 
-  // ── HTML Sanitizer (v1.0.1) ────────────────────────────────────────
+  // ── HTML Sanitizer (v1.0.0) ────────────────────────────────────────
+  // S-2: Sanitizer berbasis PARSING DOM dengan ALLOWLIST — bukan blocklist regex.
+  // Strategi aman-secara-default (safe-by-default):
+  //   1. Pakai Sanitizer API native (Element.prototype.setHTML) bila tersedia.
+  //   2. Jika tidak, parse via DOMParser lalu buang segala tag/atribut di luar
+  //      allowlist (termasuk event handler on*, srcdoc, dan URL javascript:/data:).
+  //   3. Tanpa DOM (mis. SSR) -> escape penuh ke teks (tidak pernah dieksekusi).
+  // Catatan: untuk HTML kaya tak-tepercaya, gunakan DOMPurify — lihat docs.
   __sanitizeHTML: `
 function __sanitizeHTML(html) {
-  if (typeof html !== 'string') return String(html == null ? '' : html);
-  // Strip <script> tags and event handlers to prevent XSS
-  return html
-    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')
-    .replace(/<script\\b[^>]*\\/>/gi, '')
-    .replace(/<script\\b[^>]*>/gi, '')
-    .replace(/\\bon\\w+\\s*=\\s*["'][^"']*["']/gi, '')
-    .replace(/\\bon\\w+\\s*=\\s*[^\\s>]+/gi, '')
-    .replace(/javascript\\s*:/gi, 'blocked:');
+  if (typeof html !== 'string') html = String(html == null ? '' : html);
+  var ALLOWED_TAGS = {
+    A:1,ABBR:1,B:1,BLOCKQUOTE:1,BR:1,CODE:1,DD:1,DIV:1,DL:1,DT:1,EM:1,
+    FIGCAPTION:1,FIGURE:1,H1:1,H2:1,H3:1,H4:1,H5:1,H6:1,HR:1,I:1,IMG:1,
+    LI:1,MARK:1,OL:1,P:1,PRE:1,S:1,SMALL:1,SPAN:1,STRONG:1,SUB:1,SUP:1,
+    TABLE:1,TBODY:1,TD:1,TFOOT:1,TH:1,THEAD:1,TR:1,U:1,UL:1
+  };
+  var ALLOWED_ATTR = { href:1, src:1, alt:1, title:1, colspan:1, rowspan:1, id:1, 'class':1 };
+  var URL_ATTR = { href:1, src:1 };
+  function safeUrl(v) {
+    var s = String(v).replace(/[\\u0000-\\u001F\\u007F\\s]/g, '').toLowerCase();
+    return !/^(javascript|data|vbscript):/.test(s);
+  }
+  function escapeText(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  if (typeof document === 'undefined' || !document.createElement) {
+    return escapeText(html);
+  }
+  try {
+    var tplN = document.createElement('template');
+    if (typeof tplN.setHTML === 'function') { tplN.setHTML(html); return tplN.innerHTML; }
+  } catch (e) { /* fallthrough ke parser allowlist */ }
+  var doc;
+  try {
+    doc = new DOMParser().parseFromString('<body>' + html + '</body>', 'text/html');
+  } catch (e2) { return escapeText(html); }
+  function clean(node) {
+    var child = node.firstChild;
+    while (child) {
+      var next = child.nextSibling;
+      if (child.nodeType === 1) {
+        if (!ALLOWED_TAGS[child.tagName]) {
+          node.removeChild(child);
+        } else {
+          var attrs = child.attributes;
+          for (var i = attrs.length - 1; i >= 0; i--) {
+            var name = attrs[i].name;
+            var lname = name.toLowerCase();
+            if (!ALLOWED_ATTR[lname] || lname.indexOf('on') === 0) {
+              child.removeAttribute(name);
+            } else if (URL_ATTR[lname] && !safeUrl(attrs[i].value)) {
+              child.removeAttribute(name);
+            }
+          }
+          clean(child);
+        }
+      } else if (child.nodeType === 8) {
+        node.removeChild(child);
+      }
+      child = next;
+    }
+  }
+  clean(doc.body);
+  return doc.body.innerHTML;
 }`.trim(),
 };
 

@@ -243,8 +243,8 @@ Buat ruang:
   "Protected"`;
       const { js, errors } = compileSource(source);
       expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
-      expect(js).toContain("localStorage.getItem('auth_token')");
-      expect(js).not.toContain("localStorage.getItem('token')");
+      expect(js).toContain('localStorage.getItem("auth_token")');
+      expect(js).not.toContain('localStorage.getItem("token")');
     });
 
     it('should extract token key from dot notation in token directive', () => {
@@ -256,7 +256,7 @@ Buat ruang:
   "Protected"`;
       const { js, errors } = compileSource(source);
       expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
-      expect(js).toContain("sessionStorage.getItem('jwt')");
+      expect(js).toContain('sessionStorage.getItem("jwt")');
     });
 
     it('should let tokenKey override dot notation key', () => {
@@ -270,7 +270,7 @@ Buat ruang:
       const { js, errors } = compileSource(source);
       expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
       // tokenKey takes precedence over dot notation
-      expect(js).toContain("localStorage.getItem('access_token')");
+      expect(js).toContain('localStorage.getItem("access_token")');
     });
 
     it('should default to "token" key when no tokenKey or dot notation', () => {
@@ -282,7 +282,7 @@ Buat ruang:
   "Protected"`;
       const { js, errors } = compileSource(source);
       expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
-      expect(js).toContain("localStorage.getItem('token')");
+      expect(js).toContain('localStorage.getItem("token")');
     });
 
     it('should use custom token key with peran role check', () => {
@@ -296,7 +296,7 @@ Buat ruang:
   "Admin panel"`;
       const { js, errors } = compileSource(source);
       expect(errors.filter((e) => e.severity === 'error')).toEqual([]);
-      expect(js).toContain("localStorage.getItem('session_id')");
+      expect(js).toContain('localStorage.getItem("session_id")');
       expect(js).toContain('__peran');
       expect(js).toContain('admin');
     });
