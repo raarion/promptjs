@@ -45,6 +45,26 @@ function install(PromptJSCompiler, accept) {
     this.emit(`${targetVar}.innerHTML = __sanitizeHTML(${valExpr});`);
   };
 
+  /**
+   * Emit setAttribute yang SELALU melewati `__safeAttr`.
+   *
+   * S-4 (v1.0.0): Atribut elemen di-emit dari nilai .pjs tak-tepercaya. Tanpa
+   * filter, penulis bisa menyuntik event-handler (`onclick`/`onerror`/…) atau
+   * URL skema aktif (`href="javascript:…"`, `src="data:…"`) langsung ke output —
+   * XSS pada aplikasi hasil. Helper tunggal ini menyatukan kebijakan: TIDAK ADA
+   * `setAttribute` dinamis tak-tervalidasi yang tersisa.
+   *
+   * @this {any}
+   * @param {string} targetVar - Nama variabel elemen target (mis. `__el_1`)
+   * @param {string} key - Nama atribut (literal, dari source)
+   * @param {string} valExpr - Ekspresi nilai (sudah di-lower)
+   * @returns {void}
+   */
+  PromptJSCompiler.prototype.emitSafeAttribute = function (targetVar, key, valExpr) {
+    this.helpers.add('__safeAttr');
+    this.emit(`__safeAttr(${targetVar}, "${key}", ${valExpr});`);
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // VISITOR IMPLEMENTATIONS — DECLARATIONS
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -306,7 +326,7 @@ function install(PromptJSCompiler, accept) {
     if (node.selector.attributes && node.selector.attributes.length > 0) {
       node.selector.attributes.forEach((attr) => {
         const attrVal = attr.value ? this.lowerExpression(attr.value) : '""';
-        this.emit(`${varName}.setAttribute("${attr.key}", ${attrVal});`);
+        this.emitSafeAttribute(varName, attr.key, attrVal); // S-4: filter on*/URL
       });
     }
 
@@ -318,7 +338,7 @@ function install(PromptJSCompiler, accept) {
         else if (p.key === 'html')
           this.emitHtmlAssignment(varName, val); // S-3: selalu sanitasi
         else if (p.key === 'nilai') this.emit(`${varName}.value = ${val};`);
-        else this.emit(`${varName}.setAttribute("${p.key}", ${val});`);
+        else this.emitSafeAttribute(varName, p.key, val); // S-4: filter on*/URL
       });
     }
 
@@ -432,10 +452,15 @@ function install(PromptJSCompiler, accept) {
         'target',
         'rel',
       ]);
-      if (directProps.has(key)) {
+      // S-4: atribut pembawa-URL (href/src) tetap rawan walau via direct
+      // property assignment (`a.href = "javascript:…"`). Rutekan SEMUA atribut
+      // tak-tepercaya lewat __safeAttr; biarkan hanya properti non-URL yang
+      // jelas aman memakai direct assignment cepat.
+      const urlBearing = new Set(['src', 'href']);
+      if (directProps.has(key) && !urlBearing.has(key)) {
         this.emit(`${parent}.${key} = ${val};`);
       } else {
-        this.emit(`${parent}.setAttribute("${key}", ${val});`);
+        this.emitSafeAttribute(parent, key, val); // S-4: filter on*/URL
       }
     }
   };
@@ -615,11 +640,15 @@ function install(PromptJSCompiler, accept) {
       if (jsProp === 'innerHTML') {
         this.helpers.add('__sanitizeHTML');
         this.emit(`${target}.${jsProp} = __sanitizeHTML(${val});`);
+      } else if (jsProp === 'src' || jsProp === 'href') {
+        // S-4: properti pembawa-URL tetap rawan via direct assignment.
+        this.emitSafeAttribute(target, jsProp, val);
       } else {
         this.emit(`${target}.${jsProp} = ${val};`);
       }
     } else {
-      this.emit(`${target}.setAttribute("${node.property}", ${val});`);
+      // S-4: atribut tak-dikenal/tak-tepercaya → filter on*/URL.
+      this.emitSafeAttribute(target, node.property, val);
     }
   };
 

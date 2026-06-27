@@ -230,6 +230,37 @@ function __sanitizeHTML(html) {
   clean(doc.body);
   return doc.body.innerHTML;
 }`.trim(),
+
+  // ── Safe Attribute Setter (v1.0.0) ──────────────────────────────────────
+  // S-4: Atribut elemen di-emit dari nilai .pjs yang tak-tepercaya. Tanpa
+  // filter, penulis dapat menyuntik event-handler (`onclick`, `onerror`, …)
+  // atau URL skema aktif (`href="javascript:…"`, `src="data:…"`) yang langsung
+  // menjadi XSS pada aplikasi hasil. Helper ini adalah TITIK TUNGGAL yang
+  // dilalui semua setAttribute dinamis:
+  //   • Atribut event-handler (`on*`) DITOLAK total.
+  //   • Atribut pembawa-URL dengan skema javascript:/data:/vbscript: DITOLAK.
+  //   • Sisanya di-set normal.
+  // Mengembalikan true bila atribut ter-set, false bila ditolak (di-warn).
+  __safeAttr: `
+function __safeAttr(el, name, value) {
+  if (!el || typeof name !== 'string') return false;
+  var lname = name.toLowerCase();
+  // Tolak semua event-handler inline (onclick, onerror, onmouseover, ...).
+  if (lname.indexOf('on') === 0) {
+    if (typeof console !== 'undefined') console.warn('[PromptJS] atribut event-handler diblokir: ' + name);
+    return false;
+  }
+  var URL_ATTR = { href:1, src:1, action:1, formaction:1, poster:1, 'xlink:href':1, background:1, cite:1, srcset:1, 'data':1 };
+  if (URL_ATTR[lname]) {
+    var s = String(value == null ? '' : value).replace(/[\\u0000-\\u001F\\u007F\\s]/g, '').toLowerCase();
+    if (/^(javascript|data|vbscript):/.test(s)) {
+      if (typeof console !== 'undefined') console.warn('[PromptJS] URL skema tidak aman diblokir pada ' + name + ': ' + value);
+      return false;
+    }
+  }
+  el.setAttribute(name, value == null ? '' : value);
+  return true;
+}`.trim(),
 };
 
 // ============================================================================
@@ -295,6 +326,7 @@ function emitRuntimeHelpers(compiler) {
     '__promptjs_apakahKosong',
     '__promptjs_apakahAda',
     '__sanitizeHTML',
+    '__safeAttr',
   ];
 
   for (const name of emitOrder) {
