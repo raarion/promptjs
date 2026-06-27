@@ -10,12 +10,12 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-431%20passing-a78bfa?style=for-the-badge&logo=vitest&logoColor=a78bfa">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-490%20passing-a78bfa?style=for-the-badge&logo=vitest&logoColor=a78bfa">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
   <p><strong>Bahasa frontend deklaratif dwibahasa yang dikompilasi ke vanilla JavaScript.</strong></p>
-  <sup><b><mark>Reaktivitas</mark> • <mark>Komponen</mark> • <mark>Routing</mark> • <mark>Auth</mark> • <mark>Plugin</mark> • <mark>CSP</mark> • <mark>Zero Deps</mark></b></sup>
+  <sup><b><mark>Reaktivitas</mark> • <mark>Komponen</mark> • <mark>Routing</mark> • <mark>Auth</mark> • <mark>Plugin</mark> • <mark>CSP</mark> • <mark>Hardened</mark> • <mark>Zero Deps</mark></b></sup>
   <p><em>Tulis dengan Bahasa yang Kamu Pahami, Hasilkan Kode yang Dunia Mengerti.</em></p>
 </div>
 
@@ -93,6 +93,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | 🛡️ **CSP Ready** | `--csp` flag — nonce injection buat production hardening |
 | 🌳 **Tree Shaking** | Runtime helpers cuma di-emit kalo dipake — output minimal |
 | 🔒 **Safe Output** | Zero `eval()`, zero `new Function()`, no dynamic code execution |
+| 🛡️ **Hardened Codegen** | Sanitizer allowlist (Sanitizer API/DOM), `__safeAttr` filter `on*` & URL `javascript:`, escape front-matter — lihat [Keamanan](#-keamanan--security-hardening) |
 
 ---
 
@@ -110,7 +111,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **CSP Built-in** (`--csp` flag) | **✅** 🏆 | ❌ manual | ❌ manual | ❌ manual | ❌ manual | ❌ manual |
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
-| **Test Suite** | 431 tests | 3,000+ | — | 4,000+ | 10,000+ | — |
+| **Test Suite** | 490 tests | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |
 
@@ -261,7 +262,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 <details>
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
-- `tests/` ← 431 tests, 17 test files
+- `tests/` ← 490 tests, 21 test files
   - [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
   - [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
   - [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
@@ -269,6 +270,10 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
   - [v0.8-adapter.test.js](tests/v0.8-adapter.test.js) ← Adapters + CSP (48 tests)
   - [v0.9-auth.test.js](tests/v0.9-auth.test.js) ← Auth guard
   - [v1.0-release.test.js](tests/v1.0-release.test.js) ← Regression tests
+  - [security/wave1-security.test.js](tests/security/wave1-security.test.js) ← Wave 1 PoC regresi (S-1, S-2, S-3)
+  - [security/wave2-security.test.js](tests/security/wave2-security.test.js) ← Wave 2 PoC regresi (S-4, S-5, S-6)
+  - [cli-integration.test.js](tests/cli-integration.test.js) ← CLI e2e (spawn binary + serve, validasi S-6)
+  - [cli-commands-coverage.test.js](tests/cli-commands-coverage.test.js) ← CLI commands coverage (T-1)
   - [pipeline.test.js](tests/pipeline.test.js) ← Full pipeline
   - [components.test.js](tests/components.test.js) ← Komponen
   - [c4-expressions.test.js](tests/c4-expressions.test.js) ← Expression coverage
@@ -292,6 +297,26 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 - [scripts/build-pages.js](scripts/build-pages.js) ← GitHub Pages build script
 
 </details>
+
+---
+
+## 🛡️ Keamanan / Security Hardening
+
+> PromptJS v1.0.0 telah melalui audit keamanan mendalam dan **tiga gelombang perbaikan** yang ter-merge ke `main`. Semua temuan HIGH & MEDIUM ditutup dan dikunci oleh regression test ber-PoC.
+
+| Temuan | Severity | Status | Ringkasan perbaikan |
+|---|---|---|---|
+| **S-1** Code-injection front-matter auth | 🔴 HIGH | ✅ Fixed | Whitelist storage + `escapeString()` pada nilai input |
+| **S-2** Sanitizer regex bypass | 🔴 HIGH | ✅ Fixed | Allowlist berbasis Sanitizer API / parsing DOM (safe-by-default) |
+| **S-3** `html:` tak tersanitasi (element-creation) | 🔴 HIGH | ✅ Fixed | Satu jalur emit HTML tunggal melewati sanitizer |
+| **S-4** Injeksi atribut/event-handler | 🟡 MED | ✅ Fixed | Helper `__safeAttr` tolak `on*` & URL berbahaya (4 sink) |
+| **S-5** Peran auth mudah dipalsukan | 🟡 MED | ✅ Fixed | Seam `__pjs_verifyPeran` + warning jujur (client-side advisory) |
+| **S-6** Dev-server path traversal | 🟡 MED | ✅ Fixed | `path.relative()` + `decodeURIComponent` anti-`%2e%2e` |
+| **T-1** CLI coverage 0% | ⚪ Test | ✅ Fixed | Suite integrasi CLI (spawn binary + serve e2e) |
+
+**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **490/490 test lulus** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
+
+> ⚠️ **Catatan jujur:** auth guard PromptJS bersifat **client-side/advisory** — bukan kontrol keamanan server. Untuk otorisasi sesungguhnya, verifikasi peran **wajib** dilakukan di server (gunakan seam `window.__pjs_verifyPeran`).
 
 ---
 
@@ -344,7 +369,7 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 ## ✔️ Quality Assurance
 
 ```bash
-npm test          # 431 tests, 17 test files
+npm test          # 490 tests, 21 test files
 npm run lint      # ESLint — zero warnings
 npm run typecheck # tsc — zero errors
 npm run format    # Prettier
