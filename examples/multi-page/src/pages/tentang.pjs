@@ -1,45 +1,76 @@
+---
+judul: "Tentang"
+---
+
 Gaya:
-    .about
-        max-width: 600px
-        margin: 40px auto
-        padding: 40px
-        background: white
-        border-radius: 12px
-    .about h2
-        color: #1a1a2e
-    .feature
-        padding: 16px
-        border-left: 4px solid #0f3460
-        margin: 16px 0
-        background: #f8f9fa
-    .feature h3
-        margin: 0 0 8px 0
-        color: #16213e
-    .feature p
+    body
+        font-family: 'Inter', system-ui, sans-serif
         margin: 0
-        color: #555
+        padding: 0
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        color: #e0e0e0
+        min-height: 100vh
+        display: flex
+        align-items: center
+        justify-content: center
+    .about-card
+        max-width: 600px
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(20px)
+        -webkit-backdrop-filter: blur(20px)
+        border: 1px solid rgba(255,255,255,0.08)
+        border-radius: 24px
+        padding: 40px
+        box-shadow: 0 25px 60px rgba(0,0,0,0.4)
+    .about-card h1
+        margin: 0 0 16px
+        font-size: 2rem
+        font-weight: 800
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .about-card p
+        color: #8888a0
+        line-height: 1.7
+        font-size: 1rem
+        margin-bottom: 20px
+    .feature-list
+        display: grid
+        gap: 12px
+    .feature-item
+        display: flex
+        gap: 12px
+        align-items: flex-start
+        padding: 12px 16px
+        background: rgba(255,255,255,0.03)
+        border-radius: 12px
+        border: 1px solid rgba(255,255,255,0.04)
+    .feature-item .check
+        color: #86efac
+        font-weight: bold
+    .feature-item span
+        font-size: 0.95rem
+        color: #e0e0e0
 
 Halaman Tentang:
-    Buat div.about:
-        Buat h2: "Tentang PromptJS"
-        Buat p: "PromptJS adalah DSL template engine berbasis indentasi yang mengkompilasi ke JavaScript vanilla."
+    Buat div.about-card:
+        Buat h1: $judul
+        Buat p: "PromptJS adalah bahasa domain-specific (DSL) yang mengkompilasi template deklaratif bilingual menjadi JavaScript vanilla — tanpa framework, tanpa virtual DOM, tanpa runtime dependencies."
 
-        Buat div.feature:
-            Buat h3: "Bilingual"
-            Buat p: "Tulis dengan kata kunci Indonesia (Buat, Jika, Ulangi) atau English (Create, If, Loop)."
-
-        Buat div.feature:
-            Buat h3: "Zero Dependencies"
-            Buat p: "Output JS vanilla murni tanpa framework. Runtime helpers di-embed langsung."
-
-        Buat div.feature:
-            Buat h3: "CSS Support"
-            Buat p: "Tulis CSS dengan block Gaya: yang compile ke prompt.css terpisah."
-
-        Buat div.feature:
-            Buat h3: "Reaktif"
-            Buat p: "Data reaktif dengan Proxy. Saat x: untuk watcher. Turunan untuk computed values."
-
-        Buat div.feature:
-            Buat h3: "Multi-file"
-            Buat p: "Folder-based routing ala Astro. kirim/terima untuk sharing antar file."
+        Buat div.feature-list:
+            Buat div.feature-item:
+                Buat span.check: "✓"
+                Buat span: "Kata kunci bilingual Indonesia & English"
+            Buat div.feature-item:
+                Buat span.check: "✓"
+                Buat span: "Pipeline 5 tahap: Lexer → Parser → Resolver → Analyzer → Compiler"
+            Buat div.feature-item:
+                Buat span.check: "✓"
+                Buat span: "Reaktivitas Proxy-based dengan data, turunan, dan Saat watcher"
+            Buat div.feature-item:
+                Buat span.check: "✓"
+                Buat span: "Komponen, SPA Routing, Auth Guard, Plugin System"
+            Buat div.feature-item:
+                Buat span.check: "✓"
+                Buat span: "Output vanilla JS — zero eval(), zero new Function()"

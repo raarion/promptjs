@@ -2,33 +2,142 @@
 judul: "Todo List"
 ---
 
+Gaya:
+    body
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
+        min-height: 100vh
+        display: flex
+        align-items: center
+        justify-content: center
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        color: #e0e0e0
+        padding: 20px
+    .todo-wrapper
+        width: 100%
+        max-width: 480px
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(20px)
+        -webkit-backdrop-filter: blur(20px)
+        border: 1px solid rgba(255,255,255,0.1)
+        border-radius: 24px
+        padding: 32px
+        box-shadow: 0 25px 60px rgba(0,0,0,0.4)
+    .todo-wrapper h1
+        margin: 0 0 4px
+        font-size: 1.6rem
+        font-weight: 800
+        text-align: center
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .todo-stats
+        text-align: center
+        color: #64748b
+        font-size: 0.82rem
+        margin-bottom: 20px
+    .input-group
+        display: flex
+        gap: 8px
+        margin-bottom: 20px
+    .input-group input
+        flex: 1
+        padding: 12px 16px
+        background: rgba(255,255,255,0.06)
+        border: 1px solid rgba(255,255,255,0.12)
+        border-radius: 12px
+        color: #e0e0e0
+        font-size: 0.95rem
+        outline: none
+        font-family: inherit
+        transition: border-color 0.15s ease
+    .input-group input:focus
+        border-color: #7dd3fc
+        box-shadow: 0 0 0 3px rgba(125,211,252,0.1)
+    .input-group input::placeholder
+        color: #475569
+    .input-group button
+        padding: 12px 20px
+        background: linear-gradient(135deg, #7dd3fc, #4f9ef7)
+        border: none
+        border-radius: 12px
+        color: #0f172a
+        font-weight: 700
+        font-size: 0.95rem
+        cursor: pointer
+        transition: opacity 0.15s ease
+        font-family: inherit
+    .input-group button:hover
+        opacity: 0.9
+    .todo-list
+        list-style: none
+        padding: 0
+        margin: 0 0 8px
+    .todo-item
+        display: flex
+        align-items: center
+        gap: 10px
+        padding: 12px 14px
+        background: rgba(255,255,255,0.03)
+        border: 1px solid rgba(255,255,255,0.05)
+        border-radius: 10px
+        margin-bottom: 6px
+        transition: background 0.15s
+    .todo-item:hover
+        background: rgba(255,255,255,0.06)
+    .todo-text
+        flex: 1
+        font-size: 0.95rem
+        color: #e0e0e0
+    .delete-btn
+        background: none
+        border: 1px solid rgba(239,68,68,0.2)
+        color: #fca5a5
+        cursor: pointer
+        font-size: 1rem
+        padding: 4px 10px
+        border-radius: 8px
+        transition: all 0.15s
+        font-family: inherit
+    .delete-btn:hover
+        background: rgba(239,68,68,0.1)
+        border-color: rgba(239,68,68,0.4)
+    .list-empty
+        text-align: center
+        color: #475569
+        font-size: 0.9rem
+        padding: 24px
+        font-style: italic
+
 Halaman Todo:
-  data tugas = ""
-  data daftar = []
+    data daftar = []
+    data teks = ""
 
-  Buat h1: $judul
+    Buat div.todo-wrapper:
+        Buat h1: $judul
+        Buat div.todo-stats:
+            Buat span:
+                "📋 "
 
-  Buat masukan:
-    placeholder = "Tulis tugas baru..."
-    on_diketik = simpan document.querySelector("input").value ke tugas
+            Saat daftar:
+                Buat span:
+                    panjang(daftar)
 
-  Buat tombol:
-    "Tambah"
-    on_klik = tambahkan tugas ke daftar
+            Buat span:
+                " item"
 
-  Buat daftar:
-    Saat daftar:
-      Ulangi untuk item dari daftar:
-        Buat item:
-          item
+        Buat div.input-group:
+            Buat masukan#todo-input:
+                placeholder = "Tulis tugas baru..."
+                on_diketik = simpan document.querySelector("#todo-input").value ke teks
+            Buat tombol#btn-tambah:
+                "+ Tambah"
+                on_klik = tambahkan teks ke daftar
 
-  Buat paragraf:
-    Buat span:
-      "Total: "
-
-    Saat daftar:
-      Buat span:
-        panjang(daftar)
-
-    Buat span:
-      " tugas"
+        Buat daftar.todo-list:
+            Ulangi untuk item dari daftar:
+                Buat li.todo-item:
+                    Buat span.todo-text: item
+                    Buat tombol.delete-btn: "✕"
+                        on_klik = hapus item dari daftar

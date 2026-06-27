@@ -2,6 +2,96 @@
 judul: "Profil"
 ---
 
+Gaya:
+    body
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
+        padding: 0
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        min-height: 100vh
+        color: #e0e0e0
+    .page-header
+        padding: 28px 32px 0
+    .page-header h2
+        margin: 0
+        font-size: 1.6rem
+        font-weight: 700
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .profile-container
+        max-width: 560px
+        margin: 28px auto
+        padding: 0 20px
+    .profile-card
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(16px)
+        -webkit-backdrop-filter: blur(16px)
+        border: 1px solid rgba(255,255,255,0.1)
+        border-radius: 20px
+        padding: 32px
+        text-align: center
+    .avatar
+        width: 80px
+        height: 80px
+        border-radius: 24px
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        display: flex
+        align-items: center
+        justify-content: center
+        font-size: 2rem
+        margin: 0 auto 20px
+    .profile-card h3
+        margin: 0 0 4px
+        font-size: 1.3rem
+        font-weight: 700
+        color: #fff
+    .role-badge
+        display: inline-block
+        padding: 4px 14px
+        border-radius: 999px
+        background: rgba(134,239,172,0.15)
+        color: #86efac
+        font-size: 0.8rem
+        font-weight: 600
+        margin-bottom: 24px
+    .info-grid
+        display: grid
+        grid-template-columns: auto 1fr
+        gap: 12px 20px
+        text-align: left
+        padding: 20px
+        background: rgba(255,255,255,0.03)
+        border-radius: 14px
+    .info-grid .info-label
+        font-size: 0.8rem
+        font-weight: 600
+        color: #64748b
+        text-transform: uppercase
+        letter-spacing: 0.05em
+    .info-grid .info-value
+        font-size: 0.95rem
+        color: #e0e0e0
+        font-family: 'SF Mono', Monaco, monospace
+        font-weight: 500
+        word-break: break-all
+    .logout-btn
+        margin-top: 24px
+        padding: 10px 28px
+        background: rgba(239,68,68,0.12)
+        border: 1px solid rgba(239,68,68,0.25)
+        border-radius: 10px
+        color: #fca5a5
+        font-size: 0.9rem
+        font-weight: 600
+        cursor: pointer
+        transition: all 0.15s ease
+        font-family: inherit
+    .logout-btn:hover
+        background: rgba(239,68,68,0.22)
+        color: #fecaca
+
 Halaman Profil:
     data nama = ""
     data peran = ""
@@ -10,10 +100,25 @@ Halaman Profil:
         simpan localStorage.getItem("auth_token") ke nama
         simpan localStorage.getItem("__peran") ke peran
 
-    Buat div.kartu:
+    Buat div.page-header:
         Buat h2: $judul
-        Buat div.profil-info:
-            Buat label: "Token"
-            Buat span: $nama
-            Buat label: "Peran"
-            Buat span: $peran
+
+    Buat div.profile-container:
+        Buat div.profile-card:
+            Buat div.avatar: "👤"
+            Buat h3: "Administrator"
+            Buat span.role-badge: $peran
+
+            Buat div.info-grid:
+                Buat span.info-label: "Token"
+                Buat span.info-value: $nama
+                Buat span.info-label: "Peran"
+                Buat span.info-value: $peran
+                Buat span.info-label: "Status"
+                Buat span.info-value: "🟢 Aktif"
+
+            Buat tombol.logout-btn#keluar-profil: "🚪 Keluar dari Akun"
+                Ketika diklik:
+                    hapus localStorage.auth_token
+                    hapus localStorage.__peran
+                    arahkan "login.html"

@@ -4,77 +4,153 @@ judul: "Masuk"
 
 Gaya:
     body
-        font-family: system-ui, -apple-system, sans-serif
-        display: flex
-        justify-content: center
-        align-items: center
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
         min-height: 100vh
-        background: #f8f9fa
-    .kartu-login
-        background: white
+        display: flex
+        align-items: center
+        justify-content: center
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        color: #e0e0e0
+    .login-wrapper
+        width: 100%
+        max-width: 420px
+        padding: 20px
+    .login-card
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(20px)
+        -webkit-backdrop-filter: blur(20px)
+        border: 1px solid rgba(255,255,255,0.1)
+        border-radius: 24px
+        padding: 40px 32px
+        box-shadow: 0 25px 60px rgba(0,0,0,0.4)
+        text-align: center
+    .login-card .brand
+        width: 52px
+        height: 52px
         border-radius: 16px
-        padding: 32px
-        width: 100%
-        max-width: 400px
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1)
-    .kartu-login h2
-        margin-top: 0
-        color: #1a1a2e
-    .kartu-login label
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        display: flex
+        align-items: center
+        justify-content: center
+        font-size: 1.5rem
+        margin: 0 auto 16px
+    .login-card h2
+        margin: 0 0 8px
+        font-size: 1.5rem
+        font-weight: 700
+        color: #fff
+    .login-card .subtitle
+        font-size: 0.9rem
+        color: #94a3b8
+        margin-bottom: 28px
+    .form-group
+        text-align: left
+        margin-bottom: 18px
+    .form-group label
         display: block
-        color: #495057
-        margin-bottom: 4px
-        font-size: 0.9rem
-    .kartu-login masukan
+        font-size: 0.85rem
+        font-weight: 600
+        color: #94a3b8
+        margin-bottom: 6px
+        letter-spacing: 0.02em
+    .form-group input
         width: 100%
-        padding: 10px 14px
-        border: 2px solid #dee2e6
-        border-radius: 8px
-        font-size: 1rem
-        margin-bottom: 16px
+        padding: 12px 16px
+        background: rgba(255,255,255,0.06)
+        border: 1px solid rgba(255,255,255,0.12)
+        border-radius: 12px
+        color: #e0e0e0
+        font-size: 0.95rem
         outline: none
+        transition: border-color 0.2s ease, box-shadow 0.2s ease
         box-sizing: border-box
-    .kartu-login masukan:focus
-        border-color: #4dabf7
-    .pesan
-        color: #e03131
-        font-size: 0.9rem
-        margin-bottom: 12px
-    tombol.masuk
-        width: 100%
-        padding: 12px
-        background: #4dabf7
-        color: white
-        border: none
+        font-family: inherit
+    .form-group input:focus
+        border-color: #7dd3fc
+        box-shadow: 0 0 0 3px rgba(125,211,252,0.15)
+    .form-group input::placeholder
+        color: #475569
+    .error-msg
+        color: #fca5a5
+        font-size: 0.85rem
+        margin-bottom: 16px
+        min-height: 20px
+        text-align: center
+        padding: 8px 12px
         border-radius: 8px
+        background: rgba(239,68,68,0.08)
+        display: none
+    .error-msg.show
+        display: block
+    .login-btn
+        width: 100%
+        padding: 14px
+        background: linear-gradient(135deg, #7dd3fc, #4f9ef7)
+        border: none
+        border-radius: 12px
+        color: #0f172a
         font-size: 1rem
+        font-weight: 700
         cursor: pointer
-    tombol.masuk:hover
-        background: #339af0
+        transition: opacity 0.2s ease, transform 0.15s ease
+        font-family: inherit
+        margin-top: 8px
+    .login-btn:hover
+        opacity: 0.92
+        transform: translateY(-1px)
+    .login-btn:active
+        transform: translateY(0)
+    .login-footer
+        margin-top: 20px
+        font-size: 0.8rem
+        color: #64748b
+    .login-footer code
+        background: rgba(125,211,252,0.1)
+        padding: 2px 8px
+        border-radius: 4px
+        color: #7dd3fc
+        font-size: 0.8rem
 
 Halaman Login:
     data nama = ""
     data sandi = ""
     data pesan = ""
 
-    Buat div.kartu-login:
-        Buat h2: $judul
-        Buat formulir:
-            Buat label: "Nama Pengguna"
-            Buat masukan#nama:
-                placeholder = "admin"
-                on_diketik = simpan document.querySelector("#nama").value ke nama
-            Buat label: "Kata Sandi"
-            Buat masukan#sandi:
-                tipe = "password"
-                placeholder = "••••••"
-                on_diketik = simpan document.querySelector("#sandi").value ke sandi
-            Buat span.pesan: $pesan
-            Buat tombol.masuk: "Masuk"
+    Buat div.login-wrapper:
+        Buat div.login-card:
+            Buat div.brand: "🐬"
+            Buat h2: $judul
+            Buat span.subtitle: "Masuk ke dashboard anda"
+
+            Buat div.form-group:
+                Buat label: "Nama Pengguna"
+                Buat masukan#nama:
+                    placeholder = "admin"
+                    on_diketik = simpan document.querySelector("#nama").value ke nama
+
+            Buat div.form-group:
+                Buat label: "Kata Sandi"
+                Buat masukan#sandi:
+                    type = "password"
+                    placeholder = "••••••"
+                    on_diketik = simpan document.querySelector("#sandi").value ke sandi
+
+            Buat div.error-msg#pesan-error: $pesan
+
+            Buat tombol.login-btn#btn-login: "Masuk"
                 Ketika diklik:
                     Jika nama === "admin":
                         simpan "dummy-token-123" ke localStorage.auth_token
                         simpan "admin" ke localStorage.__peran
-                        arahkan "/dashboard"
+                        arahkan "dashboard.html"
                     Lainnya:
-                        simpan "Nama atau sandi salah (diketik: " + sandi + ")" ke pesan
+                        simpan "⚠️ Nama atau sandi salah" ke pesan
+
+            Buat div.login-footer:
+                Buat span:
+                    "Gunakan "
+                Buat code:
+                    "admin"
+                Buat span:
+                    " untuk mencoba"

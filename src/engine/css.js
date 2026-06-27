@@ -33,6 +33,68 @@
 
 'use strict';
 
+const TAG_ALIAS_TO_HTML = {
+  tombol: 'button',
+  ruang: 'div',
+  judul: 'h1',
+  subjudul: 'h2',
+  paragraf: 'p',
+  gambar: 'img',
+  tautan: 'a',
+  masukan: 'input',
+  pilihan: 'select',
+  kolom: 'textarea',
+  tabel: 'table',
+  artikel: 'article',
+  kanvas: 'canvas',
+  opsi: 'option',
+  fragmen: 'fragment',
+  wadjud: 'h1',
+  wadah: 'div',
+  kotak: 'div',
+  frm: 'form',
+  frmMasuk: 'form',
+  halaman: 'div',
+  card: 'div',
+  page: 'div',
+  pemisah: 'hr',
+  container: 'div',
+  navigasi: 'nav',
+  kepala: 'header',
+  kaki: 'footer',
+  bagian: 'section',
+  utama: 'main',
+  samping: 'aside',
+  daftar: 'ul',
+  item: 'li',
+  rentang: 'span',
+  bingkai: 'iframe',
+  formulir: 'form',
+  daftarterurut: 'ol',
+};
+
+/**
+ * Translate PromptJS tag aliases to HTML tag names in CSS selectors.
+ * Only replaces standalone tag-name tokens (not classes or IDs).
+ *
+ * @param {string} selector - CSS selector string
+ * @returns {string} Selector with translated tag aliases
+ */
+function translateCSSSelector(selector) {
+  // Split into comma-separated groups, process each
+  return selector.split(',').map(part => {
+    return part.trim().split(/\s+/).map(token => {
+      // Extract pure tag name (strip pseudo-classes, attributes, classes, ids)
+      // e.g., "tombol.primary:hover" → tag="tombol", suffix=".primary:hover"
+      const clean = token.replace(/[:[].*$/, '').replace(/[.#].*$/, '');
+      if (TAG_ALIAS_TO_HTML[clean]) {
+        return token.replace(clean, TAG_ALIAS_TO_HTML[clean]);
+      }
+      return token;
+    }).join(' ');
+  }).join(', ');
+}
+
 /**
  * @typedef {Object} CSSRule
  * @property {string} selector - CSS selector (e.g. ".card", "h1", "@media (max-width: 600px)")
@@ -194,7 +256,7 @@ function compileCSS(rules, scoped) {
       lines.push(`${rule.selector} {`);
       for (const child of rule.children) {
         const sel =
-          scoped && child.scope ? scopeSelector(child.selector, child.scope) : child.selector;
+          scoped && child.scope ? scopeSelector(child.selector, child.scope) : translateCSSSelector(child.selector);
         lines.push(`  ${sel} {`);
         for (const prop of child.properties) {
           lines.push(`    ${prop.key}: ${prop.value};`);
@@ -206,7 +268,7 @@ function compileCSS(rules, scoped) {
     }
 
     // Regular rule
-    const sel = scoped && rule.scope ? scopeSelector(rule.selector, rule.scope) : rule.selector;
+    const sel = scoped && rule.scope ? scopeSelector(rule.selector, rule.scope) : translateCSSSelector(rule.selector);
     lines.push(`${sel} {`);
     for (const prop of rule.properties) {
       lines.push(`  ${prop.key}: ${prop.value};`);
@@ -269,5 +331,6 @@ module.exports = {
   parseGayaRules,
   compileCSS,
   scopeSelector,
+  translateCSSSelector,
   processGayaBlocks,
 };

@@ -1,99 +1,150 @@
-butuhAuth: benar
-redirect: /login
-token: localStorage
-tokenKey: auth_token
-router: benar
+---
+judul: "PromptJS Dashboard"
 ---
 
 Gaya:
     body
-        font-family: system-ui, -apple-system, sans-serif
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
         margin: 0
         padding: 0
-        background: #f8f9fa
-        color: #212529
-    nav
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        min-height: 100vh
+        color: #e0e0e0
+    .app-shell
+        display: flex
+        min-height: 100vh
+    .sidebar
+        width: 260px
+        background: rgba(255,255,255,0.03)
+        backdrop-filter: blur(20px)
+        -webkit-backdrop-filter: blur(20px)
+        border-right: 1px solid rgba(255,255,255,0.08)
+        padding: 24px 16px
+        display: flex
+        flex-direction: column
+    .sidebar-brand
         display: flex
         align-items: center
-        gap: 16px
-        background: #1a1a2e
-        color: white
-        padding: 12px 24px
-    nav .logo
-        font-weight: bold
-        font-size: 1.2rem
-    nav tombol
-        background: rgba(255,255,255,0.15)
-        color: white
-        border: none
-        padding: 8px 16px
-        border-radius: 6px
-        cursor: pointer
-    nav tombol:hover
-        background: rgba(255,255,255,0.25)
-    nav .keluar
-        margin-left: auto
-        background: #e03131
-    nav .keluar:hover
-        background: #c92a2a
-    .konten
-        max-width: 800px
-        margin: 24px auto
-        padding: 0 20px
-    .kartu
-        background: white
-        border-radius: 12px
-        padding: 24px
+        gap: 12px
+        padding: 0 8px 20px
+        border-bottom: 1px solid rgba(255,255,255,0.06)
         margin-bottom: 16px
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08)
-    .kartu h2
-        margin-top: 0
-    .stats
-        display: grid
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))
-        gap: 16px
-    .kartu-stat
-        background: white
+    .sidebar-brand .logo-icon
+        width: 40px
+        height: 40px
         border-radius: 12px
-        padding: 20px
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08)
-        text-align: center
-    .kartu-stat .angka
-        font-size: 2rem
-        font-weight: bold
-        color: #4dabf7
-    .kartu-stat .label
-        color: #868e96
-        font-size: 0.9rem
-    .profil-info
-        display: grid
-        grid-template-columns: auto 1fr
-        gap: 8px 16px
-    .profil-info label
-        color: #868e96
-        font-size: 0.9rem
-    tombol.besar
-        padding: 12px 24px
-        border: none
-        border-radius: 8px
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        display: flex
+        align-items: center
+        justify-content: center
+        font-size: 1.2rem
+    .sidebar-brand .brand-text
+        font-weight: 700
         font-size: 1rem
+        color: #fff
+    .sidebar-brand .brand-ver
+        font-size: 0.7rem
+        color: #64748b
+    .nav-section
+        margin-bottom: 16px
+    .nav-section-title
+        font-size: 0.7rem
+        font-weight: 700
+        color: #64748b
+        text-transform: uppercase
+        letter-spacing: 0.1em
+        padding: 8px 12px 6px
+    .nav-item
+        display: flex
+        align-items: center
+        gap: 10px
+        padding: 10px 12px
+        border-radius: 10px
+        color: #94a3b8
         cursor: pointer
-        background: #4dabf7
-        color: white
-    tombol.besar:hover
-        background: #339af0
-    tombol.merah
-        background: #e03131
-        color: white
-    tombol.merah:hover
-        background: #c92a2a
+        transition: all 0.15s ease
+        font-size: 0.9rem
+        font-weight: 500
+        margin-bottom: 2px
+        border: none
+        background: none
+        width: 100%
+        text-align: left
+        font-family: inherit
+    .nav-item:hover
+        background: rgba(255,255,255,0.05)
+        color: #e0e0e0
+    .nav-item.active
+        background: rgba(125,211,252,0.12)
+        color: #7dd3fc
+        font-weight: 600
+    .nav-item .nav-icon
+        font-size: 1.1rem
+        width: 22px
+        text-align: center
+    .sidebar-footer
+        margin-top: auto
+        padding-top: 16px
+        border-top: 1px solid rgba(255,255,255,0.06)
+    .user-card
+        display: flex
+        align-items: center
+        gap: 10px
+        padding: 8px
+        border-radius: 10px
+        cursor: pointer
+    .user-card:hover
+        background: rgba(255,255,255,0.04)
+    .user-avatar
+        width: 34px
+        height: 34px
+        border-radius: 10px
+        background: linear-gradient(135deg, #86efac, #7dd3fc)
+        display: flex
+        align-items: center
+        justify-content: center
+        font-size: 0.9rem
+    .user-info .user-name
+        font-size: 0.85rem
+        font-weight: 600
+        color: #e0e0e0
+    .user-info .user-role
+        font-size: 0.75rem
+        color: #64748b
+    .main-content
+        flex: 1
+        overflow-y: auto
 
 Halaman DashboardApp:
-    Buat nav#navigasi:
-        Buat span.logo: "Dashboard"
-        Buat tombol[data-halaman="dashboard"]: "Dashboard"
-        Buat tombol[data-halaman="profil"]: "Profil"
-        Buat tombol[data-halaman="pengaturan"]: "Pengaturan"
-        Buat tombol.keluar#keluar: "Keluar"
-    Buat div#konten:
-        Buat h2: "Memuat..."
+    Buat div.app-shell:
+        Buat div.sidebar:
+            Buat div.sidebar-brand:
+                Buat div.logo-icon: "🐬"
+                Buat div:
+                    Buat div.brand-text: "PromptJS"
+                    Buat div.brand-ver: "Dashboard v1.0"
+
+            Buat div.nav-section:
+                Buat div.nav-section-title: "Menu Utama"
+                Buat tombol.nav-item.active[data-halaman="dashboard"]:
+                    Buat span.nav-icon: "📊"
+                    Buat span: "Dashboard"
+                Buat tombol.nav-item[data-halaman="profil"]:
+                    Buat span.nav-icon: "👤"
+                    Buat span: "Profil"
+                Buat tombol.nav-item[data-halaman="pengaturan"]:
+                    Buat span.nav-icon: "⚙️"
+                    Buat span: "Pengaturan"
+
+            Buat div.sidebar-footer:
+                Buat div.user-card:
+                    Buat div.user-avatar: "A"
+                    Buat div.user-info:
+                        Buat div.user-name: "Admin"
+                        Buat div.user-role: "Administrator"
+                Buat tombol.nav-item#keluar:
+                    Buat span.nav-icon: "🚪"
+                    Buat span: "Keluar"
+
+        Buat div.main-content#konten:
+            Buat h2: "Memuat..."

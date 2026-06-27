@@ -2,15 +2,169 @@
 judul: "Pengaturan"
 ---
 
+Gaya:
+    body
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
+        padding: 0
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        min-height: 100vh
+        color: #e0e0e0
+    .page-header
+        padding: 28px 32px 0
+    .page-header h2
+        margin: 0
+        font-size: 1.6rem
+        font-weight: 700
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .settings-container
+        max-width: 560px
+        margin: 24px auto
+        padding: 0 20px
+    .settings-card
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(16px)
+        -webkit-backdrop-filter: blur(16px)
+        border: 1px solid rgba(255,255,255,0.1)
+        border-radius: 20px
+        padding: 28px
+        margin-bottom: 16px
+    .settings-card h3
+        margin: 0 0 20px
+        font-size: 1.1rem
+        font-weight: 700
+        color: #e0e0e0
+        display: flex
+        align-items: center
+        gap: 8px
+    .setting-row
+        display: flex
+        align-items: center
+        justify-content: space-between
+        padding: 14px 0
+        border-bottom: 1px solid rgba(255,255,255,0.06)
+    .setting-row:last-child
+        border-bottom: none
+    .setting-info
+        flex: 1
+    .setting-info .setting-label
+        font-size: 0.95rem
+        font-weight: 600
+        color: #e0e0e0
+    .setting-info .setting-desc
+        font-size: 0.8rem
+        color: #64748b
+        margin-top: 2px
+    .toggle
+        width: 48px
+        height: 26px
+        border-radius: 13px
+        background: rgba(255,255,255,0.12)
+        position: relative
+        cursor: pointer
+        transition: background 0.2s ease
+        border: none
+    .toggle.on
+        background: linear-gradient(135deg, #7dd3fc, #4f9ef7)
+    .toggle::after
+        content: ''
+        position: absolute
+        width: 20px
+        height: 20px
+        border-radius: 50%
+        background: white
+        top: 3px
+        left: 3px
+        transition: transform 0.2s ease
+    .toggle.on::after
+        transform: translateX(22px)
+    .select-theme
+        padding: 8px 14px
+        background: rgba(255,255,255,0.06)
+        border: 1px solid rgba(255,255,255,0.12)
+        border-radius: 10px
+        color: #e0e0e0
+        font-size: 0.9rem
+        cursor: pointer
+        outline: none
+        font-family: inherit
+    .select-theme:focus
+        border-color: #7dd3fc
+    .select-theme option
+        background: #1e1b4b
+        color: #e0e0e0
+    .danger-zone
+        margin-top: 8px
+        padding: 20px
+        background: rgba(239,68,68,0.06)
+        border: 1px solid rgba(239,68,68,0.2)
+        border-radius: 14px
+    .danger-zone h4
+        margin: 0 0 8px
+        color: #fca5a5
+        font-size: 0.95rem
+    .danger-zone p
+        margin: 0 0 16px
+        color: #94a3b8
+        font-size: 0.85rem
+    .danger-btn
+        padding: 10px 24px
+        background: #ef4444
+        border: none
+        border-radius: 10px
+        color: white
+        font-size: 0.9rem
+        font-weight: 700
+        cursor: pointer
+        transition: background 0.15s ease
+        font-family: inherit
+    .danger-btn:hover
+        background: #dc2626
+
 Halaman Pengaturan:
-    Buat div.kartu:
+    Buat div.page-header:
         Buat h2: $judul
-        Buat label: "Tema"
-        Buat pilihan#tema:
-            Buat opsi[value="terang"]: "Terang"
-            Buat opsi[value="gelap"]: "Gelap"
-        Buat tombol.merah#keluar-akun: "Keluar dari Akun"
-            Ketika diklik:
-                hapus localStorage.auth_token
-                hapus localStorage.__peran
-                arahkan "/login"
+
+    Buat div.settings-container:
+        Buat div.settings-card:
+            Buat h3: "🎨 Tampilan"
+            Buat div.setting-row:
+                Buat div.setting-info:
+                    Buat span.setting-label: "Tema Gelap"
+                    Buat div.setting-desc: "Gunakan tampilan latar gelap"
+                Buat tombol.toggle.on#tema-toggle: ""
+
+            Buat div.setting-row:
+                Buat div.setting-info:
+                    Buat span.setting-label: "Warna Aksen"
+                    Buat div.setting-desc: "Ubah warna utama aplikasi"
+                Buat pilihan.pilih-tema#tema:
+                    Buat opsi[value="biru"]: "🔵 Biru"
+                    Buat opsi[value="ungu"]: "🟣 Ungu"
+                    Buat opsi[value="hijau"]: "🟢 Hijau"
+
+        Buat div.settings-card:
+            Buat h3: "🔔 Notifikasi"
+            Buat div.setting-row:
+                Buat div.setting-info:
+                    Buat span.setting-label: "Push Notification"
+                    Buat div.setting-desc: "Terima update real-time"
+                Buat tombol.toggle#push-toggle: ""
+
+            Buat div.setting-row:
+                Buat div.setting-info:
+                    Buat span.setting-label: "Email Digest"
+                    Buat div.setting-desc: "Ringkasan mingguan via email"
+                Buat tombol.toggle.on#email-toggle: ""
+
+        Buat div.danger-zone:
+            Buat h4: "⚠️ Zona Berbahaya"
+            Buat p: "Tindakan berikut tidak dapat dibatalkan. Harap berhati-hati."
+            Buat tombol.danger-btn#keluar-akun: "🚪 Keluar dari Akun"
+                Ketika diklik:
+                    hapus localStorage.auth_token
+                    hapus localStorage.__peran
+                    arahkan "login.html"

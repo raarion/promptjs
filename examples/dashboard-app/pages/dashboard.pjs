@@ -3,6 +3,161 @@ judul: "Dashboard"
 peran: admin
 ---
 
+Gaya:
+    body
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
+        padding: 0
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        min-height: 100vh
+        color: #e0e0e0
+    .page-header
+        padding: 28px 32px 0
+        display: flex
+        justify-content: space-between
+        align-items: center
+        flex-wrap: wrap
+        gap: 16px
+    .page-header h2
+        margin: 0
+        font-size: 1.6rem
+        font-weight: 700
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .greeting
+        font-size: 0.9rem
+        color: #94a3b8
+    .greeting span
+        color: #7dd3fc
+        font-weight: 600
+    .stats-grid
+        display: grid
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+        gap: 20px
+        padding: 24px 32px
+    .stat-card
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(16px)
+        -webkit-backdrop-filter: blur(16px)
+        border: 1px solid rgba(255,255,255,0.1)
+        border-radius: 20px
+        padding: 28px 24px
+        text-align: center
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease
+        position: relative
+        overflow: hidden
+    .stat-card:hover
+        transform: translateY(-4px)
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3)
+        border-color: rgba(125,211,252,0.3)
+    .stat-card::before
+        content: ''
+        position: absolute
+        top: 0
+        left: 0
+        right: 0
+        height: 3px
+        background: linear-gradient(90deg, #7dd3fc, #d3b6e9, #86efac)
+        border-radius: 20px 20px 0 0
+        opacity: 0.6
+    .stat-card .icon-wrap
+        width: 48px
+        height: 48px
+        border-radius: 14px
+        display: flex
+        align-items: center
+        justify-content: center
+        margin: 0 auto 16px
+        font-size: 1.5rem
+    .stat-card .icon-blue
+        background: rgba(125,211,252,0.15)
+        color: #7dd3fc
+    .stat-card .icon-purple
+        background: rgba(211,182,233,0.15)
+        color: #d3b6e9
+    .stat-card .icon-green
+        background: rgba(134,239,172,0.15)
+        color: #86efac
+    .stat-card .stat-number
+        font-size: 2.5rem
+        font-weight: 800
+        letter-spacing: -0.5px
+        margin-bottom: 4px
+        background: linear-gradient(135deg, #fff, #94a3b8)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .stat-card .stat-label
+        font-size: 0.85rem
+        color: #64748b
+        text-transform: uppercase
+        letter-spacing: 0.08em
+        font-weight: 600
+        margin-bottom: 16px
+    .stat-card .stat-actions
+        display: flex
+        gap: 8px
+        justify-content: center
+    .btn
+        padding: 8px 18px
+        border: 1px solid rgba(255,255,255,0.15)
+        border-radius: 10px
+        background: rgba(255,255,255,0.06)
+        color: #e0e0e0
+        font-size: 0.9rem
+        font-weight: 600
+        cursor: pointer
+        transition: all 0.15s ease
+        font-family: inherit
+    .btn:hover
+        background: rgba(255,255,255,0.12)
+        border-color: rgba(125,211,252,0.4)
+        color: #fff
+    .btn-accent
+        background: linear-gradient(135deg, #7dd3fc, #4f9ef7)
+        border: none
+        color: #0f172a
+        font-weight: 700
+    .btn-accent:hover
+        opacity: 0.9
+        color: #0f172a
+    .btn-danger
+        background: rgba(239,68,68,0.15)
+        border-color: rgba(239,68,68,0.3)
+        color: #fca5a5
+    .btn-danger:hover
+        background: rgba(239,68,68,0.25)
+    .cards-row
+        display: grid
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
+        gap: 20px
+        padding: 0 32px 24px
+    .info-card
+        background: rgba(255,255,255,0.04)
+        backdrop-filter: blur(12px)
+        -webkit-backdrop-filter: blur(12px)
+        border: 1px solid rgba(255,255,255,0.08)
+        border-radius: 16px
+        padding: 24px
+        transition: border-color 0.2s ease
+    .info-card:hover
+        border-color: rgba(125,211,252,0.25)
+    .info-card h3
+        margin: 0 0 12px
+        font-size: 1.05rem
+        font-weight: 700
+        color: #e2e8f0
+    .info-card .metric
+        font-size: 1.8rem
+        font-weight: 800
+        color: #86efac
+    .info-card .sub
+        font-size: 0.8rem
+        color: #64748b
+        margin-top: 4px
+
 Halaman Dashboard:
     data hitung = 0
     data pengunjung = 42
@@ -10,16 +165,45 @@ Halaman Dashboard:
     Ketika muat:
         simpan 42 ke pengunjung
 
-    Buat h2: $judul
+    Buat div.page-header:
+        Buat div:
+            Buat h2: $judul
+            Buat span.greeting:
+                "Selamat datang, "
+            Buat span:
+                "Admin"
 
-    Buat div.stats:
-        Buat div.kartu-stat:
-            Buat span.angka: $hitung
-            Buat span.label: "Counter"
-            Buat tombol.besar#tambah: "+"
-                on_klik = tambahkan 1 ke hitung
-            Buat tombol.besar#kurang: "−"
-                on_klik = kurangi 1 dari hitung
-        Buat div.kartu-stat:
-            Buat span.angka: $pengunjung
-            Buat span.label: "Pengunjung"
+    Buat div.stats-grid:
+        Buat div.stat-card:
+            Buat div.icon-wrap.icon-blue:
+                "📊"
+            Buat span.stat-number: $hitung
+            Buat span.stat-label: "Total Counter"
+            Buat div.stat-actions:
+                Buat tombol.btn.btn-accent#tambah: "+ Tambah"
+                    on_klik = simpan hitung tambah 1 ke hitung
+                Buat tombol.btn#kurang: "− Kurang"
+                    on_klik = simpan hitung kurang 1 ke hitung
+
+        Buat div.stat-card:
+            Buat div.icon-wrap.icon-purple:
+                "👥"
+            Buat span.stat-number: $pengunjung
+            Buat span.stat-label: "Pengunjung Aktif"
+
+        Buat div.stat-card:
+            Buat div.icon-wrap.icon-green:
+                "✅"
+            Buat span.stat-number: "100"
+            Buat span.stat-label: "Task Complete"
+
+    Buat div.cards-row:
+        Buat div.info-card:
+            Buat h3: "📈 Performa Sistem"
+            Buat span.metric: "99.9%"
+            Buat div.sub: "Uptime bulan ini"
+
+        Buat div.info-card:
+            Buat h3: "💾 Storage"
+            Buat span.metric: "2.4 GB"
+            Buat div.sub: "dari 10 GB total"

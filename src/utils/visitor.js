@@ -150,13 +150,13 @@ function getChildKeys(nodeType) {
     case 'KembalikanStatement':
       return ['value'];
     case 'SimpanStatement':
-      return ['value'];
+      return ['target', 'value'];
     case 'TambahkanStatement':
-      return ['value'];
+      return ['target', 'value'];
     case 'KurangiStatement':
-      return ['value'];
+      return ['target', 'value'];
     case 'SisipkanStatement':
-      return ['value'];
+      return ['target', 'value'];
     case 'AmbilDomStatement':
       return ['source'];
     case 'AmbilLuarStatement':

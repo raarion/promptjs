@@ -1120,8 +1120,10 @@ function install(PromptJSCompiler, accept) {
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, gunakan __setState
+      // resolveTarget returns name.value but __setState needs the proxy object itself
+      const tgtName = node.target && node.target.type === 'Identifier' ? node.target.name : tgt.split('.')[0];
       this.helpers.add('__setState');
-      this.emit(`__setState(${tgt}, ${val});`);
+      this.emit(`__setState(${tgtName}, ${val});`);
     } else {
       // ubah → plain variable, assignment langsung
       this.emit(`${tgt} = ${val};`);
@@ -1176,15 +1178,17 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitKurangiStatement = function (node) {
-    const tgt = this.resolveTarget(node.target);
+    const tgtRaw = this.resolveTarget(node.target);
     // Default ke 1 jika tidak ada value (kurangi counter → counter - 1)
     const jumlah = node.value ? this.lowerExpression(node.value) : '1';
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, akses via .value
-      this.emit(`__setState(${tgt.split('.')[0]}, ${tgt} - ${jumlah});`);
+      const tgtName = tgtRaw.split('.')[0];
+      const valExpr = this.lowerExpression(node.target);
+      this.emit(`__setState(${tgtName}, ${valExpr} - ${jumlah});`);
     } else {
       // ubah → plain variable, assignment langsung
-      this.emit(`${tgt} = ${tgt} - ${jumlah};`);
+      this.emit(`${tgtRaw} = ${tgtRaw} - ${jumlah};`);
     }
   };
 

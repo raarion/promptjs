@@ -1316,8 +1316,16 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     const kwTok = this._advance();
     const kind = kwTok.value.toLowerCase();
     if (kind === 'kurangi' || kind === 'remove') {
-      const target = this._parseExpression();
-      return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target };
+      // Two forms: "kurangi target" (decrement by 1) or "kurangi value dari target" (subtract value)
+      const firstArg = this._parseExpression();
+      // Check if "dari/from/in" follows → "kurangi <value> dari <target>"
+      if (this._peek() && this._peek().type === TT.TK_IN) {
+        this._advance(); // consume dari/from/in
+        const target = this._parseExpression();
+        return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target, value: firstArg };
+      }
+      // "kurangi target" → decrement by 1
+      return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target: firstArg };
     }
     const value = this._parseExpression();
     if (this._peek().type === TT.TK_KE) {

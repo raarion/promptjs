@@ -1,46 +1,78 @@
-Gaya:
-    .blog
-        max-width: 700px
-        margin: 40px auto
-        padding: 20px
-    .post
-        background: white
-        border-radius: 8px
-        padding: 24px
-        margin: 16px 0
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05)
-    .post h3
-        color: #1a1a2e
-        margin: 0 0 8px 0
-    .post .meta
-        color: #999
-        font-size: 0.85rem
-        margin-bottom: 12px
-    .post p
-        color: #444
-        line-height: 1.6
+---
+judul: "Blog"
+---
 
-Fungsi formatTanggal(hari, bulan, tahun):
-    hari + " " + bulan + " " + tahun
+Gaya:
+    body
+        font-family: 'Inter', system-ui, sans-serif
+        margin: 0
+        padding: 0
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        color: #e0e0e0
+        min-height: 100vh
+    .container
+        max-width: 700px
+        margin: 0 auto
+        padding: 40px 20px
+    .page-title
+        font-size: 2rem
+        font-weight: 800
+        margin-bottom: 8px
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .page-sub
+        color: #64748b
+        font-size: 0.9rem
+        margin-bottom: 32px
+    .post-list
+        display: grid
+        gap: 16px
+    .post-card
+        background: rgba(255,255,255,0.04)
+        border: 1px solid rgba(255,255,255,0.06)
+        border-radius: 16px
+        padding: 24px
+        transition: border-color 0.15s ease, transform 0.15s ease
+        backdrop-filter: blur(8px)
+    .post-card:hover
+        border-color: rgba(125,211,252,0.15)
+        transform: translateY(-2px)
+    .post-card .post-date
+        font-size: 0.75rem
+        color: #64748b
+        text-transform: uppercase
+        letter-spacing: 0.05em
+        font-weight: 600
+        margin-bottom: 6px
+    .post-card h3
+        margin: 0 0 4px
+        font-size: 1.2rem
+        color: #e0e0e0
+    .post-card p
+        margin: 0
+        font-size: 0.9rem
+        color: #8888a0
+        line-height: 1.5
 
 Halaman Blog:
-    Buat div.blog:
-        Buat h2: "Blog PromptJS"
+    Buat div.container:
+        Buat h1.page-title: $judul
+        Buat p.page-sub: "Artikel terbaru tentang PromptJS dan web development"
 
-        Buat div.post:
-            Buat h3: "Memahami Sintaks PromptJS"
-            Buat div.meta:
-                formatTanggal("14", "Juni", "2026")
-            Buat p: "PromptJS menggunakan sintaks berbasis indentasi. Setiap baris adalah statement, dan indentasi menentukan nesting."
+        Buat div.post-list:
+            Buat div.post-card:
+                Buat div.post-date: "27 Juni 2026"
+                Buat h3: "PromptJS v1.0 — Rilis Stabil"
+                Buat p: "Setelah 10 bulan pengembangan, PromptJS v1.0 akhirnya rilis dengan 431 test, zero deps, dan pipeline 5 tahap."
 
-        Buat div.post:
-            Buat h3: "CSS dengan Gaya: Block"
-            Buat div.meta:
-                formatTanggal("16", "Juni", "2026")
-            Buat p: "Block Gaya: memungkinkan Anda menulis CSS langsung di file .pjs dengan indent-based syntax, lengkap dengan scoped CSS per komponen."
+            Buat div.post-card:
+                Buat div.post-date: "15 Juni 2026"
+                Buat h3: "Mengapa Compiler Lebih Baik dari Framework"
+                Buat p: "Compiler tidak membebani user dengan runtime — semua overhead hilang saat build time. Output adalah vanilla JS."
 
-        Buat div.post:
-            Buat h3: "Module System: kirim dan terima"
-            Buat div.meta:
-                formatTanggal("20", "Juni", "2026")
-            Buat p: "Bagikan nilai, fungsi, dan komponen antar file .pjs dengan direktif kirim dan terima di front-matter."
+            Buat div.post-card:
+                Buat div.post-date: "1 Juni 2026"
+                Buat h3: "DSL Bilingual: Jembatan Coding & Bahasa Sehari-hari"
+                Buat p: "PromptJS membuat coding terasa seperti menulis prompt — dengan kata kunci yang familiar dalam Bahasa Indonesia."

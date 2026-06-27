@@ -2,23 +2,102 @@
 judul: "Counter Interaktif"
 ---
 
+Gaya:
+    body
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
+        min-height: 100vh
+        display: flex
+        align-items: center
+        justify-content: center
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
+        color: #e0e0e0
+    .counter-card
+        background: rgba(255,255,255,0.05)
+        backdrop-filter: blur(20px)
+        -webkit-backdrop-filter: blur(20px)
+        border: 1px solid rgba(255,255,255,0.1)
+        border-radius: 24px
+        padding: 40px
+        text-align: center
+        box-shadow: 0 25px 60px rgba(0,0,0,0.4)
+        min-width: 320px
+    .counter-card h1
+        margin: 0 0 8px
+        font-size: 1.5rem
+        font-weight: 700
+        background: linear-gradient(135deg, #7dd3fc, #d3b6e9)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+    .count-display
+        font-size: 5rem
+        font-weight: 900
+        letter-spacing: -2px
+        margin: 20px 0
+        background: linear-gradient(135deg, #fff, #94a3b8)
+        -webkit-background-clip: text
+        -webkit-text-fill-color: transparent
+        background-clip: text
+        line-height: 1
+    .click-label
+        font-size: 0.8rem
+        color: #64748b
+        text-transform: uppercase
+        letter-spacing: 0.1em
+        font-weight: 600
+        margin-bottom: 24px
+    .btn-group
+        display: flex
+        gap: 12px
+        justify-content: center
+    .btn
+        padding: 12px 28px
+        border: 1px solid rgba(255,255,255,0.12)
+        border-radius: 12px
+        font-size: 1rem
+        font-weight: 700
+        cursor: pointer
+        transition: all 0.15s ease
+        font-family: inherit
+        background: rgba(255,255,255,0.06)
+        color: #e0e0e0
+    .btn:hover
+        background: rgba(255,255,255,0.12)
+        color: #fff
+        transform: translateY(-1px)
+    .btn:active
+        transform: translateY(0)
+    .btn-primary
+        background: linear-gradient(135deg, #7dd3fc, #4f9ef7)
+        border: none
+        color: #0f172a
+        box-shadow: 0 4px 20px rgba(125,211,252,0.2)
+    .btn-primary:hover
+        opacity: 0.9
+        color: #0f172a
+    .btn-reset
+        border-color: rgba(239,68,68,0.2)
+        color: #fca5a5
+        font-size: 0.85rem
+        padding: 8px 20px
+    .btn-reset:hover
+        background: rgba(239,68,68,0.1)
+        border-color: rgba(239,68,68,0.4)
+
 Halaman Counter:
   data hitung = 0
 
-  Buat h1: $judul
-
-  Buat paragraf:
-    Buat span:
-      "Jumlah klik: "
-
-    Saat hitung:
+  Buat div.counter-card:
+    Buat h1: $judul
+    Buat div.count-display:
       Buat span:
         hitung
-
-  Buat tombol:
-    "Klik aku"
-    on_klik = simpan hitung tambah 1 ke hitung
-
-  Buat tombol:
-    "Reset"
-    on_klik = simpan 0 ke hitung
+    Buat div.click-label: "Jumlah Klik"
+    Buat div.btn-group:
+      Buat tombol.btn.btn-primary#klik:
+        "🔺 Tambah"
+        on_klik = simpan hitung tambah 1 ke hitung
+      Buat tombol.btn.btn-reset#reset:
+        "↺ Reset"
+        on_klik = simpan 0 ke hitung
