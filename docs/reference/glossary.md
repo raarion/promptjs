@@ -100,4 +100,29 @@ A list of important terms in PromptJS with translations and descriptions.
 
 ---
 
+## Keamanan / Security
+
+PromptJS menanamkan beberapa helper keamanan ke runtime hasil-kompilasi (lihat `src/compiler/emitters/runtime.js`). Helper ini bersifat **fail-closed** — input berbahaya ditolak diam-diam sambil app tetap berjalan.
+
+PromptJS injects several security helpers into the compiled runtime (see `src/compiler/emitters/runtime.js`). These helpers are **fail-closed** — dangerous input is silently rejected while the app keeps running.
+
+| Istilah / Term | Deskripsi / Description |
+|----------------|------------------------|
+| `__sanitizeHTML` | Helper runtime yang membersihkan string HTML sebelum di-`innerHTML` (mis. untuk `perbarui html`), membuang elemen/atribut berbahaya / Runtime helper that sanitizes HTML strings before `innerHTML` assignment, stripping dangerous elements/attributes (`runtime.js:173`) |
+| `__safeAttr` | Helper runtime yang memasang atribut secara aman: memblokir atribut event-handler inline (`on*`) dan URL berskema tidak aman (`javascript:`/`data:`/`vbscript:`) / Runtime helper that sets attributes safely: blocks inline event-handler attributes (`on*`) and unsafe URL schemes (`runtime.js:244`) |
+| `__pjs_verifyPeran` | Seam global opsional (`window.__pjs_verifyPeran(peran, allowed)`) untuk verifikasi peran server-side; bila ada dan mengembalikan `false`, akses ditolak / Optional global seam for server-side role verification; if present and it returns `false`, access is denied (`promptjs-compiler.js:136`) |
+| Fail-closed | Kebijakan keamanan: bila ragu, tolak. Atribut/URL berbahaya diblokir tanpa menghentikan render / Security policy: when in doubt, deny. Dangerous attributes/URLs are blocked without halting render |
+| Auth guard advisory | Pemeriksaan `butuhAuth`/`peran` bersifat client-side/advisory — bukan kontrol keamanan; otorisasi sungguhan WAJIB di server / The `butuhAuth`/`peran` check is client-side/advisory — not a security control; real authorization MUST live on the server |
+
+### Warning runtime keamanan / Runtime security warnings
+
+| Kode / Code | Dipicu oleh / Triggered by | Pesan / Behavior |
+|-------------|----------------------------|------------------|
+| `PJS-W1001` | `__safeAttr` menolak atribut event-handler inline (`onclick`, `onerror`, ...) | `console.warn('[PromptJS] PJS-W1001: atribut event-handler diblokir demi keamanan: ...')` — atribut tidak dipasang, app tetap jalan |
+| `PJS-W1002` | `__safeAttr` menolak URL berskema tidak aman pada atribut URL (`href`, `src`, ...) | `console.warn('[PromptJS] PJS-W1002: URL skema tidak aman diblokir ...')` — atribut tidak dipasang, app tetap jalan |
+
+> Catatan: `PJS-W1001`/`PJS-W1002` adalah warning **runtime** (dicetak ke console browser), berbeda dari kode diagnostik compile-time `Wxxxx` di [Error Codes](error-codes.md). Keduanya memakai konvensi prefix `[PromptJS] KODE: pesan (saran: ...)` berbahasa Indonesia.
+
+---
+
 ← [Error Codes](error-codes.md) · [CLI](cli.md) →

@@ -85,8 +85,24 @@ CLI flags always override config file values. Overridable flags:
 |----------|----------------|
 | `--out-dir <dir>` | `config.outDir` |
 | `--adapter <name>` | `config.adapter` |
+| `--csp` | `config.csp` |
 
-**Bukti / Evidence:** Fungsi `mergeWithCliArgs()` di `config.js` melakukan merge dengan prioritas: CLI > config file > default.
+**Bukti / Evidence:** Fungsi `mergeWithCliArgs()` di `config.js` melakukan merge dengan prioritas: CLI > config file > default. Tepatnya tiga properti yang dapat di-override dari CLI: `outDir`, `adapter`, dan `csp`.
+
+---
+
+## Content-Security-Policy (CSP) / Mode CSP
+
+Flag `--csp` pada `pjs build` (atau `csp: true` di config) mengaktifkan mode emisi yang ramah Content-Security-Policy. Aktifkan ini bila target hosting Anda menerapkan header CSP yang ketat.
+
+```bash
+# Build dengan mode CSP aktif
+pjs build --adapter static --csp
+```
+
+The `--csp` flag on `pjs build` (or `csp: true` in config) enables Content-Security-Policy-friendly emission. Enable it when your hosting target enforces a strict CSP header.
+
+**Bukti / Evidence:** `src/cli/commands/build.js` membaca `const csp = argv.csp || projectConfig.csp || false;`, dan `mergeWithCliArgs()` di `src/engine/config.js` meng-override `merged.csp` bila `cliArgs.csp !== undefined`.
 
 ---
 

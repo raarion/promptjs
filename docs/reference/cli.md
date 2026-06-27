@@ -98,13 +98,13 @@ pjs serve [dir]
 - Error overlay yang diinjeksi di browser
 - Pre-kompilasi semua file `.pjs` saat server dimulai
 - Proteksi path-traversal keamanan
-- CSS Hot-Module Replacement (HMR) melalui pesan WebSocket `type: 'css'`
+- Saat file `.pjs`/aset berubah, server menyiarkan satu pesan WebSocket `"reload"` ke semua klien (full page reload). Tidak ada CSS Hot-Module Replacement granular — perubahan CSS ikut memicu reload halaman penuh.
 
 - WebSocket live-reload on the `/__pjs_reload__` endpoint
 - Error overlay injected in the browser
 - Pre-compiles all `.pjs` files when the server starts
 - Path-traversal security protection
-- CSS Hot-Module Replacement (HMR) via WebSocket `type: 'css'` message
+- On `.pjs`/asset change, the server broadcasts a single `"reload"` WebSocket message to all clients (full page reload). There is no granular CSS Hot-Module Replacement — CSS changes also trigger a full page reload.
 
 **Contoh / Examples:**
 
@@ -146,6 +146,7 @@ pjs build [dir]
 | `--adapter <name>` | Adapter deployment: `static`, `node`, `vercel` / Deployment adapter |
 | `--prerender` | Pra-render HTML dengan jsdom / Pre-render HTML with jsdom |
 | `--minify` | Minifikasi output JS / Minify output JS |
+| `--csp` | Aktifkan mode Content-Security-Policy (mis. emisi yang ramah CSP) / Enable Content-Security-Policy mode (CSP-friendly emission). Meng-override `csp` di config file / Overrides `csp` in config file |
 
 **Perilaku / Behavior:**
 
@@ -210,8 +211,8 @@ pjs init [name]
 | `counter` | 2 | `index.pjs`, `README.md` | Contoh counter sederhana / Simple counter |
 | `gallery` | 3 | `index.pjs`, `data/produk.json`, `README.md` | Galeri produk / Product gallery |
 | `spa` | 5 | `index.pjs` + 3 file halaman, `README.md` | Termasuk `router: benar` / Includes `router: benar` |
-| `fullstack` | 6 | 6 file termasuk auth, peran, router | Auth + roles + router |
-| `blog` | 5 | 5 file termasuk `kirim` module directive | Dengan `kirim` directive / With `kirim` module directive |
+| `fullstack` | 5 | `index.pjs`, `pages/login.pjs`, `pages/pengaturan.pjs`, `data/users.json`, `README.md` | Auth + roles + router |
+| `blog` | 4 | `index.pjs`, `pages/artikel.pjs`, `data/artikel.json`, `README.md` | Daftar artikel data-driven / Data-driven article listing |
 
 **Contoh / Examples:**
 

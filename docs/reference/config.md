@@ -44,7 +44,8 @@ Sumber: `src/engine/config.js`
     // ... properti meta lainnya
   },
   siteUrl: string,
-  apiUrl: string
+  apiUrl: string,
+  csp: boolean
 }
 ```
 
@@ -62,6 +63,7 @@ Sumber: `src/engine/config.js`
 | `meta` | `object` | `{}` | Tag meta HTML (title, description, ogImage, ...) / HTML meta tags |
 | `siteUrl` | `string` | - | URL situs, untuk pembuatan sitemap (adapter static) / Site URL for sitemap generation |
 | `apiUrl` | `string` | - | URL API, untuk proxy adapter Node / API URL for Node adapter proxy |
+| `csp` | `boolean` | `false` | Aktifkan mode Content-Security-Policy. Dapat di-override oleh flag CLI `--csp` / Enable Content-Security-Policy mode. Overridable by the `--csp` CLI flag |
 
 ---
 
@@ -148,13 +150,13 @@ Invalid plugin entries produce a warning.
 
 ## Prioritas Argumen CLI / CLI Args Priority
 
-Argumen CLI hanya mengubah properti `outDir` dan `adapter` dari konfigurasi file. Properti lainnya tidak dapat di-override dari CLI.
+Argumen CLI meng-override properti `outDir`, `adapter`, dan `csp` dari konfigurasi file (`mergeWithCliArgs` di `src/engine/config.js`). Properti lainnya tidak dapat di-override dari CLI.
 
-CLI arguments only override `outDir` and `adapter` from the config file. Other properties cannot be overridden from the CLI.
+CLI arguments override the `outDir`, `adapter`, and `csp` properties from the config file (`mergeWithCliArgs` in `src/engine/config.js`). Other properties cannot be overridden from the CLI.
 
 ```bash
-# adapter dan outDir dari CLI meng-override config file
-pjs build --out-dir public/ --adapter static
+# adapter, outDir, dan csp dari CLI meng-override config file
+pjs build --out-dir public/ --adapter static --csp
 ```
 
 ---

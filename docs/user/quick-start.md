@@ -157,6 +157,7 @@ Produces per-route `.html` files + `prompt.js` + `prompt.css`. Setiap halaman di
 | `--adapter <name>` | Adapter deployment: `static`, `node`, atau `vercel` / Deployment adapter |
 | `--minify` | Minifikasi JS dasar (strip comment, collapse whitespace) / Basic JS minification |
 | `--prerender` | Pre-render HTML menggunakan jsdom (perlu `npm install jsdom`) / Pre-render HTML via jsdom |
+| `--csp` | Aktifkan mode Content-Security-Policy / Enable Content-Security-Policy mode |
 
 ```bash
 # Build dengan adapter static + minify
@@ -164,6 +165,9 @@ pjs build --adapter static --minify
 
 # Build ke direktori kustom
 pjs build --out-dir public
+
+# Build ramah CSP (untuk hosting dengan header CSP ketat)
+pjs build --adapter static --csp
 ```
 
 **Bukti / Evidence:** Opsi build diparsing di `src/cli/commands/build.js` fungsi `runBuild()`. Minifikasi menggunakan fungsi `minifyJs()` yang strip comment dan collapse whitespace (bukan minifier production-grade).

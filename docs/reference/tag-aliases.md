@@ -5,13 +5,15 @@
 
 ---
 
-PromptJS menyediakan 65 alias nama tag yang dipetakan ke tag HTML standar saat kompilasi. Termasuk alias bahasa Indonesia dan nama tag HTML standar yang didaftarkan ulang.
+PromptJS menyediakan 72 alias nama tag yang dipetakan ke tag HTML standar saat kompilasi. Termasuk alias bahasa Indonesia dan nama tag HTML standar yang didaftarkan ulang.
 
-PromptJS provides 65 tag name aliases mapped to standard HTML tags during compilation. Includes Indonesian language aliases and re-registered standard HTML tag names.
+PromptJS provides 72 tag name aliases mapped to standard HTML tags during compilation. Includes Indonesian language aliases and re-registered standard HTML tag names.
+
+> Sumber kebenaran / Source of truth: peta `tagAliases` di `src/compiler/emitters/statements.js` (dan `TAG_ALIAS_TO_HTML` di `src/engine/css.js` untuk selector CSS).
 
 ---
 
-## Teks & Konten / Text & Content (16 alias)
+## Teks & Konten / Text & Content (17 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
@@ -31,16 +33,22 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 | `rentang` | `<span>` | Alias Indonesia / Indonesian alias |
 | `tautan` | `<a>` | Alias Indonesia / Indonesian alias |
 | `a` | `<a>` | Standar / Standard |
+| `wadjud` | `<h1>` | Alias Indonesia (judul utama) / Indonesian alias for `<h1>` |
 
 ---
 
-## Kontainer / Container (13 alias)
+## Kontainer / Container (18 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
 | `ruang` | `<div>` | Alias Indonesia / Indonesian alias |
 | `div` | `<div>` | Standar / Standard |
 | `wadah` | `<div>` | Alias Indonesia / Indonesian alias |
+| `kotak` | `<div>` | Alias Indonesia / Indonesian alias |
+| `halaman` | `<div>` | Alias Indonesia (kontainer halaman) / Indonesian alias (page container) |
+| `card` | `<div>` | Alias tambahan / Extended alias |
+| `page` | `<div>` | Alias tambahan / Extended alias |
+| `container` | `<div>` | Alias tambahan / Extended alias |
 | `artikel` | `<article>` | Alias Indonesia / Indonesian alias |
 | `article` | `<article>` | Standar / Standard |
 | `section` | `<section>` | Standar / Standard |
@@ -71,7 +79,7 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 
 ---
 
-## Form & Masukan / Form & Input (12 alias)
+## Form & Masukan / Form & Input (13 alias)
 
 | Alias | Tag HTML | Catatan / Note |
 |-------|----------|----------------|
@@ -86,6 +94,7 @@ PromptJS provides 65 tag name aliases mapped to standard HTML tags during compil
 | `formulir` | `<form>` | Alias Indonesia / Indonesian alias |
 | `form` | `<form>` | Standar / Standard |
 | `frm` | `<form>` | Alias pendek / Short alias |
+| `frmMasuk` | `<form>` | Alias Indonesia (form masuk/login) / Indonesian alias (login form) |
 | `label` | `<label>` | Standar / Standard |
 
 ---

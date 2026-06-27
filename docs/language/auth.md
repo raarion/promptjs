@@ -147,17 +147,42 @@ Buat tombol: "Logout"
 
 ---
 
+## Multi-peran / Multiple Roles
+
+Sejak v1.0.0, beberapa peran didukung dengan memisahkannya pakai koma. Compiler menormalisasi tiap peran (`trim` + `toLowerCase`) lalu mengecek apakah peran pengguna ada di dalam daftar yang diizinkan.
+
+```
+peran: admin,editor
+```
+
+Kode yang dihasilkan (disederhanakan):
+
+```js
+var __peran = localStorage.getItem('__peran');
+var __allowedList = String("admin,editor").split(',').map(function (s) { return s.trim().toLowerCase(); });
+var __peranNorm = __peran == null ? '' : String(__peran).trim().toLowerCase();
+var __peranOk = __allowedList.indexOf(__peranNorm) !== -1;
+if (!__peranOk) { window.location.href = '/login'; return; }
+```
+
+Since v1.0.0, multiple roles are supported by separating them with commas. The compiler normalizes each role (`trim` + `toLowerCase`), then checks whether the user's role is in the allowed list. Example: `peran: admin,editor` allows both `admin` and `editor`.
+
+### Seam verifikasi server-side / Server-side verification seam
+
+Auth guard PromptJS bersifat **client-side/advisory** — nilai `__peran` di storage dapat dipalsukan lewat devtools, jadi ini **bukan** kontrol keamanan. Untuk verifikasi sungguhan (mis. cek klaim JWT), pasang `window.__pjs_verifyPeran(peran, allowed)`. Bila fungsi itu ada dan mengembalikan `false`, akses ditolak. Bila tidak ada, guard mencetak `console.warn` sekali untuk menegaskan sifat advisory tersebut.
+
+The PromptJS auth guard is **client-side/advisory** — the `__peran` value in storage can be forged via devtools, so it is **not** a security control. For real verification (e.g. JWT claim checks), install `window.__pjs_verifyPeran(peran, allowed)`. If that function exists and returns `false`, access is denied. If it is absent, the guard prints a one-time `console.warn` reaffirming its advisory nature.
+
+---
+
 ## Batasan / Limitations
 
-- Multi-peran (`peran: admin,editor`) tidak didukung. Hanya satu peran per halaman. Direncanakan untuk v1.1+.
 - `peran` tanpa `butuhAuth` tidak memiliki efek.
-- Auth guard hanya memeriksa keberadaan token, bukan validitas token. Validasi token dilakukan di sisi server.
-
-Multi-role (`peran: admin,editor`) is not supported. Only one role per page. Planned for v1.1+.
+- Auth guard hanya memeriksa keberadaan token (dan opsional cocok-tidaknya peran), **bukan** validitas token. Validasi token sesungguhnya WAJIB dilakukan di sisi server.
 
 `peran` without `butuhAuth` has no effect.
 
-The auth guard only checks for token existence, not token validity. Token validation is done server-side.
+The auth guard only checks for token existence (and optionally role match), **not** token validity. Real token validation MUST be done server-side.
 
 ---
 

@@ -5,9 +5,9 @@
 
 ---
 
-PromptJS menggunakan sistem kode error/warning 5 digit. Total 84 kode: 65 error (`E`) dan 19 warning (`W`). Setiap kode dikaitkan dengan tahap kompilasi.
+PromptJS menggunakan sistem kode error/warning 5 digit. Total 86 kode: 67 error (`E`) dan 19 warning (`W`). Setiap kode dikaitkan dengan tahap kompilasi.
 
-PromptJS uses a 5-digit error/warning code system. Total of 84 codes: 65 errors (`E`) and 19 warnings (`W`). Each code is associated with a compilation stage.
+PromptJS uses a 5-digit error/warning code system. Total of 86 codes: 67 errors (`E`) and 19 warnings (`W`). Each code is associated with a compilation stage.
 
 **Konvensi penomoran / Numbering convention:**
 
@@ -17,7 +17,7 @@ PromptJS uses a 5-digit error/warning code system. Total of 84 codes: 65 errors 
 | E2xxx / W2xxx | Parser | 28E + 4W = 32 |
 | E3xxx / W3xxx | Resolver | 5E + 3W = 8 |
 | E4xxx / W4xxx | Analyzer | 15E + 8W = 23 |
-| E5xxx / W5xxx | Compiler | 3E + 2W = 5 |
+| E5xxx / W5xxx | Compiler | 5E + 2W = 7 |
 | E6xxx / W6xxx | Runtime | 4E + 0W = 4 |
 | E0xxx / W0xxx | System | 1E + 1W = 2 |
 
@@ -147,6 +147,8 @@ Note: W4001-W4004 have no message in `ERROR_MESSAGES` — these are internal typ
 | E5001 | Error | Node AST bertipe "{type}" tidak didukung oleh compiler | Periksa apakah node type sudah didukung oleh compiler |
 | E5002 | Error | Gagal menurunkan ekspresi ke JavaScript | Sederhanakan ekspresi atau gunakan "langsung:" untuk JS interop |
 | E5003 | Error | Selector tidak dapat dikompilasi | Periksa format selector CSS |
+| E5004 | Error | Sumber penyimpanan token auth tidak valid: "{token}". Hanya "localStorage" atau "sessionStorage" yang diizinkan | Setel front-matter "token:" ke "localStorage" atau "sessionStorage" (opsional dengan ".namaKunci") |
+| E5005 | Error | Target redirect auth memakai skema tidak aman: "{redirect}". Gunakan path relatif/absolut, bukan "javascript:" atau "data:" | Setel "redirect:" ke path seperti "/login" atau URL http(s), bukan skema "javascript:"/"data:" |
 | W5001 | Warning | Kode yang dihasilkan mungkin tidak berjalan sesuai harapan | - |
 | W5002 | Warning | Fitur eksperimental digunakan | - |
 

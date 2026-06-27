@@ -232,6 +232,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
     - [modules.md](docs/language/modules.md) ← Module system
     - [plugins.md](docs/language/plugins.md) ← Plugin authoring
     - [adapters.md](docs/language/adapters.md) ← Deployment adapters + CSP
+    - [security.md](docs/language/security.md) ← Keamanan
   - `reference/` ← 📋 Referensi teknis
     - [cli.md](docs/reference/cli.md) ← CLI commands
     - [config.md](docs/reference/config.md) ← pjs.config.js schema
