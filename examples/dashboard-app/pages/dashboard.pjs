@@ -176,7 +176,9 @@ Halaman Dashboard:
         Buat div.stat-card:
             Buat div.icon-wrap.icon-blue:
                 "📊"
-            Buat span.stat-number: $hitung
+            Saat hitung:
+                Buat span.stat-number:
+                    hitung
             Buat span.stat-label: "Total Counter"
             Buat div.stat-actions:
                 Buat tombol.btn.btn-accent#tambah: "+ Tambah"
@@ -187,7 +189,9 @@ Halaman Dashboard:
         Buat div.stat-card:
             Buat div.icon-wrap.icon-purple:
                 "👥"
-            Buat span.stat-number: $pengunjung
+            Saat pengunjung:
+                Buat span.stat-number:
+                    pengunjung
             Buat span.stat-label: "Pengunjung Aktif"
 
         Buat div.stat-card:

@@ -137,7 +137,10 @@ Halaman Login:
                     placeholder = "••••••"
                     on_diketik = simpan document.querySelector("#sandi").value ke sandi
 
-            Buat div.error-msg#pesan-error: $pesan
+            Buat div.error-msg#pesan-error:
+                Saat pesan:
+                    Buat span:
+                        pesan
 
             Buat tombol.login-btn#btn-login: "Masuk"
                 Ketika diklik:

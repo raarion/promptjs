@@ -653,21 +653,8 @@ function buildPreviewIframe(jsCode, title, css) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>${css ? `\n  <style>\n${css}\n  </style>` : ''}
   <style>
-    body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; color: #e0e0e0; background: #0f0c29; -webkit-font-smoothing: antialiased; }
-    button { font-family: inherit; padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); cursor: pointer; color: #e0e0e0; }
-    button:hover { background: rgba(255,255,255,0.12); }
-    input, select { font-family: inherit; padding: 0.4rem 0.6rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #e0e0e0; }
-    input:focus, select:focus { border-color: #7dd3fc; outline: none; }
-    ul { padding-left: 1.2rem; }
-    li { margin: 0.2rem 0; }
-    h1 { font-size: 1.5rem; }
-    h3 { font-size: 1rem; margin: 0.4rem 0 0; }
-    .galeri { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem; }
-    .kartu { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.6rem; }
-    .kartu img { width: 100%; height: 140px; object-fit: cover; border-radius: 4px; display: block; }
-    #counter p { font-size: 1.1rem; }
-    #todo input { margin-bottom: 0.5rem; }
-    #todo ul { margin: 0.5rem 0; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
     .__promptjs_watcher_marker { display: inline; }
   </style>
 </head>

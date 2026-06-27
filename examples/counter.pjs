@@ -91,8 +91,9 @@ Halaman Counter:
   Buat div.counter-card:
     Buat h1: $judul
     Buat div.count-display:
-      Buat span:
-        hitung
+      Saat hitung:
+        Buat span:
+          hitung
     Buat div.click-label: "Jumlah Klik"
     Buat div.btn-group:
       Buat tombol.btn.btn-primary#klik:
