@@ -757,7 +757,7 @@ function buildIndexPage(examples, version) {
           <span class="stat-label">Counter App</span>
         </div>
         <div class="stat-pill">
-          <span class="stat-value">431</span>
+          <span class="stat-value">490</span>
           <span class="stat-label">Tests Passing</span>
         </div>
         <div class="stat-pill">
@@ -879,7 +879,7 @@ ${cards}
     <div class="qa-grid">
       <div class="qa-badge">
         <span class="qa-icon">${ICONS.flask}</span>
-        <span class="qa-num">431</span>
+        <span class="qa-num">490</span>
         <span class="qa-label">Tests</span>
       </div>
       <div class="qa-badge">
