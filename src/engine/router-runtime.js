@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v0.6 — Client-Side Router Runtime
+ * PromptJS v1.0.0 — Client-Side Router Runtime
  * ============================================================================
  *
  * Zero-dependency SPA router embedded at compile time when
@@ -54,7 +54,22 @@ function __pjsRouter(routes, options) {
     if (routes[path]) return routes[path];
     for (var pattern in routes) {
       if (pattern.indexOf(":") !== -1) {
-        var regexStr = "^" + pattern.replace(/:\\w+/g, "([^/]+)") + "$";
+        // Build the matcher by escaping literal (static) parts of the pattern
+        // and turning :param segments into capture groups. Escaping prevents a
+        // route key containing regex metacharacters (e.g. "/files/(.*)+")
+        // from injecting an unintended / catastrophic-backtracking pattern.
+        var regexStr = "^";
+        var lastIndex = 0;
+        var paramRe = /:\\w+/g;
+        var m;
+        while ((m = paramRe.exec(pattern)) !== null) {
+          var literal = pattern.slice(lastIndex, m.index);
+          regexStr += literal.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&");
+          regexStr += "([^/]+)";
+          lastIndex = m.index + m[0].length;
+        }
+        regexStr += pattern.slice(lastIndex).replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&");
+        regexStr += "$";
         var regex = new RegExp(regexStr);
         var match = path.match(regex);
         if (match) {
