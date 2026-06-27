@@ -251,5 +251,12 @@ function main() {
   }
 }
 
-// Run
-main();
+// Run hanya saat dieksekusi langsung (mis. `node src/cli/index.js` atau via bin).
+// Saat di-require oleh test untuk meng-cover parseArgs/dispatch, `main()` TIDAK
+// otomatis berjalan — perilaku CLI tidak berubah (require.main === module saat
+// dijalankan langsung). T-1: memungkinkan unit-test in-process.
+if (require.main === module) {
+  main();
+}
+
+module.exports = { parseArgs, shortToLong, isCommand, getVersion, main };
