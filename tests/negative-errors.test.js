@@ -47,16 +47,34 @@ describe('D2 — Negative-test matrix', () => {
       expectError('Buat h1:\n "Halo"', 'E1001');
     });
 
-    it('E1002: indentasi tidak konsisten (dedent ke level yang tidak ada)', () => {
-      expectError('Buat h1:\n    "a"\n  "b"', 'E1002');
+    it('E1002: karakter TAB di indentasi', () => {
+      expectError('Buat h1:\n\t"a"', 'E1002');
     });
 
-    it('E1003: string tidak ditutup', () => {
-      expectError('Buat h1:\n    "Halo', 'E1003');
+    it('E1003: indentasi tidak konsisten (dedent ke level yang tidak ada)', () => {
+      expectError('Buat h1:\n    "a"\n  "b"', 'E1003');
     });
 
-    it('E1004: block opener tanpa colon', () => {
-      expectError('Buat h1', 'E1004');
+    it('E1004: string tidak ditutup', () => {
+      expectError('Buat h1:\n    "Halo', 'E1004');
+    });
+
+    it('E1008: literal angka malformasi (multi-titik) tidak diterima senyap', () => {
+      expectError('Data x = 1.2.3', 'E1008');
+    });
+
+    it('E1008: literal angka dengan titik di akhir', () => {
+      expectError('Data x = 1.', 'E1008');
+    });
+
+    it('E1010: block opener tanpa colon', () => {
+      expectError('Buat h1', 'E1010');
+    });
+
+    it('angka valid tidak memicu E1008 (regression guard)', () => {
+      const r = Engine.compile('Data x = 3.14');
+      const codes = (r.errors || []).map((e) => e.code);
+      expect(codes).not.toContain('E1008');
     });
 
     it('E1005: karakter tidak dikenali', () => {
@@ -73,6 +91,18 @@ describe('D2 — Negative-test matrix', () => {
 
     it('E2010: expected "untuk/for" setelah "ulangi/loop"', () => {
       expectError('Ulangi 3: "item"', 'E2010');
+    });
+
+    it('E2029: ekspresi terlalu dalam memancarkan error, bukan crash (LOW-4)', () => {
+      const deep = 'Data x = ' + '('.repeat(2000) + '1' + ')'.repeat(2000);
+      // Tidak boleh melempar RangeError; harus mengembalikan hasil dengan E2029.
+      expect(() => expectError(deep, 'E2029')).not.toThrow(RangeError);
+    });
+
+    it('ekspresi bersarang wajar tetap valid (regression guard)', () => {
+      const r = Engine.compile('Data x = ' + '('.repeat(100) + '1' + ')'.repeat(100));
+      const codes = (r.errors || []).map((e) => e.code);
+      expect(codes).not.toContain('E2029');
     });
   });
 

@@ -107,6 +107,60 @@ describe('S-4 — __safeAttr runtime memblokir atribut berbahaya', () => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// S-7 — srcset: skema aktif harus dicek PER kandidat (audit LOW-2)
+// S-8 — style: skema/ekspresi aktif difilter (audit LOW-3)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('S-7/S-8 — __safeAttr: srcset per-kandidat & gating style', () => {
+  function loadSafeAttr(tag) {
+    const dom = new JSDOM('<!DOCTYPE html><body></body>');
+    const warns = [];
+    const sandbox = {
+      document: dom.window.document,
+      console: { warn: (m) => warns.push(String(m)), error: () => {} },
+    };
+    vm.createContext(sandbox);
+    vm.runInContext(RT.RUNTIME_HELPER_MAP.__safeAttr, sandbox);
+    const el = dom.window.document.createElement(tag || 'img');
+    return { f: vm.runInContext('__safeAttr', sandbox), el, warns };
+  }
+
+  it('S-7: srcset bersih (multi-kandidat) TER-SET normal', () => {
+    const { f, el } = loadSafeAttr();
+    expect(f(el, 'srcset', 'a.png 1x, b.png 2x')).toBe(true);
+    expect(el.getAttribute('srcset')).toBe('a.png 1x, b.png 2x');
+  });
+
+  it('S-7 PoC: javascript: di kandidat KEDUA srcset DITOLAK (sebelumnya lolos)', () => {
+    const { f, el } = loadSafeAttr();
+    expect(f(el, 'srcset', 'a.png 1x, javascript:alert(1) 2x')).toBe(false);
+    expect(el.hasAttribute('srcset')).toBe(false);
+  });
+
+  it('S-7: javascript: di kandidat pertama srcset juga DITOLAK', () => {
+    const { f, el } = loadSafeAttr();
+    expect(f(el, 'srcset', 'javascript:alert(1) 1x')).toBe(false);
+  });
+
+  it('S-8: style aman (color/position) TER-SET normal', () => {
+    const { f, el } = loadSafeAttr('div');
+    expect(f(el, 'style', 'color:red;position:fixed')).toBe(true);
+    expect(el.getAttribute('style')).toContain('color:red');
+  });
+
+  it('S-8 PoC: style dengan expression() DITOLAK', () => {
+    const { f, el } = loadSafeAttr('div');
+    expect(f(el, 'style', 'width:expression(alert(1))')).toBe(false);
+    expect(el.hasAttribute('style')).toBe(false);
+  });
+
+  it('S-8 PoC: style dengan url(javascript:) DITOLAK', () => {
+    const { f, el } = loadSafeAttr('div');
+    expect(f(el, 'style', 'background:url(javascript:alert(1))')).toBe(false);
+  });
+});
+
 describe('S-4 — emitter merutekan setAttribute lewat __safeAttr', () => {
   it('Buat gambar: src = <url> → emit __safeAttr(...,"src",...)', () => {
     const r = compile('Buat gambar:\n    src = "https://ex.com/a.png"\n    alt = "foto"');

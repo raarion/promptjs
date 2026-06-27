@@ -62,7 +62,7 @@ pjs serve --port 3000            # jalanin dev server
 pjs build --adapter static       # build production 🚀
 ```
 
-**Requirements:** Node.js ≥ 20.19.0
+**Requirements:** Node.js ≥ 22.0.0 (selaras dengan CI; Node 20 sudah EOL sejak 2025-10)
 
 ---
 

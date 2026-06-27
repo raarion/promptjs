@@ -33,7 +33,7 @@
     "pjs": "node src/cli/index.js",
     "pages:build": "node scripts/build-pages.js",
     "pages:dev": "node scripts/build-pages.js --watch",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "keywords": [
     "dsl",
@@ -48,7 +48,7 @@
     "dom"
   ],
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.0.0"
   },
   "license": "MIT",
   "author": "raarion",

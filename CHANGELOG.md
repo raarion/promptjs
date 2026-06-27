@@ -9,6 +9,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
 
+### Audit Fixes Wave — 2026-06 · `audit-fixes-2026-06`
+
+> Tindak lanjut dari audit kode mendalam (commit `e3ad7d4`). Menutup **semua temuan
+> Medium** dan sebagian temuan Low yang terverifikasi empiris. **Tetap v1.0.0** —
+> keputusan sengaja untuk TIDAK menaikkan nomor versi (lihat _Strategi Rilis_ di
+> bawah). Keamanan **fail-closed** terjaga, nol regresi fungsional.
+>
+> **Catatan ruang lingkup:** LOW-1 (ambiguitas `kali`), LOW-5 (cabang mati
+> `_tokenizePropertyLine`), LOW-6 (guard indent _unreachable_), LOW-7 (inkonsistensi
+> escape string), dan LOW-8 (`parseFrontMatter` lenient) **sengaja TIDAK di-fix** pada
+> wave ini — disisihkan sebagai _pending observation_ karena masih memerlukan
+> observasi, analisis, dan pertimbangan ulang lebih mendalam.
+
+#### Fixed
+
+- **MEDIUM-1 — Literal angka malformasi diterima senyap** (`src/lexer/promptjs-lexer.js`).
+  Tokenizer angka menerima banyak titik desimal (`1.2.3` → `1.2`, sisanya dibuang
+  diam-diam) dan titik di akhir (`1.`). Kini literal dengan >1 titik desimal atau
+  titik di akhir memancarkan **`E1008`** ("Angka literal tidak valid") alih-alih
+  lolos senyap. Angka valid (`42`, `3.14`, `-7`) tidak terpengaruh.
+- **MEDIUM-2 — Drift sistematis kode error lexer vs. registry/dokumentasi**
+  (`src/lexer/promptjs-lexer.js`, `src/parser/error-codes.js`,
+  `docs/reference/error-codes.md`). Emisi lexer aktual sebelumnya tidak cocok dengan
+  registri & dokumentasi: setiap kode error lexer yang ditemui pengguna menunjuk
+  baris dokumentasi yang salah. Emisi lexer kini **diselaraskan** dengan definisi
+  registri yang sudah benar:
+  - TAB di indentasi → **`E1002`** (sebelumnya digabung ke `E1001`).
+  - DEDENT/indentasi tidak konsisten → **`E1003`** (sebelumnya salah `E1002`).
+  - String tidak ditutup → **`E1004`** (sebelumnya salah `E1003`).
+  - Block opener tanpa `:` → kode baru **`E1010`** (sebelumnya menumpang `E1004`).
+
+  Dikunci oleh test snapshot negatif (anti-regresi).
+
+#### Security (audit follow-ups, fail-closed dipertahankan)
+
+- **LOW-2 — `srcset` membawa skema aktif** (`src/compiler/emitters/runtime.js`,
+  `__safeAttr`). Pemeriksaan skema sebelumnya hanya menguji **awal** seluruh string,
+  sehingga `srcset="a.png 1x, javascript:… 2x"` lolos. Kini `srcset` dipecah
+  **per-kandidat** (dipisah koma) dan skema tiap kandidat diperiksa (`PJS-W1002`).
+- **LOW-3 — Atribut `style` tidak difilter** (`src/compiler/emitters/runtime.js`,
+  `__safeAttr`). Nilai `style` kini ditolak bila memuat skema/ekspresi aktif
+  (`javascript:`, `vbscript:`, `expression()`, `-moz-binding`, `behavior:`) →
+  menutup vektor clickjacking/CSS-injection (`PJS-W1003`). Nilai CSS sah tetap lolos.
+
+#### Changed
+
+- **LOW-4 — Guard kedalaman rekursi parser** (`src/parser/promptjs-parser.js`).
+  Input patologis (ribuan `(((…)))` atau `!!!!…`) sebelumnya bisa membuat call stack
+  JS overflow (`RangeError` mentah). Parser kini memancarkan **`E2029`** terstruktur
+  saat melewati `MAX_EXPR_DEPTH` (350) dan tetap mengembalikan AST valid — bukan crash.
+- **LOW-9 — Konsistensi DX (husky, versi Node)**:
+  - `package.json` `prepare` script: `husky install` (deprecated v9) → `husky`.
+  - Narasi versi Node disatukan ke **`>=22.0.0`** di `package.json` `engines` dan
+    README, selaras dengan CI matrix (`22.x`/`24.x`; Node 20 EOL sejak 2025-10).
+
+#### Docs
+
+- `docs/reference/error-codes.md`: menambahkan `E1010` (block opener tanpa colon) dan
+  `E2029` (ekspresi terlalu dalam); tabel kode error lexer kini cocok 1:1 dengan emisi.
+
+#### Strategi Rilis (keputusan sadar)
+
+> Semua perbaikan di wave ini — termasuk hardening keamanan `__safeAttr` — **tetap
+> dirilis di bawah baseline `v1.0.0` tanpa menaikkan nomor versi**, konsisten dengan
+> kebijakan rilis proyek pada tiga wave keamanan sebelumnya. Penanda perubahan adalah
+> entri CHANGELOG + commit/PR, bukan nomor versi. Penyetelan ke skema rilis patch
+> `1.0.x` per-wave dapat dipertimbangkan terpisah di masa depan untuk kejelasan
+> rantai-pasok, dan **tidak** dilakukan pada wave ini secara sengaja.
+
+#### Tests
+
+- `tests/negative-errors.test.js`: penyelarasan ke kode baru (E1002/E1003/E1004/E1010)
+  + test baru `E1008` (angka malformasi) & `E2029` (depth guard) + regression guard.
+- `tests/cli-serve.test.js` (baru): unit + integrasi in-process untuk `serve.js`
+  (sebelumnya 0% unit coverage — MEDIUM-3).
+- `tests/cli-compile.test.js` (baru): unit untuk `compile.js` jalur stdout/out-dir/
+  output/dev/error (sebelumnya 23% — MEDIUM-4).
+- `tests/security/wave2-security.test.js`: +S-7 (srcset per-kandidat) & +S-8 (gating style).
+
 ### Audit Follow-ups & DX — PR #37 · commit `2e19456`
 
 > Lanjutan setelah tiga wave keamanan. Menutup temuan audit & DX yang terverifikasi

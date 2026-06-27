@@ -30,6 +30,7 @@ const E1006 = 'E1006'; // Komentar blok [[ tidak ditutup ]]
 const E1007 = 'E1007'; // Blok DocString [[ tidak ditutup ]]
 const E1008 = 'E1008'; // Angka literal tidak valid
 const E1009 = 'E1009'; // Selector CSS tidak valid
+const E1010 = 'E1010'; // Block opener tanpa colon ':'
 
 const W1001 = 'W1001'; // DocString tidak menempel ke node manapun
 
@@ -65,6 +66,7 @@ const E2025 = 'E2025'; // Daftar props gunakan tidak valid
 const E2026 = 'E2026'; // Ekspresi kosong tidak valid
 const E2027 = 'E2027'; // Properti perbarui tidak dikenali
 const E2028 = 'E2028'; // Body komponen/fungsi kosong
+const E2029 = 'E2029'; // Kedalaman ekspresi melebihi batas (proteksi stack overflow)
 
 const W2001 = 'W2001'; // DocString tidak menempel ke node manapun
 const W2002 = 'W2002'; // Blok kosong terdeteksi
@@ -162,6 +164,7 @@ ERROR_MESSAGES[E1006] = 'Komentar blok "[[" tidak ditutup dengan "]]"';
 ERROR_MESSAGES[E1007] = 'Blok DocString "[[" tidak ditutup dengan "]]"';
 ERROR_MESSAGES[E1008] = 'Angka literal tidak valid';
 ERROR_MESSAGES[E1009] = 'Selector CSS tidak valid';
+ERROR_MESSAGES[E1010] = 'Block opener tanpa tanda titik dua ":"';
 ERROR_MESSAGES[W1001] = 'DocString tidak menempel ke node manapun';
 
 // -- Parser --
@@ -193,6 +196,7 @@ ERROR_MESSAGES[E2025] = 'Daftar props "gunakan" tidak valid';
 ERROR_MESSAGES[E2026] = 'Ekspresi kosong tidak valid';
 ERROR_MESSAGES[E2027] = 'Properti perbarui tidak dikenali';
 ERROR_MESSAGES[E2028] = 'Body komponen/fungsi kosong';
+ERROR_MESSAGES[E2029] = 'Ekspresi terlalu dalam (melebihi batas kedalaman {max})';
 ERROR_MESSAGES[W2001] = 'DocString tidak menempel ke node manapun';
 ERROR_MESSAGES[W2002] = 'Blok kosong terdeteksi';
 ERROR_MESSAGES[W2003] = 'Rantai "jika" tanpa cabang "lainnya"';
@@ -267,6 +271,8 @@ ERROR_SUGGESTIONS[E1006] = 'Tambahkan "]]" untuk menutup komentar blok';
 ERROR_SUGGESTIONS[E1007] = 'Tambahkan "]]" untuk menutup blok DocString';
 ERROR_SUGGESTIONS[E1008] = 'Periksa format angka (desimal, heksadesimal, dll.)';
 ERROR_SUGGESTIONS[E1009] = 'Pastikan selector CSS valid (#id, .class, tag)';
+ERROR_SUGGESTIONS[E1010] =
+  'Tambahkan ":" di akhir baris untuk membuka blok. Contoh: Halaman Beranda:';
 
 // -- Parser --
 ERROR_SUGGESTIONS[E2001] = 'Periksa sintaksis pada lokasi yang ditunjuk';
@@ -280,6 +286,7 @@ ERROR_SUGGESTIONS[E2008] = 'Tambahkan nilai setelah "="';
 ERROR_SUGGESTIONS[E2009] = 'Periksa ekspresi kondisi';
 ERROR_SUGGESTIONS[E2010] = 'Periksa konteks penggunaan keyword';
 ERROR_SUGGESTIONS[E2011] = 'Gunakan "langsung:" untuk operasi yang tidak didukung';
+ERROR_SUGGESTIONS[E2029] = 'Sederhanakan ekspresi atau pecah menjadi beberapa langkah/variabel';
 ERROR_SUGGESTIONS[E2012] = 'Periksa sintaksis argumen';
 ERROR_SUGGESTIONS[E2013] = 'Periksa sintaksis parameter';
 ERROR_SUGGESTIONS[E2014] = 'Periksa sintaksis objek literal';
@@ -557,6 +564,7 @@ module.exports = {
   E1007: E1007,
   E1008: E1008,
   E1009: E1009,
+  E1010: E1010,
   W1001: W1001,
 
   // Parser errors
@@ -588,6 +596,7 @@ module.exports = {
   E2026: E2026,
   E2027: E2027,
   E2028: E2028,
+  E2029: E2029,
   W2001: W2001,
   W2002: W2002,
   W2003: W2003,
