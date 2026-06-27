@@ -10,11 +10,9 @@ Gaya:
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)
         color: #e0e0e0
         min-height: 100vh
-        display: flex
-        align-items: center
-        justify-content: center
     .about-card
         max-width: 600px
+        margin: 60px auto 40px
         background: rgba(255,255,255,0.05)
         backdrop-filter: blur(20px)
         -webkit-backdrop-filter: blur(20px)
