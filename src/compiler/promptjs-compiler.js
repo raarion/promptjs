@@ -129,10 +129,33 @@ PromptJSCompiler.prototype.compile = function (ast) {
     this.emit(`    return;`);
     this.emit(`  }`);
     // v0.9.9: Role-based access check (peran directive)
+    // S-5 (v1.0.0): Pemeriksaan peran ini bersifat CLIENT-SIDE/ADVISORY — nilai
+    // `__peran` di localStorage/sessionStorage dapat dipalsukan pengguna lewat
+    // devtools. Ini BUKAN kontrol keamanan; otorisasi sesungguhnya WAJIB di
+    // server. Hardening yang dilakukan tanpa mengingkari batas itu:
+    //   • Sediakan seam `window.__pjs_verifyPeran(peran, allowed)` agar developer
+    //     dapat memasang verifikasi server-side (mis. cek klaim JWT) — bila ada
+    //     dan mengembalikan false, akses ditolak.
+    //   • Dukung banyak peran (dipisah koma) + normalisasi (trim/lowercase).
+    //   • Tegaskan sifat advisory via console.warn sekali jalan.
     if (this.authPeran) {
       this.emit(`  var __peran = ${this.authToken}.getItem('__peran');`);
       this.emit(`  var __allowedPeran = ${esc(this.authPeran)};`);
-      this.emit(`  if (__peran !== __allowedPeran) {`);
+      this.emit(
+        `  var __allowedList = String(__allowedPeran).split(',').map(function(s){return s.trim().toLowerCase();});`
+      );
+      this.emit(`  var __peranNorm = __peran == null ? '' : String(__peran).trim().toLowerCase();`);
+      this.emit(`  var __peranOk = __allowedList.indexOf(__peranNorm) !== -1;`);
+      this.emit(
+        `  if (typeof window !== 'undefined' && typeof window.__pjs_verifyPeran === 'function') {`
+      );
+      this.emit(`    __peranOk = !!window.__pjs_verifyPeran(__peran, __allowedPeran);`);
+      this.emit(`  } else if (typeof console !== 'undefined') {`);
+      this.emit(
+        `    console.warn('[PromptJS] Pemeriksaan peran bersifat client-side/advisory — verifikasi otorisasi WAJIB di server. Pasang window.__pjs_verifyPeran untuk validasi sungguhan.');`
+      );
+      this.emit(`  }`);
+      this.emit(`  if (!__peranOk) {`);
       this.emit(`    window.location.href = ${esc(this.authRedirect)};`);
       this.emit(`    return;`);
       this.emit(`  }`);

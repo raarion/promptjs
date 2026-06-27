@@ -223,7 +223,16 @@ function runServe(argv) {
    * HTTP request handler.
    */
   function handleRequest(req, res) {
-    const urlPath = req.url.split('?')[0]; // Strip query string
+    let urlPath = req.url.split('?')[0]; // Strip query string
+    // S-6 (v1.0.0): Decode percent-encoding agar `%2e%2e%2f` (..%2f) tidak lolos
+    // dari pemeriksaan traversal di bawah. URL malformed → 400.
+    try {
+      urlPath = decodeURIComponent(urlPath);
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'text/plain' });
+      res.end('400 Bad Request');
+      return;
+    }
 
     // WebSocket upgrade for live-reload
     if (
@@ -258,8 +267,13 @@ function runServe(argv) {
     }
 
     // Security: prevent path traversal
+    // S-6 (v1.0.0): `resolved.startsWith(rootDir)` cacat — sibling-directory
+    // escape lolos (mis. rootDir "/srv/app" vs "/srv/app-secret/x"). Pakai
+    // path.relative: bila hasilnya naik ('..') atau absolut, target di LUAR root.
     const resolved = path.resolve(filePath);
-    if (!resolved.startsWith(rootDir)) {
+    const rel = path.relative(rootDir, resolved);
+    const isInside = rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+    if (!isInside) {
       res.writeHead(403, { 'Content-Type': 'text/plain' });
       res.end('403 Forbidden');
       return;
