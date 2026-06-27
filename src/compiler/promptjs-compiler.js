@@ -276,12 +276,16 @@ PromptJSCompiler.prototype.resolveTarget = function (targetNode) {
 
   if (targetNode.type === 'Identifier') {
     // Check if it's a compiled DOM variable (has compiledVarName)
+    // or reactive data/turunan — use .value for reactive, direct name otherwise.
     if (
       targetNode.resolved &&
       (targetNode.resolved.kind === 'data' || targetNode.resolved.kind === 'turunan')
     ) {
       return `${targetNode.name}.value`;
     }
+    // Fallback: check targetSymbol (set by Resolver._trackWrite) for reactivity.
+    // targetSymbol is set on the parent statement (e.g. SimpanStatement.targetSymbol),
+    // not on the Identifier itself — but we can check the identifier's symbol.
     return targetNode.name;
   }
   if (targetNode.type === 'Selector') {

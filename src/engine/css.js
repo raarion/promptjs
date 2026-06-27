@@ -82,17 +82,24 @@ const TAG_ALIAS_TO_HTML = {
  */
 function translateCSSSelector(selector) {
   // Split into comma-separated groups, process each
-  return selector.split(',').map(part => {
-    return part.trim().split(/\s+/).map(token => {
-      // Extract pure tag name (strip pseudo-classes, attributes, classes, ids)
-      // e.g., "tombol.primary:hover" → tag="tombol", suffix=".primary:hover"
-      const clean = token.replace(/[:[].*$/, '').replace(/[.#].*$/, '');
-      if (TAG_ALIAS_TO_HTML[clean]) {
-        return token.replace(clean, TAG_ALIAS_TO_HTML[clean]);
-      }
-      return token;
-    }).join(' ');
-  }).join(', ');
+  return selector
+    .split(',')
+    .map((part) => {
+      return part
+        .trim()
+        .split(/\s+/)
+        .map((token) => {
+          // Extract pure tag name (strip pseudo-classes, attributes, classes, ids)
+          // e.g., "tombol.primary:hover" → tag="tombol", suffix=".primary:hover"
+          const clean = token.replace(/[:[].*$/, '').replace(/[.#].*$/, '');
+          if (TAG_ALIAS_TO_HTML[clean]) {
+            return token.replace(clean, TAG_ALIAS_TO_HTML[clean]);
+          }
+          return token;
+        })
+        .join(' ');
+    })
+    .join(', ');
 }
 
 /**
@@ -256,7 +263,9 @@ function compileCSS(rules, scoped) {
       lines.push(`${rule.selector} {`);
       for (const child of rule.children) {
         const sel =
-          scoped && child.scope ? scopeSelector(child.selector, child.scope) : translateCSSSelector(child.selector);
+          scoped && child.scope
+            ? scopeSelector(child.selector, child.scope)
+            : translateCSSSelector(child.selector);
         lines.push(`  ${sel} {`);
         for (const prop of child.properties) {
           lines.push(`    ${prop.key}: ${prop.value};`);
@@ -268,7 +277,10 @@ function compileCSS(rules, scoped) {
     }
 
     // Regular rule
-    const sel = scoped && rule.scope ? scopeSelector(rule.selector, rule.scope) : translateCSSSelector(rule.selector);
+    const sel =
+      scoped && rule.scope
+        ? scopeSelector(rule.selector, rule.scope)
+        : translateCSSSelector(rule.selector);
     lines.push(`${sel} {`);
     for (const prop of rule.properties) {
       lines.push(`  ${prop.key}: ${prop.value};`);

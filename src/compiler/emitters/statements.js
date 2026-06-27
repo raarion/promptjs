@@ -1121,7 +1121,8 @@ function install(PromptJSCompiler, accept) {
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, gunakan __setState
       // resolveTarget returns name.value but __setState needs the proxy object itself
-      const tgtName = node.target && node.target.type === 'Identifier' ? node.target.name : tgt.split('.')[0];
+      const tgtName =
+        node.target && node.target.type === 'Identifier' ? node.target.name : tgt.split('.')[0];
       this.helpers.add('__setState');
       this.emit(`__setState(${tgtName}, ${val});`);
     } else {

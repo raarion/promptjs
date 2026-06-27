@@ -1,5 +1,9 @@
 ---
 judul: "PromptJS Dashboard"
+butuhAuth: benar
+redirect: /login
+token: localStorage
+tokenKey: auth_token
 ---
 
 Gaya:
