@@ -287,6 +287,39 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
     }
   }
 
+  // ── S-1 (v1.0.0): Validate auth front-matter sebelum di-emit ke codegen ──
+  // Compiler menjahit nilai ini ke output JS, jadi nilai mentah tak-tepercaya
+  // tidak boleh lolos. `authToken` di-emit sebagai identifier telanjang →
+  // WAJIB whitelist. `authRedirect` di-emit sebagai URL → tolak skema aktif.
+  if (butuhAuth) {
+    const ALLOWED_TOKEN_STORAGE = ['localStorage', 'sessionStorage'];
+    if (!ALLOWED_TOKEN_STORAGE.includes(authToken)) {
+      this.errors.push({
+        code: 'E5004',
+        severity: 'error',
+        message: `Sumber penyimpanan token auth tidak valid: "${authToken}". Hanya "localStorage" atau "sessionStorage" yang diizinkan`,
+        suggestion:
+          'Setel front-matter "token:" ke "localStorage" atau "sessionStorage" (opsional dengan ".namaKunci")',
+      });
+    }
+    // Tolak skema URL aktif pada redirect (javascript:, data:, vbscript:).
+    if (typeof authRedirect === 'string') {
+      const scheme = authRedirect.trim().toLowerCase();
+      if (/^(javascript|data|vbscript):/i.test(scheme)) {
+        this.errors.push({
+          code: 'E5005',
+          severity: 'error',
+          message: `Target redirect auth memakai skema tidak aman: "${authRedirect}". Gunakan path relatif/absolut, bukan "javascript:" atau "data:"`,
+          suggestion:
+            'Setel "redirect:" ke path seperti "/login" atau URL http(s), bukan skema "javascript:"/"data:"',
+        });
+      }
+    }
+    if (this.errors.some((e) => e.severity === 'error')) {
+      return this._makeResult(null, this.errors, this.warnings, null, css);
+    }
+  }
+
   // Attach SPA flags to AST so the compiler can access them
   if (analyzeResult.ast) {
     analyzeResult.ast.isSPA = isSPA;

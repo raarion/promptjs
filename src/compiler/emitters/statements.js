@@ -26,6 +26,25 @@
  * @returns {void}
  */
 function install(PromptJSCompiler, accept) {
+  /**
+   * Emit penetapan innerHTML yang SELALU melewati `__sanitizeHTML`.
+   *
+   * S-3 (v1.0.0): Sebelumnya konstruk `html: <expr>` punya DUA jalur emit —
+   * satu (element-creation) menulis `innerHTML` mentah tanpa sanitasi, satu
+   * lagi (visitPropertyNode) memakai `__sanitizeHTML`. Inkonsistensi ini
+   * adalah lubang XSS yang tidak terduga. Helper tunggal ini menyatukan
+   * kebijakan: TIDAK ADA penetapan innerHTML mentah yang tersisa di codebase.
+   *
+   * @this {any}
+   * @param {string} targetVar - Nama variabel elemen target (mis. `__el_1`)
+   * @param {string} valExpr - Ekspresi nilai (sudah di-lower) untuk innerHTML
+   * @returns {void}
+   */
+  PromptJSCompiler.prototype.emitHtmlAssignment = function (targetVar, valExpr) {
+    this.helpers.add('__sanitizeHTML');
+    this.emit(`${targetVar}.innerHTML = __sanitizeHTML(${valExpr});`);
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // VISITOR IMPLEMENTATIONS — DECLARATIONS
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -296,7 +315,8 @@ function install(PromptJSCompiler, accept) {
       node.properties.forEach((p) => {
         const val = this.lowerExpression(p.value);
         if (p.key === 'teks') this.emit(`${varName}.innerText = ${val};`);
-        else if (p.key === 'html') this.emit(`${varName}.innerHTML = ${val};`);
+        else if (p.key === 'html')
+          this.emitHtmlAssignment(varName, val); // S-3: selalu sanitasi
         else if (p.key === 'nilai') this.emit(`${varName}.value = ${val};`);
         else this.emit(`${varName}.setAttribute("${p.key}", ${val});`);
       });
@@ -376,8 +396,7 @@ function install(PromptJSCompiler, accept) {
     if (key === 'teks') {
       this.emit(`${parent}.innerText = ${val};`);
     } else if (key === 'html') {
-      this.helpers.add('__sanitizeHTML');
-      this.emit(`${parent}.innerHTML = __sanitizeHTML(${val});`);
+      this.emitHtmlAssignment(parent, val); // S-3: jalur terpadu
     } else if (key === 'kelas') {
       this.emit(`${parent}.className = ${val};`);
     } else if (key === 'nilai') {

@@ -74,7 +74,7 @@ PromptJSCompiler.prototype.genericVisit;
  * @returns {string} Kode JavaScript hasil kompilasi
  */
 PromptJSCompiler.prototype.compile = function (ast) {
-  // v1.0.1: Validate unsupported AST node types (E5001)
+  // v1.0.0: Validate unsupported AST node types (E5001)
   this._validateNodeTypes(ast);
 
   this.output = [];
@@ -116,19 +116,24 @@ PromptJSCompiler.prototype.compile = function (ast) {
 
   // v0.9.9: Auth guard wrapper (before SPA factory or IIFE)
   if (this.butuhAuth) {
+    // S-1 (v1.0.0): `authToken` di-emit sebagai identifier telanjang — aman
+    // karena sudah lolos whitelist {localStorage, sessionStorage} di engine.
+    // Semua nilai string (key, redirect, peran) WAJIB lewat escapeString agar
+    // tidak bisa keluar dari konteks string literal (code-injection).
+    const esc = Codegen.escapeString;
     this.emit(`// Auth guard: check ${this.authToken} for token`);
     this.emit(`(function() {`);
-    this.emit(`  var __token = ${this.authToken}.getItem('${this.authTokenKey}');`);
+    this.emit(`  var __token = ${this.authToken}.getItem(${esc(this.authTokenKey)});`);
     this.emit(`  if (!__token) {`);
-    this.emit(`    window.location.href = '${this.authRedirect}';`);
+    this.emit(`    window.location.href = ${esc(this.authRedirect)};`);
     this.emit(`    return;`);
     this.emit(`  }`);
     // v0.9.9: Role-based access check (peran directive)
     if (this.authPeran) {
       this.emit(`  var __peran = ${this.authToken}.getItem('__peran');`);
-      this.emit(`  var __allowedPeran = '${this.authPeran}';`);
+      this.emit(`  var __allowedPeran = ${esc(this.authPeran)};`);
       this.emit(`  if (__peran !== __allowedPeran) {`);
-      this.emit(`    window.location.href = '${this.authRedirect}';`);
+      this.emit(`    window.location.href = ${esc(this.authRedirect)};`);
       this.emit(`    return;`);
       this.emit(`  }`);
     }
@@ -342,7 +347,7 @@ PromptJSCompiler.prototype.generateSourceMap = function () {
 // Statement emitters dipasang dari compiler/emitters/statements.js.
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// AST VALIDATION (v1.0.1)
+// AST VALIDATION (v1.0.0)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
