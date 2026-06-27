@@ -80,9 +80,10 @@ Gaya:
         padding: 8px 12px
         border-radius: 8px
         background: rgba(239,68,68,0.08)
-        display: none
-    .error-msg.show
-        display: block
+        opacity: 0
+        transition: opacity 0.2s ease
+    .error-msg.visible
+        opacity: 1
     .login-btn
         width: 100%
         padding: 14px
@@ -141,7 +142,8 @@ Halaman Login:
             Buat tombol.login-btn#btn-login: "Masuk"
                 Ketika diklik:
                     Jika nama === "admin":
-                        simpan "dummy-token-123" ke localStorage.auth_token
+                        simpan "admin" ke localStorage.auth_token
+                        simpan "Administrator" ke localStorage.nama_pengguna
                         simpan "admin" ke localStorage.__peran
                         arahkan "dashboard.html"
                     Lainnya:

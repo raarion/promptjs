@@ -1,6 +1,6 @@
 ---
 judul: "Todo App Pro"
-todos: [{"teks":"Belajar PromptJS","selesai":benar},{"teks":"Buat aplikasi pertama","selesai":salah},{"teks":"Deploy ke production","selesai":salah}]
+todos: ["Belajar PromptJS","Buat aplikasi pertama","Deploy ke production"]
 ---
 
 Gaya:
@@ -95,14 +95,11 @@ Gaya:
         transition: all 0.15s
     .task-item:hover
         background: rgba(255,255,255,0.06)
-    .task-item.done
-        opacity: 0.5
-    .task-item.done span
-        text-decoration: line-through
     .task-text
         flex: 1
         font-size: 0.95rem
         color: #e0e0e0
+        word-break: break-word
     .del-btn
         background: none
         border: 1px solid rgba(239,68,68,0.2)
@@ -113,6 +110,7 @@ Gaya:
         font-size: 0.85rem
         transition: all 0.15s
         font-family: inherit
+        flex-shrink: 0
     .del-btn:hover
         background: rgba(239,68,68,0.1)
         border-color: rgba(239,68,68,0.4)
@@ -133,17 +131,14 @@ Gaya:
         cursor: pointer
         font-family: inherit
         opacity: 0.7
+        transition: opacity 0.15s
     .footer-stats .clear-btn:hover
         opacity: 1
     .empty-state
         text-align: center
-        padding: 32px 20px
+        padding: 24px
         color: #475569
         font-size: 0.9rem
-    .empty-state .icon
-        font-size: 2.5rem
-        margin-bottom: 8px
-        opacity: 0.5
 
 Halaman TodoApp:
     data daftar = []
@@ -168,23 +163,19 @@ Halaman TodoApp:
         Buat daftar.task-list:
             Ulangi untuk item dari daftar:
                 Buat li.task-item:
-                    Buat span.task-text:
-                        item.teks
+                    Buat span.task-text: item
                     Buat tombol.del-btn:
                         "✕"
                         on_klik = hapus item dari daftar
 
         Buat div.footer-stats:
             Buat div.summary:
+                "📋 "
+            Saat daftar:
                 Buat span:
-                    "📋 "
-
-                Saat daftar:
-                    Buat span:
-                        panjang(daftar)
-
-                Buat span:
-                    " tugas"
+                    panjang(daftar)
+            Buat span:
+                " tugas"
             Buat tombol.clear-btn:
                 "Bersihkan"
                 on_klik = simpan [] ke daftar

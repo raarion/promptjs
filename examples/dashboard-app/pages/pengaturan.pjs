@@ -67,6 +67,7 @@ Gaya:
         cursor: pointer
         transition: background 0.2s ease
         border: none
+        flex-shrink: 0
     .toggle.on
         background: linear-gradient(135deg, #7dd3fc, #4f9ef7)
     .toggle::after
@@ -125,6 +126,9 @@ Gaya:
         background: #dc2626
 
 Halaman Pengaturan:
+    data temaGelap = "aktif"
+    data pushNotify = "nonaktif"
+
     Buat div.page-header:
         Buat h2: $judul
 
@@ -136,6 +140,11 @@ Halaman Pengaturan:
                     Buat span.setting-label: "Tema Gelap"
                     Buat div.setting-desc: "Gunakan tampilan latar gelap"
                 Buat tombol.toggle.on#tema-toggle: ""
+                    Ketika diklik:
+                        Jika temaGelap === "aktif":
+                            simpan "nonaktif" ke temaGelap
+                        Lainnya:
+                            simpan "aktif" ke temaGelap
 
             Buat div.setting-row:
                 Buat div.setting-info:
@@ -152,13 +161,22 @@ Halaman Pengaturan:
                 Buat div.setting-info:
                     Buat span.setting-label: "Push Notification"
                     Buat div.setting-desc: "Terima update real-time"
-                Buat tombol.toggle#push-toggle: ""
+                Buat tombol.toggle#push-toggle:
+                    ""
+                    Ketika diklik:
+                        Jika pushNotify === "nonaktif":
+                            simpan "aktif" ke pushNotify
+                        Lainnya:
+                            simpan "nonaktif" ke pushNotify
 
             Buat div.setting-row:
                 Buat div.setting-info:
                     Buat span.setting-label: "Email Digest"
                     Buat div.setting-desc: "Ringkasan mingguan via email"
-                Buat tombol.toggle.on#email-toggle: ""
+
+                Saat temaGelap:
+                    Buat span.setting-value:
+                        temaGelap
 
         Buat div.danger-zone:
             Buat h4: "⚠️ Zona Berbahaya"
@@ -166,5 +184,6 @@ Halaman Pengaturan:
             Buat tombol.danger-btn#keluar-akun: "🚪 Keluar dari Akun"
                 Ketika diklik:
                     hapus localStorage.auth_token
+                    hapus localStorage.nama_pengguna
                     hapus localStorage.__peran
                     arahkan "login.html"

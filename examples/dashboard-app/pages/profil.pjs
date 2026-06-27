@@ -73,9 +73,30 @@ Gaya:
     .info-grid .info-value
         font-size: 0.95rem
         color: #e0e0e0
-        font-family: 'SF Mono', Monaco, monospace
         font-weight: 500
+    .info-session
+        margin-top: 20px
+        padding: 14px 18px
+        background: rgba(125,211,252,0.06)
+        border: 1px solid rgba(125,211,252,0.1)
+        border-radius: 12px
+        text-align: left
+    .info-session .session-title
+        font-size: 0.75rem
+        font-weight: 700
+        color: #64748b
+        text-transform: uppercase
+        letter-spacing: 0.06em
+        margin-bottom: 6px
+    .info-session .token-display
+        font-family: 'SF Mono', Monaco, monospace
+        font-size: 0.78rem
+        color: #7dd3fc
         word-break: break-all
+        background: rgba(0,0,0,0.2)
+        padding: 8px 12px
+        border-radius: 8px
+        margin-top: 4px
     .logout-btn
         margin-top: 24px
         padding: 10px 28px
@@ -95,10 +116,12 @@ Gaya:
 Halaman Profil:
     data nama = ""
     data peran = ""
+    data token = ""
 
     Ketika muat:
-        simpan localStorage.getItem("auth_token") ke nama
+        simpan localStorage.getItem("nama_pengguna") ke nama
         simpan localStorage.getItem("__peran") ke peran
+        simpan localStorage.getItem("auth_token") ke token
 
     Buat div.page-header:
         Buat h2: $judul
@@ -106,19 +129,24 @@ Halaman Profil:
     Buat div.profile-container:
         Buat div.profile-card:
             Buat div.avatar: "👤"
-            Buat h3: "Administrator"
+            Buat h3: $nama
             Buat span.role-badge: $peran
 
             Buat div.info-grid:
-                Buat span.info-label: "Token"
+                Buat span.info-label: "Nama"
                 Buat span.info-value: $nama
                 Buat span.info-label: "Peran"
                 Buat span.info-value: $peran
                 Buat span.info-label: "Status"
                 Buat span.info-value: "🟢 Aktif"
 
+            Buat div.info-session:
+                Buat div.session-title: "Token Sesi"
+                Buat div.token-display: $token
+
             Buat tombol.logout-btn#keluar-profil: "🚪 Keluar dari Akun"
                 Ketika diklik:
                     hapus localStorage.auth_token
+                    hapus localStorage.nama_pengguna
                     hapus localStorage.__peran
                     arahkan "login.html"
