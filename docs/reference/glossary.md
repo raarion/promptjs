@@ -36,7 +36,7 @@ A list of important terms in PromptJS with translations and descriptions.
 |-----------|--------------|------------------------|
 | data | state | State reaktif berbasis Proxy / Proxy-based reactive state |
 | turunan | derived | Computed property, read-only reaktif / Computed property, read-only reactive |
-| tetap | const | Konstanta, tidak dapat diubah setelah inisialisasi / Constant, cannot be changed after initialization |
+| tetap | const | Konstanta, tidak dapat diubah setelah inisialisasi (E3003 jika ditulis ulang) / Constant, cannot be changed after initialization (E3003 if reassigned) |
 | ubah | let | Variabel mutable non-reaktif / Non-reactive mutable variable |
 | simpan | save | Menyimpan nilai ke variabel / Saves a value to a variable |
 
@@ -46,25 +46,46 @@ A list of important terms in PromptJS with translations and descriptions.
 
 | Istilah ID | English Term | Deskripsi / Description |
 |-----------|--------------|------------------------|
-| tambahkan | append | Menambah item ke array / Adds item to array |
-| kurangi | remove | Mengurangi nilai variabel / Decrements a variable value |
-| hapus | delete | Menghapus elemen DOM atau item array / Deletes DOM element or array item |
-| sisipkan | insert | Menyisipkan item ke array pada posisi tertentu / Inserts item to array at position |
-| tampilkan | show | Menampilkan pesan/elemen / Shows a message or element |
-| sembunyikan | hide | Menyembunyikan elemen DOM / Hides a DOM element |
-| kosongkan | clear | Mengosongkan innerHTML elemen / Clears element innerHTML |
-| perbarui | update | Memperbarui properti elemen (teks, html, kelas, src, href, dll.) / Updates element properties |
+| tambahkan ... ke ... | add ... to ... | Menambahkan item ke array reaktif / Appends an item to a reactive array |
+| hapus ... dari ... | remove ... from ... | Menghapus item dari array reaktif / Removes an item from a reactive array |
+| perbarui ... | update ... | Memperbarui properti elemen (teks, html, kelas, src, href, dll.) / Updates an element property |
+| ambil ... dari ... | fetch ... from ... | Mengambil data dari URL/sumber lalu simpan ke variabel / Fetches data from a URL/source then saves to a variable |
+| panjang(...) | length(...) | Fungsi bawaan: panjang array/string / Built-in: length of array/string |
 
 ---
 
-## Komponen & Modul / Component & Module
+## Komponen / Components
 
 | Istilah ID | English Term | Deskripsi / Description |
 |-----------|--------------|------------------------|
-| Komponen | Component | Definisi komponen reusable / Reusable component definition |
-| Gunakan | Use | Instansiasi komponen / Component instantiation |
-| kirim | share | Export module / Module export |
-| terima | get | Import module / Module import |
+| Komponen / Definisikan | component / define | Mendefinisikan komponen UI yang dapat dipakai ulang (nama PascalCase) / Defines a reusable UI component (PascalCase name) |
+| Gunakan | use | Menginstansiasi komponen; hanya untuk komponen, bukan elemen biasa (E4010) / Instantiates a component; component-only (E4010) |
+| props | props | Objek properti yang diteruskan ke komponen saat instansiasi / Property object passed to a component on instantiation |
+| `__komp_<Nama>` | `__komp_<Name>` | Nama fungsi factory hasil kompilasi komponen / Compiled component factory function name |
+| `$param` | `$param` | Akses parameter di dalam body komponen / Access to a parameter inside the component body |
+
+---
+
+## Modul / Modules
+
+| Istilah ID | English Term | Deskripsi / Description |
+|-----------|--------------|------------------------|
+| kirim | share | Mengekspor simbol via front-matter (inline atau re-ekspor) / Exports a symbol via front-matter (inline or re-export) |
+| terima | get | Mengimpor simbol dari file `.pjs` lain via front-matter / Imports a symbol from another `.pjs` file via front-matter |
+| dari | from | Menentukan file sumber pada `terima`/`kirim` re-ekspor / Specifies the source file in `terima`/re-export |
+| Deteksi siklus | Cycle detection | Mencegah impor melingkar dengan `Set` file terkunjungi (W0000) / Prevents circular imports via a visited-file `Set` (W0000) |
+
+---
+
+## Plugin / Plugins
+
+| Istilah | Deskripsi / Description |
+|---------|------------------------|
+| transformSource | Hook 1 — modifikasi sumber `.pjs` sebelum kompilasi / modifies `.pjs` source before compile |
+| transformJS | Hook 2 — modifikasi JS setelah kompilasi / modifies JS after compile |
+| transformCSS | Hook 3 — modifikasi CSS setelah kompilasi / modifies CSS after compile |
+| transformHTML | Hook 4 — modifikasi HTML setelah generate / modifies HTML after generation |
+| Non-fatal | Error hook ditulis ke `stderr`, kompilasi lanjut / Hook errors go to `stderr`, compilation continues |
 
 ---
 
