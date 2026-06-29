@@ -166,7 +166,7 @@ describe('v6 — PerbaruiStatement property map', () => {
 
 // ════════════════════════════════════════════════════════════════════════
 // 5. Storage + navigation (simpan/hapus localStorage, arahkan)
-// ════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
 describe('v6 — Storage & navigation', () => {
   it('simpan ... ke localStorage.x → localStorage.setItem', () => {
     const js = compileOk(BTN('simpan "tok" ke localStorage.auth'));
