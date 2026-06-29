@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
 
+### Test Enrichment Wave v5 — Mutation Hardening · 2026-06-29
+
+> Penguatan **mutation testing** (Stryker, scoped `resolver` + `analyzer`, `ignoreStatic`)
+> untuk membunuh mutant yang lolos pada baseline v4. **Tidak menyentuh `src/`** — hanya
+> menambah test & assertion. Tetap **v1.0.0**, nol regresi fungsional.
+
+#### Added
+
+- **4 file test baru (`tests/v5-*.test.js`, +63 test)** menaikkan suite dari **747 → 810**
+  (35 → 39 file), semua deterministik & hijau:
+  - `v5-resolver-nocoverage.test.js` (24 test) — menutup baris **NoCoverage** di resolver.
+  - `v5-diagnostic-text.test.js` (11 test) — meng-assert **teks exact** `message`/`suggestion`
+    diagnostik (membunuh mutant `StringLiteral`).
+  - `v5-symbol-flags.test.js` (11 test) — meng-assert flag boolean simbol
+    (`isReactive`/`isWritable`/`kind`) (membunuh mutant `BooleanLiteral`).
+  - `v5-boundary.test.js` (17 test) — boundary & `ConditionalExpression`.
+
+#### Changed
+
+- **Mutation score (Stryker, terverifikasi dari `mutation.json`)** naik
+  **49.72% → 63.91%** (total, `ignoreStatic`; **+14.19 poin**) — analyzer 62.12% → **66.24%**,
+  resolver 49.43% → **61.67%**, covered-only **66.15%**. Run penuh 10m 2s, 1480 mutant.
+- `vitest.stryker.config.js` — memasukkan 4 file test v5 ke dalam scope test mutasi.
+
+#### Catatan jujur (disclosure)
+
+- **Target internal 65% BELUM tercapai** — kurang **~1.09 poin** (≈14 kill). Sisa survivor
+  terbanyak: `ConditionalExpression` & `StringLiteral` (teks diagnostik) + NoCoverage tersisa
+  di `resolver`/`analyzer`. Langkah lanjutan: sapu NoCoverage tersisa + perkuat assertion
+  efek-traversal.
+- **`thresholds.break` SENGAJA tetap `45`** (tidak dinaikkan) karena target 65% belum tercapai —
+  threshold hanya dinaikkan setelah skor target terbukti, agar `break` tetap menjaga regresi
+  tanpa over-promising.
+
 ### Audit Fixes Wave — 2026-06 · `audit-fixes-2026-06`
 
 > Tindak lanjut dari audit kode mendalam (commit `e3ad7d4`). Menutup **semua temuan
