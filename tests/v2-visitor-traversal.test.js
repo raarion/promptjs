@@ -101,7 +101,7 @@ describe('v2 — CollectingVisitor', () => {
 
   it('returns an empty result set when nothing matches', () => {
     const v = new CollectingVisitor('Literal');
-    accept({ type: 'Program', body: [idNode('a')], loc: null }, v);
+    accept(/** @type {any} */ ({ type: 'Program', body: [idNode('a')], loc: null }), v);
     expect(v.results).toEqual([]);
   });
 });
@@ -120,11 +120,13 @@ describe('v2 — traverse / accept guards', () => {
 
 describe('v2 — formatAST nested rendering', () => {
   it('renders an array of children indented under the parent', () => {
-    const out = formatAST({
-      type: 'Program',
-      body: [idNode('a'), idNode('b')],
-      loc: null,
-    });
+    const out = formatAST(
+      /** @type {any} */ ({
+        type: 'Program',
+        body: [idNode('a'), idNode('b')],
+        loc: null,
+      })
+    );
     expect(out).toContain('Program');
     // both identifiers should appear in the rendered tree
     expect(out).toContain('Identifier');
@@ -133,12 +135,14 @@ describe('v2 — formatAST nested rendering', () => {
   });
 
   it('renders a single nested object child', () => {
-    const out = formatAST({
-      type: 'BuatStatement',
-      selector: idNode('div'),
-      body: null,
-      loc: null,
-    });
+    const out = formatAST(
+      /** @type {any} */ ({
+        type: 'BuatStatement',
+        selector: idNode('div'),
+        body: null,
+        loc: null,
+      })
+    );
     expect(out).toContain('BuatStatement');
     expect(out).toContain('Identifier');
   });
