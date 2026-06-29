@@ -10,7 +10,8 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-500+%20passing-a78bfa?style=for-the-badge&logo=vitest&logoColor=a78bfa">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-747%20passing-yellow?style=for-the-badge&logo=vitest&logoColor=yellow">
+    <img alt="Coverage" src="https://img.shields.io/badge/coverage-82%25%20lines-86efac?style=for-the-badge&logo=vitest&logoColor=86efac">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
@@ -111,12 +112,37 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **CSP Built-in** (`--csp` flag) | **✅** 🏆 | ❌ manual | ❌ manual | ❌ manual | ❌ manual | ❌ manual |
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
-| **Test Suite** | **500+ tests** | 3,000+ | — | 4,000+ | 10,000+ | — |
+| **Test Suite** | **747 tests** (35 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |
 
 > 🏆 = unik / leading di kategori tersebut.  
 > 📋 **Data lengkap, metodologi, dan sumber** → [`BENCHMARK.md`](BENCHMARK.md)
+
+---
+
+## 🧪 Kematangan Test, Coverage & Mutation (v4)
+
+> Semua angka di bawah **terverifikasi dari run nyata** pada fresh install (`npm ci`), bukan klaim. Lihat detail metodologi di [`BENCHMARK.md`](BENCHMARK.md).
+
+| Sinyal | Nilai (v4) | Gate CI |
+|---|---|---|
+| **Test** | **747 lulus / 747** (35 file, vitest) | wajib hijau |
+| **Determinisme** | 747/747 pada **3 run berturut-turut** — nol flaky | — |
+| **Coverage — lines** | **~82%** | **gate ≥ 80%** (gagal saat regresi) |
+| **Coverage — branches** | **~72%** | gate ≥ 71% |
+| **Coverage — functions** | **~84%** | gate ≥ 82% |
+| **Mutation score** (Stryker, scoped resolver+analyzer, `ignoreStatic`) | **49.72% (baseline jujur)** | `break = 45` (gagal hanya saat regresi) |
+| **Lint** | ESLint `--max-warnings=0` bersih | wajib |
+| **Typecheck** | `tsc --noEmit` (JSDoc/checkJs) 0 error | wajib |
+| **Format** | Prettier `--check` bersih | wajib |
+
+**CI — GitHub Actions** (`.github/workflows/ci.yml`), 3 job:
+1. **`build-and-test`** — matrix **Node 22.x & 24.x**: `format:check` → `typecheck` → `lint` → `test` → smoke compile CLI → compile semua contoh (examples, multi-page, todo-app, dashboard-app).
+2. **`coverage`** — `npm run coverage` sebagai **hard gate ≥ 80% lines** (threshold di `vitest.config.js`; CI gagal saat coverage regresi) + upload lcov/html.
+3. **`mutation`** — **Stryker** scoped `resolver` + `analyzer` (`npm run mutation`), `break` threshold **45** (di bawah baseline 49.72% → gagal hanya saat assertion dilemahkan/dihapus) + upload report html/json.
+
+> ⚠️ **Jujur soal mutation score:** 49.72% adalah **baseline awal**, bukan angka final. Mayoritas mutant yang lolos (`ConditionalExpression` + `StringLiteral` pada teks diagnostik) menunggu assertion pesan/`suggestion` error diperketat. `break=45` sengaja dipasang di bawah baseline supaya CI hanya gagal saat **regresi**, bukan menghukum titik awal yang sudah diketahui.
 
 ---
 
@@ -263,7 +289,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 <details>
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
-- `tests/` ← 500+ tes, 26 file tes
+- `tests/` ← 747 tes, 35 file tes
 - [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
 - [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
 - [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
@@ -291,6 +317,18 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 - [css.test.js](tests/css.test.js) ← Dukungan CSS (Gaya:/Style:)
 - [builder.test.js](tests/builder.test.js) ← Pembuat proyek + perutean multi-file
 
+**Suite ketahanan v2–v4 (edge-case, error-path & branch coverage):**
+
+- [v2-expression-lowering.test.js](tests/v2-expression-lowering.test.js) ← Lowering ekspresi (edge & error path)
+- [v2-error-codes.test.js](tests/v2-error-codes.test.js) ← Kontrak kode error/warning bilingual
+- [v2-modules-resolution.test.js](tests/v2-modules-resolution.test.js) ← Resolusi modul (kirim/terima, siklus)
+- [v2-cli-compile-errors.test.js](tests/v2-cli-compile-errors.test.js) ← Jalur kesalahan CLI compile
+- [v2-visitor-traversal.test.js](tests/v2-visitor-traversal.test.js) ← Traversal visitor AST
+- [v3-resolver-branches.test.js](tests/v3-resolver-branches.test.js) ← Cabang resolver (first pass)
+- [v3-analyzer-branches.test.js](tests/v3-analyzer-branches.test.js) ← Cabang analyzer (first pass)
+- [v4-resolver-branches.test.js](tests/v4-resolver-branches.test.js) ← Pendalaman cabang resolver
+- [v4-analyzer-branches.test.js](tests/v4-analyzer-branches.test.js) ← Pendalaman cabang analyzer
+
 </details>
 
 ### 🛠️ Config & Infra
@@ -299,7 +337,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 <summary><b>🔽 Click to expand — Config & Infra</b></summary>
 
 - `.github/workflows/`
-  - [ci.yml](.github/workflows/ci.yml) ← CI: lint + typecheck + test
+  - [ci.yml](.github/workflows/ci.yml) ← CI: format + typecheck + lint + test (matrix Node 22/24) + coverage gate ≥80% + job Stryker mutation
   - [pages.yml](.github/workflows/pages.yml) ← GitHub Pages deploy
   - [release.yml](.github/workflows/release.yml) ← npm publish
 - [editors/vscode/](editors/vscode/) ← VS Code extension
@@ -323,7 +361,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 | **S-6** Dev-server path traversal | 🟡 MED | ✅ Fixed | `path.relative()` + `decodeURIComponent` anti-`%2e%2e` |
 | **T-1** CLI coverage 0% | ⚪ Test | ✅ Fixed | Suite integrasi CLI (spawn binary + serve e2e) |
 
-**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **539/539 test lulus** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
+**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **747/747 test lulus** (35 file) · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
 
 > ⚠️ **Catatan jujur:** auth guard PromptJS bersifat **client-side/advisory** — bukan kontrol keamanan server. Untuk otorisasi sesungguhnya, verifikasi peran **wajib** dilakukan di server (gunakan seam `window.__pjs_verifyPeran`).
 
@@ -340,7 +378,7 @@ Setelah tiga gelombang keamanan, satu PR lanjutan menutup temuan audit & DX yang
 | 5 | **Hapus `@ts-nocheck`** (`builder.js`, `css.js`) | Blanket-suppress dihapus; typecheck tetap 0 error |
 | 6 | **Normalisasi version banner** | Banner identitas `v0.x` → `v1.0.0` (marker historis dipertahankan) |
 
-**QA gate:** **539/539 test** (26 file, +17 test regresi baru) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · **v1.0.0**.
+**QA gate:** **747/747 test** (35 file) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · coverage gate ≥80% lines · Stryker mutation baseline 49.72% · **v1.0.0**.
 
 ---
 
@@ -393,7 +431,9 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 ## ✔️ Quality Assurance
 
 ```bash
-npm test          # 539 tests, 26 test files
+npm test          # 747 tests, 35 test files
+npm run coverage  # gate ≥80% lines (~82% measured)
+npm run mutation  # Stryker (scoped resolver+analyzer) — baseline 49.72%
 npm run lint      # ESLint — zero warnings
 npm run typecheck # tsc — zero errors
 npm run format    # Prettier
