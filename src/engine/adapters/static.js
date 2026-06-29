@@ -20,6 +20,7 @@
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const { isInsideRoot } = require('../../utils/path-guard');
 
 /**
  * Generate a short content hash from a string.
@@ -309,15 +310,21 @@ function runStaticAdapter(opts) {
  * @param {string} dir - Directory to search
  * @returns {string[]} HTML file paths
  */
-function findHtmlFiles(dir) {
+function findHtmlFiles(dir, rootDir) {
+  // First call establishes the containment root; recursive calls inherit it.
+  // S-12 (v1.0.1): a directory entry must never let the walk escape the build
+  // root (e.g. a symlink or crafted ".." name). Uses the centralized guard
+  // shared with the dev server & other adapters (src/utils/path-guard.js).
+  const root = rootDir || path.resolve(dir);
   let results = [];
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
       const fullPath = path.join(dir, entry.name);
+      if (!isInsideRoot(root, fullPath)) continue;
       if (entry.isDirectory()) {
-        const sub = findHtmlFiles(fullPath);
+        const sub = findHtmlFiles(fullPath, root);
         results = results.concat(sub);
       } else if (entry.name.endsWith('.html')) {
         results.push(fullPath);

@@ -24,6 +24,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { isInsideRoot } = require('../../utils/path-guard');
 
 /**
  * Generate vercel.json configuration.
@@ -186,6 +187,12 @@ function copyDirRecursive(src, dest) {
     const entry = entries[i];
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
+    // S-21 (v1.0.1): defense-in-depth — never copy an entry whose joined
+    // destination would escape `dest` (e.g. a crafted ".." entry name). Uses
+    // the same centralized guard as the dev server (src/utils/path-guard.js).
+    if (!isInsideRoot(dest, destPath) || !isInsideRoot(src, srcPath)) {
+      continue;
+    }
     if (entry.isDirectory()) {
       copyDirRecursive(srcPath, destPath);
     } else {

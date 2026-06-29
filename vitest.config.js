@@ -6,6 +6,14 @@ module.exports = defineConfig({
   test: {
     include: ['tests/**/*.test.js'],
     exclude: ['tests/helpers/**', 'tests/reports/**', 'node_modules/**'],
+    // FS-/subprocess-heavy suites (cli-commands, builder-integration,
+    // findpjsfiles, adapter I/O) can starve under heavy parallel load (e.g. a
+    // pre-push hook running the whole suite at once) and hit the 5s default,
+    // producing FLAKY "Test timed out in 5000ms" failures that are NOT
+    // assertion failures — every such test is green in isolation. Raising the
+    // ceiling gives slow-under-load tests headroom without weakening fast ones.
+    testTimeout: 20000,
+    hookTimeout: 20000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov', 'json-summary'],
