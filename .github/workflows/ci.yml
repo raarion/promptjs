@@ -72,3 +72,82 @@ jobs:
             echo "Compiling $f..."
             node src/cli/index.js compile "$f" --stdout > /dev/null
           done
+
+  coverage:
+    name: coverage • gate ≥80% lines (Node 22)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Use Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runs `vitest run --coverage`. The per-module thresholds in
+      # vitest.config.js (statements/branches/functions/lines) act as a hard
+      # gate — the job FAILS if coverage regresses below them. This is what
+      # makes "production ready" objectively verifiable rather than a claim.
+      - name: Test with coverage (enforces thresholds)
+        run: npm run coverage
+
+      - name: Upload coverage report (lcov + html)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+      - name: Coverage summary to job log
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "const c=require('./coverage/coverage-summary.json').total;console.log('Lines: '+c.lines.pct+'% | Stmts: '+c.statements.pct+'% | Branch: '+c.branches.pct+'% | Funcs: '+c.functions.pct+'%')" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  mutation:
+    name: mutation • Stryker (resolver + analyzer)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Use Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Mutation testing proves the test ASSERTIONS catch regressions — not just
+      # that lines executed. Scoped to the DSL semantic core (resolver +
+      # analyzer) via stryker.config.json. The `break` threshold (45, just
+      # below the measured 49.72% baseline) makes the job FAIL only if the
+      # mutation score REGRESSES below it, so a PR that weakens assertions on
+      # these high-risk modules is caught automatically. Raise `break` toward
+      # `low`/`high` as survived mutants are killed over time.
+      - name: Run Stryker mutation testing
+        run: npm run mutation
+
+      - name: Upload mutation report (html + json)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 14
+
+      - name: Mutation score to job log
+        if: always()
+        run: |
+          if [ -f reports/mutation/mutation.json ]; then
+            node -e "const r=require('./reports/mutation/mutation.json');const f=Object.values(r.files);let killed=0,total=0;for(const x of f){for(const m of x.mutants){total++;if(m.status==='Killed')killed++;}}const score=total?((killed/(total-Object.values(r.files).reduce((a,x)=>a+x.mutants.filter(m=>['NoCoverage','Ignored','RuntimeError','CompileError'].includes(m.status)).length,0)))*100):0;console.log('Mutation: '+killed+'/'+total+' mutants killed')" >> \"$GITHUB_STEP_SUMMARY\" || true
+          fi
