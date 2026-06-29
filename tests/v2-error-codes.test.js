@@ -81,11 +81,12 @@ describe('v2 — createError', () => {
   });
 
   it('overrides replace default fields', () => {
-    const e = createError('E1002', loc, { message: 'custom msg', extra: 42 });
+    const e = createError('E1002', loc, /** @type {any} */ ({ message: 'custom msg', extra: 42 }));
     expect(e.message).toBe('custom msg');
     // alias re-synced after override
     expect(e.pesan).toBe('custom msg');
-    expect(e.extra).toBe(42);
+    // `extra` is an arbitrary runtime-only override field, not on the typed shape
+    expect(/** @type {any} */ (e).extra).toBe(42);
   });
 
   it('override of suggestion re-syncs saran alias', () => {
@@ -106,7 +107,8 @@ describe('v2 — createError', () => {
     overrides.message = 'own only';
     const e = createError('E1002', loc, overrides);
     expect(e.message).toBe('own only');
-    expect(e.injected).toBeUndefined();
+    // `injected` lives on the prototype, never copied; runtime-only check
+    expect(/** @type {any} */ (e).injected).toBeUndefined();
   });
 });
 
