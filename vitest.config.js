@@ -8,18 +8,20 @@ module.exports = defineConfig({
     exclude: ['tests/helpers/**', 'tests/reports/**', 'node_modules/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
+      reporter: ['text', 'html', 'lcov', 'json-summary'],
       include: ['src/**/*.js'],
       exclude: ['src/tester/**', 'src/**/test-*.js'],
-      // Per-module thresholds (Opsi B) — set at current level + buffer to
-      // prevent regression. Raise in future PRs as coverage improves.
-      // Path to ≥80% overall: implement missing keywords (simpan, ketika,
-      // berhenti, dll.) which will naturally exercise more code paths.
+      // Global thresholds — raised again after the v3 resolver+analyzer branch
+      // suite lifted overall coverage to 81.52% lines / 71.6% branches
+      // (resolver 83% L / 64.73% B, analyzer 89.43% L / 84.45% B). Set just
+      // below the measured numbers so CI fails on REGRESSION (a deleted or
+      // weakened test) while leaving normal churn headroom. Verified stable
+      // across 3 consecutive full runs (zero variance).
       thresholds: {
-        statements: 70,
-        branches: 60,
-        functions: 75,
-        lines: 70,
+        statements: 80,
+        branches: 71,
+        functions: 82,
+        lines: 81,
         perFile: false,
       },
     },
