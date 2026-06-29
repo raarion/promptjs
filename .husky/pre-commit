@@ -1,0 +1,7 @@
+# pre-commit: fast, staged-files-only auto-fix.
+# Runs lint-staged which applies `prettier --write` + `eslint --fix` to the
+# files in the index. This guarantees the exact failure that broke CI before
+# (prettier --check on the v5 suite) can never be committed again. The full
+# test suite is intentionally NOT run here to keep commits fast — it runs in
+# the pre-push hook (mirroring the CI quality gate) instead.
+npx lint-staged

@@ -12,6 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const { isInsideRoot } = require('../../utils/path-guard');
 const { PromptJSEngine } = require('../../engine/promptjs');
 const {
   findPjsFiles,
@@ -268,12 +269,11 @@ function runServe(argv) {
 
     // Security: prevent path traversal
     // S-6 (v1.0.0): `resolved.startsWith(rootDir)` cacat — sibling-directory
-    // escape lolos (mis. rootDir "/srv/app" vs "/srv/app-secret/x"). Pakai
-    // path.relative: bila hasilnya naik ('..') atau absolut, target di LUAR root.
+    // escape lolos (mis. rootDir "/srv/app" vs "/srv/app-secret/x").
+    // S-15 (v1.0.1): guard ini disentralisasi ke `src/utils/path-guard.js`
+    // (isInsideRoot pakai path.relative) agar konsisten lintas adapter & CLI.
     const resolved = path.resolve(filePath);
-    const rel = path.relative(rootDir, resolved);
-    const isInside = rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
-    if (!isInside) {
+    if (!isInsideRoot(rootDir, resolved)) {
       res.writeHead(403, { 'Content-Type': 'text/plain' });
       res.end('403 Forbidden');
       return;

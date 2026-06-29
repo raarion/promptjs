@@ -5,6 +5,10 @@ dist-pages/
 .DS_Store
 coverage/
 
+# Stryker mutation testing
+.stryker-tmp/
+reports/mutation/
+
 # VS Code extension build output (editors/vscode)
 editors/vscode/.vscode/
 editors/vscode/node_modules/

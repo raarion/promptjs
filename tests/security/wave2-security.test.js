@@ -288,12 +288,13 @@ describe('S-5 — Auth role guard hardening', () => {
 // ════════════════════════════════════════════════════════════════════════
 
 describe('S-6 — Dev-server traversal guard', () => {
-  // Replikasi logika guard SETELAH fix (path.relative) untuk membuktikan
-  // bahwa kelas serangan sibling-escape & encoded-traversal kini tertutup.
+  // v1.0.1: PoC kini memanggil util terpusat YANG SEBENARNYA dikirim
+  // (src/utils/path-guard.js), bukan replika lokal — sehingga bukti bahwa
+  // kelas serangan sibling-escape & encoded-traversal tertutup berlaku pada
+  // kode produksi, bukan salinan yang bisa menyimpang.
+  const { isInsideRoot } = require('../../src/utils/path-guard');
   function isInside(rootDir, requestedRel) {
-    const resolved = path.resolve(rootDir, requestedRel);
-    const rel = path.relative(rootDir, resolved);
-    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+    return isInsideRoot(rootDir, path.resolve(rootDir, requestedRel));
   }
 
   it('audit PoC: sibling-directory escape (/srv/app vs /srv/app-secret) DITOLAK', () => {
@@ -315,14 +316,27 @@ describe('S-6 — Dev-server traversal guard', () => {
     expect(isInside('/srv/app', '')).toBe(true);
   });
 
-  it('source serve.js memakai path.relative (bukan startsWith yang cacat)', () => {
+  it('serve.js mendelegasikan guard ke util terpusat path-guard (S-15 sentralisasi)', () => {
+    // S-15/S-21 (v1.0.1): guard traversal dipindah ke util bersama
+    // `src/utils/path-guard.js` agar konsisten lintas adapter & CLI. serve.js
+    // kini WAJIB memanggil isInsideRoot, BUKAN menyalin logika inline lagi.
     const serveSrc = fs.readFileSync(
       path.resolve(__dirname, '../../src/cli/commands/serve.js'),
       'utf8'
     );
-    expect(serveSrc).toMatch(/path\.relative\(rootDir, resolved\)/);
-    // Guard lama yang cacat tidak boleh lagi menjadi satu-satunya pemeriksaan.
+    expect(serveSrc).toMatch(/require\(['"]\.\.\/\.\.\/utils\/path-guard['"]\)/);
+    expect(serveSrc).toMatch(/isInsideRoot\(rootDir, resolved\)/);
+    // Guard lama yang cacat tidak boleh muncul kembali.
     expect(serveSrc).not.toMatch(/if \(!resolved\.startsWith\(rootDir\)\)/);
+  });
+
+  it('util terpusat path-guard memakai path.relative (bukan startsWith yang cacat)', () => {
+    const guardSrc = fs.readFileSync(
+      path.resolve(__dirname, '../../src/utils/path-guard.js'),
+      'utf8'
+    );
+    expect(guardSrc).toMatch(/path\.relative\(/);
+    expect(guardSrc).not.toMatch(/\.startsWith\(resolvedRoot\)/);
   });
 
   it('source serve.js men-decode percent-encoding (anti %2e%2e traversal)', () => {
