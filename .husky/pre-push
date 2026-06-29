@@ -1,0 +1,15 @@
+# pre-push: full CI quality-gate mirror — last line of defence before `main`.
+# Runs the SAME checks, in the SAME order, as .github/workflows/ci.yml's
+# `build-and-test` job, so a red CI can be caught locally before it ever
+# reaches GitHub:
+#   1. format:check  (prettier --check .)
+#   2. typecheck     (tsc --noEmit)
+#   3. lint          (eslint . --max-warnings=0)
+#   4. test          (vitest run — full 810-test suite)
+# The full test run lives here (not in pre-commit) so commits stay fast while
+# pushes stay safe.
+echo "🔎 pre-push: running CI quality gate (format:check → typecheck → lint → test)…"
+npm run format:check &&
+npm run typecheck &&
+npm run lint &&
+npm test

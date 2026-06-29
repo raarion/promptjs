@@ -36,6 +36,15 @@
     "pages:dev": "node scripts/build-pages.js --watch",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "prettier --write",
+      "eslint --fix --max-warnings=0"
+    ],
+    "*.{json,md,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
+  },
   "keywords": [
     "dsl",
     "template",
