@@ -10,10 +10,7 @@
   "coverageAnalysis": "perTest",
   "ignoreStatic": true,
   "_ignoreStatic_comment": "Skip static mutants (module-load-time code). Stryker flagged 211 such mutants (~14% of total) consuming ~52% of run time because every static mutant forces a full re-import of the module under every test. They mostly live in top-level constant tables (keyword maps, alias sets) that are validated indirectly by the parser/lexer suites anyway. Ignoring them keeps a full mutation run to a few minutes while still measuring assertion strength on the actual *logic* branches.",
-  "mutate": [
-    "src/resolver/promptjs-resolver.js",
-    "src/analyzer/promptjs-analyzer.js"
-  ],
+  "mutate": ["src/resolver/promptjs-resolver.js", "src/analyzer/promptjs-analyzer.js"],
   "reporters": ["html", "clear-text", "json"],
   "htmlReporter": {
     "fileName": "reports/mutation/mutation.html"
