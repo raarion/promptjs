@@ -82,7 +82,10 @@ describe('v5 symbol flags — isReactive / isWritable / isComputed per kind', ()
   });
 
   it('`fungsi` is a function symbol, not writable/reactive', () => {
-    const s = byName(symbolsOf('fungsi f():\n    tampilkan "x"\nsetelah f:\n    tampilkan "y"'), 'f');
+    const s = byName(
+      symbolsOf('fungsi f():\n    tampilkan "x"\nsetelah f:\n    tampilkan "y"'),
+      'f'
+    );
     expect(s.kind).toBe('fungsi');
     expect(s.isFunction).toBe(true);
     expect(s.isWritable).toBe(false);
@@ -147,7 +150,12 @@ describe('v5 symbol flags — isUndefined on undeclared identifier', () => {
 
   it('a declared identifier is NOT flagged undefined (false branch of L554)', () => {
     const r = freshResolver();
-    r.visitDataDeclaration({ type: 'DataDeclaration', name: 'ada', init: { type: 'Literal', value: 0, kind: 'number' }, loc: LOC });
+    r.visitDataDeclaration({
+      type: 'DataDeclaration',
+      name: 'ada',
+      init: { type: 'Literal', value: 0, kind: 'number' },
+      loc: LOC,
+    });
     const node = { type: 'Identifier', name: 'ada', loc: LOC };
     r.visitIdentifier(node);
     expect(node.isUndefined).toBeUndefined();

@@ -66,7 +66,9 @@ describe('v5 diagnostic text — resolver messages & suggestions', () => {
     const e = find(errors, 'E3001');
     expect(e).toBeDefined();
     expect(e.message).toBe('Identifier "tidakAda" tidak dideklarasikan.');
-    expect(e.suggestion).toBe('Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.');
+    expect(e.suggestion).toBe(
+      'Periksa ejaan identifier atau deklarasikan variabel terlebih dahulu.'
+    );
   });
 
   it('E3003 write to const: exact message + suggestion', () => {
@@ -125,7 +127,9 @@ describe('v5 diagnostic text — analyzer messages & suggestions', () => {
     const e = find(errors, 'E4201');
     expect(e).toBeDefined();
     expect(e.message).toBe('Dependency cycle pada data turunan: a -> b -> a');
-    expect(e.suggestion).toBe('Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.');
+    expect(e.suggestion).toBe(
+      'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.'
+    );
   });
 
   it('W4101 unused symbol: exact message + suggestion (kills L377/L379)', () => {
@@ -133,7 +137,9 @@ describe('v5 diagnostic text — analyzer messages & suggestions', () => {
     const w = find(warnings, 'W4101');
     expect(w).toBeDefined();
     expect(w.message).toBe('Simbol "tidakDipakai" dideklarasikan tetapi tidak pernah digunakan.');
-    expect(w.suggestion).toBe('Hapus deklarasi jika tidak diperlukan, atau gunakan simbol tersebut.');
+    expect(w.suggestion).toBe(
+      'Hapus deklarasi jika tidak diperlukan, atau gunakan simbol tersebut.'
+    );
   });
 
   it('W4103 reactive data mutated but never read: exact message + suggestion', () => {
@@ -141,6 +147,8 @@ describe('v5 diagnostic text — analyzer messages & suggestions', () => {
     const w = find(warnings, 'W4103');
     expect(w).toBeDefined();
     expect(w.message).toBe('Data reaktif "s" dimutasi 1 kali tetapi tidak pernah dibaca.');
-    expect(w.suggestion).toBe('Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.');
+    expect(w.suggestion).toBe(
+      'Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.'
+    );
   });
 });

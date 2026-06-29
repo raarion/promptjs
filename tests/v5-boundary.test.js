@@ -56,7 +56,10 @@ function findNode(root, pred) {
   (function walk(n) {
     if (!n || f || typeof n !== 'object' || seen.has(n)) return;
     seen.add(n);
-    if (pred(n)) { f = n; return; }
+    if (pred(n)) {
+      f = n;
+      return;
+    }
     for (const k in n) {
       const v = n[k];
       if (Array.isArray(v)) v.forEach(walk);
@@ -77,7 +80,9 @@ describe('v5 boundary — type-hint inference over BinaryExpression operands', (
 
   it('each arithmetic operator (− * / %) is treated as "angka"', () => {
     for (const op of ['-', '*', '/', '%']) {
-      const { warnings } = analyze(`data a = 2\ndata x: teks = a ${op} 1\ntampilkan x\ntampilkan a`);
+      const { warnings } = analyze(
+        `data a = 2\ndata x: teks = a ${op} 1\ntampilkan x\ntampilkan a`
+      );
       expect(has(warnings, 'W4001'), `op ${op} should infer angka`).toBe(true);
     }
   });
@@ -195,7 +200,9 @@ describe('v5 boundary — builtin call detection', () => {
 // ── 5. Event-name validation (resolver L1195) ───────────────────────────────
 describe('v5 boundary — ketika/event-name validation', () => {
   it('an unknown event name warns E4009 with exact message + suggestion', () => {
-    const { warnings } = resolve('buat tombol#b:\n    "x"\nketika tombolNgawur di b:\n    tampilkan "y"');
+    const { warnings } = resolve(
+      'buat tombol#b:\n    "x"\nketika tombolNgawur di b:\n    tampilkan "y"'
+    );
     const w = find(warnings, 'E4009');
     expect(w).toBeDefined();
     expect(w.message).toBe('Event name "tombolNgawur" mungkin tidak dikenali.');

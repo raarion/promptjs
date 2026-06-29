@@ -235,7 +235,10 @@ describe('v5 resolver — AmbilDom / AmbilLuar / Selama traversal', () => {
       type: 'AmbilLuarStatement',
       url: str('https://api.test/x'),
       saveTarget: 'hasil',
-      body: { type: 'BlockStatement', body: [{ type: 'TampilkanStatement', target: id('hasil'), loc: LOC }] },
+      body: {
+        type: 'BlockStatement',
+        body: [{ type: 'TampilkanStatement', target: id('hasil'), loc: LOC }],
+      },
       loc: LOC,
     };
     r.visitAmbilLuarStatement(node);
@@ -246,7 +249,12 @@ describe('v5 resolver — AmbilDom / AmbilLuar / Selama traversal', () => {
 
   it('AmbilLuar without a saveTarget still traverses url (guard L1031 false branch)', () => {
     const r = freshResolver();
-    const node = { type: 'AmbilLuarStatement', url: str('https://api.test/y'), body: { type: 'BlockStatement', body: [] }, loc: LOC };
+    const node = {
+      type: 'AmbilLuarStatement',
+      url: str('https://api.test/y'),
+      body: { type: 'BlockStatement', body: [] },
+      loc: LOC,
+    };
     r.visitAmbilLuarStatement(node);
     expect(r.errors.length).toBe(0);
   });
@@ -254,7 +262,9 @@ describe('v5 resolver — AmbilDom / AmbilLuar / Selama traversal', () => {
   it('integration: `setelah tik:` attaches targetSymbol when name resolves (L994/L996)', () => {
     // L994 `if (node.target)` true → lookup('tik') finds the fungsi symbol →
     // L996 `if (symbol)` true → node.targetSymbol attached for the compiler.
-    const { ast, errors } = resolve('fungsi tik():\n    tampilkan "t"\nsetelah tik:\n    tampilkan "x"');
+    const { ast, errors } = resolve(
+      'fungsi tik():\n    tampilkan "t"\nsetelah tik:\n    tampilkan "x"'
+    );
     expect(errors.length).toBe(0);
     const setelah = ast.body.find((n) => n.type === 'SetelahStatement');
     expect(setelah).toBeDefined();
@@ -275,8 +285,17 @@ describe('v5 resolver — AmbilDom / AmbilLuar / Selama traversal', () => {
     declareData(r, 'n');
     const node = {
       type: 'SelamaStatement',
-      condition: { type: 'BinaryExpression', operator: '<', left: id('n'), right: num(3), loc: LOC },
-      body: { type: 'BlockStatement', body: [{ type: 'TampilkanStatement', target: id('n'), loc: LOC }] },
+      condition: {
+        type: 'BinaryExpression',
+        operator: '<',
+        left: id('n'),
+        right: num(3),
+        loc: LOC,
+      },
+      body: {
+        type: 'BlockStatement',
+        body: [{ type: 'TampilkanStatement', target: id('n'), loc: LOC }],
+      },
       loc: LOC,
     };
     r.visitSelamaStatement(node);
