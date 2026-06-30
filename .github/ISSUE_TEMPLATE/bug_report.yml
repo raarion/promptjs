@@ -1,0 +1,46 @@
+name: '🐛 Bug report'
+description: Report a defect in the PromptJS compiler, CLI, or adapters.
+title: '[Bug]: '
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug! Please provide a **minimal** reproduction so we
+        can confirm it quickly. For security issues, do **not** use this form —
+        use the Security tab → "Report a vulnerability".
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: 'Compiling X produced Y, but I expected Z.'
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: The smallest `.pjs` snippet (or CLI command) that triggers the bug.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: PromptJS version
+      placeholder: '1.0.0'
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: 'v22.x'
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output / error
+      render: shell

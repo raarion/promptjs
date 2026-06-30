@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v1.0.1 — Path Traversal Guard / Guard Path Traversal
+ * PromptJS v1.0.0 — Path Traversal Guard / Guard Path Traversal
  * ============================================================================
  *
  * Centralized path-containment check, extracted from the dev-server fix

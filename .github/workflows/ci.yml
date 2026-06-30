@@ -151,3 +151,35 @@ jobs:
           if [ -f reports/mutation/mutation.json ]; then
             node -e "const r=require('./reports/mutation/mutation.json');const f=Object.values(r.files);let killed=0,total=0;for(const x of f){for(const m of x.mutants){total++;if(m.status==='Killed')killed++;}}const score=total?((killed/(total-Object.values(r.files).reduce((a,x)=>a+x.mutants.filter(m=>['NoCoverage','Ignored','RuntimeError','CompileError'].includes(m.status)).length,0)))*100):0;console.log('Mutation: '+killed+'/'+total+' mutants killed')" >> \"$GITHUB_STEP_SUMMARY\" || true
           fi
+
+  audit:
+    name: supply-chain • npm audit (high+)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Use Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runtime is zero-dependency, but the dev/build toolchain (vitest, eslint,
+      # prettier, stryker, type defs) is not. This gate FAILS the build on a
+      # known High/Critical advisory so supply-chain risk is surfaced on every
+      # push/PR rather than discovered at release time. Dependabot opens the
+      # follow-up upgrade PRs.
+      - name: npm audit (fail on high or critical)
+        run: npm audit --audit-level=high
+
+      - name: Audit summary to job log
+        if: always()
+        run: |
+          npm audit --json > npm-audit.json || true
+          if [ -f npm-audit.json ]; then
+            node -e "try{const a=require('./npm-audit.json').metadata.vulnerabilities;console.log('Vulns — critical:'+a.critical+' high:'+a.high+' moderate:'+a.moderate+' low:'+a.low)}catch(e){console.log('audit summary unavailable')}" >> "$GITHUB_STEP_SUMMARY"
+          fi

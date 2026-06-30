@@ -1,9 +1,11 @@
 /**
- * PromptJS v1.0.0 — Lexer Test
+ * PromptJS — Lexer scratch/debug tool (NOT part of the published package)
  * ============================================================================
+ * Manual experimentation harness for the tokenizer. Run with `node tools/lexer-scratch.js`.
+ * Excluded from `npm test`, coverage, and the published npm tarball.
  */
 
-const Lexer = require('./promptjs-lexer');
+const Lexer = require('../src/lexer/promptjs-lexer');
 const TT = Lexer.TT;
 
 const testSource = `---

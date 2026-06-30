@@ -1,0 +1,36 @@
+name: '✨ Feature request'
+description: Suggest an enhancement to the PromptJS DSL, CLI, or tooling.
+title: '[Feature]: '
+labels: ['enhancement', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! PromptJS v1.0.0 has an intentionally bounded scope
+        (see the README "Capabilities" section). Please explain the problem
+        before the solution so we can evaluate fit.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do, and why is it hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How might PromptJS address this? Sketch DSL syntax if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This keeps the runtime zero-dependency.
+        - label: I understand this may be deferred to a post-1.0 milestone.

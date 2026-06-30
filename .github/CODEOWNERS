@@ -1,0 +1,27 @@
+# PromptJS — Code Owners
+# These owners are requested for review automatically when a PR touches
+# matching paths. See https://docs.github.com/articles/about-code-owners
+#
+# Order matters: the LAST matching pattern takes precedence.
+
+# Default owner for everything in the repo.
+*                       @raarion
+
+# Compiler pipeline (lexer → parser → resolver → analyzer → compiler/emitters).
+/src/lexer/             @raarion
+/src/parser/            @raarion
+/src/compiler/          @raarion
+
+# Engine, serve adapters and the centralized path-traversal guard.
+/src/engine/            @raarion
+/src/utils/path-guard.js @raarion
+
+# CLI surface.
+/src/cli/               @raarion
+
+# Security-sensitive areas: regression tests and the security policy.
+/tests/security/        @raarion
+/SECURITY.md            @raarion
+
+# CI / supply-chain / release automation.
+/.github/               @raarion

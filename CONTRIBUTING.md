@@ -5,7 +5,7 @@ workflow, project layout, and quality gates.
 
 ## Prerequisites
 
-- **Node.js >= 20.19** (Node 18 is EOL and no longer supported).
+- **Node.js >= 22.0.0** (Node 18 and 20 are EOL and no longer supported).
 - npm (ships with Node).
 
 ## Setup
@@ -59,7 +59,7 @@ promptjs/
 ```
 
 > The automated test suite lives in **`tests/`**. Files under `src/tester/`
-> and `src/lexer/test-lexer.js` are manual scratch/debug scripts and are not
+> and `tools/lexer-scratch.js` are manual scratch/debug scripts and are not
 > run by `npm test`.
 
 ## The 5-stage pipeline
@@ -86,7 +86,7 @@ When diagnosing a failure, identify the stage from the error code family:
 
 ## Quality gates (CI)
 
-Every push / PR runs, across Node 20 / 22 / 24:
+Every push / PR runs, across Node 22 / 24:
 
 1. `npm run format:check` — Prettier formatting
 2. `npm run typecheck` — JSDoc type checking (checkJs per-file)

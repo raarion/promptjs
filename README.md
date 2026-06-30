@@ -67,6 +67,36 @@ pjs build --adapter static       # build production 🚀
 
 ---
 
+## 🔒 Lingkup v1.0.0 (Capability Lock)
+
+v1.0.0 bukan sekadar label versi — ini **batas kemampuan yang dikunci** sebagai
+permukaan stabil PromptJS. Kemampuan berikut adalah identitas resmi rilis 1.0.0
+dan dijamin stabil di seluruh lini 1.0.x (perubahan yang merusak hanya pada
+major berikutnya):
+
+- **Compiler DSL bilingual** — pipeline penuh lexer → parser → resolver →
+  analyzer → compiler/emitters, dengan keyword dwibahasa (`Buat`/`Create`,
+  `Jika`/`If`, `Ulangi`/`Loop`) dan 70+ kode error/warning bilingual.
+- **Reaktivitas** — `data` berbasis Proxy, computed `turunan`, dan watcher `Saat`.
+- **Komponen** — `Komponen Nama(props):` yang composeable & reusable.
+- **Sistem modul** — `kirim` / `terima` dengan resolusi & deteksi siklus.
+- **CSS scoping** — gaya ber-scope per komponen (`Gaya:` / `Style:`) + alias tag.
+- **Router SPA** — `router: benar` (pushState, segmen dinamis, lifecycle).
+- **Auth guard** — `butuhAuth: benar` + `peran` (client guard berbasis redirect).
+- **Adapter deployment** — `static` · `node` · `vercel`, dengan **path-traversal
+  guard terpusat** (`src/utils/path-guard.js`) yang dipakai konsisten lintas
+  adapter dan CLI `serve`.
+- **Target QA tinggi (terukur, bukan klaim)** — gerbang CI menegakkan: Prettier,
+  typecheck (JSDoc/checkJs), ESLint `--max-warnings=0`, **880 test / 43 file**,
+  ambang coverage per-modul (saat ini ~84.8% lines / 75.23% branch), mutation
+  testing Stryker pada inti semantik, plus `npm audit` & CodeQL untuk rantai pasok.
+
+**Di luar lingkup 1.0.0 (post-1.0):** SSR/hydration, state management lintas
+rute bawaan, dan plugin runtime pihak ketiga. Hal-hal ini dapat ditambah di
+minor/major berikutnya tanpa melanggar kontrak 1.0.x di atas.
+
+---
+
 ## ⌨️ Penggunaan CLI
 
 ```bash
@@ -188,7 +218,6 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 - `src/`
   - `lexer/`
     - [promptjs-lexer.js](src/lexer/promptjs-lexer.js) ← Tokenizer: karakter → token stream
-    - [test-lexer.js](src/lexer/test-lexer.js) ← Lexer test utilities
   - `parser/`
     - [promptjs-parser.js](src/parser/promptjs-parser.js) ← Parser: token stream → AST (recursive-descent)
     - [ast-factory.js](src/parser/ast-factory.js) ← AST node constructors
@@ -310,12 +339,6 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 - [extended.test.js](tests/extended.test.js) ← Skenario yang diperluas
 - [negative-errors.test.js](tests/negative-errors.test.js) ← Validasi jalur kesalahan
 - [negative-complex.test.js](tests/negative-complex.test.js) ← Pengaturan kesalahan/peringatan kompleks
-- [lexer.test.js](tests/lexer.test.js) ← Lexer pengujian unit
-- [parser.test.js](tests/parser.test.js) ← Pengujian unit parser
-- [codegen.test.js](tests/codegen.test.js) ← Pengujian unit generator kode
-- [modules.test.js](tests/modules.test.js) ← Sistem modul (kirim/terima)
-- [css.test.js](tests/css.test.js) ← Dukungan CSS (Gaya:/Style:)
-- [builder.test.js](tests/builder.test.js) ← Pembuat proyek + perutean multi-file
 
 **Suite ketahanan v2–v4 (edge-case, error-path & branch coverage):**
 
