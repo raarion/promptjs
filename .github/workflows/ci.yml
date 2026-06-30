@@ -73,6 +73,36 @@ jobs:
             node src/cli/index.js compile "$f" --stdout > /dev/null
           done
 
+  readme-link-check:
+    name: docs • README tests/* link integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Anti-drift gate (F-01): every `(tests/...)` path referenced in README.md
+      # MUST resolve to a real file. A renamed/removed/phantom test path FAILS
+      # the build so the docs can never silently drift from the suite again.
+      # Mirrors the user-specified one-liner but uses an explicit loop so a
+      # missing file is GUARANTEED to exit non-zero (xargs swallows that).
+      - name: Verify README tests/* links resolve
+        run: |
+          missing=0
+          while read -r f; do
+            [ -z "$f" ] && continue
+            if [ -f "$f" ]; then
+              echo "ok    $f"
+            else
+              echo "BROKEN $f"
+              missing=$((missing + 1))
+            fi
+          done < <(grep -oE '\(tests/[^)]+\)' README.md | sed 's/[()]//g' | sort -u)
+          echo "broken links: $missing"
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::README references $missing missing tests/* path(s)"
+            exit 1
+          fi
+
   coverage:
     name: coverage • gate ≥80% lines (Node 22)
     runs-on: ubuntu-latest
