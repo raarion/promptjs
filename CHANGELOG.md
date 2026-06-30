@@ -5,7 +5,7 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — v1.0 Security Hardening, Documentation & Bug Fixes
+## [1.0.0] — 2026-06-30 — Security Hardening, Documentation & Bug Fixes
 
 > **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
 
@@ -826,7 +826,7 @@ coverage gate at 60%, 3 runnable examples, zero-dependency runtime.
 14. Lexer `_tokenizeDeclaration` Saat target tokenization (word operator collision)
 15. Compiler `on_klik` event handler fragment `__el_N` off-by-one
 
-## [Unreleased]
+## [Pre-1.0.0] — Post-v0.3.0 release preparation
 
 ### Added — Post-v0.3.0 release preparation
 
@@ -890,7 +890,6 @@ Baseline release audited for this effort (commit `9a60726`).
 - 64-code bilingual error registry with line:column and suggestions.
 - CLI: `compile`, `serve`, `build`, `init` (with `--minify` and jsdom prerender).
 
-[Unreleased]: https://github.com/raarion/promptjs/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/raarion/promptjs/releases/tag/v1.0.0
 [0.9.9]: https://github.com/raarion/promptjs/releases/tag/v0.9.9
 [0.9.0]: https://github.com/raarion/promptjs/releases/tag/v0.9.0
