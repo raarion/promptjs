@@ -732,10 +732,16 @@ function buildIndexPage(examples, version) {
       <img src="assets/prompt-js.svg" alt="PromptJS" class="hero-logo" width="320">
     </div>
       <p class="hero-tagline">
-        Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.
+        <em>DSL</em> deklaratif dwibahasa.
+      </p>
+      <p class="hero-tagline-sub">
+        Tulis seperti prompt — hasilkan vanilla JavaScript production-ready.
+      </p>
+      <p class="hero-bridge">
+        Coding ⊷ Vibe Coding ⊷ Prompting. PromptJS adalah jembatannya.
       </p>
       <p class="hero-sub">
-        Bahasa frontend deklaratif dwibahasa yang dikompilasi ke vanilla JavaScript — dengan reaktivitas, komponen, routing, auth, plugin, dan adapter deployment.
+       PromptJS adalah compiler — bukan framework. Ia menerjemahkan kode yang kamu tulis layaknya prompt menjadi vanilla JavaScript tanpa runtime dependency, tanpa virtual DOM, tanpa overhead.
       </p>
       <div class="hero-stats">
         <div class="stat-pill">
@@ -747,16 +753,25 @@ function buildIndexPage(examples, version) {
           <span class="stat-label">Counter App</span>
         </div>
         <div class="stat-pill">
-          <span class="stat-value">500+</span>
+          <span class="stat-value">880</span>
           <span class="stat-label">Tests Passing</span>
         </div>
         <div class="stat-pill">
           <span class="stat-value">ID+EN</span>
           <span class="stat-label">Bilingual</span>
         </div>
+        <div class="stat-pill">
+          <span class="stat-value">9.8ms</span>
+          <span class="stat-label">Compile</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">84.8%</span>
+          <span class="stat-label">Coverage</span>
+        </div>
       </div>
       <div class="hero-actions">
         <a href="#examples" class="btn btn-primary">Lihat Contoh</a>
+        <a href="https://www.npmjs.com/package/@raarion/prompt-js" class="btn btn-secondary" target="_blank" rel="noopener">npm install @raarion/prompt-js</a>
         <a href="https://github.com/raarion/promptjs" class="btn btn-ghost" target="_blank" rel="noopener">GitHub Repo</a>
         <a href="https://github.com/raarion/promptjs/blob/main/README.md" class="btn btn-ghost" target="_blank" rel="noopener">Dokumentasi</a>
       </div>
@@ -869,7 +884,7 @@ ${cards}
     <div class="qa-grid">
       <div class="qa-badge">
         <span class="qa-icon">${ICONS.flask}</span>
-        <span class="qa-num">500+</span>
+        <span class="qa-num">880</span>
         <span class="qa-label">Tests</span>
       </div>
       <div class="qa-badge">
@@ -1119,6 +1134,22 @@ body::before {
   background-clip: text;
 }
 
+.hero-tagline-sub {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: -0.2px;
+}
+
+.hero-bridge {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0 0 1.5rem;
+  color: var(--accent-glow);
+  letter-spacing: 0.02em;
+}
+
 .hero-sub {
   font-size: 1.05rem;
   color: var(--text-muted);
@@ -1204,6 +1235,15 @@ body::before {
   box-shadow: 0 6px 28px rgba(167,139,250,0.45);
   color: #0a0a14;
 }
+
+.btn-secondary {
+  background: var(--accent-2-soft);
+  border-color: rgba(125,211,252,0.3);
+  color: var(--accent-2);
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+.btn-secondary:hover { background: rgba(125,211,252,0.2); color: #bae6fd; }
 
 .btn-ghost {
   background: var(--surface);
