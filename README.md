@@ -10,7 +10,7 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-810%20passing-yellow?style=for-the-badge&logo=vitest&logoColor=yellow">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-880%20passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white">
     <img alt="Coverage" src="https://img.shields.io/badge/coverage-82%25%20lines-86efac?style=for-the-badge&logo=vitest&logoColor=86efac">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
@@ -112,7 +112,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **CSP Built-in** (`--csp` flag) | **✅** 🏆 | ❌ manual | ❌ manual | ❌ manual | ❌ manual | ❌ manual |
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
-| **Test Suite** | **810 tests** (39 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
+| **Test Suite** | **880 tests** (43 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |
 
@@ -127,8 +127,8 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 
 | Sinyal | Nilai (v5) | Gate CI |
 |---|---|---|
-| **Test** | **810 lulus / 810** (39 file, vitest) | wajib hijau |
-| **Determinisme** | 810/810 pada **3 run berturut-turut** — nol flaky | — |
+| **Test** | **880 lulus / 880** (43 file, vitest) | wajib hijau |
+| **Determinisme** | 880/880 pada **3 run berturut-turut** — nol flaky | — |
 | **Coverage — lines** | **~82%** | **gate ≥ 80%** (gagal saat regresi) |
 | **Coverage — branches** | **~72%** | gate ≥ 71% |
 | **Coverage — functions** | **~84%** | gate ≥ 82% |
@@ -447,7 +447,7 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 ## ✔️ Quality Assurance
 
 ```bash
-npm test          # 810 tests, 39 test files
+npm test          # 880 tests, 43 test files
 npm run coverage  # gate ≥80% lines (~82% measured)
 npm run mutation  # Stryker (scoped resolver+analyzer) — 63.91% (baseline 49.72%)
 npm run lint      # ESLint — zero warnings

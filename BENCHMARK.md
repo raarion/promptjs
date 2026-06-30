@@ -6,7 +6,7 @@
 > Semua angka di bawah adalah **faktual dan terverifikasi** per 29 Juni 2026.
 > Sumber dicantumkan di setiap metrik. **Update:** PromptJS kini melewati audit
 > keamanan + 3 wave hardening (S-1..S-6, T-1), serta enrichment test suite **v5**
-> (810 test, branch coverage semantic-core dinaikkan, mutation score Stryker
+> (880 test, branch coverage semantic-core dinaikkan, mutation score Stryker
 > dinaikkan dari baseline 49.72% → **63.91%** terverifikasi) — semua tetap pada v1.0.0.
 
 ---
@@ -103,14 +103,14 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 
 | Framework | Test Suite | Linter | Type Check | Coverage (lines) | Coverage (branch) | CI/CD |
 |---|---|---|---|---|---|---|
-| **PromptJS** | **810 tests** (vitest, 39 file) | ESLint zero-warn | tsc (JSDoc) | **81.89%** | **72.18%** | ✅ GitHub Actions |
+| **PromptJS** | **880 tests** (vitest, 43 file) | ESLint zero-warn | tsc (JSDoc) | **84.31%** | **75.23%** | ✅ GitHub Actions |
 | Svelte 5 | 3,000+ tests | ESLint | TypeScript | — | — | ✅ |
 | Vue 3 | 4,000+ tests | ESLint | TypeScript | — | — | ✅ |
 | React 19 | 10,000+ tests | ESLint | Flow/TS | — | — | ✅ |
 
 > **Sumber**: File konfigurasi CI publik & package.json masing-masing repo.
 > Angka PromptJS diukur via eksekusi nyata `npx vitest run --coverage` (Node 22.14.0, Linux x64, 29 Jun 2026).
-> **Determinisme**: 810/810 test lulus pada **3 run berturut-turut** — nol test flaky. ESLint `--max-warnings=0` bersih, Prettier bersih.
+> **Determinisme**: 880/880 test lulus pada **3 run berturut-turut** — nol test flaky. ESLint `--max-warnings=0` bersih, Prettier bersih.
 > Catatan: jumlah test PromptJS jauh lebih kecil dari React/Vue/Svelte karena perbedaan
 > ukuran proyek — namun **rasio test-terhadap-LOC** kompetitif. Suite v4–v5 menutup gap branch
 > & mutation di semantic core (resolver + analyzer), lihat tabel di bawah.
@@ -190,7 +190,7 @@ dari baseline v4 **49.72% → 63.91%** (total, `ignoreStatic`).
 | **Edukasi** | Python / Scratch | Mapan di sekolah |
 | **Kematangan** | React (2013) | 11+ tahun production use |
 | **Keamanan teraudit** | **PromptJS** 🏆 | Satu-satunya dengan audit + 3 wave hardening terdokumentasi |
-| **Kematangan test** | **PromptJS** ⬆️ | 810 test deterministik (3 run), branch semantic-core ↑, mutation score Stryker 49.72% → **63.91%** |
+| **Kematangan test** | **PromptJS** ⬆️ | 880 test deterministik (3 run), branch semantic-core ↑, mutation score Stryker 49.72% → **63.91%** |
 
 > **Kesimpulan**: PromptJS bukan kompetitor React atau Vue dalam hal ekosistem.
 > Kekuatannya ada di **zero-dependency output**, **CSP-ready**, **bilingual dari akar**,
@@ -200,4 +200,4 @@ dari baseline v4 **49.72% → 63.91%** (total, `ignoreStatic`).
 
 ---
 
-<sub>Data dikumpulkan 29 Juni 2026. Sumber: npm registry, Bundlephobia API, GitHub, benchmark lokal (Node 22.14.0, Linux x64). Angka test/coverage/mutation dari eksekusi nyata `vitest run --coverage` + `stryker run`; detail di laporan D5 (`D5-v4-branch-and-mutation.md`) & enrichment v5. PromptJS tetap v1.0.0 pasca-hardening + enrichment test suite v5 (810 test, mutation 63.91%).</sub>
+<sub>Data dikumpulkan 29 Juni 2026. Sumber: npm registry, Bundlephobia API, GitHub, benchmark lokal (Node 22.14.0, Linux x64). Angka test/coverage/mutation dari eksekusi nyata `vitest run --coverage` + `stryker run`; detail di laporan D5 (`D5-v4-branch-and-mutation.md`) & enrichment v5/v6. PromptJS tetap v1.0.0 pasca-hardening + enrichment test suite v6 (880 test, mutation 63.91%).</sub>
