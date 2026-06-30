@@ -2,7 +2,7 @@
 
 /**
  * PromptJS — ESLint flat config (ESLint 10).
- * Source code is CommonJS targeting Node >= 20.
+ * Source code is CommonJS targeting Node >= 22.
  * Formatting concerns are delegated to Prettier (see eslint-config-prettier).
  */
 const js = require('@eslint/js');
@@ -31,7 +31,7 @@ module.exports = [
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-console': 'off',
       'no-empty': ['warn', { allowEmptyCatch: true }],
-      // Modernize the Node >= 20 source: no legacy `var`, prefer immutable bindings.
+      // Modernize the Node >= 22 source: no legacy `var`, prefer immutable bindings.
       'no-var': 'error',
       'prefer-const': 'error',
     },
