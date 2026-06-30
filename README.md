@@ -11,7 +11,7 @@
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
     <img alt="Tests" src="https://img.shields.io/badge/tests-880%20passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white">
-    <img alt="Coverage" src="https://img.shields.io/badge/coverage-82%25%20lines-86efac?style=for-the-badge&logo=vitest&logoColor=86efac">
+    <img alt="Coverage" src="https://img.shields.io/badge/coverage-84.8%25%20lines-86efac?style=for-the-badge&logo=vitest&logoColor=86efac">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
@@ -228,9 +228,9 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 |---|---|---|
 | **Test** | **880 lulus / 880** (43 file, vitest) | wajib hijau |
 | **Determinisme** | 880/880 pada **3 run berturut-turut** — nol flaky | — |
-| **Coverage — lines** | **~82%** | **gate ≥ 80%** (gagal saat regresi) |
-| **Coverage — branches** | **~72%** | gate ≥ 71% |
-| **Coverage — functions** | **~84%** | gate ≥ 82% |
+| **Coverage — lines** | **84.8%** | **gate ≥ 80%** (gagal saat regresi) |
+| **Coverage — branches** | **75.2%** | gate ≥ 71% |
+| **Coverage — functions** | **84.0%** | gate ≥ 82% |
 | **Mutation score** (Stryker, scoped resolver+analyzer, `ignoreStatic`) | **63.91%** (v5, naik dari baseline 49.72%) | `break = 45` (gagal hanya saat regresi) |
 | **Lint** | ESLint `--max-warnings=0` bersih | wajib |
 | **Typecheck** | `tsc --noEmit` (JSDoc/checkJs) 0 error | wajib |
@@ -540,7 +540,7 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 
 ```bash
 npm test          # 880 tests, 43 test files
-npm run coverage  # gate ≥80% lines (~82% measured)
+npm run coverage  # gate ≥80% lines (84.8% measured)
 npm run mutation  # Stryker (scoped resolver+analyzer) — 63.91% (baseline 49.72%)
 npm run lint      # ESLint — zero warnings
 npm run typecheck # tsc — zero errors
