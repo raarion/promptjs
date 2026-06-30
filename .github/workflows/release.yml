@@ -5,8 +5,10 @@ on:
     tags:
       - 'v*'
 
+# contents: write is required to create the GitHub Release.
+# id-token: write enables npm provenance (OIDC) when publishing.
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -34,7 +36,33 @@ jobs:
           npm run lint
           npm test
 
-      - name: Publish
+      # Publishing to npm is gated on the NPM_TOKEN secret being configured.
+      # If the secret is absent (e.g. the project is not yet wired for npm
+      # releases) the step is skipped gracefully instead of hard-failing the
+      # whole release run with ENEEDAUTH.
+      - name: Check npm credentials
+        id: npmauth
+        run: |
+          if [ -n "${NPM_TOKEN}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=npm publish skipped::NPM_TOKEN secret is not configured; skipping npm publish. Add the NPM_TOKEN repository secret to enable automatic publishing."
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm
+        if: steps.npmauth.outputs.configured == 'true'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Always create a GitHub Release for the pushed tag so every v* tag
+      # produces a visible, durable release entry regardless of npm publishing.
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
