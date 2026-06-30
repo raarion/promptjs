@@ -59,7 +59,7 @@ const path = require('path');
  */
 function escapeMd(text) {
   if (text == null) return '';
-  return String(text).replace(/\|/g, '\\|').replace(/\n/g, ' ↵ ');
+  return String(text).replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, ' ↵ ');
 }
 
 /**

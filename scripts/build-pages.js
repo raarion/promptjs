@@ -511,7 +511,7 @@ function fixAbsolutePaths(jsCode, knownPages) {
   }
 
   // Fix "/" (root redirect) → "index.html"
-  result = result.replace(/(["'])\/(["')\s;,)])/g, '$1index.html$2');
+  result = result.replace(/(["'])\/(["')\s;,])/g, '$1index.html$2');
 
   return result;
 }

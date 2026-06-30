@@ -333,7 +333,7 @@ function buildProject(opts) {
       spaJs += 'var __PJS_ROUTES = {\n';
       for (const pr of pageResults) {
         if (pr.js) {
-          const routeKey = pr.route.replace(/'/g, "\\'");
+          const routeKey = pr.route.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
           spaJs += `  "${routeKey}": __page_${pr.pageName},\n`;
         }
       }

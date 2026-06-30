@@ -1,0 +1,12 @@
+name: PromptJS CodeQL config
+
+# Scope analysis to authored, shipped source. The directories below contain
+# COMPILER-GENERATED demo output (examples/**/*.js are emitted from *.pjs by the
+# PromptJS compiler) and local test artifacts that are never published to npm
+# (the package ships only src/ + *.pjs — see package.json "files"). Scanning
+# them produces noise (e.g. js/syntax-error on generated selectors,
+# js/unused-local-variable in demo pages) that does not reflect a defect in
+# authored, maintained code.
+paths-ignore:
+  - examples
+  - tests
