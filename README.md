@@ -289,7 +289,7 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 <details>
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
-- `tests/` ← 810 tes, 39 file tes
+- `tests/` ← 880 tes, 43 file tes
 - [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
 - [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
 - [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
@@ -336,6 +336,13 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 - [v5-symbol-flags.test.js](tests/v5-symbol-flags.test.js) ← Assert flag boolean simbol (`isReactive`/`isWritable`/`kind`) (11 tes)
 - [v5-boundary.test.js](tests/v5-boundary.test.js) ← Boundary & conditional expression (17 tes)
 
+**Suite edge/branch v6 + guard path tersentralisasi (S-12/S-15/S-21/S-24):**
+
+- [v6-static-adapter.test.js](tests/v6-static-adapter.test.js) ← Edge/branch adapter `static` (S-12)
+- [v6-vercel-adapter.test.js](tests/v6-vercel-adapter.test.js) ← Edge/branch adapter `vercel` (S-21)
+- [v6-statements-emitter.test.js](tests/v6-statements-emitter.test.js) ← Edge/branch emitter `statements` (S-24)
+- [v6-path-guard.test.js](tests/v6-path-guard.test.js) ← Guard penahanan path bersama `isInsideRoot`/`safeResolve` (S-15/S-21, 100% coverage)
+
 </details>
 
 ### 🛠️ Config & Infra
@@ -366,9 +373,11 @@ Syntax highlighting untuk VS Code tersedia di folder `editors/vscode/` — lihat
 | **S-4** Injeksi atribut/event-handler | 🟡 MED | ✅ Fixed | Helper `__safeAttr` tolak `on*` & URL berbahaya (4 sink) |
 | **S-5** Peran auth mudah dipalsukan | 🟡 MED | ✅ Fixed | Seam `__pjs_verifyPeran` + warning jujur (client-side advisory) |
 | **S-6** Dev-server path traversal | 🟡 MED | ✅ Fixed | `path.relative()` + `decodeURIComponent` anti-`%2e%2e` |
+| **S-15 / S-21** Guard path traversal tersebar di adapter | 🟡 MED | ✅ Fixed | Guard disentralisasi ke util bersama `src/utils/path-guard.js` (`isInsideRoot`/`safeResolve`), diterapkan ke `serve`/`static`/`vercel` (100% test-covered) |
 | **T-1** CLI coverage 0% | ⚪ Test | ✅ Fixed | Suite integrasi CLI (spawn binary + serve e2e) |
+| **T-2** Coverage cabang adapter/emitter (S-12/S-21/S-24) | ⚪ Test | ✅ Fixed | Suite edge/branch v6 untuk `static`/`vercel`/`statements` (+70 test) |
 
-**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **810/810 test lulus** (39 file) · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
+**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **880/880 test lulus** (43 file) · coverage lines **84.8%** / branch **75.23%** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
 
 > ⚠️ **Catatan jujur:** auth guard PromptJS bersifat **client-side/advisory** — bukan kontrol keamanan server. Untuk otorisasi sesungguhnya, verifikasi peran **wajib** dilakukan di server (gunakan seam `window.__pjs_verifyPeran`).
 
@@ -385,7 +394,7 @@ Setelah tiga gelombang keamanan, satu PR lanjutan menutup temuan audit & DX yang
 | 5 | **Hapus `@ts-nocheck`** (`builder.js`, `css.js`) | Blanket-suppress dihapus; typecheck tetap 0 error |
 | 6 | **Normalisasi version banner** | Banner identitas `v0.x` → `v1.0.0` (marker historis dipertahankan) |
 
-**QA gate:** **810/810 test** (39 file) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · coverage gate ≥80% lines · Stryker mutation 63.91% (naik dari baseline 49.72%) · **v1.0.0**.
+**QA gate:** **880/880 test** (43 file) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · coverage gate ≥80% lines (lines 84.8% / branch 75.23%) · Stryker mutation 63.91% (naik dari baseline 49.72%) · **v1.0.0**.
 
 ---
 

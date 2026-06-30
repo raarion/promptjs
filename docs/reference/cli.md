@@ -97,13 +97,13 @@ pjs serve [dir]
 - WebSocket live-reload pada endpoint `/__pjs_reload__`
 - Error overlay yang diinjeksi di browser
 - Pre-kompilasi semua file `.pjs` saat server dimulai
-- Proteksi path-traversal keamanan
+- Proteksi path-traversal keamanan (guard bersama `isInsideRoot`, lihat [Security › Path Containment](../language/security.md#penahanan-path--path-containment--v101))
 - Saat file `.pjs`/aset berubah, server menyiarkan satu pesan WebSocket `"reload"` ke semua klien (full page reload). Tidak ada CSS Hot-Module Replacement granular — perubahan CSS ikut memicu reload halaman penuh.
 
 - WebSocket live-reload on the `/__pjs_reload__` endpoint
 - Error overlay injected in the browser
 - Pre-compiles all `.pjs` files when the server starts
-- Path-traversal security protection
+- Path-traversal security protection (shared `isInsideRoot` guard, see [Security › Path Containment](../language/security.md#penahanan-path--path-containment--v101))
 - On `.pjs`/asset change, the server broadcasts a single `"reload"` WebSocket message to all clients (full page reload). There is no granular CSS Hot-Module Replacement — CSS changes also trigger a full page reload.
 
 **Contoh / Examples:**

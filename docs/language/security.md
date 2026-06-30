@@ -46,6 +46,7 @@ external runtime dependency.
 | Auth guard peran / Role guard | `__pjs_verifyPeran` (seam) | `promptjs-compiler.js:136–156` | Client-side / advisory |
 | Peringatan keamanan / Security warnings | `PJS-W1001`, `PJS-W1002` | `runtime.js:250, 257` | Runtime, console |
 | Error keamanan / Security errors | `E5004`, `E5005` | `error-codes.js:124–125` | Compile-time, fail-closed |
+| Penahanan path / Path containment | `isInsideRoot`, `safeResolve` | `utils/path-guard.js` | Fail-closed, otomatis / automatic |
 | Content-Security-Policy | `--csp` / `config.csp` | `build.js:54`, `config.js:164–166`, `static.js:165–181` | Build-time, opt-in |
 
 ---
@@ -263,6 +264,64 @@ E5005: Target redirect auth memakai skema tidak aman: "javascript:alert(1)".
 
 ---
 
+## Penahanan Path / Path Containment — v1.0.1
+
+Selain pertahanan DOM/XSS di atas, PromptJS memuat **guard penahanan path**
+terpusat untuk setiap titik yang menggabungkan segmen path **tak-tepercaya**
+(path URL, nama entri direktori) ke sebuah direktori akar. Ini menutup kelas
+**path traversal** (`../../etc/passwd`, path absolut, escape direktori-saudara)
+di mana sebuah permintaan/aset mencoba keluar dari root yang seharusnya.
+
+Beyond the DOM/XSS defenses above, PromptJS ships a **centralized path
+containment guard** for every point that joins an **untrusted** path segment (a
+URL path, a directory-entry name) onto a root directory. It closes the **path
+traversal** class (`../../etc/passwd`, absolute paths, sibling-directory escape)
+where a request/asset tries to break out of its intended root.
+
+Guard ini **diekstraksi ke satu utilitas bersama** (`src/utils/path-guard.js`)
+sehingga dev-server CLI **dan** seluruh adapter memakai pemeriksaan yang sama dan
+benar — bukan salinan ad-hoc per-adapter yang berisiko menyimpang.
+
+The guard is **extracted into one shared utility** (`src/utils/path-guard.js`)
+so the CLI dev-server **and** every adapter use the same, correct check — not
+per-adapter ad-hoc copies that risk drifting apart.
+
+| Fungsi / Function | Peran / Role | Sumber / Source |
+|-------------------|--------------|-----------------|
+| `isInsideRoot(rootDir, candidatePath)` | Mengembalikan `true` hanya jika kandidat berada di dalam (atau sama dengan) root / Returns `true` only when candidate is inside (or equal to) root | `utils/path-guard.js` |
+| `safeResolve(rootDir, childPath)` | Menggabungkan segmen tak-tepercaya ke root lalu melaporkan `{ inside, resolved }` / Joins an untrusted segment onto root, reports `{ inside, resolved }` | `utils/path-guard.js` |
+
+**Pemakaian di seluruh basis kode / Usage across the codebase:**
+
+| Lokasi / Location | Yang dilindungi / What it protects |
+|-------------------|------------------------------------|
+| `cli/commands/serve.js:276` | Permintaan dev-server tidak boleh menyajikan file di luar root proyek / Dev-server requests cannot serve files outside the project root |
+| `engine/adapters/static.js:325` | Penyalinan aset statis melewati entri yang keluar dari root / Static asset copy skips entries that escape the root |
+| `engine/adapters/vercel.js:193` | Pemetaan output Vercel menolak src/dest yang keluar dari root / Vercel output mapping rejects src/dest escaping the root |
+
+> 💡 **Mengapa `path.relative`, bukan `resolved.startsWith(root)` / Why
+> `path.relative`, not `resolved.startsWith(root)`:** pemeriksaan awalan naif
+> punya celah saudara-direktori — root `/srv/app` salah menerima
+> `/srv/app-secret/x` karena string-nya berawalan root. `path.relative(root,
+> target)` menghasilkan langkah dari root ke target; jika langkah itu memanjat
+> keluar (`..`) atau absolut, target berada di luar root. Benar lintas POSIX &
+> Windows.
+>
+> *The naive prefix check has a sibling-directory escape; `path.relative` yields
+> the step from root to target — if it climbs out (`..`) or is absolute, the
+> target is outside. Correct on POSIX and Windows.*
+
+Sifat **fail-closed**: saat ragu (di luar root), entri di-skip / permintaan
+ditolak. Utilitas ini **murni & zero-dependency** (tidak menyentuh filesystem,
+deterministik) dan **tertutup 100% oleh tes** (`tests/v6-path-guard.test.js`).
+
+**Fail-closed** by nature: when in doubt (outside root), the entry is skipped /
+the request is rejected. The utility is **pure & zero-dependency** (no
+filesystem access, deterministic) and **100% test-covered**
+(`tests/v6-path-guard.test.js`).
+
+---
+
 ## Content-Security-Policy / CSP
 
 PromptJS dapat menyuntikkan CSP berbasis **nonce** ke output build. Aktifkan
@@ -344,6 +403,8 @@ When enabled, the `static` adapter injects a
   `PJS-W1001`, `PJS-W1002`.
 - [Glossary](../reference/glossary.md) — Istilah keamanan (`__sanitizeHTML`,
   `__safeAttr`, `__pjs_verifyPeran`, fail-closed, advisory).
+- [Adapters](adapters.md) — Adapter `static`/`vercel` & guard penahanan path
+  bersama (`isInsideRoot`).
 - [Deployment](../user/deployment.md) — Penerapan CSP per-adapter di produksi.
 
 ---

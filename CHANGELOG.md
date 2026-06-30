@@ -9,6 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
 
+### Test Enrichment Wave v6 + Sentralisasi Guard Path · 2026-06-29
+
+> Gelombang lanjutan dari audit: menutup cabang/edge yang belum tertutup pada adapter &
+> emitter (**S-12 / S-21 / S-24**) **dan** mensentralisasi guard path-traversal yang
+> sebelumnya tersebar ke satu utilitas bersama (**S-15 / S-21**). Tetap **v1.0.0**,
+> nol regresi fungsional, gerbang verifikasi penuh hijau.
+
+#### Added
+
+- **4 file test baru (`tests/v6-*.test.js`, +70 test)** menaikkan suite dari **810 → 880**
+  (39 → 43 file), semua deterministik & hijau:
+  - `v6-static-adapter.test.js` — edge/branch adapter `static` (S-12).
+  - `v6-vercel-adapter.test.js` — edge/branch adapter `vercel` (S-21).
+  - `v6-statements-emitter.test.js` — edge/branch emitter `statements` (S-24).
+  - `v6-path-guard.test.js` — kontrak guard penahanan path bersama (`isInsideRoot` /
+    `safeResolve`); util **tertutup 100%** (lines/branch/funcs/stmts).
+
+#### Changed (security, fail-closed dipertahankan)
+
+- **S-15 / S-21 — Sentralisasi guard path-traversal** (`src/utils/path-guard.js` **baru**;
+  `src/cli/commands/serve.js`, `src/engine/adapters/static.js`,
+  `src/engine/adapters/vercel.js`). Sebelumnya logika penahanan path hanya hidup di
+  dev-server `serve.js`, sedangkan adapter `static`/`vercel` menggabungkan path tanpa
+  pemeriksaan terpusat — risiko regresi yang ditandai audit. Kini ketiganya memakai
+  util bersama yang sama & benar (`isInsideRoot` berbasis `path.relative`, bukan
+  `startsWith` yang punya celah saudara-direktori). Pure & zero-dependency, deterministik.
+- `vitest.config.js` — menaikkan `testTimeout` untuk menstabilkan suite adapter/CLI yang
+  sesekali flaky di bawah pre-push hook.
+
+#### Docs
+
+- `docs/language/security.md` — menambah baris **Path containment** di tabel _Layer
+  Overview_ dan bagian **Penahanan Path / Path Containment (v1.0.1)** (kontrak
+  `isInsideRoot`/`safeResolve`, lokasi pemakaian, rasional `path.relative`).
+- `README.md` — matriks keamanan menambah baris **S-15/S-21** (guard tersentralisasi) &
+  **T-2** (suite v6); hitungan test & gerbang QA disegarkan **810/39 → 880/43**
+  (lines 84.8% / branch 75.23%).
+
 ### Test Enrichment Wave v5 — Mutation Hardening · 2026-06-29
 
 > Penguatan **mutation testing** (Stryker, scoped `resolver` + `analyzer`, `ignoreStatic`)
