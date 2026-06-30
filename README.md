@@ -126,7 +126,7 @@ Zero dependencies.
 ## ⚡ Quick Start
 
 ```bash
-npm install prompt-js            # install
+npm install @raarion/prompt-js            # install
 pjs init -t counter              # bikin proyek baru
 pjs serve --port 3000            # jalanin dev server
 pjs build --adapter static       # build production 🚀
