@@ -15,22 +15,86 @@
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
-  <p><strong>Bahasa frontend deklaratif dwibahasa yang dikompilasi ke vanilla JavaScript.</strong></p>
+  <p><strong>DSL deklaratif dwibahasa. Tulis layaknya prompt — hasilkan vanilla JavaScript production-ready.</strong></p>
   <sup><b><mark>Reaktivitas</mark> • <mark>Komponen</mark> • <mark>Routing</mark> • <mark>Auth</mark> • <mark>Plugin</mark> • <mark>CSP</mark> • <mark>Hardened</mark> • <mark>Zero Deps</mark></b></sup>
+
+  <br/>
   <p><em>Tulis dengan Bahasa yang Kamu Pahami, Hasilkan Kode yang Dunia Mengerti.</em></p>
+  <hr>
+  <p><strong>[  Coding  ]   ⊷   [  Vibe Coding  ]   ⊷   [  Prompting  ]<br>dan PromptJS adalah jembatan antara ketiganya.</strong></p>
 </div>
 
 ---
 
 ## 🤔 Apa itu PromptJS?
 
-**PromptJS** adalah bahasa domain-specific (DSL) berbasis indentasi yang mengkompilasi template deklaratif menjadi JavaScript vanilla. Didesain dengan kata kunci bilingual (Indonesia & English), pipeline 5 tahap, dan output zero-runtime-dependency.
+**PromptJS** adalah sebuah **DSL** (*domain-specific language*) — bahasa deklaratif
+berbasis indentasi yang dikompilasi menjadi JavaScript vanilla. Ia bukan framework.
+Ia tidak membungkus runtime. Ia adalah **compiler**: kamu menulis dengan kata-kata
+yang mengalir seperti prompt, dan PromptJS menerjemahkannya menjadi kode bersih
+tanpa dependensi.
 
-PromptJS hadir sebagai jembatan inovatif antara _coding_, _vibe coding_, dan _prompting_ — meruntuhkan dinding pembatas dalam belajar pemrograman dengan menjaga workflow yang tetap terasa disiplin sebagai aktivitas coding, namun dikemas dalam kenyamanan interaksi layaknya menulis prompt.
+PromptJS lahir dari sebuah pertanyaan sederhana: **di era di mana semua orang sudah
+nyaman menulis prompt ke AI, kenapa menulis kode masih terasa seperti bahasa asing?**
+
+Jawabannya adalah menjembatani tiga dunia yang selama ini terpisah:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace'}}}%%
+
+graph TD
+    A["✦ CODING ✦<br/>disiplin, ketat, penuh simbol"] --> P
+    B["✦ VIBE CODING ✦<br/>semi-bebas, AI-assisted, eksploratif"] --> P
+    C["✦ PROMPTING ✦<br/>bebas, natural, seperti ngomong"] --> P
+
+    P[/"<b>P R O M P T J S</b>"/]
+
+    P --> D["jembatan<br/>antara ketiganya"]
+
+    style A fill:#fff0f3,stroke:#ff8fa3,stroke-width:2px,color:#590d22
+    style B fill:#e0f4f8,stroke:#48cae4,stroke-width:2px,color:#023e8a
+    style C fill:#e9f5db,stroke:#70e000,stroke-width:2px,color:#1a4301
+    style P fill:#ff006e,stroke:#ff99c8,stroke-width:3px,color:#fff
+    style D fill:#f8f9fa,stroke:#adb5bd,stroke-width:2px,color:#212529
+```
+
+PromptJS dirancang dengan kata kunci **bilingual** (Indonesia & Inggris) yang bisa
+dicampur dalam satu file, pipeline kompilasi 5 tahap, dan output **zero runtime
+dependency**. Ia sengaja **ketat pada aturan** — indentasi, struktur blok, pipeline —
+agar tetap terasa seperti *coding* yang sesungguhnya. Tapi permukaannya didesain
+sedemikian rupa agar **mengalir seperti menulis prompt**: tanpa `{}`, tanpa `</>`,
+hampir tanpa simbol — hanya rangkaian kata yang dirangkai sesuai pola.
+
+Hasilnya: sebuah antarmuka baru antara manusia dan kode. **Disiplin seorang
+programmer. Kenyamanan seorang prompter. Kekuatan vanilla JavaScript.**
+
+---
+
+## 🧬 DNA PromptJS — Prinsip yang Kami Pegang
+
+Ini bukan sekadar fitur. Ini adalah **keyakinan desain** yang menjadi tulang
+punggung setiap keputusan di PromptJS:
+
+| Prinsip | Artinya |
+|---|---|
+| 🗣️ **Bahasa adalah akses** | Bilingual bukan fitur tambahan — ia adalah DNA. Kamu bisa menulis `Buat` atau `Create`, `Jika` atau `If`, dalam satu file yang sama. Bahasa ibumu adalah bahasa pemrograman yang valid. |
+| 📝 **Menulis kode = menulis prompt** | PromptJS menghilangkan hampir semua simbol sintaks. Tidak ada `{}`, `</>`, atau `() => {}`. Yang tersisa hanya rangkaian kata dalam struktur yang masuk akal — seperti prompt, tapi dengan aturan yang jelas. |
+| 🧱 **Disiplin dalam kenyamanan** | Indentasi ketat. Blok terstruktur. Pipeline 5 tahap. PromptJS tidak mengorbankan kedisiplinan coding demi kemudahan — ia membungkusnya dalam permukaan yang manusiawi. |
+| ⚡ **Compile, don't wrap** | PromptJS bukan framework yang membungkus runtime. Ia adalah compiler yang menerjemahkan DSL → vanilla JS. Output bersih, zero dependency, tanpa overhead. |
+| 🛡️ **Keamanan dari awal, bukan setelahnya** | Zero `eval()`, zero `new Function()`. Sanitizer allowlist. CSP built-in. Setiap fitur keamanan dikunci oleh regression test. |
+| 📚 **Dokumentasi adalah fitur, bukan utang** | Setiap keyword, setiap error code, setiap adapter — terdokumentasi. Bilingual. Dengan contoh nyata. |
+| 🧪 **Terukur, bukan klaim** | 880 tests. 84.8% coverage. Mutation testing. CI gate ketat. Tidak ada "seharusnya aman" — semua dibuktikan. |
+| 🌏 **Dibangun dari Indonesia, untuk dunia** | Bilingual ID/EN. Modul ajar siap pakai. Dirancang agar siapa pun — dari pelajar hingga profesional — bisa mulai coding dengan bahasa yang mereka pahami. |
+
+---
 
 ## 🙄 Kenapa Harus PromptJS?
 
-PromptJS adalah **compiler**, bukan framework. Kamu nulis dalam bahasa Indonesia (atau Inggris) yang mirip cara ngomong sehari-hari, dan PromptJS ngubah jadi JavaScript vanilla yang siap production — tanpa React, tanpa Vue, tanpa runtime overhead.
+PromptJS adalah **compiler**, bukan framework. Kamu menulis dalam bahasa Indonesia
+(atau Inggris) — dengan struktur yang terasa alami seperti menulis prompt — dan
+PromptJS mengkompilasinya menjadi JavaScript vanilla yang siap production.
+
+Tanpa React. Tanpa Vue. Tanpa runtime overhead. Tanpa virtual DOM.
 
 ```pjs
 ---
@@ -48,7 +112,12 @@ Halaman Utama:
         "Diklik: " + hitung + " kali"
 ```
 
-→ compile → **vanilla JS**. No virtual DOM, no node_modules di output. Just clean code.
+→ compile → **vanilla JS**. No `node_modules` di output. No virtual DOM. Just clean,
+auditable code yang bisa kamu baca dan pahami.
+
+**PromptJS tidak memintamu belajar sintaks baru — ia memintamu merangkai kata
+dalam pola yang sudah kamu mengerti.** Hasilnya? JavaScript. Production-ready.
+Zero dependencies.
 
 📖 **[Mulai sekarang → docs/user/getting-started.md](docs/user/getting-started.md)**
 
