@@ -1,102 +1,236 @@
 # Getting Started / Memulai
 
-> docs/user/ > Getting Started
+> **⏱️ 2 menit dari nol sampai "Hello World" di browser.**
 
 ---
 
-## Apa itu PromptJS?
+## 1. Install / Instalasi
 
-**PromptJS** adalah bahasa frontend deklaratif dwibahasa (Indonesia dan English) yang dikompilasi menjadi JavaScript vanilla. File dengan ekstensi `.pjs` melewati pipeline 5 tahap — Lexer, Parser, Resolver, Analyzer, Compiler — dan menghasilkan kode JS yang langsung memanipulasi DOM tanpa framework, tanpa virtual DOM, dan tanpa runtime dependency.
-
-**PromptJS** is a bilingual (Indonesian and English) declarative frontend language that compiles to vanilla JavaScript. Files with the `.pjs` extension pass through a 5-stage pipeline — Lexer, Parser, Resolver, Analyzer, Compiler — and produce JS code that directly manipulates the DOM without frameworks, without a virtual DOM, and without runtime dependencies.
-
-### Motto
-
-> Tulis dengan Bahasa yang Kamu Pahami, dan Hasilkan Kode yang Dunia Mengerti.
->
-> Write in the Language You Understand, and Produce Code the World Understands.
-
----
-
-## Mengapa PromptJS? / Why PromptJS?
-
-PromptJS hadir sebagai jembatan antara *coding*, *vibe coding*, dan *prompting*. Bahasa ini meruntuhkan dinding pembatas dalam belajar pemrograman dengan menjaga workflow yang tetap terasa disiplin sebagai aktivitas coding, namun dikemas dalam kenyamanan interaksi layaknya menulis prompt. Dengan kata kunci bilingual, pengguna dapat menulis kode dalam bahasa Indonesia, bahasa Inggris, atau campuran keduanya dalam satu file yang sama — dan semuanya menghasilkan output JavaScript yang identik.
-
-PromptJS bridges *coding*, *vibe coding*, and *prompting*. The language breaks down barriers in learning programming by maintaining a disciplined coding workflow while wrapping it in the comfort of prompt-like interaction. With bilingual keywords, users can write code in Indonesian, English, or a mix of both in the same file — all producing identical JavaScript output.
-
----
-
-## Fitur Utama / Key Features
-
-| Fitur / Feature | Deskripsi / Description |
-|-----------------|-------------------------|
-| **Sintaks blok & indentasi** / Block & indentation syntax | Tidak perlu kurung kurawal `{}` atau tag penutup `</div>` — struktur ditentukan oleh indentasi. / No curly braces or closing tags — structure is determined by indentation. |
-| **Kata kunci bilingual** / Bilingual keywords | Setiap keyword Indonesia punya padanan English: `Buat`/`Create`, `Jika`/`If`, `Ulangi`/`Loop`, dan 50+ pasangan lainnya. / Every Indonesian keyword has an English counterpart: 50+ pairs. |
-| **Reaktivitas Proxy-based** / Proxy-based reactivity | Deklarasi `data` menggunakan `Proxy` JavaScript. Perubahan nilai otomatis memicu re-render melalui `Saat` watcher. / `data` declarations use JavaScript `Proxy`. Value changes automatically trigger re-render via `Saat` watchers. |
-| **Sistem komponen** / Component system | Deklarasikan komponen dengan `Komponen Nama(props):` dan instansiasi dengan `Buat Nama(prop: nilai)`. Props di-resolve oleh compiler. / Declare components with `Komponen Nama(props):` and instantiate with `Buat Nama(prop: nilai)`. |
-| **SPA routing** / Client-side routing | Tambahkan `router: benar` di front-matter, dan compiler otomatis menghasilkan router `pushState` dengan lifecycle `dipasang`/`dilepas` (mounted/unmounted). / Add `router: benar` in front-matter, and the compiler generates a `pushState` router with mount/unmount lifecycle. |
-| **Auth guard** / Authentication guard | `butuhAuth: benar` menghasilkan IIFE yang mengecek token di `localStorage`/`sessionStorage` sebelum mengeksekusi halaman. Mendukung `peran` untuk role-based access. / Emits a guard IIFE that checks token in storage before page execution. Supports role-based access. |
-| **Plugin system** / Plugin system | 4 transform hooks: `transformSource`, `transformJS`, `transformCSS`, `transformHTML`. Plugin didefinisikan di `pjs.config.js`. / 4 transform hooks defined in `pjs.config.js`. |
-| **Deployment adapters** / Deployment adapters | 3 adapter bawaan: `static` (CDN + asset hashing + sitemap), `node` (self-contained server + Dockerfile), `vercel` (Build Output API v3). / 3 built-in adapters for different deployment targets. |
-| **Zero dependency** / Zero dependency | Output JS vanilla murni. Runtime helpers di-tree-shake — hanya helper yang dipakai yang masuk ke output akhir. / Pure vanilla JS output. Runtime helpers are tree-shaken. |
-| **XSS sanitization** / XSS sanitization | Sejak v1.0.1, semua `innerHTML` assignment melalui properti `html` di-sanitize oleh `__sanitizeHTML()` yang menghilangkan `<script>` tag dan event handler. / Since v1.0.1, all `innerHTML` assignments via the `html` property are sanitized. |
-
----
-
-## Prinsip Desain / Design Principles
-
-PromptJS dibangun di atas 9 prinsip yang mengikat:
-
-PromptJS is built on 9 binding design principles:
-
-1. **Zero dependency** di production output — framework dan library tidak dibutuhkan di runtime.
-2. **Build tool boleh punya dependency** — devDependencies (vitest, typescript, eslint) hanya untuk pengembangan.
-3. **Readability setinggi prompt AI** — kode `.pjs` harus mudah dibaca seperti prompt.
-4. **Reactivity eksplisit, bukan auto-tracking** — perubahan state hanya ter-tracking jika dideklarasikan dengan `data`/`turunan` dan di-observe dengan `Saat`.
-5. **Tidak ada `eval()` / `new Function()`** — semua kode dikompilasi secara statis.
-6. **Bilingual keyword** (Indonesia + English) sebagai prinsip arsitektural — bukan fitur tambahan.
-7. **Jembatan antara coding, vibe-coding, dan prompting** — memudahkan transisi dari AI prompting ke coding nyata.
-8. **Zero syntax symbol** — mengalir seperti menulis prompt, bukan menulis kode tradisional.
-9. **Meruntuhkan dinding pembatas dalam belajar pemrograman** — bahasa menjadi jembatan, bukan penghalang.
-
----
-
-## Struktur File Proyek / Project File Structure
-
-Sebuah proyek PromptJS tipikal memiliki struktur berikut:
-
-A typical PromptJS project has the following structure:
-
-```
-proyek-saya/
-├── index.pjs              # Halaman utama / Main page
-├── pages/                 # Halaman tambahan (untuk SPA/MPA) / Additional pages
-│   ├── tentang.pjs
-│   └── kontak.pjs
-├── components/            # Komponen reusable / Reusable components
-│   └── kartu.pjs
-├── data/                  # File data (JSON, CSV) / Data files
-│   └── produk.json
-├── assets/                # Aset statis (gambar, font) / Static assets
-├── pjs.config.js          # Konfigurasi proyek / Project config
-└── package.json           # (opsional, untuk npm) / (optional, for npm)
+```bash
+npm install -g @raarion/prompt-js
 ```
 
-- File `.pjs` adalah sumber utama. Front-matter (di antara `---`) berisi metadata dan direktif.
-- `.pjs` files are the primary source. Front-matter (between `---`) contains metadata and directives.
-- Folder `pages/` digunakan untuk multi-page build. Jika salah satu halaman memiliki `router: benar`, builder otomatis menghasilkan output SPA.
-- The `pages/` folder is used for multi-page builds. If any page has `router: benar`, the builder automatically produces SPA output.
+**Requirement:** Node.js ≥ 22.0.0. Cek versi dengan `node --version`.
+
+Done. PromptJS adalah **zero runtime dependency** — nggak ada framework tambahan, nggak ada ratusan MB `node_modules`. Cuma compiler yang siap jalan.
 
 ---
 
-## Apa Selanjutnya? / What's Next?
+## 2. Bikin Proyek Pertama / Create Your First Project
 
-| Langkah / Step | Halaman / Page |
-|----------------|----------------|
-| Instalasi PromptJS / Install PromptJS | [Installation](installation.md) |
-| 5 menit pertama / Your first 5 minutes | [Quick Start](quick-start.md) |
-| Tutorial lengkap / Full tutorial | [First App](first-app.md) |
-| Deployment ke production / Deploy to production | [Deployment](deployment.md) |
+```bash
+pjs init -t counter
+cd counter
+```
+
+Perintah ini membuat folder `counter/` berisi:
+
+```
+counter/
+├── index.pjs       ← kode utama (20 baris yang langsung bisa kamu baca)
+└── pjs.config.js   ← konfigurasi (nggak perlu disentuh sekarang)
+```
+
+Buka `index.pjs`. Isinya... ini:
+
+```pjs
+---
+judul: "Counter Pertamaku"
+---
+
+Halaman Utama:
+    data hitung = 0
+
+    gaya:
+        .counter-box
+            margin: 40px auto
+            padding: 24px
+            text-align: center
+            max-width: 300px
+            font-family: 'Inter', system-ui, sans-serif
+            border-radius: 16px
+            background: #0f0c29
+            color: #e0e0e0
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3)
+
+        .angka
+            font-size: 4rem
+            font-weight: 800
+            margin: 16px 0
+
+        tombol
+            background: #7dd3fc
+            color: #0f0c29
+            border: none
+            padding: 12px 28px
+            border-radius: 10px
+            font-size: 1rem
+            font-weight: 600
+            cursor: pointer
+            margin: 4px
+
+        tombol:hover
+            background: #38bdf8
+
+    Buat div.counter-box:
+        Buat h2: $judul
+        Buat div.angka:
+            "" + hitung
+
+        Buat tombol: "+"
+            Ketika diklik:
+                tambahkan 1 ke hitung
+        Buat tombol: "Reset"
+            Ketika diklik:
+                ubah hitung jadi 0
+```
+
+**Lo pasti bisa baca ini.** Bahkan kalo lo belum pernah ngoding. `Buat tombol: "+"` → `Ketika diklik: tambahkan 1 ke hitung`. Nggak ada `{}`, `</>`, atau `()=>{}`.
+
+---
+
+## 3. Jalankan / Run It
+
+```bash
+pjs serve --port 3000
+```
+
+Buka browser di **http://localhost:3000**.
+
+Kamu lihat counter interaktif. Klik "+" — angka naik. Klik "Reset" — balik ke 0. **Tanpa React. Tanpa Vue. Tanpa npm install tambahan.** Hanya kode `.pjs` yang dikompilasi ke vanilla JavaScript.
+
+Kalau kamu edit `index.pjs` dan save — browser **auto-reload**. Coba ubah `"Counter Pertamaku"` jadi `"Proyek Pertama E-Raa"` — lihat perubahannya instan.
+
+---
+
+## 🎉 Kamu Baru Aja...
+
+- Menulis kode dalam **bahasa yang kamu pahami** — Indonesia, Inggris, atau campuran
+- Menulis **seperti prompt** — tanpa simbol sintaks, tanpa kurung kurawal
+- Tetap mengikuti **aturan coding yang disiplin** — indentasi, struktur blok
+- Menghasilkan **vanilla JavaScript production-ready** — zero dependencies
+
+Ini inti dari PromptJS: **coding, vibe coding, dan prompting dalam satu alur.**
+
+---
+
+## Ngoding Lebih Lanjut / Going Further
+
+Ganti `index.pjs` dan eksplor:
+
+### Variabel & Reaktivitas
+
+```pjs
+data nama = "Raa"
+data klik = 0
+
+Buat h2: "Halo, " + nama + "!"
+Buat tombol: "Klik (" + klik + ")"
+    Ketika diklik:
+        tambahkan 1 ke klik
+```
+
+Simpan → browser auto-refresh. Klik tombol — `klik` naik. Itu reaktivitas. PromptJS otomatis update DOM setiap kali `data` berubah. Nggak perlu `setState()`, nggak perlu `useState()`. Cuma deklarasi `data` dan pakai nilainya.
+
+### Kondisi / Conditions
+
+```pjs
+data login = salah
+
+Jika login:
+    Buat p: "Selamat datang!"
+Lainnya:
+    Buat tombol: "Login"
+        Ketika diklik:
+            ubah login jadi benar
+```
+
+`Jika` / `Lainnya` = `If` / `Else`. Keyword bilingual: bisa juga `If` / `Else`.
+
+### Perulangan / Loops
+
+```pjs
+data daftar = ["Apel", "Pisang", "Melon"]
+
+Untuk setiap buah di daftar:
+    Buat p: "🍉 " + buah
+```
+
+`Untuk setiap x di y:` = loop over array. Bisa juga `For each x in y:`.
+
+---
+
+## Command Penting / Essential Commands
+
+| Command | Fungsi |
+|---|---|
+| `pjs init -t counter` | Scaffold proyek baru (6 template: `counter`, `blank`, `todo`, `spa`, `auth`, `full`) |
+| `pjs serve --port 3000` | Dev server + live reload |
+| `pjs compile index.pjs --stdout` | Kompilasi satu file, lihat JS output |
+| `pjs build --adapter static` | Build production → folder `out/` |
+
+---
+
+## Arsitektur 5 Tahap / 5-Stage Pipeline
+
+Di balik `pjs compile`, ada pipeline yang menerjemahkan `.pjs` → vanilla JS:
+
+```
+Source (.pjs) → Lexer → Parser → Resolver → Analyzer → Compiler → JavaScript
+```
+
+| Tahap | Apa yang terjadi |
+|---|---|
+| **Lexer** | Tokenisasi. `Buat h1:` → `[KEYWORD:BUAT, TAG:h1, COLON]`. Keyword bilingual di-resolve di sini. |
+| **Parser** | Token stream → AST (Abstract Syntax Tree). Struktur pohon dari blok dan indentasi. |
+| **Resolver** | Validasi referensi. `$judul` dipastikan ada di `data` atau `turunan`. |
+| **Analyzer** | Analisis semantik. Deteksi: "variabel `hitung` dipakai tapi nggak dideklarasi." 70+ error/warning bilingual. |
+| **Compiler** | Codegen. AST → vanilla JavaScript. Tree-shaking — hanya helper yang dipakai yang di-emit. |
+
+---
+
+## Fitur Penting Lainnya / Other Key Features
+
+Setelah nyaman dengan dasar-dasar, eksplorasi:
+
+| Fitur | Deskripsi Singkat | Baca |
+|---|---|---|
+| 🧩 **Komponen** | `Komponen Kartu(props):` → reusable building blocks | [Components](../language/components.md) |
+| 🗺️ **SPA Router** | `router: benar` — multi-page tanpa reload | [Routing](../language/routing.md) |
+| 🔐 **Auth Guard** | `butuhAuth: benar` — client-side access control | [Auth](../language/auth.md) |
+| 📦 **Adapters** | Build ke `static` / `node` / `vercel` | [Adapters](../language/adapters.md) |
+| 🔌 **Plugin** | Custom transform hooks | [Plugins](../language/plugins.md) |
+| 🛡️ **CSP Mode** | `--csp` flag — production hardening | [Security](../language/security.md) |
+
+---
+
+## FAQ Cepat / Quick FAQ
+
+**Q: Apakah PromptJS butuh React/Vue/Svelte?**  
+A: Nggak. Nol. Output-nya vanilla JavaScript. Nggak ada runtime dependency.
+
+**Q: Bisa campur keyword Indonesia + Inggris?**  
+A: Bisa. `Buat h1:` sama dengan `Create h1:`. `Jika` = `If`. Dalam satu file yang sama.
+
+**Q: Apakah output-nya bisa production?**  
+A: Bisa. `pjs build --adapter static` menghasilkan folder `out/` yang siap deploy ke CDN mana pun. CSP-ready, minified, hashed assets.
+
+**Q: Apa bedanya sama vibe coding (pakai ChatGPT)?**  
+A: Vibe coding = kamu prompt AI, AI yang nulis kode. PromptJS = kamu nulis kode, tapi dalam format yang *terasa* seperti prompt. Kamu tetap memegang kendali penuh atas logika aplikasi — compiler yang menerjemahkan, bukan AI yang menebak.
+
+**Q: Kenapa indentasi? Kenapa nggak pakai kurung?**  
+A: Indentasi = struktur yang dipaksakan. Nggak mungkin ada kode ambigu karena indentasi. Lebih sedikit simbol = lebih sedikit yang perlu diingat. (Ini prinsip yang sama dengan Python.)
+
+---
+
+## Siap ke Tahap Berikutnya?
+
+| Ingin | Buka |
+|---|---|
+| Tutorial lengkap dari nol sampai app jadi | [First App](first-app.md) |
+| Referensi lengkap semua keyword & sintaks | [Syntax Reference](../language/syntax-reference.md) |
+| Deploy ke production | [Deployment](deployment.md) |
+| Lihat contoh nyata | [Examples](../../examples/) |
 
 ---
 
