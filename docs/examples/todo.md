@@ -139,4 +139,4 @@ pjs compile examples/todo.pjs
 
 ---
 
-← [Counter](counter.md) · [Kembali ke Index / Back to Index](../README.md)
+← [Counter](counter.md) · [Gallery →](gallery.md)
