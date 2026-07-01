@@ -10,8 +10,8 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-880%20passing-brightgreen?style=for-the-badge&logo=vitest&logoColor=white">
-    <img alt="Coverage" src="https://img.shields.io/badge/coverage-84.8%25%20lines-86efac?style=for-the-badge&logo=vitest&logoColor=86efac">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-880%20passing-fdfd96?style=for-the-badge&logo=vitest&logoColor=fdfd96">
+    <img alt="Coverage" src="https://img.shields.io/badge/coverage-84.8%25%20lines-ff964f?style=for-the-badge&logo=vitest&logoColor=ff964f">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
 
