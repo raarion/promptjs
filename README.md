@@ -180,6 +180,43 @@ minor/major berikutnya tanpa melanggar kontrak 1.0.x di atas.
 
 ---
 
+## 🛡️ Keamanan / Security Hardening
+
+> PromptJS v1.0.0 telah melalui audit keamanan mendalam dan **tiga gelombang perbaikan** yang ter-merge ke `main`. Semua temuan HIGH & MEDIUM ditutup dan dikunci oleh regression test ber-PoC.
+
+| Temuan | Severity | Status | Ringkasan perbaikan |
+|---|---|---|---|
+| **S-1** Code-injection front-matter auth | 🔴 HIGH | ✅ Fixed | Whitelist storage + `escapeString()` pada nilai input |
+| **S-2** Sanitizer regex bypass | 🔴 HIGH | ✅ Fixed | Allowlist berbasis Sanitizer API / parsing DOM (safe-by-default) |
+| **S-3** `html:` tak tersanitasi (element-creation) | 🔴 HIGH | ✅ Fixed | Satu jalur emit HTML tunggal melewati sanitizer |
+| **S-4** Injeksi atribut/event-handler | 🟡 MED | ✅ Fixed | Helper `__safeAttr` tolak `on*` & URL berbahaya (4 sink) |
+| **S-5** Peran auth mudah dipalsukan | 🟡 MED | ✅ Fixed | Seam `__pjs_verifyPeran` + warning jujur (client-side advisory) |
+| **S-6** Dev-server path traversal | 🟡 MED | ✅ Fixed | `path.relative()` + `decodeURIComponent` anti-`%2e%2e` |
+| **S-15 / S-21** Guard path traversal tersebar di adapter | 🟡 MED | ✅ Fixed | Guard disentralisasi ke util bersama `src/utils/path-guard.js` (`isInsideRoot`/`safeResolve`), diterapkan ke `serve`/`static`/`vercel` (100% test-covered) |
+| **T-1** CLI coverage 0% | ⚪ Test | ✅ Fixed | Suite integrasi CLI (spawn binary + serve e2e) |
+| **T-2** Coverage cabang adapter/emitter (S-12/S-21/S-24) | ⚪ Test | ✅ Fixed | Suite edge/branch v6 untuk `static`/`vercel`/`statements` (+70 test) |
+
+**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **880/880 test lulus** (43 file) · coverage lines **84.8%** / branch **75.23%** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
+
+> ⚠️ **Catatan jujur:** auth guard PromptJS bersifat **client-side/advisory** — bukan kontrol keamanan server. Untuk otorisasi sesungguhnya, verifikasi peran **wajib** dilakukan di server (gunakan seam `window.__pjs_verifyPeran`).
+
+### 🔧 Audit Follow-ups & DX Hardening
+
+Setelah tiga gelombang keamanan, satu PR lanjutan menutup temuan audit & DX yang terverifikasi — **tetap v1.0.0**, keamanan **fail-closed** terjaga, nol regresi:
+
+| # | Perbaikan | Dampak |
+|---|---|---|
+| 1 | **Scoped CSS translate tag-alias** (`css.js`) | `tombol[data-pjs-x]` → `button[data-pjs-x]` — komponen scoped + tag Indonesia kini ter-style benar |
+| 2 | **Router regex escape** (`router-runtime.js`) | Bagian literal route di-escape sebelum `RegExp` — guard ReDoS |
+| 3 | **Kanal warning terstruktur** (Lapis 2) | `console.warn` ad-hoc → format berkode `[PromptJS] PJS-Wxxxx: pesan (saran)`; atribut bahaya tetap diblokir |
+| 4 | **Konsolidasi `findPjsFiles()`** | 3 salinan → 1 sumber kebenaran di `cli/utils.js` dengan opsi `{ignoreDirs, sort}` |
+| 5 | **Hapus `@ts-nocheck`** (`builder.js`, `css.js`) | Blanket-suppress dihapus; typecheck tetap 0 error |
+| 6 | **Normalisasi version banner** | Banner identitas `v0.x` → `v1.0.0` (marker historis dipertahankan) |
+
+**QA gate:** **880/880 test** (43 file) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · coverage gate ≥80% lines (lines 84.8% / branch 75.23%) · Stryker mutation 63.91% (naik dari baseline 49.72%) · **v1.0.0**.
+
+---
+
 ## ⌨️ Penggunaan CLI
 
 ```bash
@@ -309,6 +346,53 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
 - `tests/` ← 880 tes, 43 file tes
+- [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
+- [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
+- [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
+- [v0.7-data-fetching.test.js](tests/v0.7-data-fetching.test.js) ← Pengambilan data
+- [v0.8-adapter.test.js](tests/v0.8-adapter.test.js) ← Adapter + CSP (48 tes)
+- [v0.9-auth.test.js](tests/v0.9-auth.test.js) ← Auth guard
+- [v1.0-release.test.js](tests/v1.0-release.test.js) ← Tes regresi
+- [security/wave1-security.test.js](tests/security/wave1-security.test.js) ← Regresi PoC Gelombang 1 (S-1, S-2, S-3)
+- [security/wave2-security.test.js](tests/security/wave2-security.test.js) ← Regresi PoC Gelombang 2 (S-4, S-5, S-6)
+- [cli-integration.test.js](tests/cli-integration.test.js) ← CLI e2e (spawn binary + serve, validasi S-6)
+- [cli-commands-coverage.test.js](tests/cli-commands-coverage.test.js) ← Cakupan perintah CLI (T-1)
+- [cli-compile.test.js](tests/cli-compile.test.js) ← CLI kompilasi unit test (stdout/out-dir/output/dev/error)
+- [cli-serve.test.js](tests/cli-serve.test.js) ← CLI serve unit test (in-process, path traversal, 404, 400)
+- [pipeline.test.js](tests/pipeline.test.js) ← Pipeline lengkap
+- [components.test.js](tests/components.test.js) ← Komponen
+- [c4-expressions.test.js](tests/c4-expressions.test.js) ← Cakupan ekspresi
+- [cli-utils.test.js](tests/cli-utils.test.js) ← Utilitas CLI
+- [extended.test.js](tests/extended.test.js) ← Skenario yang diperluas
+- [negative-errors.test.js](tests/negative-errors.test.js) ← Validasi jalur kesalahan
+- [negative-complex.test.js](tests/negative-complex.test.js) ← Pengaturan kesalahan/peringatan kompleks
+
+**Suite ketahanan v2–v4 (edge-case, error-path & branch coverage):**
+
+- [v2-expression-lowering.test.js](tests/v2-expression-lowering.test.js) ← Lowering ekspresi (edge & error path)
+- [v2-error-codes.test.js](tests/v2-error-codes.test.js) ← Kontrak kode error/warning bilingual
+- [v2-modules-resolution.test.js](tests/v2-modules-resolution.test.js) ← Resolusi modul (kirim/terima, siklus)
+- [v2-cli-compile-errors.test.js](tests/v2-cli-compile-errors.test.js) ← Jalur kesalahan CLI compile
+- [v2-visitor-traversal.test.js](tests/v2-visitor-traversal.test.js) ← Traversal visitor AST
+- [v3-resolver-branches.test.js](tests/v3-resolver-branches.test.js) ← Cabang resolver (first pass)
+- [v3-analyzer-branches.test.js](tests/v3-analyzer-branches.test.js) ← Cabang analyzer (first pass)
+- [v4-resolver-branches.test.js](tests/v4-resolver-branches.test.js) ← Pendalaman cabang resolver
+- [v4-analyzer-branches.test.js](tests/v4-analyzer-branches.test.js) ← Pendalaman cabang analyzer
+
+**Suite mutation-hardening v5 (penguatan assertion untuk membunuh mutant Stryker):**
+
+- [v5-resolver-nocoverage.test.js](tests/v5-resolver-nocoverage.test.js) ← Menutup baris NoCoverage resolver (24 tes)
+- [v5-diagnostic-text.test.js](tests/v5-diagnostic-text.test.js) ← Assert exact teks `message`/`suggestion` diagnostik (11 tes)
+- [v5-symbol-flags.test.js](tests/v5-symbol-flags.test.js) ← Assert flag boolean simbol (`isReactive`/`isWritable`/`kind`) (11 tes)
+- [v5-boundary.test.js](tests/v5-boundary.test.js) ← Boundary & conditional expression (17 tes)
+
+**Suite edge/branch v6 + guard path tersentralisasi (S-12/S-15/S-21/S-24):**
+
+- [v6-static-adapter.test.js](tests/v6-static-adapter.test.js) ← Edge/branch adapter `static` (S-12)
+- [v6-vercel-adapter.test.js](tests/v6-vercel-adapter.test.js) ← Edge/branch adapter `vercel` (S-21)
+- [v6-statements-emitter.test.js](tests/v6-statements-emitter.test.js) ← Edge/branch emitter `statements` (S-24)
+- [v6-path-guard.test.js](tests/v6-path-guard.test.js) ← Guard penahanan path bersama `isInsideRoot`/`safeResolve` (S-15/S-21, 100% coverage)
+
 - `.github/workflows/`
   - [ci.yml](.github/workflows/ci.yml) ← CI: format + typecheck + lint + test (matrix Node 22/24) + coverage gate ≥80% + Stryker mutation
   - [pages.yml](.github/workflows/pages.yml) ← GitHub Pages deploy
