@@ -461,7 +461,8 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **TypeScript JSDoc check** | `tsc --noEmit` — **zero errors** | wajib zero |
 | **ESLint** | `--max-warnings=0` — **zero problems** | wajib zero |
 | **Prettier** | `--check` — **all green** | wajib hijau |
-| **npm audit** | **zero production vulnerabilities** | dipantau CI |
+| **npm audit (production)** | **0 kerentanan** — zero runtime deps | gate CI |
+| **npm audit (dev)** | transitive dev deps dipantau (saat ini: 2 moderate di `qs` via Stryker → tidak memengaruhi output runtime) | dipantau CI |
 | **CodeQL** | **zero alerts** | dipantau CI |
 | **Lines of code (src/)** | **~11,700 lines** | budget ≤ 12,300 (+5.5% dari v0.4) |
 
