@@ -6,6 +6,24 @@
 
 ## 1. Install / Instalasi
 
+PromptJS bisa dipakai lewat **dua jalur**:
+
+### Opsi A: Browser langsung (Standalone) 🌀
+
+Tanpa install apa pun — cukup satu tag `<script>` di HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
+<script type="text/pjs">
+  Halaman Utama:
+      Buat h1: "Halo Dunia"
+</script>
+```
+
+📖 **[Panduan lengkap Standalone →](../../STANDALONE.md)** — ideal untuk: belajar, prototype cepat, embed di halaman statis.
+
+### Opsi B: npm + CLI (untuk project production)
+
 ```bash
 npm install -g @raarion/prompt-js
 ```
@@ -167,7 +185,8 @@ Untuk setiap buah di daftar:
 | `pjs init -t counter` | Scaffold proyek baru (6 template: `counter`, `blank`, `todo`, `spa`, `auth`, `full`) |
 | `pjs serve --port 3000` | Dev server + live reload |
 | `pjs compile index.pjs --stdout` | Kompilasi satu file, lihat JS output |
-| `pjs build --adapter static` | Build production → folder `out/` |
+| `pjs build --adapter static` | Build production → folder `dist/` |
+| `pjs build --adapter static --out-dir public` | Build production → folder kustom |
 
 ---
 
@@ -213,7 +232,7 @@ A: Nggak. Nol. Output-nya vanilla JavaScript. Nggak ada runtime dependency.
 A: Bisa. `Buat h1:` sama dengan `Create h1:`. `Jika` = `If`. Dalam satu file yang sama.
 
 **Q: Apakah output-nya bisa production?**  
-A: Bisa. `pjs build --adapter static` menghasilkan folder `out/` yang siap deploy ke CDN mana pun. CSP-ready, minified, hashed assets.
+A: Bisa. `pjs build --adapter static` menghasilkan folder `dist/` yang siap deploy ke CDN mana pun. CSP-ready, minified, hashed assets.
 
 **Q: Apa bedanya sama vibe coding (pakai ChatGPT)?**  
 A: Vibe coding = kamu prompt AI, AI yang nulis kode. PromptJS = kamu nulis kode, tapi dalam format yang *terasa* seperti prompt. Kamu tetap memegang kendali penuh atas logika aplikasi — compiler yang menerjemahkan, bukan AI yang menebak.

@@ -139,7 +139,30 @@ Zero dependencies.
 
 ## ⚡ Quick Start
 
-> 🌀 **Baru di v1.1.0:** [PromptJS Standalone](STANDALONE.md) — tanpa install, langsung di browser via `<script>` tag.
+PromptJS bisa dipakai lewat **dua jalur** — pilih yang paling cocok:
+
+### 🚀 Jalur Cepat: Browser (Standalone)
+
+Tanpa install. Tanpa Node. Tanpa build. Cukup satu tag `<script>`:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
+<script type="text/pjs">
+  Halaman Utama:
+      data hitung = 0
+      Buat h1: "PromptJS di Browser 🌀"
+      Buat tombol: "Klik: " + hitung
+          Ketika diklik:
+              simpan hitung tambah 1 ke hitung
+</script>
+```
+
+Buka di browser — langsung jalan. Cocok untuk prototype cepat, belajar, dan embed di halaman statis.
+📖 **[Panduan lengkap Standalone →](STANDALONE.md)**
+
+### 📦 Jalur Lengkap: npm + CLI
+
+Untuk aplikasi serius — komponen, routing, adapter deployment:
 
 ```bash
 npm install @raarion/prompt-js            # install
@@ -150,14 +173,16 @@ pjs build --adapter static       # build production 🚀
 
 **Requirements:** Node.js ≥ 22.0.0 (selaras dengan CI; Node 20 sudah EOL sejak 2025-10)
 
+> 💡 **Best practice:** Gunakan npm + CLI untuk project production (akses penuh ke komponen, modul, routing, adapter). Pakai standalone untuk belajar, prototype, dan embed ringan di halaman HTML.
+
 ---
 
-## 🔒 Lingkup v1.0.0 (Capability Lock)
+## 🔒 Lingkup v1.x (Capability Lock)
 
-v1.0.0 bukan sekadar label versi — ini **batas kemampuan yang dikunci** sebagai
-permukaan stabil PromptJS. Kemampuan berikut adalah identitas resmi rilis 1.0.0
-dan dijamin stabil di seluruh lini 1.0.x (perubahan yang merusak hanya pada
-major berikutnya):
+v1.0.0 adalah baseline stabil — **batas kemampuan yang dikunci**. v1.1.x memperluas
+akses tanpa mengubah kontrak v1.0.0. Berikut peta kemampuan lengkap lintas versi minor:
+
+### Tetap stabil sejak v1.0.0
 
 - **Compiler DSL bilingual** — pipeline penuh lexer → parser → resolver →
   analyzer → compiler/emitters, dengan keyword dwibahasa (`Buat`/`Create`,
@@ -176,7 +201,20 @@ major berikutnya):
   ambang coverage per-modul (saat ini ~84.8% lines / 75.23% branch), mutation
   testing Stryker pada inti semantik, plus `npm audit` & CodeQL untuk rantai pasok.
 
-**Di luar lingkup 1.0.0 (post-1.0):** SSR/hydration, state management lintas
+### Baru sejak v1.1.0 — Standalone Browser 🌀
+
+- **`promptjs.standalone.js` / `.min.js`** — kompilasi `.pjs` langsung di browser,
+  tanpa Node, tanpa npm, tanpa build step.
+- **Auto-deteksi** `<script type="text/pjs">` dan `<link rel="pjs">`.
+- **Script injection** — zero `eval()`, zero `new Function()`, CSP-compatible
+  dengan auto-propagate nonce.
+- **CSS auto-injection** — blok `Gaya:`/`Style:` otomatis jadi `<style>`.
+- **DOM error display** untuk pengguna tanpa console.
+- **~50 KB gzipped via CDN** — muat cepat, ideal untuk prototype.
+
+📖 **[Dokumentasi Standalone →](STANDALONE.md)**
+
+### Di luar lingkup v1.x (post-1.x):
 rute bawaan, dan plugin runtime pihak ketiga. Hal-hal ini dapat ditambah di
 minor/major berikutnya tanpa melanggar kontrak 1.0.x di atas.
 
@@ -246,6 +284,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | 🔌 **Plugin System** | 4 transform hooks: source → JS → CSS → HTML |
 | 📦 **Adapters** | `static` · `node` · `vercel` — pilih target deployment |
 | 🛡️ **CSP Ready** | `--csp` flag — nonce injection buat production hardening |
+| 🌐 **Standalone Mode** | Compile `.pjs` langsung di browser via CDN — tanpa server, tanpa build step |
 | 🌳 **Tree Shaking** | Runtime helpers cuma di-emit kalo dipake — output minimal |
 | 🔒 **Safe Output** | Zero `eval()`, zero `new Function()`, no dynamic code execution |
 | 🛡️ **Hardened Codegen** | Sanitizer allowlist, `__safeAttr` filter `on*` & URL `javascript:`, escape front-matter |
@@ -440,6 +479,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **CSP Built-in** (`--csp` flag) | **✅** 🏆 | ❌ manual | ❌ manual | ❌ manual | ❌ manual | ❌ manual |
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
+| **Standalone Browser** | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Test Suite** | **880 tests** (43 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |

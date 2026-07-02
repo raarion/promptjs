@@ -4,9 +4,48 @@
 
 ---
 
-Panduan ini membawa kamu dari nol ke halaman PromptJS pertama yang berjalan di browser dalam 5 langkah. Semua perintah di bawah terbukti berfungsi berdasarkan implementasi CLI di `src/cli/commands/`.
+Panduan ini membawa kamu dari nol ke halaman PromptJS pertama yang berjalan di browser. Ada **dua jalur** — pilih yang paling cocok:
 
-This guide takes you from zero to your first running PromptJS page in the browser in 5 steps. All commands below are verified against the CLI implementation in `src/cli/commands/`.
+- 🌀 **Browser (Standalone):** Tanpa install, langsung tulis `.pjs` di HTML. [Lompat ke jalur standalone →](#jalur-cepat-browser-standalone-)
+- 📦 **npm + CLI:** Install compiler, scaffold proyek, build production. [Lanjut baca di bawah →](#langkah-1-scaffold-proyek--step-1-scaffold-a-project)
+
+---
+
+## Jalur Cepat: Browser (Standalone) 🌀
+
+> ✨ **Baru di v1.1.0** — PromptJS kini bisa langsung di browser tanpa Node, npm, atau build.
+
+Buat file HTML, tambahkan script PromptJS, tulis kode `.pjs` — selesai:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PromptJS</title>
+  <script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
+</head>
+<body>
+  <script type="text/pjs">
+    Halaman Utama:
+        data hitung = 0
+
+        Buat h1: "Counter 🌀"
+        Buat tombol: "Klik: " + hitung
+            Ketika diklik:
+                simpan hitung tambah 1 ke hitung
+  </script>
+</body>
+</html>
+```
+
+Buka di browser — langsung jalan. Nggak ada server. Nggak ada build. Nggak ada `node_modules`.
+
+📖 **Panduan lengkap:** [STANDALONE.md](../../STANDALONE.md) — mencakup inline mode, external file (`<link rel="pjs">`), programmatic API, dan batasan standalone.
+
+---
+
+## Jalur Lengkap: npm + CLI
 
 ---
 

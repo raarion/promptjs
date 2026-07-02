@@ -1,7 +1,7 @@
 {
   "name": "@raarion/prompt-js",
   "version": "1.1.1",
-  "description": "PromptJS — a mini-DSL template engine that compiles to vanilla JS with zero dependencies",
+  "description": "PromptJS — bilingual declarative DSL that compiles to vanilla JS with zero dependencies",
   "main": "src/engine/promptjs.js",
   "bin": {
     "pjs": "src/cli/index.js"
@@ -59,7 +59,9 @@
     "frontend",
     "vanilla-js",
     "reactive",
-    "dom"
+    "dom",
+    "standalone",
+    "browser"
   ],
   "engines": {
     "node": ">=22.0.0"

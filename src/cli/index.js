@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * PromptJS v1.0.0 — CLI Entry Point / Titik Masuk CLI
+ * PromptJS v1.1.1 — CLI Entry Point / Titik Masuk CLI
  * ============================================================================
  *
  * Entry point untuk `pjs` CLI. Parse argv, dispatch ke sub-command
@@ -21,7 +21,7 @@ const path = require('path');
  */
 function getVersion() {
   try {
-    const pkg = require(path.resolve(__dirname, '../../../package.json'));
+    const pkg = require(path.resolve(__dirname, '../../package.json'));
     return pkg.version || '1.0.0';
   } catch {
     return '1.0.0';
@@ -31,7 +31,7 @@ function getVersion() {
 // ── Help text ──────────────────────────────────────────────────────────────
 
 const HELP = `
-PromptJS v${getVersion()} — Mini-DSL Template Engine
+PromptJS v${getVersion()} — Bilingual Declarative DSL Compiler
 
 Usage:
   pjs <command> [options]

@@ -8,7 +8,7 @@
 
 | Kebutuhan / Requirement | Versi / Version | Sumber / Source |
 |-------------------------|-----------------|-----------------|
-| **Node.js** | ≥ 20.19.0 | Field `engines` di `package.json` |
+| **Node.js** | ≥ 22.0.0 | Field `engines` di `package.json` |
 | **npm** | (bundled dengan Node.js) | - |
 | **OS** | Windows, macOS, Linux | CLI murni JavaScript |
 
@@ -23,7 +23,7 @@ PromptJS requires no runtime dependencies — compiled output is vanilla JavaScr
 ### 1. Dari npm / From npm
 
 ```bash
-npm install prompt-js
+npm install @raarion/prompt-js
 ```
 
 Setelah instalasi, CLI `pjs` tersedia sebagai binary. Package name di npm adalah `prompt-js` (karena `promptjs` sudah diambil). Setelah instalasi, perintah `pjs` bisa dipanggil langsung dari terminal.
@@ -32,7 +32,22 @@ After installation, the `pjs` CLI is available as a binary. The npm package name
 
 **Bukti / Evidence:** Field `"bin"` di `package.json` mendefinisikan `"pjs": "src/cli/index.js"`.
 
-### 2. Dari Source / From Source
+### 2. Browser / Standalone (Tanpa Install) 🌀
+
+Untuk langsung mencoba di browser tanpa Node, npm, atau build:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
+<script type="text/pjs">
+  Halaman Utama:
+      Buat h1: "Halo Dunia"
+</script>
+```
+
+Cocok untuk: belajar, prototype cepat, embed di halaman statis. Tidak perlu Node, tidak perlu CLI.
+📖 **[Panduan lengkap Standalone →](../../STANDALONE.md)**
+
+### 3. Dari Source / From Source
 
 ```bash
 git clone https://github.com/raarion/promptjs.git
@@ -40,7 +55,7 @@ cd promptjs
 npm install
 ```
 
-Jika menginstall dari source, CLI diakses melalui:
+Jika menginstall dari source, CLI diakses melalui (atau gunakan `npm link`):
 
 If installing from source, the CLI is accessed via:
 
@@ -70,7 +85,7 @@ pjs version
 Output yang diharapkan / Expected output:
 
 ```
-PromptJS v1.0.0
+PromptJS v1.1.1
 ```
 
 Perintah `pjs help` menampilkan daftar lengkap semua command dan opsi yang tersedia.
@@ -130,13 +145,13 @@ Make sure `node_modules/.bin` is in your `PATH`. Or use `npx pjs`:
 npx pjs compile file.pjs
 ```
 
-Jika menginstall global, gunakan `npm install -g prompt-js`.
+Jika menginstall global, gunakan `npm install -g @raarion/prompt-js`.
 
 If installing globally, use `npm install -g prompt-js`.
 
 ### `Error: Node.js version too old`
 
-PromptJS memerlukan Node.js ≥ 20.19.0. Cek versi kamu:
+PromptJS memerlukan Node.js ≥ 22.0.0. Cek versi kamu:
 
 PromptJS requires Node.js ≥ 20.19.0. Check your version:
 

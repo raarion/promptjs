@@ -99,6 +99,16 @@ Buat tombol#klik:
 
 ## Tooling & Deployment
 
+### Bisakah saya pakai PromptJS tanpa Node/npm? / Can I use PromptJS without Node/npm?
+
+**Bisa!** Sejak v1.1.0, PromptJS punya **standalone mode** — cukup satu `<script>` tag dari CDN, kamu bisa compile `.pjs` langsung di browser. Tanpa Node. Tanpa npm. Tanpa build step.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
+```
+
+📖 **[Panduan lengkap Standalone →](../../STANDALONE.md)**
+
 ### Versi Node berapa yang dibutuhkan? / Which Node version is required?
 
 **Node ≥ 22.0.0**, sesuai `"engines"` di `package.json`. Versi lama (mis. Node 20) tidak didukung secara resmi.

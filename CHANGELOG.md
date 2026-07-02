@@ -5,6 +5,12 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] — 2026-07-02
+
+### Fixed
+- **Dokumentasi & readme disempurnakan** — berbagai perbaikan teks, konsistensi versi, dan penyelarasan informasi antar dokumen (README, installation, getting-started, quick-start, STANDALONE) pasca rilis standalone v1.1.0.
+
+
 ## [1.1.0] — 2026-06-30 — PromptJS Standalone (Browser CDN)
 
 > **Standalone:** PromptJS kini bisa langsung di browser — tanpa Node, tanpa npm, tanpa build.
@@ -915,6 +921,8 @@ Baseline release audited for this effort (commit `9a60726`).
 - 64-code bilingual error registry with line:column and suggestions.
 - CLI: `compile`, `serve`, `build`, `init` (with `--minify` and jsdom prerender).
 
+[1.1.1]: https://github.com/raarion/promptjs/releases/tag/v1.1.1
+[1.1.0]: https://github.com/raarion/promptjs/releases/tag/v1.1.0
 [1.0.0]: https://github.com/raarion/promptjs/releases/tag/v1.0.0
 [0.9.9]: https://github.com/raarion/promptjs/releases/tag/v0.9.9
 [0.9.0]: https://github.com/raarion/promptjs/releases/tag/v0.9.0

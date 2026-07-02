@@ -1,5 +1,7 @@
 # PromptJS Standalone — Browser CDN
 
+> ✨ **Diperkenalkan di v1.1.0.** Compile `.pjs` langsung di browser. Tanpa Node. Tanpa npm. Tanpa build.
+
 Compile `.pjs` langsung di browser. Tanpa Node. Tanpa npm. Tanpa build.
 
 ## Quick Start
