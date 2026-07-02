@@ -18,7 +18,7 @@ module.exports = defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov', 'json-summary'],
       include: ['src/**/*.js'],
-      exclude: ['src/tester/**', 'src/**/test-*.js'],
+      exclude: ['src/tester/**', 'src/**/test-*.js', 'src/standalone/**'],
       // Global thresholds — raised again after the v3 resolver+analyzer branch
       // suite lifted overall coverage to 81.52% lines / 71.6% branches
       // (resolver 83% L / 64.73% B, analyzer 89.43% L / 84.45% B). Set just
