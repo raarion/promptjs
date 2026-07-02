@@ -28,21 +28,37 @@ const config = {
   globalName: '__pjs_standalone',
   target: ['es2020'],
   banner: { js: banner },
-  plugins: [{
-    name: 'promptjs-standalone',
-    setup(build) {
-      build.onResolve({ filter: /^fs$/ }, () => ({ path: path.join(ROOT, 'src/standalone/shim-fs.js') }));
-      build.onResolve({ filter: /^path$/ }, () => ({ path: path.join(ROOT, 'src/standalone/shim-path.js') }));
-      build.onResolve({ filter: /^process$/ }, () => ({ path: path.join(ROOT, 'src/standalone/shim-process.js') }));
+  plugins: [
+    {
+      name: 'promptjs-standalone',
+      setup(build) {
+        build.onResolve({ filter: /^fs$/ }, () => ({
+          path: path.join(ROOT, 'src/standalone/shim-fs.js'),
+        }));
+        build.onResolve({ filter: /^path$/ }, () => ({
+          path: path.join(ROOT, 'src/standalone/shim-path.js'),
+        }));
+        build.onResolve({ filter: /^process$/ }, () => ({
+          path: path.join(ROOT, 'src/standalone/shim-process.js'),
+        }));
+      },
     },
-  }],
+  ],
 };
 
 async function build() {
   const start = Date.now();
 
-  await esbuild.build({ ...config, minify: false, outfile: path.join(OUT_DIR, 'promptjs.standalone.js') });
-  await esbuild.build({ ...config, minify: true, outfile: path.join(OUT_DIR, 'promptjs.standalone.min.js') });
+  await esbuild.build({
+    ...config,
+    minify: false,
+    outfile: path.join(OUT_DIR, 'promptjs.standalone.js'),
+  });
+  await esbuild.build({
+    ...config,
+    minify: true,
+    outfile: path.join(OUT_DIR, 'promptjs.standalone.min.js'),
+  });
 
   const unmin = fs.statSync(path.join(OUT_DIR, 'promptjs.standalone.js'));
   const min = fs.statSync(path.join(OUT_DIR, 'promptjs.standalone.min.js'));
@@ -54,14 +70,24 @@ async function build() {
 }
 
 async function watchMode() {
-  const ctx = await esbuild.context({ ...config, minify: true, outfile: path.join(OUT_DIR, 'promptjs.standalone.min.js') });
+  const ctx = await esbuild.context({
+    ...config,
+    minify: true,
+    outfile: path.join(OUT_DIR, 'promptjs.standalone.min.js'),
+  });
   await ctx.watch();
   console.log('👀 Watching for changes...');
 }
 
 const watch = process.argv.includes('--watch');
 if (watch) {
-  watchMode().catch(err => { console.error(err); process.exit(1); });
+  watchMode().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 } else {
-  build().catch(err => { console.error('❌ Build failed:', err); process.exit(1); });
+  build().catch((err) => {
+    console.error('❌ Build failed:', err);
+    process.exit(1);
+  });
 }

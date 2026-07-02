@@ -4,9 +4,13 @@ module.exports = {
   readFileSync() {
     throw new Error('fs.readFileSync not available in browser. Use compile() with inline source.');
   },
-  existsSync() { return false; },
+  existsSync() {
+    return false;
+  },
   mkdirSync() {},
   writeFileSync() {},
   rmSync() {},
-  readdirSync() { return []; },
+  readdirSync() {
+    return [];
+  },
 };

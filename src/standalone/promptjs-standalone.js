@@ -9,8 +9,7 @@
  */
 
 // The engine — esbuild resolves these requires + stubs fs/path/process
-var PromptJS = require('../engine/promptjs');
-var CSS = require('../engine/css');
+const PromptJS = require('../engine/promptjs');
 
 // ── Expose for debugging ─────────────────────────────────────────────────
 if (typeof window !== 'undefined') {
@@ -18,13 +17,12 @@ if (typeof window !== 'undefined') {
 }
 
 // ── CSP nonce ────────────────────────────────────────────────────────────
-var ownScript =
-  typeof document !== 'undefined' ? document.currentScript : null;
-var nonce = ownScript ? ownScript.nonce : undefined;
+const ownScript = typeof document !== 'undefined' ? document.currentScript : null;
+const nonce = ownScript ? ownScript.nonce : undefined;
 
 // ── Execute compiled JS via safe script injection ────────────────────────
 function executeJS(js, sourceName) {
-  var el = document.createElement('script');
+  const el = document.createElement('script');
   if (sourceName) {
     js += '\n//# sourceURL=' + sourceName;
   }
@@ -36,19 +34,16 @@ function executeJS(js, sourceName) {
 // ── Compile + execute ────────────────────────────────────────────────────
 function compileAndExecute(source, sourceName) {
   try {
-    var result = PromptJS.compile(source, {
+    const result = PromptJS.compile(source, {
       loadDataFiles: false,
       source: sourceName || 'inline.pjs',
     });
 
     if (!result.success) {
-      var errors = result.errors || [];
+      const errors = result.errors || [];
       errors.forEach(function (e) {
         console.error(
-          '[PromptJS] ' +
-            (e.code || 'ERROR') +
-            ': ' +
-            (e.message || 'Compilation failed')
+          '[PromptJS] ' + (e.code || 'ERROR') + ': ' + (e.message || 'Compilation failed')
         );
       });
       // Also show in DOM so non-console users can see
@@ -58,9 +53,7 @@ function compileAndExecute(source, sourceName) {
 
     if (result.warnings && result.warnings.length > 0) {
       result.warnings.forEach(function (w) {
-        console.warn(
-          '[PromptJS] ' + (w.code || 'WARNING') + ': ' + (w.message || '')
-        );
+        console.warn('[PromptJS] ' + (w.code || 'WARNING') + ': ' + (w.message || ''));
       });
     }
 
@@ -77,7 +70,7 @@ function compileAndExecute(source, sourceName) {
 
 // ── Inject CSS ───────────────────────────────────────────────────────────
 function injectCSS(css, sourceName) {
-  var style = document.createElement('style');
+  const style = document.createElement('style');
   if (sourceName) {
     css = '/* ' + sourceName + ' */\n' + css;
   }
@@ -89,13 +82,13 @@ function injectCSS(css, sourceName) {
 // ── DOM error display (for non-console users) ────────────────────────────
 function showDOMError(errors) {
   try {
-    var el = document.createElement('div');
+    const el = document.createElement('div');
     el.style.cssText =
       'position:fixed;bottom:16px;right:16px;max-width:400px;' +
       'background:#1e1b2e;color:#fca5a5;padding:16px;border-radius:12px;' +
       'font-family:monospace;font-size:13px;z-index:99999;' +
       'border:1px solid rgba(239,68,68,0.3);box-shadow:0 8px 32px rgba(0,0,0,0.4);';
-    var msg = errors
+    const msg = errors
       .map(function (e) {
         return (e.code || 'ERROR') + ': ' + e.message;
       })
@@ -112,17 +105,17 @@ function showDOMError(errors) {
     setTimeout(function () {
       if (el.parentNode) el.parentNode.removeChild(el);
     }, 8500);
-  } catch (_) {
+  } catch {
     /* DOM might not be ready */
   }
 }
 
 // ── Process inline <script type="text/pjs"> ──────────────────────────────
 function processInline() {
-  var scripts = document.querySelectorAll('script[type="text/pjs"]');
+  const scripts = document.querySelectorAll('script[type="text/pjs"]');
   scripts.forEach(function (script) {
-    var source = script.textContent;
-    var name = script.getAttribute('data-name') || 'inline';
+    const source = script.textContent;
+    const name = script.getAttribute('data-name') || 'inline';
     if (source && source.trim()) {
       compileAndExecute(source, name);
     }
@@ -131,9 +124,9 @@ function processInline() {
 
 // ── Process external <link rel="pjs" href="..."> ─────────────────────────
 function processLinks() {
-  var links = document.querySelectorAll('link[rel="pjs"]');
+  const links = document.querySelectorAll('link[rel="pjs"]');
   links.forEach(function (link) {
-    var href = link.getAttribute('href');
+    const href = link.getAttribute('href');
     if (!href) return;
 
     fetch(href)
