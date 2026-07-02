@@ -5,255 +5,289 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>PromptJS v1.1.1 — Command Reference</title>
     <script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        font-family:
-          'Inter',
-          'SF Pro',
-          system-ui,
-          -apple-system,
-          sans-serif;
-        background: #0a0a1a;
-        color: #e0e0f0;
-        min-height: 100vh;
-      }
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background:
-          radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120, 60, 200, 0.08), transparent),
-          radial-gradient(ellipse 60% 80% at 80% 90%, rgba(0, 180, 180, 0.06), transparent);
-        pointer-events: none;
-        z-index: 0;
-      }
-      .container {
-        position: relative;
-        z-index: 1;
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 24px 20px 60px;
-      }
-      header {
-        text-align: center;
-        padding: 40px 0 24px;
-      }
-      header h1 {
-        font-size: 2rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #ff006e, #ff99c8, #7dd3fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      header p {
-        color: #8888aa;
-        margin-top: 6px;
-        font-size: 0.95rem;
-      }
-      .badge-row {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 14px;
-      }
-      .badge {
-        font-size: 0.72rem;
-        font-weight: 700;
-        padding: 4px 12px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.04);
-        color: #9999bb;
-        letter-spacing: 0.02em;
-      }
-      .badge.hl {
-        color: #7dd3fc;
-        border-color: rgba(125, 211, 252, 0.25);
-      }
-      .search-wrap {
-        position: sticky;
-        top: 12px;
-        z-index: 10;
-        margin: 0 0 28px;
-      }
-      .search-box {
-        width: 100%;
-        padding: 12px 16px 12px 42px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(15, 15, 35, 0.85);
-        backdrop-filter: blur(12px);
-        color: #e0e0f0;
-        font-size: 0.95rem;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .search-box:focus {
-        border-color: #ff006e;
-      }
-      .search-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #666;
-        pointer-events: none;
-        font-size: 0.95rem;
-      }
-      .category {
-        margin-bottom: 28px;
-      }
-      .cat-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      .cat-emoji {
-        font-size: 1.4rem;
-      }
-      .cat-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #c0c0d8;
-      }
-      .cat-count {
-        font-size: 0.65rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.05);
-        color: #6666aa;
-      }
-      .cmd-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background 0.15s;
-        margin-bottom: 2px;
-      }
-      .cmd-row:hover {
-        background: rgba(255, 255, 255, 0.03);
-      }
-      .cmd-code {
-        flex: 1;
-        font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
-        font-size: 0.82rem;
-        color: #7dd3fc;
-        min-width: 0;
-        overflow-wrap: anywhere;
-        line-height: 1.5;
-      }
-      .cmd-desc {
-        font-size: 0.78rem;
-        color: #7777a0;
-        flex-shrink: 0;
-        max-width: 340px;
-        min-width: 140px;
-        line-height: 1.4;
-      }
-      .copy-btn {
-        flex-shrink: 0;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.03);
-        color: #555;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.15s;
-        font-size: 0.85rem;
-      }
-      .copy-btn:hover {
-        color: #7dd3fc;
-        border-color: rgba(125, 211, 252, 0.3);
-        background: rgba(125, 211, 252, 0.06);
-      }
-      .copy-btn.copied {
-        color: #86efac;
-        border-color: rgba(134, 239, 172, 0.4);
-        background: rgba(134, 239, 172, 0.08);
-      }
-      .no-result {
-        text-align: center;
-        padding: 60px 20px;
-        color: #5555aa;
-      }
-      .no-result .big {
-        font-size: 3rem;
-        display: block;
-        margin-bottom: 12px;
-      }
-      .toast {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%) translateY(100px);
-        background: #1a1a30;
-        border: 1px solid rgba(134, 239, 172, 0.3);
-        color: #86efac;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        z-index: 100;
-        pointer-events: none;
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      }
-      .toast.show {
-        transform: translateX(-50%) translateY(0);
-      }
-      footer {
-        text-align: center;
-        padding: 20px;
-        color: #444466;
-        font-size: 0.75rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-        margin-top: 32px;
-      }
-      footer a {
-        color: #7dd3fc;
-        text-decoration: none;
-      }
-      @media (max-width: 680px) {
-        header h1 {
-          font-size: 1.5rem;
-        }
-        .cmd-row {
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-        .cmd-code {
-          flex-basis: 100%;
-        }
-        .cmd-desc {
-          flex-basis: calc(100% - 46px);
-          max-width: none;
-        }
-        .copy-btn {
-          order: 3;
-        }
-      }
-    </style>
+  </head>
+  <body>
+    <!-- ═══════════════ PROMPTJS STANDALONE ═══════════════ -->
+    <script type="text/pjs">
+      ---
+      judul: "PromptJS Command Reference"
+      versi: "v1.1.1"
+      placeholderCari: "Cari command... (misal: build, test, lint, audit)"
+      ---
 
-    <!-- Pre-define data + render engine -->
+      Halaman Utama:
+          data cari = ""
+
+          Gaya:
+              *,
+              *::before,
+              *::after
+                  box-sizing: border-box
+                  margin: 0
+                  padding: 0
+
+              body
+                  font-family: 'Inter', 'SF Pro', system-ui, sans-serif
+                  background: #0a0a1a
+                  color: #e0e0f0
+                  min-height: 100vh
+
+              .container
+                  position: relative
+                  z-index: 1
+                  max-width: 900px
+                  margin: 0 auto
+                  padding: 24px 20px 60px
+
+              header
+                  text-align: center
+                  padding: 40px 0 24px
+
+              header .logo
+                  font-size: 3rem
+                  display: block
+                  margin-bottom: 8px
+                  filter: drop-shadow(0 0 20px rgba(255,0,110,0.3))
+
+              header h1
+                  font-size: 2rem
+                  font-weight: 800
+                  background: linear-gradient(135deg, #ff006e, #ff99c8, #7dd3fc)
+                  -webkit-background-clip: text
+                  -webkit-text-fill-color: transparent
+                  background-clip: text
+
+              header p
+                  color: #8888aa
+                  margin-top: 6px
+                  font-size: 0.95rem
+
+              .badge-row
+                  display: flex
+                  gap: 8px
+                  justify-content: center
+                  flex-wrap: wrap
+                  margin-top: 14px
+
+              .badge
+                  font-size: 0.72rem
+                  font-weight: 700
+                  padding: 4px 12px
+                  border-radius: 20px
+                  border: 1px solid rgba(255, 255, 255, 0.1)
+                  background: rgba(255, 255, 255, 0.04)
+                  color: #9999bb
+                  letter-spacing: 0.02em
+
+              .badge.hl
+                  color: #7dd3fc
+                  border-color: rgba(125, 211, 252, 0.25)
+
+              .search-wrap
+                  position: sticky
+                  top: 12px
+                  z-index: 10
+                  margin: 0 0 28px
+
+              .search-box
+                  width: 100%
+                  padding: 12px 16px 12px 42px
+                  border-radius: 12px
+                  border: 1px solid rgba(255, 255, 255, 0.1)
+                  background: rgba(15, 15, 35, 0.85)
+                  backdrop-filter: blur(12px)
+                  color: #e0e0f0
+                  font-size: 0.95rem
+                  outline: none
+                  transition: border-color 0.2s
+
+              .search-box:focus
+                  border-color: #ff006e
+
+              .search-icon
+                  position: absolute
+                  left: 14px
+                  top: 50%
+                  transform: translateY(-50%)
+                  color: #666
+                  pointer-events: none
+                  font-size: 0.95rem
+
+              .category
+                  margin-bottom: 28px
+
+              .cat-header
+                  display: flex
+                  align-items: center
+                  gap: 10px
+                  margin-bottom: 14px
+                  padding-bottom: 8px
+                  border-bottom: 1px solid rgba(255, 255, 255, 0.06)
+
+              .cat-emoji
+                  font-size: 1.4rem
+
+              .cat-title
+                  font-size: 1.05rem
+                  font-weight: 700
+                  color: #c0c0d8
+
+              .cat-count
+                  font-size: 0.65rem
+                  font-weight: 700
+                  padding: 2px 8px
+                  border-radius: 10px
+                  background: rgba(255, 255, 255, 0.05)
+                  color: #6666aa
+
+              .cmd-row
+                  display: flex
+                  align-items: center
+                  gap: 10px
+                  padding: 8px 12px
+                  border-radius: 8px
+                  transition: background 0.15s
+                  margin-bottom: 2px
+
+              .cmd-row:hover
+                  background: rgba(255, 255, 255, 0.03)
+
+              .cmd-code
+                  flex: 1
+                  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace
+                  font-size: 0.82rem
+                  color: #7dd3fc
+                  min-width: 0
+                  overflow-wrap: anywhere
+                  line-height: 1.5
+
+              .cmd-desc
+                  font-size: 0.78rem
+                  color: #7777a0
+                  flex-shrink: 0
+                  max-width: 340px
+                  min-width: 140px
+                  line-height: 1.4
+
+              .copy-btn
+                  flex-shrink: 0
+                  width: 32px
+                  height: 32px
+                  border-radius: 8px
+                  border: 1px solid rgba(255, 255, 255, 0.08)
+                  background: rgba(255, 255, 255, 0.03)
+                  color: #555
+                  cursor: pointer
+                  display: flex
+                  align-items: center
+                  justify-content: center
+                  transition: all 0.15s
+                  font-size: 0.85rem
+
+              .copy-btn:hover
+                  color: #7dd3fc
+                  border-color: rgba(125, 211, 252, 0.3)
+                  background: rgba(125, 211, 252, 0.06)
+
+              .copy-btn.copied
+                  color: #86efac
+                  border-color: rgba(134, 239, 172, 0.4)
+                  background: rgba(134, 239, 172, 0.08)
+
+              .no-result
+                  text-align: center
+                  padding: 60px 20px
+                  color: #5555aa
+
+              .no-result .big
+                  font-size: 3rem
+                  display: block
+                  margin-bottom: 12px
+
+              .toast
+                  position: fixed
+                  bottom: 24px
+                  left: 50%
+                  transform: translateX(-50%) translateY(100px)
+                  background: #1a1a30
+                  border: 1px solid rgba(134, 239, 172, 0.3)
+                  color: #86efac
+                  padding: 10px 20px
+                  border-radius: 10px
+                  font-size: 0.85rem
+                  font-weight: 600
+                  z-index: 100
+                  pointer-events: none
+                  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4)
+
+              .toast.show
+                  transform: translateX(-50%) translateY(0)
+
+              footer
+                  text-align: center
+                  padding: 20px
+                  color: #444466
+                  font-size: 0.75rem
+                  border-top: 1px solid rgba(255, 255, 255, 0.04)
+                  margin-top: 32px
+
+              footer a
+                  color: #7dd3fc
+                  text-decoration: none
+
+              @media (max-width: 680px)
+                  header h1
+                      font-size: 1.5rem
+
+                  .cmd-row
+                      flex-wrap: wrap
+                      gap: 6px
+
+                  .cmd-code
+                      flex-basis: 100%
+
+                  .cmd-desc
+                      flex-basis: calc(100% - 46px)
+                      max-width: none
+
+                  .copy-btn
+                      order: 3
+
+          Buat div.container:
+              Buat header:
+                  Buat span.logo: "🌀"
+                  Buat h1: $judul
+                  Buat p: "Klik ikon 📋 di setiap command untuk copy — search untuk filter real-time"
+                  Buat div.badge-row:
+                      Buat span.badge.hl: $versi
+                      Buat span.badge: "60+ commands"
+                      Buat span.badge: "10 kategori"
+                      Buat span.badge: "🇮🇩 Standalone"
+
+              Buat div.search-wrap:
+                  Buat span.search-icon: "🔍"
+                  Buat masukan#search-input.search-box:
+                      placeholder = $placeholderCari
+                      on_diketik = simpan document.querySelector("#search-input").value ke cari
+
+              Buat div#cmd-container: ""
+
+              Buat footer:
+                  Buat span:
+                      "Dibangun dengan 💚 di Indonesia · "
+                      Buat a:
+                          "github.com/raarion/promptjs"
+                          href = "https://github.com/raarion/promptjs"
+
+              Buat div.toast#toast:
+                  "✓ Tersalin!"
+
+          Saat cari:
+              jalankan renderCommands(cari)
+    </script>
+
+    <!-- Imperative JS — data + render engine + copy logic -->
     <script>
       var COMMANDS = [
         {
@@ -424,15 +458,15 @@
       }
 
       function renderCommands(query) {
-        var container = document.getElementById('cmd-container');
-        if (!container) return;
+        var c = document.getElementById('cmd-container');
+        if (!c) return;
         var q = (query || '').toLowerCase().trim(),
-          html = '',
-          found = 0;
+          h = '',
+          f = 0;
         for (var i = 0; i < COMMANDS.length; i++) {
           var cat = COMMANDS[i],
-            rows = '',
-            cv = false;
+            r = '',
+            v = false;
           for (var j = 0; j < cat.i.length; j++) {
             var it = cat.i[j];
             var m =
@@ -441,10 +475,10 @@
               it.d.toLowerCase().indexOf(q) !== -1 ||
               cat.t.toLowerCase().indexOf(q) !== -1;
             if (m) {
-              cv = true;
-              found++;
+              v = true;
+              f++;
             }
-            rows +=
+            r +=
               '<div class="cmd-row"' +
               (m ? '' : ' style="display:none"') +
               '>' +
@@ -458,9 +492,9 @@
               escAttr(it.c) +
               '">📋</button></div>';
           }
-          html +=
+          h +=
             '<section class="category"' +
-            (q && !cv ? ' style="display:none"' : '') +
+            (q && !v ? ' style="display:none"' : '') +
             '>' +
             '<div class="cat-header"><span class="cat-emoji">' +
             cat.e +
@@ -471,49 +505,43 @@
             '<span class="cat-count">' +
             cat.b +
             '</span></div>' +
-            rows +
+            r +
             '</section>';
         }
-        if (!found && q)
-          html =
+        if (!f && q)
+          h =
             '<div class="no-result"><span class="big">🔎</span>Tidak ada hasil untuk "' +
             esc(q) +
             '"</div>';
-        container.innerHTML = html;
-        var btns = container.querySelectorAll('.copy-btn');
+        c.innerHTML = h;
+        var btns = c.querySelectorAll('.copy-btn');
         for (var k = 0; k < btns.length; k++) {
           btns[k].onclick = function () {
             var cmd = this.getAttribute('data-cmd');
-            copyCmd(cmd);
+            (navigator.clipboard || {}).writeText
+              ? navigator.clipboard
+                  .writeText(cmd)
+                  .then(showToast)
+                  .catch(function () {
+                    var ta = document.createElement('textarea');
+                    ta.value = cmd;
+                    ta.style.cssText = 'position:fixed;opacity:0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast();
+                  })
+              : showToast();
             this.classList.add('copied');
-            setTimeout(
-              function (btn) {
-                btn.classList.remove('copied');
-              },
-              1200,
-              null,
-              this
-            );
+            var self = this;
+            setTimeout(function () {
+              self.classList.remove('copied');
+            }, 1200);
           };
         }
       }
-      function copyCmd(text) {
-        navigator.clipboard
-          .writeText(text)
-          .then(showToast)
-          .catch(function () {
-            var ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.cssText = 'position:fixed;opacity:0';
-            document.body.appendChild(ta);
-            ta.select();
-            try {
-              document.execCommand('copy');
-            } catch (e) {}
-            document.body.removeChild(ta);
-            showToast();
-          });
-      }
+
       function showToast() {
         var t = document.getElementById('toast');
         if (t) {
@@ -523,58 +551,9 @@
           }, 1800);
         }
       }
-      function setupSearch() {
-        var input = document.getElementById('search-input');
-        if (input) {
-          input.addEventListener('input', function () {
-            renderCommands(this.value);
-          });
-        }
-      }
-      // Initial render
+
+      // Initial render — after PromptJS DOM is ready
       renderCommands('');
-    </script>
-  </head>
-  <body>
-    <!-- ═══════════════ PROMPTJS STANDALONE ═══════════════ -->
-    <script type="text/pjs">
-      ---
-      judul: "PromptJS Command Reference"
-      versi: "v1.1.1"
-      ---
-
-      Halaman Utama:
-          Buat div.container:
-              Buat header:
-                  Buat h1: $judul
-                  Buat p: "Klik ikon 📋 di setiap command untuk copy — search untuk filter real-time"
-                  Buat div.badge-row:
-                      Buat span.badge.hl: $versi
-                      Buat span.badge: "60+ commands"
-                      Buat span.badge: "10 kategori"
-                      Buat span.badge: "🇮🇩 Standalone"
-
-              Buat div.search-wrap:
-                  Buat span.search-icon: "🔍"
-                  Buat masukan#search-input.search-box:
-                      placeholder: "Cari command... (misal: build, test, lint, audit)"
-
-              Buat div#cmd-container
-
-              Buat footer:
-                  Buat span:
-                      "Dibangun dengan 💚 di Indonesia · "
-                      Buat a:
-                          href: "https://github.com/raarion/promptjs"
-                          "github.com/raarion/promptjs"
-
-              Buat div.toast#toast:
-                  "✓ Tersalin!"
-    </script>
-
-    <!-- Wire up search after PromptJS renders -->
-    <script>
-      setupSearch();
     </script>
   </body>
 </html>
