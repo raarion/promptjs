@@ -1,6 +1,6 @@
 {
   "name": "@raarion/prompt-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PromptJS — a mini-DSL template engine that compiles to vanilla JS with zero dependencies",
   "main": "src/engine/promptjs.js",
   "bin": {

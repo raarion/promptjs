@@ -5,6 +5,31 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-06-30 — PromptJS Standalone (Browser CDN)
+
+> **Standalone:** PromptJS kini bisa langsung di browser — tanpa Node, tanpa npm, tanpa build.
+
+### Added
+
+- **`promptjs.standalone.js` / `.min.js`** — bundle compiler untuk browser (IIFE, zero deps)
+  - Auto-deteksi `<script type="text/pjs">` dan `<link rel="pjs">`
+  - Script injection (zero `eval`, zero `new Function`)
+  - CSP-compatible: nonce auto-propagation
+  - DOM error display untuk non-console users
+  - CSS auto-injection (`Gaya:`/`Style:` blocks → `<style>`)
+  - 308.9 KB unmin, 157.5 KB min (~50 KB gzipped via CDN)
+- **`src/standalone/`** — browser entry point + shims (`fs`, `path`, `process`)
+- **`scripts/build-standalone.js`** — esbuild bundler
+- **`STANDALONE.md`** — dokumentasi standalone usage (inline, external, API, CDN)
+- **`dist/`** — ditambahkan ke npm `files`
+
+### Changed
+
+- `package.json`: +`standalone` script, +`standalone:watch` script
+- `package.json`: `dist/` included in npm package
+- `package.json`: +`esbuild` devDependency
+
+
 ## [1.0.0] — 2026-06-30 — Security Hardening, Documentation & Bug Fixes
 
 > **Catatan versi:** semua perubahan keamanan di bawah tetap berada pada baseline **v1.0.0** (tidak menaikkan nomor versi). Tiga gelombang (wave) perbaikan keamanan telah ter-merge ke `main`.
