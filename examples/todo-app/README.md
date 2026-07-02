@@ -8,7 +8,7 @@ Aplikasi todo list interaktif yang mendemonstrasikan fitur-fitur PromptJS:
 - **Front-matter data** — seed data dari JSON di front-matter
 - **Inline styles** — `Gaya:` block dengan CSS lengkap
 - **Event handling** — `on_klik`, `on_diketik`, `on_diubah`
-- **Lifecycle** — `Ketika dipasang:` untuk init data
+- **Lifecycle** — `Ketika muat:` untuk init data (page-level hook)
 
 ## Cara Menjalankan
 
@@ -31,5 +31,5 @@ node src/cli/index.js compile examples/todo-app/index.pjs
 | `Jika ... Lainnya` | Filter logic |
 | `hapus ... dari` | `hapus tugas dari daftar` |
 | `Saat` | `Saat daftar:` watcher |
-| `Ketika dipasang` | `Ketika dipasang: simpan $todos ke daftar` |
+| `Ketika muat` | `Ketika muat: simpan $todos ke daftar` |
 | `simpan ... ke` | `simpan event.target.value ke inputTeks` |

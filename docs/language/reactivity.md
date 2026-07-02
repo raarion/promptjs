@@ -119,6 +119,62 @@ The `state -> input` write is _caret-safe_: it only writes when the value actual
 
 ---
 
+## Fetch Inline sebagai Aksi Event / Inline Fetch as Event Action
+
+Selain bentuk-blok `Ketika diklik:` → `Ambil dari "url":`, fetch dapat dipasang **langsung** pada handler event sebagai aksi inline. Bentuk ini menghilangkan kebutuhan blok bersarang atau JS vanilla untuk kasus umum "klik → ambil data".
+
+Besides the block form `Ketika diklik:` → `Ambil dari "url":`, a fetch can be wired **directly** onto an event handler as an inline action. This removes the need for a nested block or vanilla JS for the common "click → fetch" case.
+
+```pjs
+on_klik = ambil dari "https://api.test/items"            # fetch-and-forget
+on_klik = ambil dari "https://api.test/items" ke items   # bind hasil + auto state
+on_klik = fetch from "https://api.test/items" ke items   # English (fetch/from/ke)
+```
+
+### Auto-state `.memuat` / `.galat` (opt-in)
+
+Saat di-bind dengan `ke <target>`, emitter menyetir dua variabel reaktif pendamping opsional: `<target>_memuat` (boolean loading) dan `<target>_galat` (pesan error). Setiap penulisan di-`typeof`-guard, jadi flag yang **tidak** dideklarasikan hanyalah no-op tak berbahaya — deklarasikan `data <target>_memuat = salah` / `data <target>_galat = ""` untuk mengaktifkannya.
+
+When bound with `ke <target>`, the emitter drives two optional companion reactive vars: `<target>_memuat` (loading boolean) and `<target>_galat` (error message). Every write is `typeof`-guarded, so an **undeclared** flag is a harmless no-op — declare `data <target>_memuat = salah` / `data <target>_galat = ""` to opt in.
+
+```pjs
+Halaman P:
+    data items = []
+    data items_memuat = salah
+    data items_galat = ""
+
+    Buat tombol #b: "Muat"
+        on_klik = ambil dari "https://api.test/items" ke items
+
+    Jika items_memuat:
+        Buat p: "Memuat..."
+    Jika items_galat tidak sama dengan "":
+        Buat p: "Gagal: " + $items_galat
+```
+
+**Urutan state / State ordering:** `<target>_memuat` → `benar` tepat sebelum request; `<target>_galat` di-clear sebelum request; on-success `<target>` diisi hasil (`__data`); on-error `<target>_galat` di-set pesan; `<target>_memuat` → `salah` di `finally`. Tanpa `ke`, fetch bersifat _fetch-and-forget_ (tak menyentuh state).
+
+**State ordering:** `<target>_memuat` → `true` right before the request; `<target>_galat` cleared before the request; on success `<target>` receives the result (`__data`); on error `<target>_galat` is set; `<target>_memuat` → `false` in `finally`. Without `ke`, the fetch is _fetch-and-forget_ (touches no state).
+
+### Bentuk inline dengan cabang / Inline form with branches
+
+Untuk logika kustom, bentuk inline juga menerima blok `berhasil:`/`gagal:` (respons tersedia sebagai `__data`):
+
+For custom logic, the inline form also accepts `berhasil:`/`gagal:` branches (the response is available as `__data`):
+
+```pjs
+Buat tombol #b: "Muat"
+    on_klik = ambil dari "https://api.test/items":
+        berhasil:
+            simpan __data ke items
+        gagal:
+            tampilkan "Gagal memuat"
+```
+
+> Bentuk-blok lama (`Ketika diklik:` → `Ambil dari`) tetap didukung penuh tanpa perubahan. / The classic block form (`Ketika diklik:` → `Ambil dari`) remains fully supported and unchanged.
+
+---
+
 ## Mutasi Array Reaktif / Reactive Array Mutation
 
 Metode mutasi array (`push`, `pop`, `shift`, `unshift`, `splice`, `sort`, `reverse`, `fill`) pada objek reaktif dibungkus dalam IIFE + spread copy untuk memastikan subscriber terpicu:

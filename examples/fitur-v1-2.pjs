@@ -1,0 +1,132 @@
+---
+judul: "Fitur v1.2 — Ergonomi Bahasa"
+---
+
+Gaya:
+    body
+        font-family: 'Inter', system-ui, -apple-system, sans-serif
+        margin: 0
+        min-height: 100vh
+        display: flex
+        align-items: center
+        justify-content: center
+        background: #0f172a
+        color: #e2e8f0
+    .card
+        background: #1e293b
+        border: 1px solid #334155
+        border-radius: 20px
+        padding: 36px
+        min-width: 380px
+        max-width: 460px
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4)
+    .card h1
+        margin: 0 0 4px
+        font-size: 1.4rem
+        font-weight: 800
+        color: #f8fafc
+    .sub
+        color: #94a3b8
+        font-size: 0.85rem
+        margin-bottom: 24px
+    .field
+        margin-bottom: 18px
+    .field label
+        display: block
+        font-size: 0.75rem
+        text-transform: uppercase
+        letter-spacing: 0.08em
+        color: #64748b
+        font-weight: 700
+        margin-bottom: 6px
+    .field input
+        width: 100%
+        box-sizing: border-box
+        padding: 11px 14px
+        border: 1px solid #334155
+        border-radius: 10px
+        background: #0f172a
+        color: #e2e8f0
+        font-size: 1rem
+        font-family: inherit
+    .preview
+        background: #0f172a
+        border: 1px solid #334155
+        border-radius: 10px
+        padding: 14px 16px
+        margin-top: 4px
+        font-size: 0.95rem
+    .badge
+        display: inline-block
+        padding: 3px 10px
+        border-radius: 999px
+        font-size: 0.72rem
+        font-weight: 700
+    .badge-admin
+        background: #7c2d12
+        color: #fed7aa
+    .badge-user
+        background: #164e63
+        color: #a5f3fc
+    .btn
+        width: 100%
+        box-sizing: border-box
+        padding: 12px
+        border: none
+        border-radius: 10px
+        font-size: 1rem
+        font-weight: 700
+        cursor: pointer
+        font-family: inherit
+        background: #38bdf8
+        color: #0f172a
+        margin-top: 8px
+    .btn:hover
+        opacity: 0.9
+    .status
+        margin-top: 12px
+        font-size: 0.85rem
+        min-height: 20px
+
+Komponen Lencana(teks, gaya: "badge-user"):
+    Buat span.badge:
+        on_kelas = "badge " + $gaya
+        $teks
+
+Halaman FiturV12:
+    data nama = ""
+    data hasil = []
+    data hasil_memuat = salah
+    data hasil_galat = ""
+
+    turunan adalahAdmin = nama berisi "admin"
+    turunan sapaan = "Halo, " + $nama
+
+    Buat div.card:
+        Buat h1: $judul
+        Buat div.sub: "Two-way binding, operator string, parameter default, & fetch inline"
+
+        Buat div.field:
+            Buat label: "Nama pengguna"
+            Buat masukan #nama:
+                ikat = nama
+
+        Buat div.preview:
+            Saat nama:
+                Buat span: $sapaan
+
+        Buat div.field:
+            Jika adalahAdmin:
+                Gunakan Lencana teks="Akses Admin" gaya="badge-admin"
+            selain itu:
+                Gunakan Lencana teks="Pengguna Biasa"
+
+        Buat tombol.btn #muat:
+            "Muat Data"
+            on_klik = ambil dari "https://jsonplaceholder.typicode.com/users" ke hasil
+
+        Buat div.status:
+            Jika hasil_memuat:
+                Buat span: "Memuat..."
+            Jika hasil_galat tidak sama dengan "":
+                Buat span: "Gagal: " + $hasil_galat
