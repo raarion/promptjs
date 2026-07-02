@@ -2,209 +2,6 @@
 judul: "PromptJS Command Reference"
 versi: "v1.1.1"
 placeholderCari: "Cari command... (misal: build, test, lint, audit)"
-kats:
-  - nama: "NPM Scripts"
-    emoji: "📦"
-    badge: "package.json"
-    cmds:
-      - code: "npm test"
-        desc: "Jalankan seluruh suite testing (Vitest)"
-      - code: "npm run test:watch"
-        desc: "Test dalam mode watch"
-      - code: "npm run coverage"
-        desc: "Test + laporan code coverage"
-      - code: "npm run mutation"
-        desc: "Stryker mutation testing"
-      - code: "npm run lint"
-        desc: "Periksa kode dengan ESLint"
-      - code: "npm run lint:fix"
-        desc: "Periksa & auto-fix ESLint"
-      - code: "npm run typecheck"
-        desc: "Type check JSDoc (TypeScript)"
-      - code: "npm run format"
-        desc: "Format kode dengan Prettier"
-      - code: "npm run format:check"
-        desc: "Cek format tanpa mengubah"
-      - code: "npm run build"
-        desc: "Build produksi lengkap"
-      - code: "npm run standalone"
-        desc: "Build bundle browser standalone"
-      - code: "npm run pages:build"
-        desc: "Build situs showcase"
-      - code: "npm run pages:deploy"
-        desc: "Deploy ke GitHub Pages"
-      - code: "npm run audit"
-        desc: "Cek kerentanan keamanan"
-      - code: "npm run audit:fix"
-        desc: "Auto-fix kerentanan keamanan"
-  - nama: "CLI Commands"
-    emoji: "💻"
-    badge: "pjs"
-    cmds:
-      - code: "pjs compile <input> [output]"
-        desc: "Kompilasi file .pjs → .html"
-      - code: "pjs build <source> <dest>"
-        desc: "Build seluruh project"
-      - code: "pjs init [project-name]"
-        desc: "Inisialisasi project baru"
-      - code: "pjs serve [port]"
-        desc: "Dev server + live reload"
-      - code: "pjs watch <input> <output>"
-        desc: "Watch mode auto-compile"
-      - code: "pjs validate <file>"
-        desc: "Validasi sintaks tanpa kompilasi"
-      - code: "pjs version"
-        desc: "Tampilkan versi PromptJS"
-      - code: "pjs help"
-        desc: "Tampilkan bantuan CLI"
-      - code: "pjs -o, --output <dir>"
-        desc: "Tentukan folder output"
-      - code: "pjs -m, --minify"
-        desc: "Minify output HTML/JS"
-      - code: "pjs -s, --standalone"
-        desc: "Gunakan runtime standalone"
-      - code: "pjs -w, --watch"
-        desc: "Enable watch mode"
-      - code: "pjs -v, --verbose"
-        desc: "Output detail/log verbose"
-      - code: "pjs -c, --config <file>"
-        desc: "Konfigurasi custom"
-      - code: "pjs --no-cache"
-        desc: "Disable caching build"
-      - code: "pjs --sourcemap"
-        desc: "Generate source map"
-  - nama: "Git Hooks"
-    emoji: "🔐"
-    badge: "Husky"
-    cmds:
-      - code: "git add . && git commit -m \"...\""
-        desc: "Pre-commit (lint-staged) otomatis"
-      - code: "git push"
-        desc: "Pre-push (full CI gate) otomatis"
-  - nama: "Testing Commands"
-    emoji: "🧪"
-    badge: "Vitest"
-    cmds:
-      - code: "npx vitest run"
-        desc: "Jalankan semua test"
-      - code: "npx vitest watch"
-        desc: "Test dalam mode watch"
-      - code: "npx vitest run --coverage"
-        desc: "Test + coverage report"
-      - code: "npx vitest run tests/file.test.js"
-        desc: "Jalankan test spesifik"
-      - code: "npx vitest run --reporter=verbose"
-        desc: "Output test detail"
-      - code: "npx vitest run --bail=1"
-        desc: "Stop setelah failure pertama"
-      - code: "npx vitest run --grep \"pattern\""
-        desc: "Filter by name pattern"
-  - nama: "Code Quality Tools"
-    emoji: "📊"
-    badge: "ESLint · Prettier · tsc"
-    cmds:
-      - code: "npx eslint src/"
-        desc: "Lint semua file src/"
-      - code: "npx eslint src/**/*.js --fix"
-        desc: "Auto-fix ESLint"
-      - code: "npx eslint src/cli/index.js"
-        desc: "Lint file spesifik"
-      - code: "npx prettier --write src/"
-        desc: "Format semua file src/"
-      - code: "npx prettier --check src/"
-        desc: "Cek format"
-      - code: "npx prettier --write README.md"
-        desc: "Format file spesifik"
-      - code: "npx tsc --noEmit"
-        desc: "Type check tanpa generate"
-      - code: "npx tsc --noEmit --pretty"
-        desc: "Type check output berwarna"
-  - nama: "Package Management"
-    emoji: "📦"
-    badge: "npm"
-    cmds:
-      - code: "npm install"
-        desc: "Install semua dependencies"
-      - code: "npm install --production"
-        desc: "Hanya production deps"
-      - code: "npm install <package>"
-        desc: "Install package baru"
-      - code: "npm install <package> --save-dev"
-        desc: "Install dev dependency"
-      - code: "npm uninstall <package>"
-        desc: "Uninstall package"
-      - code: "npm update"
-        desc: "Update semua packages"
-      - code: "npm outdated"
-        desc: "Cek package yang ada update"
-      - code: "npm ls"
-        desc: "List installed packages (tree)"
-      - code: "npm audit"
-        desc: "Cek kerentanan keamanan"
-      - code: "npm audit --json"
-        desc: "Audit format JSON"
-      - code: "npm audit fix"
-        desc: "Auto-fix (non-breaking)"
-      - code: "npm audit fix --force"
-        desc: "Auto-fix + breaking changes"
-  - nama: "Release & Versioning"
-    emoji: "🏷️"
-    badge: "npm version"
-    cmds:
-      - code: "npm version patch"
-        desc: "Bump patch: 1.1.1 → 1.1.2"
-      - code: "npm version minor"
-        desc: "Bump minor: 1.1.1 → 1.2.0"
-      - code: "npm version major"
-        desc: "Bump major: 1.1.1 → 2.0.0"
-      - code: "npm version 1.2.3"
-        desc: "Set versi spesifik"
-      - code: "git tag -a v1.1.1 -m \"Release v1.1.1\""
-        desc: "Buat Git tag"
-      - code: "npm publish --access public"
-        desc: "Publish ke npm registry"
-      - code: "npm publish --dry-run"
-        desc: "Simulasi publish"
-  - nama: "GitHub Pages & Deploy"
-    emoji: "🌐"
-    badge: "Deploy"
-    cmds:
-      - code: "npm run pages:build"
-        desc: "Build situs showcase"
-      - code: "npm run pages:deploy"
-        desc: "Deploy ke GitHub Pages"
-      - code: "npx gh-pages -d dist-pages"
-        desc: "Manual deploy via gh-pages"
-  - nama: "Debugging & Inspection"
-    emoji: "🔍"
-    badge: "Debug"
-    cmds:
-      - code: "node --inspect src/cli/index.js compile app.pjs"
-        desc: "Debug CLI"
-      - code: "node --inspect-brk node_modules/.bin/vitest run tests/test.js"
-        desc: "Debug test spesifik"
-      - code: "npm pack --dry-run"
-        desc: "Lihat isi package"
-      - code: "npm run analyze:bundle"
-        desc: "Analisis ukuran bundle"
-      - code: "npm ls --all"
-        desc: "Cek dependency tree lengkap"
-      - code: "npm ls --engine-strict"
-        desc: "Cek engine compatibility"
-  - nama: "Cleanup & Maintenance"
-    emoji: "🧹"
-    badge: "Maintenance"
-    cmds:
-      - code: "npm run clean"
-        desc: "Bersihkan folder build"
-      - code: "rm -rf node_modules && npm install"
-        desc: "Hapus node_modules & reinstall"
-      - code: "npm run prepare"
-        desc: "Reset Git hooks"
-      - code: "npm cache clean --force"
-        desc: "Clear npm cache"
-      - code: "rm package-lock.json && npm install"
-        desc: "Hapus lock file & regenerate"
 ---
 
 Halaman Utama:
@@ -476,20 +273,470 @@ Halaman Utama:
                 on_diketik = simpan document.querySelector("#search-input").value ke cari
 
         Buat div#cmd-container:
-            Ulangi untuk kat in kats:
-                Buat bagian.category:
-                    Buat div.cat-header:
-                        Buat span.cat-emoji: kat.emoji
-                        Buat span.cat-title: kat.nama
-                        Buat span.cat-count: kat.badge
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "📦"
+                    Buat span.cat-title: "NPM Scripts"
+                    Buat span.cat-count: "package.json"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm test"
+                    Buat span.cmd-desc: "Jalankan seluruh suite testing (Vitest)"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm test")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run test:watch"
+                    Buat span.cmd-desc: "Test dalam mode watch"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run test:watch")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run coverage"
+                    Buat span.cmd-desc: "Test + laporan code coverage"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run coverage")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run mutation"
+                    Buat span.cmd-desc: "Stryker mutation testing"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run mutation")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run lint"
+                    Buat span.cmd-desc: "Periksa kode dengan ESLint"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run lint")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run lint:fix"
+                    Buat span.cmd-desc: "Periksa & auto-fix ESLint"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run lint:fix")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run typecheck"
+                    Buat span.cmd-desc: "Type check JSDoc (TypeScript)"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run typecheck")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run format"
+                    Buat span.cmd-desc: "Format kode dengan Prettier"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run format")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run format:check"
+                    Buat span.cmd-desc: "Cek format tanpa mengubah"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run format:check")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run build"
+                    Buat span.cmd-desc: "Build produksi lengkap"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run build")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run standalone"
+                    Buat span.cmd-desc: "Build bundle browser standalone"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run standalone")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run pages:build"
+                    Buat span.cmd-desc: "Build situs showcase"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run pages:build")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run pages:deploy"
+                    Buat span.cmd-desc: "Deploy ke GitHub Pages"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run pages:deploy")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run audit"
+                    Buat span.cmd-desc: "Cek kerentanan keamanan"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run audit")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run audit:fix"
+                    Buat span.cmd-desc: "Auto-fix kerentanan keamanan"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run audit:fix")
 
-                    Ulangi untuk cmd in kat.cmds:
-                        Buat div.cmd-row:
-                            Buat code.cmd-code: cmd.code
-                            Buat span.cmd-desc: cmd.desc
-                            Buat tombol.copy-btn:
-                                "📋"
-                                on_klik = navigator.clipboard.writeText(cmd.code)
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "💻"
+                    Buat span.cat-title: "CLI Commands"
+                    Buat span.cat-count: "pjs"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs compile <input> [output]"
+                    Buat span.cmd-desc: "Kompilasi file .pjs → .html"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs compile <input> [output]")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs build <source> <dest>"
+                    Buat span.cmd-desc: "Build seluruh project"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs build <source> <dest>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs init [project-name]"
+                    Buat span.cmd-desc: "Inisialisasi project baru"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs init [project-name]")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs serve [port]"
+                    Buat span.cmd-desc: "Dev server + live reload"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs serve [port]")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs watch <input> <output>"
+                    Buat span.cmd-desc: "Watch mode auto-compile"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs watch <input> <output>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs validate <file>"
+                    Buat span.cmd-desc: "Validasi sintaks tanpa kompilasi"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs validate <file>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs version"
+                    Buat span.cmd-desc: "Tampilkan versi PromptJS"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs version")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs help"
+                    Buat span.cmd-desc: "Tampilkan bantuan CLI"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs help")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs -o, --output <dir>"
+                    Buat span.cmd-desc: "Tentukan folder output"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs -o, --output <dir>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs -m, --minify"
+                    Buat span.cmd-desc: "Minify output HTML/JS"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs -m, --minify")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs -s, --standalone"
+                    Buat span.cmd-desc: "Gunakan runtime standalone"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs -s, --standalone")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs -w, --watch"
+                    Buat span.cmd-desc: "Enable watch mode"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs -w, --watch")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs -v, --verbose"
+                    Buat span.cmd-desc: "Output detail/log verbose"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs -v, --verbose")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs -c, --config <file>"
+                    Buat span.cmd-desc: "Konfigurasi custom"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs -c, --config <file>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs --no-cache"
+                    Buat span.cmd-desc: "Disable caching build"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs --no-cache")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "pjs --sourcemap"
+                    Buat span.cmd-desc: "Generate source map"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("pjs --sourcemap")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "🔐"
+                    Buat span.cat-title: "Git Hooks"
+                    Buat span.cat-count: "Husky"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "git add . && git commit -m \"...\""
+                    Buat span.cmd-desc: "Pre-commit (lint-staged) otomatis"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("git add . && git commit -m \"...\"")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "git push"
+                    Buat span.cmd-desc: "Pre-push (full CI gate) otomatis"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("git push")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "🧪"
+                    Buat span.cat-title: "Testing Commands"
+                    Buat span.cat-count: "Vitest"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest run"
+                    Buat span.cmd-desc: "Jalankan semua test"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest run")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest watch"
+                    Buat span.cmd-desc: "Test dalam mode watch"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest watch")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest run --coverage"
+                    Buat span.cmd-desc: "Test + coverage report"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest run --coverage")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest run tests/file.test.js"
+                    Buat span.cmd-desc: "Jalankan test spesifik"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest run tests/file.test.js")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest run --reporter=verbose"
+                    Buat span.cmd-desc: "Output test detail"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest run --reporter=verbose")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest run --bail=1"
+                    Buat span.cmd-desc: "Stop setelah failure pertama"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest run --bail=1")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx vitest run --grep \"pattern\""
+                    Buat span.cmd-desc: "Filter by name pattern"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx vitest run --grep \"pattern\"")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "📊"
+                    Buat span.cat-title: "Code Quality Tools"
+                    Buat span.cat-count: "ESLint · Prettier · tsc"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx eslint src/"
+                    Buat span.cmd-desc: "Lint semua file src/"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx eslint src/")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx eslint src/**/*.js --fix"
+                    Buat span.cmd-desc: "Auto-fix ESLint"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx eslint src/**/*.js --fix")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx eslint src/cli/index.js"
+                    Buat span.cmd-desc: "Lint file spesifik"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx eslint src/cli/index.js")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx prettier --write src/"
+                    Buat span.cmd-desc: "Format semua file src/"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx prettier --write src/")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx prettier --check src/"
+                    Buat span.cmd-desc: "Cek format"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx prettier --check src/")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx prettier --write README.md"
+                    Buat span.cmd-desc: "Format file spesifik"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx prettier --write README.md")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx tsc --noEmit"
+                    Buat span.cmd-desc: "Type check tanpa generate"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx tsc --noEmit")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx tsc --noEmit --pretty"
+                    Buat span.cmd-desc: "Type check output berwarna"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx tsc --noEmit --pretty")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "📦"
+                    Buat span.cat-title: "Package Management"
+                    Buat span.cat-count: "npm"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm install"
+                    Buat span.cmd-desc: "Install semua dependencies"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm install")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm install --production"
+                    Buat span.cmd-desc: "Hanya production deps"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm install --production")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm install <package>"
+                    Buat span.cmd-desc: "Install package baru"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm install <package>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm install <package> --save-dev"
+                    Buat span.cmd-desc: "Install dev dependency"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm install <package> --save-dev")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm uninstall <package>"
+                    Buat span.cmd-desc: "Uninstall package"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm uninstall <package>")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm update"
+                    Buat span.cmd-desc: "Update semua packages"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm update")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm outdated"
+                    Buat span.cmd-desc: "Cek package yang ada update"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm outdated")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm ls"
+                    Buat span.cmd-desc: "List installed packages (tree)"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm ls")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm audit"
+                    Buat span.cmd-desc: "Cek kerentanan keamanan"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm audit")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm audit --json"
+                    Buat span.cmd-desc: "Audit format JSON"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm audit --json")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm audit fix"
+                    Buat span.cmd-desc: "Auto-fix (non-breaking)"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm audit fix")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm audit fix --force"
+                    Buat span.cmd-desc: "Auto-fix + breaking changes"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm audit fix --force")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "🏷️"
+                    Buat span.cat-title: "Release & Versioning"
+                    Buat span.cat-count: "npm version"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm version patch"
+                    Buat span.cmd-desc: "Bump patch: 1.1.1 → 1.1.2"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm version patch")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm version minor"
+                    Buat span.cmd-desc: "Bump minor: 1.1.1 → 1.2.0"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm version minor")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm version major"
+                    Buat span.cmd-desc: "Bump major: 1.1.1 → 2.0.0"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm version major")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm version 1.2.3"
+                    Buat span.cmd-desc: "Set versi spesifik"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm version 1.2.3")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "git tag -a v1.1.1 -m \"Release v1.1.1\""
+                    Buat span.cmd-desc: "Buat Git tag"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("git tag -a v1.1.1 -m \"Release v1.1.1\"")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm publish --access public"
+                    Buat span.cmd-desc: "Publish ke npm registry"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm publish --access public")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm publish --dry-run"
+                    Buat span.cmd-desc: "Simulasi publish"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm publish --dry-run")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "🌐"
+                    Buat span.cat-title: "GitHub Pages & Deploy"
+                    Buat span.cat-count: "Deploy"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run pages:build"
+                    Buat span.cmd-desc: "Build situs showcase"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run pages:build")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run pages:deploy"
+                    Buat span.cmd-desc: "Deploy ke GitHub Pages"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run pages:deploy")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npx gh-pages -d dist-pages"
+                    Buat span.cmd-desc: "Manual deploy via gh-pages"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npx gh-pages -d dist-pages")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "🔍"
+                    Buat span.cat-title: "Debugging & Inspection"
+                    Buat span.cat-count: "Debug"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "node --inspect src/cli/index.js compile app.pjs"
+                    Buat span.cmd-desc: "Debug CLI"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("node --inspect src/cli/index.js compile app.pjs")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "node --inspect-brk node_modules/.bin/vitest run tests/test.js"
+                    Buat span.cmd-desc: "Debug test spesifik"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("node --inspect-brk node_modules/.bin/vitest run tests/test.js")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm pack --dry-run"
+                    Buat span.cmd-desc: "Lihat isi package"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm pack --dry-run")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run analyze:bundle"
+                    Buat span.cmd-desc: "Analisis ukuran bundle"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run analyze:bundle")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm ls --all"
+                    Buat span.cmd-desc: "Cek dependency tree lengkap"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm ls --all")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm ls --engine-strict"
+                    Buat span.cmd-desc: "Cek engine compatibility"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm ls --engine-strict")
+
+            Buat bagian.category:
+                Buat div.cat-header:
+                    Buat span.cat-emoji: "🧹"
+                    Buat span.cat-title: "Cleanup & Maintenance"
+                    Buat span.cat-count: "Maintenance"
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run clean"
+                    Buat span.cmd-desc: "Bersihkan folder build"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run clean")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "rm -rf node_modules && npm install"
+                    Buat span.cmd-desc: "Hapus node_modules & reinstall"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("rm -rf node_modules && npm install")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm run prepare"
+                    Buat span.cmd-desc: "Reset Git hooks"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm run prepare")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "npm cache clean --force"
+                    Buat span.cmd-desc: "Clear npm cache"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("npm cache clean --force")
+                Buat div.cmd-row:
+                    Buat code.cmd-code: "rm package-lock.json && npm install"
+                    Buat span.cmd-desc: "Hapus lock file & regenerate"
+                    Buat tombol.copy-btn: "📋"
+                        on_klik = navigator.clipboard.writeText("rm package-lock.json && npm install")
 
         Buat footer:
             Buat span:
