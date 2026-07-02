@@ -804,6 +804,9 @@ function install(PromptJSCompiler, accept) {
         'LanjutkanStatement',
         'PassStatement',
         'LewatiStatement',
+        // v1.1: inline fetch as event action (`on_klik = ambil dari "url"`).
+        // visitAmbilLuarStatement emits the full async fetch IIFE.
+        'AmbilLuarStatement',
       ]);
       if (statementTypes.has(actionType)) {
         // Statement visitor emits via this.emit() internally.
@@ -1343,6 +1346,28 @@ function install(PromptJSCompiler, accept) {
 
     const fetchOptions = fetchOptionPairs.length > 0 ? `{ ${fetchOptionPairs.join(', ')} }` : '{}';
 
+    // v1.1: Automatic `.memuat` (loading) / `.galat` (error) state for the
+    // inline bind form `ambil dari "url" ke <target>`. The companion reactive
+    // vars `<target>_memuat` and `<target>_galat` are OPTIONAL — every write is
+    // `typeof`-guarded so an undeclared flag is a harmless no-op (never a
+    // ReferenceError). Declaring `data items_memuat = salah` in the DSL opts in.
+    const bind = node.bindTarget || null;
+    const memuatVar = bind ? `${bind}_memuat` : null;
+    const galatVar = bind ? `${bind}_galat` : null;
+
+    // Inline bind emits `__setState(...)` directly, so the helper must be
+    // pulled into the tree-shaken bundle explicitly (block-form fetch relied on
+    // a nested SimpanStatement to register it; the bind form has none).
+    if (bind) {
+      this.helpers.add('__setState');
+    }
+
+    // Loading = true (+ clear previous error) BEFORE the request begins.
+    if (bind) {
+      this.emit(`if (typeof ${memuatVar} !== "undefined") __setState(${memuatVar}, true);`);
+      this.emit(`if (typeof ${galatVar} !== "undefined") __setState(${galatVar}, null);`);
+    }
+
     // Emit async IIFE — developer never sees the word "async"
     this.emit(`(async function() {`);
     this.indent++;
@@ -1351,6 +1376,11 @@ function install(PromptJSCompiler, accept) {
     this.emit(`const __response = await fetch(${url}, ${fetchOptions});`);
     this.emit(`if (!__response.ok) throw new Error("HTTP " + __response.status);`);
     this.emit(`const __data = await __response.json();`);
+
+    // v1.1: inline bind — assign fetched data to the bound state on success.
+    if (bind) {
+      this.emit(`__setState(${bind}, __data);`);
+    }
 
     // berhasil: branch
     if (node.branches && node.branches.length > 0) {
@@ -1369,26 +1399,38 @@ function install(PromptJSCompiler, accept) {
       this.emit(`if (__error.name === "AbortError") return;`);
     }
 
+    // v1.1: inline bind — record the error message into `<target>_galat`.
+    if (bind) {
+      this.emit(
+        `if (typeof ${galatVar} !== "undefined") __setState(${galatVar}, __error.message || String(__error));`
+      );
+    }
+
     // gagal: branch
     if (node.branches && node.branches.length > 0) {
       const gagal = node.branches.find((b) => b.kind === 'gagal');
       if (gagal && gagal.action) {
         accept(gagal.action, this);
-      } else {
+      } else if (!bind) {
         this.emit(`console.error("[PromptJS] Ambil gagal:", __error);`);
       }
-    } else {
+    } else if (!bind) {
       this.emit(`console.error("[PromptJS] Ambil gagal:", __error);`);
     }
 
     this.indent--;
 
-    // selalu: branch
+    // selalu: branch and/or auto loading-reset both live in the finally block.
     const selalu = node.branches ? node.branches.find((b) => b.kind === 'selalu') : null;
-    if (selalu && selalu.action) {
+    if ((selalu && selalu.action) || bind) {
       this.emit(`} finally {`);
       this.indent++;
-      accept(selalu.action, this);
+      if (bind) {
+        this.emit(`if (typeof ${memuatVar} !== "undefined") __setState(${memuatVar}, false);`);
+      }
+      if (selalu && selalu.action) {
+        accept(selalu.action, this);
+      }
       this.indent--;
     }
 
