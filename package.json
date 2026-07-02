@@ -19,7 +19,8 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "dist/"
   ],
   "scripts": {
     "test": "vitest run",
@@ -35,7 +36,9 @@
     "pjs": "node src/cli/index.js",
     "pages:build": "node scripts/build-pages.js",
     "pages:dev": "node scripts/build-pages.js --watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "standalone": "node scripts/build-standalone.js",
+    "standalone:watch": "node scripts/build-standalone.js --watch"
   },
   "lint-staged": {
     "*.{js,ts}": [
@@ -79,6 +82,7 @@
     "@types/node": "^26.0.1",
     "@vitest/coverage-istanbul": "^4.1.9",
     "@vitest/coverage-v8": "^4.1.9",
+    "esbuild": "^0.28.1",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",
