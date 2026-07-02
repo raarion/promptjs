@@ -88,6 +88,37 @@ The word `berubah` is optional — `Saat hitung:` also works. Watchers insert a 
 
 ---
 
+## Two-way Binding / Ikat Dua Arah
+
+`ikat` (atau `bind`) di dalam body elemen form menautkan `.value` elemen dengan variabel reaktif secara DUA ARAH — tanpa perlu `Ketika ... diketik:` manual atau `querySelector`. Mengetik di input memperbarui state; mengubah state memperbarui input.
+
+`ikat` (or `bind`) inside a form element body links the element's `.value` to a reactive variable BOTH ways — no manual `Ketika ... diketik:` or `querySelector` needed. Typing into the input updates the state; changing the state updates the input.
+
+```pjs
+data nama = ""
+
+Buat masukan #f:
+    ikat = nama
+
+Buat p: "Halo, " + $nama
+```
+
+**Kompilasi / Compiles to:**
+```js
+const __el = document.createElement("input");
+__el.value = nama.value;                                            // state -> input (awal)
+__el.addEventListener("input", (event) => { __setState(nama, event.target.value); }); // input -> state
+__watch(nama, (__v) => { if (__el.value !== __v) __el.value = __v; });                 // state -> input
+```
+
+Penulisan `state -> input` bersifat _caret-safe_: hanya menulis saat nilai benar-benar berbeda, sehingga tidak mengganggu posisi kursor saat pengguna mengetik. Dalam mode SPA (`router: benar`), listener `input` dan unsub `__watch` otomatis didaftarkan ke `__cleanupFns` agar tidak bocor antar-rute.
+
+The `state -> input` write is _caret-safe_: it only writes when the value actually differs, so it never disturbs the caret while the user types. In SPA mode (`router: benar`), both the `input` listener and the `__watch` unsub are auto-registered into `__cleanupFns` so nothing leaks across routes.
+
+> Bandingkan dengan `nilai = <expr>` yang hanya menetapkan nilai awal satu arah (tanpa sinkronisasi balik). / Contrast with `nilai = <expr>`, which only sets an initial one-way value (no write-back sync).
+
+---
+
 ## Mutasi Array Reaktif / Reactive Array Mutation
 
 Metode mutasi array (`push`, `pop`, `shift`, `unshift`, `splice`, `sort`, `reverse`, `fill`) pada objek reaktif dibungkus dalam IIFE + spread copy untuk memastikan subscriber terpicu:

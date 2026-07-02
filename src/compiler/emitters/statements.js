@@ -339,6 +339,11 @@ function install(PromptJSCompiler, accept) {
     // Properti
     if (node.properties) {
       node.properties.forEach((p) => {
+        if (p.key === 'ikat' || p.key === 'bind') {
+          // v1.1: two-way binding declared in the element header property list.
+          this.emitTwoWayBinding(varName, p.value);
+          return;
+        }
         const val = this.lowerExpression(p.value);
         if (p.key === 'teks') this.emit(`${varName}.innerText = ${val};`);
         else if (p.key === 'html')
@@ -414,6 +419,63 @@ function install(PromptJSCompiler, accept) {
    * @param {Object} node - AST node PropertyNode
    * @returns {void | string}
    */
+  /**
+   * Emit two-way binding between a form element's `.value` and a reactive
+   * state variable, for `ikat = <state>` / `bind = <state>`.
+   *
+   * Wiring (both directions, no vanilla JS needed by the developer):
+   *   1. initial : el.value = state.value            (state -> input)
+   *   2. input   : addEventListener('input', ...)     (input -> state via __setState)
+   *   3. reactive: __watch(state, ...)                (state -> input, caret-safe)
+   *
+   * The `input` listener and the `__watch` unsub are both registered into
+   * `__cleanupFns` in SPA mode so nothing leaks across route changes — mirrors
+   * the existing KetikaStatement / reactive-loop cleanup idiom.
+   *
+   * @this {any}
+   * @param {string} elVar - compiled element variable name (the input node)
+   * @param {Object} stateNode - AST expression for the bound state (expected Identifier)
+   * @returns {void}
+   */
+  PromptJSCompiler.prototype.emitTwoWayBinding = function (elVar, stateNode) {
+    // The proxy object is needed for __setState/__watch; a bare Identifier
+    // lowers to `name.value` (a read), so pull the proxy name directly.
+    const proxy =
+      stateNode && stateNode.type === 'Identifier'
+        ? stateNode.name
+        : this.lowerExpression(stateNode).split('.')[0];
+    this.helpers.add('__setState');
+    this.helpers.add('__watch');
+
+    // 1. initial state -> input
+    this.emit(`${elVar}.value = ${proxy}.value;`);
+
+    // 2. input -> state
+    if (this.isSPA) {
+      const handlerVar = this.genVar('bindHandler');
+      this.emit(`const ${handlerVar} = (event) => { __setState(${proxy}, event.target.value); };`);
+      this.emit(`${elVar}.addEventListener("input", ${handlerVar});`);
+      this.emit(
+        `__cleanupFns.push(function() { ${elVar}.removeEventListener("input", ${handlerVar}); });`
+      );
+    } else {
+      this.emit(
+        `${elVar}.addEventListener("input", (event) => { __setState(${proxy}, event.target.value); });`
+      );
+    }
+
+    // 3. state -> input (skip when equal so typing never clobbers the caret)
+    if (this.isSPA) {
+      this.emit(
+        `__cleanupFns.push(__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; }));`
+      );
+    } else {
+      this.emit(
+        `__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; });`
+      );
+    }
+  };
+
   PromptJSCompiler.prototype.visitPropertyNode = function (node) {
     if (!this.currentParent) return; // Tidak ada elemen target — skip
     const val = this.lowerExpression(node.value);
@@ -427,6 +489,10 @@ function install(PromptJSCompiler, accept) {
       this.emit(`${parent}.className = ${val};`);
     } else if (key === 'nilai') {
       this.emit(`${parent}.value = ${val};`);
+    } else if (key === 'ikat' || key === 'bind') {
+      // v1.1: two-way binding \u2014 `ikat = <state>` / `bind = <state>` inside a
+      // form element body wires input.value <-> reactive state, both ways.
+      this.emitTwoWayBinding(parent, node.value);
     } else {
       // Atribut HTML umum: src, href, alt, width, height, id, placeholder, dll.
       // Gunakan direct property assignment (lebih efisien) untuk properti
