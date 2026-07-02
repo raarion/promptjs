@@ -1162,6 +1162,10 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
     [TT.TK_GTE]: 4,
     [TT.TK_LT]: 4,
     [TT.TK_LTE]: 4,
+    // String/collection membership operators — comparison precedence
+    [TT.TK_BERISI]: 4,
+    [TT.TK_DIAWALI]: 4,
+    [TT.TK_DIAKHIRI]: 4,
     [TT.TK_PLUS]: 5,
     [TT.TK_MINUS]: 5,
     [TT.TK_STAR]: 6,
@@ -1196,6 +1200,11 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
       [TT.TK_NEQ]: '!==',
       [TT.TK_AND]: '&&',
       [TT.TK_OR]: '||',
+      // String/collection membership — kept as named operators; lowered to
+      // method calls (.includes/.startsWith/.endsWith) in expression lowering.
+      [TT.TK_BERISI]: 'berisi',
+      [TT.TK_DIAWALI]: 'diawali',
+      [TT.TK_DIAKHIRI]: 'diakhiri',
     };
     const opStr = opMap[opTok.type] || opTok.value;
 

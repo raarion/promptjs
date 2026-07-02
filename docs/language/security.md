@@ -70,7 +70,7 @@ data jahat = "<img src=x onerror=alert(1)><script>steal()</script>Hai"
 
 Halaman:
     Buat div#keluar
-        atur isi ke jahat
+        perbarui html "#keluar": jahat
 ```
 
 Output dikompilasi menyalurkan nilai lewat helper (bukan penetapan langsung):

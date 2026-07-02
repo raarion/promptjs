@@ -90,8 +90,25 @@ Besides symbol operators, PromptJS provides word-form operators in Indonesian th
 | `bagi` | `/` | Aritmetika / Arithmetic |
 | `mod` | `%` | Aritmetika / Arithmetic |
 | `pangkat` | `**` | Aritmetika / Arithmetic |
+| `berisi` / `contains` | `(a).includes(b)` | Keanggotaan / Membership (string & array) |
+| `diawali` / `starts with` | `String(a).startsWith(b)` | Keanggotaan / Membership (string) |
+| `diakhiri` / `ends with` | `String(a).endsWith(b)` | Keanggotaan / Membership (string) |
+
+> Operator keanggotaan di-lower ke pemanggilan method, bukan operator infix.
+> `berisi`/`contains` memakai `.includes()` sehingga bekerja untuk string maupun
+> array; `diawali`/`diakhiri` memakai `String(...)` agar operan non-string tidak
+> melempar error. Identifier yang diawali kata operator (mis. `berisiko`) TIDAK
+> ikut ter-tokenisasi sebagai operator.
 
 **Contoh / Example:**
+```pjs
+Jika nama berisi "admin" atau email diakhiri "@corp.com":
+    Buat span: "Akses khusus"
+
+turunan adalahApi = url diawali "/api"
+```
+
+**Contoh operator lain / Other operators:**
 ```pjs
 Jika hitung lebih dari 10 dan nama tidak sama dengan "":
     Buat span: "Ditemukan"

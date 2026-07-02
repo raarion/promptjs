@@ -165,7 +165,8 @@ hapus item dari daftar
 kosongkan daftar
 
 # Perbarui properti elemen (alias: teks/innerHTML, kelas/className, src, href, nilai/value, placeholder, disabled, checked, jenis/type)
-perbarui teks ke "Hello"
+# Bentuk: perbarui <properti> <selector>: <nilai>  (nilai datang SETELAH ':', bukan 'ke')
+perbarui teks ".judul": "Hello"
 
 # Tampilkan string → alert, tampilkan elemen → style.display=''
 tampilkan "Pesan"
@@ -210,13 +211,16 @@ Buat tautan[href="/"]: "Link"
     Ketika diklik .cegah:
         arahkan "/other"
 
-# Lifecycle SPA
-Ketika dipasang:
-    ambil dari "/api/init"
-Ketika dilepas:
-    kosongkan items
+# Lifecycle KOMPONEN — blok telanjang `dipasang:` / `dilepas:` (BUKAN `Ketika dipasang`)
+# HANYA valid di dalam Komponen; di level halaman keduanya memicu E4001.
+Komponen Widget:
+    Buat p #msg: "Loading"
+    dipasang:
+        tampilkan "Loaded!"
+    dilepas:
+        tampilkan "Unmounted!"
 
-# Muat (→ DOMContentLoaded)
+# Lifecycle HALAMAN — gunakan `Ketika muat` (→ DOMContentLoaded) di level halaman:
 Ketika muat:
     simpan "Ready" ke status
 ```
