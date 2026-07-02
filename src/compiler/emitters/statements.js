@@ -155,7 +155,13 @@ function install(PromptJSCompiler, accept) {
     this.emit(`// Component: ${node.name}`);
     if (node.params && node.params.length > 0) {
       node.params.forEach((p) => {
-        this.emit(`const ${p.name} = props.${p.name};`);
+        if (p.defaultValue) {
+          // Documented default parameter: fall back when the prop is omitted.
+          const def = this.lowerExpression(p.defaultValue);
+          this.emit(`const ${p.name} = props.${p.name} !== undefined ? props.${p.name} : ${def};`);
+        } else {
+          this.emit(`const ${p.name} = props.${p.name};`);
+        }
       });
     }
     this.emit(`const __root = document.createElement("div");`);

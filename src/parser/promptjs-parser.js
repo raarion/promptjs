@@ -979,7 +979,14 @@ PromptJSParser.prototype._parseFungsiDeclaration = function () {
   if (this._match(TT.TK_LPAREN)) {
     while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
       const pTok = this._expect(TT.TK_IDENT, 'Expected parameter name');
-      if (pTok) params.push(AST.buatParameter(pTok.value, null, null, null));
+      // Optional default value: `nama: <expr>`
+      let pDefault = null;
+      if (pTok && this._match(TT.TK_COLON)) {
+        pDefault = this._parseExpression();
+      }
+      if (pTok) {
+        params.push(AST.buatParameter(pTok.value, pTok.loc || null, null, pDefault));
+      }
       if (!this._match(TT.TK_COMMA)) break;
     }
     this._expect(TT.TK_RPAREN, 'Expected ")"');
@@ -1015,7 +1022,14 @@ PromptJSParser.prototype._parseDefineComponent = function () {
   if (this._match(TT.TK_LPAREN)) {
     while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
       const pTok = this._expect(TT.TK_IDENT, 'Expected parameter name');
-      if (pTok) params.push(AST.buatParameter(pTok.value, null, null, null));
+      // Optional default value: `nama: <expr>` (e.g. `varian: "primer"`)
+      let pDefault = null;
+      if (pTok && this._match(TT.TK_COLON)) {
+        pDefault = this._parseExpression();
+      }
+      if (pTok) {
+        params.push(AST.buatParameter(pTok.value, pTok.loc || null, null, pDefault));
+      }
       if (!this._match(TT.TK_COMMA)) break;
     }
     this._expect(TT.TK_RPAREN, 'Expected ")"');
