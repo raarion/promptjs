@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Empat penambahan bahasa **backward-compatible** agar aplikasi interaktif cukup ditulis dengan `.pjs` tanpa turun ke JS vanilla. Kontrak v1.0.0/v1.1.0 tidak berubah; nol regresi.
 
+> **Catatan CI/CD:** Deployment showcase (GitHub Pages) untuk rilis ini di-*re-trigger* setelah kegagalan sementara pada sisi layanan Pages (build & artifact valid; deploy step gagal di server). Tidak ada perubahan kode/perilaku terkait — semua contoh showcase tetap compile dan seluruh test hijau.
+
 ### Added
 
 - **Parameter default komponen & fungsi** — `Komponen Tombol(label, varian: "primer"):`.
