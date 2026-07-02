@@ -7,20 +7,223 @@
     <script src="https://cdn.jsdelivr.net/npm/@raarion/prompt-js/dist/promptjs.standalone.min.js"></script>
   </head>
   <body>
-    <!-- ═══════════════ PROMPTJS STANDALONE ═══════════════ -->
     <script type="text/pjs">
       ---
       judul: "PromptJS Command Reference"
       versi: "v1.1.1"
       placeholderCari: "Cari command... (misal: build, test, lint, audit)"
+      kats:
+        - nama: "NPM Scripts"
+          emoji: "📦"
+          badge: "package.json"
+          cmds:
+            - code: "npm test"
+              desc: "Jalankan seluruh suite testing (Vitest)"
+            - code: "npm run test:watch"
+              desc: "Test dalam mode watch"
+            - code: "npm run coverage"
+              desc: "Test + laporan code coverage"
+            - code: "npm run mutation"
+              desc: "Stryker mutation testing"
+            - code: "npm run lint"
+              desc: "Periksa kode dengan ESLint"
+            - code: "npm run lint:fix"
+              desc: "Periksa & auto-fix ESLint"
+            - code: "npm run typecheck"
+              desc: "Type check JSDoc (TypeScript)"
+            - code: "npm run format"
+              desc: "Format kode dengan Prettier"
+            - code: "npm run format:check"
+              desc: "Cek format tanpa mengubah"
+            - code: "npm run build"
+              desc: "Build produksi lengkap"
+            - code: "npm run standalone"
+              desc: "Build bundle browser standalone"
+            - code: "npm run pages:build"
+              desc: "Build situs showcase"
+            - code: "npm run pages:deploy"
+              desc: "Deploy ke GitHub Pages"
+            - code: "npm run audit"
+              desc: "Cek kerentanan keamanan"
+            - code: "npm run audit:fix"
+              desc: "Auto-fix kerentanan keamanan"
+        - nama: "CLI Commands"
+          emoji: "💻"
+          badge: "pjs"
+          cmds:
+            - code: "pjs compile <input> [output]"
+              desc: "Kompilasi file .pjs → .html"
+            - code: "pjs build <source> <dest>"
+              desc: "Build seluruh project"
+            - code: "pjs init [project-name]"
+              desc: "Inisialisasi project baru"
+            - code: "pjs serve [port]"
+              desc: "Dev server + live reload"
+            - code: "pjs watch <input> <output>"
+              desc: "Watch mode auto-compile"
+            - code: "pjs validate <file>"
+              desc: "Validasi sintaks tanpa kompilasi"
+            - code: "pjs version"
+              desc: "Tampilkan versi PromptJS"
+            - code: "pjs help"
+              desc: "Tampilkan bantuan CLI"
+            - code: "pjs -o, --output <dir>"
+              desc: "Tentukan folder output"
+            - code: "pjs -m, --minify"
+              desc: "Minify output HTML/JS"
+            - code: "pjs -s, --standalone"
+              desc: "Gunakan runtime standalone"
+            - code: "pjs -w, --watch"
+              desc: "Enable watch mode"
+            - code: "pjs -v, --verbose"
+              desc: "Output detail/log verbose"
+            - code: "pjs -c, --config <file>"
+              desc: "Konfigurasi custom"
+            - code: "pjs --no-cache"
+              desc: "Disable caching build"
+            - code: "pjs --sourcemap"
+              desc: "Generate source map"
+        - nama: "Git Hooks"
+          emoji: "🔐"
+          badge: "Husky"
+          cmds:
+            - code: "git add . && git commit -m \"...\""
+              desc: "Pre-commit (lint-staged) otomatis"
+            - code: "git push"
+              desc: "Pre-push (full CI gate) otomatis"
+        - nama: "Testing Commands"
+          emoji: "🧪"
+          badge: "Vitest"
+          cmds:
+            - code: "npx vitest run"
+              desc: "Jalankan semua test"
+            - code: "npx vitest watch"
+              desc: "Test dalam mode watch"
+            - code: "npx vitest run --coverage"
+              desc: "Test + coverage report"
+            - code: "npx vitest run tests/file.test.js"
+              desc: "Jalankan test spesifik"
+            - code: "npx vitest run --reporter=verbose"
+              desc: "Output test detail"
+            - code: "npx vitest run --bail=1"
+              desc: "Stop setelah failure pertama"
+            - code: "npx vitest run --grep \"pattern\""
+              desc: "Filter by name pattern"
+        - nama: "Code Quality Tools"
+          emoji: "📊"
+          badge: "ESLint · Prettier · tsc"
+          cmds:
+            - code: "npx eslint src/"
+              desc: "Lint semua file src/"
+            - code: "npx eslint src/**/*.js --fix"
+              desc: "Auto-fix ESLint"
+            - code: "npx eslint src/cli/index.js"
+              desc: "Lint file spesifik"
+            - code: "npx prettier --write src/"
+              desc: "Format semua file src/"
+            - code: "npx prettier --check src/"
+              desc: "Cek format"
+            - code: "npx prettier --write README.md"
+              desc: "Format file spesifik"
+            - code: "npx tsc --noEmit"
+              desc: "Type check tanpa generate"
+            - code: "npx tsc --noEmit --pretty"
+              desc: "Type check output berwarna"
+        - nama: "Package Management"
+          emoji: "📦"
+          badge: "npm"
+          cmds:
+            - code: "npm install"
+              desc: "Install semua dependencies"
+            - code: "npm install --production"
+              desc: "Hanya production deps"
+            - code: "npm install <package>"
+              desc: "Install package baru"
+            - code: "npm install <package> --save-dev"
+              desc: "Install dev dependency"
+            - code: "npm uninstall <package>"
+              desc: "Uninstall package"
+            - code: "npm update"
+              desc: "Update semua packages"
+            - code: "npm outdated"
+              desc: "Cek package yang ada update"
+            - code: "npm ls"
+              desc: "List installed packages (tree)"
+            - code: "npm audit"
+              desc: "Cek kerentanan keamanan"
+            - code: "npm audit --json"
+              desc: "Audit format JSON"
+            - code: "npm audit fix"
+              desc: "Auto-fix (non-breaking)"
+            - code: "npm audit fix --force"
+              desc: "Auto-fix + breaking changes"
+        - nama: "Release & Versioning"
+          emoji: "🏷️"
+          badge: "npm version"
+          cmds:
+            - code: "npm version patch"
+              desc: "Bump patch: 1.1.1 → 1.1.2"
+            - code: "npm version minor"
+              desc: "Bump minor: 1.1.1 → 1.2.0"
+            - code: "npm version major"
+              desc: "Bump major: 1.1.1 → 2.0.0"
+            - code: "npm version 1.2.3"
+              desc: "Set versi spesifik"
+            - code: "git tag -a v1.1.1 -m \"Release v1.1.1\""
+              desc: "Buat Git tag"
+            - code: "npm publish --access public"
+              desc: "Publish ke npm registry"
+            - code: "npm publish --dry-run"
+              desc: "Simulasi publish"
+        - nama: "GitHub Pages & Deploy"
+          emoji: "🌐"
+          badge: "Deploy"
+          cmds:
+            - code: "npm run pages:build"
+              desc: "Build situs showcase"
+            - code: "npm run pages:deploy"
+              desc: "Deploy ke GitHub Pages"
+            - code: "npx gh-pages -d dist-pages"
+              desc: "Manual deploy via gh-pages"
+        - nama: "Debugging & Inspection"
+          emoji: "🔍"
+          badge: "Debug"
+          cmds:
+            - code: "node --inspect src/cli/index.js compile app.pjs"
+              desc: "Debug CLI"
+            - code: "node --inspect-brk node_modules/.bin/vitest run tests/test.js"
+              desc: "Debug test spesifik"
+            - code: "npm pack --dry-run"
+              desc: "Lihat isi package"
+            - code: "npm run analyze:bundle"
+              desc: "Analisis ukuran bundle"
+            - code: "npm ls --all"
+              desc: "Cek dependency tree lengkap"
+            - code: "npm ls --engine-strict"
+              desc: "Cek engine compatibility"
+        - nama: "Cleanup & Maintenance"
+          emoji: "🧹"
+          badge: "Maintenance"
+          cmds:
+            - code: "npm run clean"
+              desc: "Bersihkan folder build"
+            - code: "rm -rf node_modules && npm install"
+              desc: "Hapus node_modules & reinstall"
+            - code: "npm run prepare"
+              desc: "Reset Git hooks"
+            - code: "npm cache clean --force"
+              desc: "Clear npm cache"
+            - code: "rm package-lock.json && npm install"
+              desc: "Hapus lock file & regenerate"
       ---
 
       Halaman Utama:
           data cari = ""
+          data toastTeks = ""
 
           Gaya:
-              *,
-              *::before,
+              *
+              *::before
               *::after
                   box-sizing: border-box
                   margin: 0
@@ -31,6 +234,14 @@
                   background: #0a0a1a
                   color: #e0e0f0
                   min-height: 100vh
+
+              body::before
+                  content: ""
+                  position: fixed
+                  inset: 0
+                  background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120,60,200,0.08), transparent), radial-gradient(ellipse 60% 80% at 80% 90%, rgba(0,180,180,0.06), transparent)
+                  pointer-events: none
+                  z-index: 0
 
               .container
                   position: relative
@@ -74,14 +285,14 @@
                   font-weight: 700
                   padding: 4px 12px
                   border-radius: 20px
-                  border: 1px solid rgba(255, 255, 255, 0.1)
-                  background: rgba(255, 255, 255, 0.04)
+                  border: 1px solid rgba(255,255,255,0.1)
+                  background: rgba(255,255,255,0.04)
                   color: #9999bb
                   letter-spacing: 0.02em
 
               .badge.hl
                   color: #7dd3fc
-                  border-color: rgba(125, 211, 252, 0.25)
+                  border-color: rgba(125,211,252,0.25)
 
               .search-wrap
                   position: sticky
@@ -93,8 +304,8 @@
                   width: 100%
                   padding: 12px 16px 12px 42px
                   border-radius: 12px
-                  border: 1px solid rgba(255, 255, 255, 0.1)
-                  background: rgba(15, 15, 35, 0.85)
+                  border: 1px solid rgba(255,255,255,0.1)
+                  background: rgba(15,15,35,0.85)
                   backdrop-filter: blur(12px)
                   color: #e0e0f0
                   font-size: 0.95rem
@@ -122,7 +333,7 @@
                   gap: 10px
                   margin-bottom: 14px
                   padding-bottom: 8px
-                  border-bottom: 1px solid rgba(255, 255, 255, 0.06)
+                  border-bottom: 1px solid rgba(255,255,255,0.06)
 
               .cat-emoji
                   font-size: 1.4rem
@@ -137,7 +348,7 @@
                   font-weight: 700
                   padding: 2px 8px
                   border-radius: 10px
-                  background: rgba(255, 255, 255, 0.05)
+                  background: rgba(255,255,255,0.05)
                   color: #6666aa
 
               .cmd-row
@@ -150,7 +361,10 @@
                   margin-bottom: 2px
 
               .cmd-row:hover
-                  background: rgba(255, 255, 255, 0.03)
+                  background: rgba(255,255,255,0.03)
+
+              .cmd-row.hidden
+                  display: none
 
               .cmd-code
                   flex: 1
@@ -174,8 +388,8 @@
                   width: 32px
                   height: 32px
                   border-radius: 8px
-                  border: 1px solid rgba(255, 255, 255, 0.08)
-                  background: rgba(255, 255, 255, 0.03)
+                  border: 1px solid rgba(255,255,255,0.08)
+                  background: rgba(255,255,255,0.03)
                   color: #555
                   cursor: pointer
                   display: flex
@@ -186,13 +400,13 @@
 
               .copy-btn:hover
                   color: #7dd3fc
-                  border-color: rgba(125, 211, 252, 0.3)
-                  background: rgba(125, 211, 252, 0.06)
+                  border-color: rgba(125,211,252,0.3)
+                  background: rgba(125,211,252,0.06)
 
               .copy-btn.copied
                   color: #86efac
-                  border-color: rgba(134, 239, 172, 0.4)
-                  background: rgba(134, 239, 172, 0.08)
+                  border-color: rgba(134,239,172,0.4)
+                  background: rgba(134,239,172,0.08)
 
               .no-result
                   text-align: center
@@ -210,7 +424,7 @@
                   left: 50%
                   transform: translateX(-50%) translateY(100px)
                   background: #1a1a30
-                  border: 1px solid rgba(134, 239, 172, 0.3)
+                  border: 1px solid rgba(134,239,172,0.3)
                   color: #86efac
                   padding: 10px 20px
                   border-radius: 10px
@@ -218,8 +432,8 @@
                   font-weight: 600
                   z-index: 100
                   pointer-events: none
-                  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4)
+                  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1)
+                  box-shadow: 0 8px 32px rgba(0,0,0,0.4)
 
               .toast.show
                   transform: translateX(-50%) translateY(0)
@@ -229,7 +443,7 @@
                   padding: 20px
                   color: #444466
                   font-size: 0.75rem
-                  border-top: 1px solid rgba(255, 255, 255, 0.04)
+                  border-top: 1px solid rgba(255,255,255,0.04)
                   margin-top: 32px
 
               footer a
@@ -258,7 +472,7 @@
               Buat header:
                   Buat span.logo: "🌀"
                   Buat h1: $judul
-                  Buat p: "Klik ikon 📋 di setiap command untuk copy — search untuk filter real-time"
+                  Buat p: "Klik ikon 📋 — copy command langsung ke clipboard"
                   Buat div.badge-row:
                       Buat span.badge.hl: $versi
                       Buat span.badge: "60+ commands"
@@ -271,7 +485,21 @@
                       placeholder = $placeholderCari
                       on_diketik = simpan document.querySelector("#search-input").value ke cari
 
-              Buat div#cmd-container: ""
+              Buat div#cmd-container:
+                  Ulangi untuk kat in kats:
+                      Buat bagian.category:
+                          Buat div.cat-header:
+                              Buat span.cat-emoji: kat.emoji
+                              Buat span.cat-title: kat.nama
+                              Buat span.cat-count: kat.badge
+
+                          Ulangi untuk cmd in kat.cmds:
+                              Buat div.cmd-row:
+                                  Buat code.cmd-code: cmd.code
+                                  Buat span.cmd-desc: cmd.desc
+                                  Buat tombol.copy-btn:
+                                      "📋"
+                                      on_klik = navigator.clipboard.writeText(cmd.code)
 
               Buat footer:
                   Buat span:
@@ -281,279 +509,65 @@
                           href = "https://github.com/raarion/promptjs"
 
               Buat div.toast#toast:
-                  "✓ Tersalin!"
+                  toastTeks
 
           Saat cari:
-              jalankan renderCommands(cari)
+              jalankan filterPerintah(cari)
+
+          Saat toastTeks:
+              Jika toastTeks tidak sama dengan "":
+                  jalankan tampilkanToast(toastTeks)
     </script>
 
-    <!-- Imperative JS — data + render engine + copy logic -->
+    <!-- ⚡ Minimal helper: DOM filter + toast timer (batasan arsitektur: PromptJS belum punya array.filter() reaktif) -->
     <script>
-      var COMMANDS = [
-        {
-          e: '📦',
-          t: 'NPM Scripts',
-          b: 'package.json',
-          i: [
-            { c: 'npm test', d: 'Jalankan seluruh suite testing (Vitest)' },
-            { c: 'npm run test:watch', d: 'Test dalam mode watch' },
-            { c: 'npm run coverage', d: 'Test + laporan code coverage' },
-            { c: 'npm run mutation', d: 'Stryker mutation testing' },
-            { c: 'npm run lint', d: 'Periksa kode dengan ESLint' },
-            { c: 'npm run lint:fix', d: 'Periksa & auto-fix ESLint' },
-            { c: 'npm run typecheck', d: 'Type check JSDoc (TypeScript)' },
-            { c: 'npm run format', d: 'Format kode dengan Prettier' },
-            { c: 'npm run format:check', d: 'Cek format tanpa mengubah' },
-            { c: 'npm run build', d: 'Build produksi lengkap' },
-            { c: 'npm run standalone', d: 'Build bundle browser standalone' },
-            { c: 'npm run pages:build', d: 'Build situs showcase' },
-            { c: 'npm run pages:deploy', d: 'Deploy ke GitHub Pages' },
-            { c: 'npm run audit', d: 'Cek kerentanan keamanan' },
-            { c: 'npm run audit:fix', d: 'Auto-fix kerentanan keamanan' },
-          ],
-        },
-        {
-          e: '💻',
-          t: 'CLI Commands',
-          b: 'pjs',
-          i: [
-            { c: 'pjs compile <input> [output]', d: 'Kompilasi file .pjs → .html' },
-            { c: 'pjs build <source> <dest>', d: 'Build seluruh project' },
-            { c: 'pjs init [project-name]', d: 'Inisialisasi project baru' },
-            { c: 'pjs serve [port]', d: 'Dev server + live reload' },
-            { c: 'pjs watch <input> <output>', d: 'Watch mode auto-compile' },
-            { c: 'pjs validate <file>', d: 'Validasi sintaks tanpa kompilasi' },
-            { c: 'pjs version', d: 'Tampilkan versi PromptJS' },
-            { c: 'pjs help', d: 'Tampilkan bantuan CLI' },
-            { c: 'pjs -o, --output <dir>', d: 'Tentukan folder output' },
-            { c: 'pjs -m, --minify', d: 'Minify output HTML/JS' },
-            { c: 'pjs -s, --standalone', d: 'Gunakan runtime standalone' },
-            { c: 'pjs -w, --watch', d: 'Enable watch mode' },
-            { c: 'pjs -v, --verbose', d: 'Output detail/log verbose' },
-            { c: 'pjs -c, --config <file>', d: 'Konfigurasi custom' },
-            { c: 'pjs --no-cache', d: 'Disable caching build' },
-            { c: 'pjs --sourcemap', d: 'Generate source map' },
-          ],
-        },
-        {
-          e: '🔐',
-          t: 'Git Hooks',
-          b: 'Husky',
-          i: [
-            { c: 'git add . && git commit -m "..."', d: 'Pre-commit (lint-staged) otomatis' },
-            { c: 'git push', d: 'Pre-push (full CI gate) otomatis' },
-          ],
-        },
-        {
-          e: '🧪',
-          t: 'Testing Commands',
-          b: 'Vitest',
-          i: [
-            { c: 'npx vitest run', d: 'Jalankan semua test' },
-            { c: 'npx vitest watch', d: 'Test dalam mode watch' },
-            { c: 'npx vitest run --coverage', d: 'Test + coverage report' },
-            { c: 'npx vitest run tests/file.test.js', d: 'Jalankan test spesifik' },
-            { c: 'npx vitest run --reporter=verbose', d: 'Output test detail' },
-            { c: 'npx vitest run --bail=1', d: 'Stop setelah failure pertama' },
-            { c: 'npx vitest run --grep "pattern"', d: 'Filter by name pattern' },
-          ],
-        },
-        {
-          e: '📊',
-          t: 'Code Quality Tools',
-          b: 'ESLint · Prettier · tsc',
-          i: [
-            { c: 'npx eslint src/', d: 'Lint semua file src/' },
-            { c: 'npx eslint src/**/*.js --fix', d: 'Auto-fix ESLint' },
-            { c: 'npx eslint src/cli/index.js', d: 'Lint file spesifik' },
-            { c: 'npx prettier --write src/', d: 'Format semua file src/' },
-            { c: 'npx prettier --check src/', d: 'Cek format' },
-            { c: 'npx prettier --write README.md', d: 'Format file spesifik' },
-            { c: 'npx tsc --noEmit', d: 'Type check tanpa generate' },
-            { c: 'npx tsc --noEmit --pretty', d: 'Type check output berwarna' },
-          ],
-        },
-        {
-          e: '📦',
-          t: 'Package Management',
-          b: 'npm',
-          i: [
-            { c: 'npm install', d: 'Install semua dependencies' },
-            { c: 'npm install --production', d: 'Hanya production deps' },
-            { c: 'npm install <package>', d: 'Install package baru' },
-            { c: 'npm install <package> --save-dev', d: 'Install dev dependency' },
-            { c: 'npm uninstall <package>', d: 'Uninstall package' },
-            { c: 'npm update', d: 'Update semua packages' },
-            { c: 'npm outdated', d: 'Cek package yang ada update' },
-            { c: 'npm ls', d: 'List installed packages (tree)' },
-            { c: 'npm audit', d: 'Cek kerentanan keamanan' },
-            { c: 'npm audit --json', d: 'Audit format JSON' },
-            { c: 'npm audit fix', d: 'Auto-fix (non-breaking)' },
-            { c: 'npm audit fix --force', d: 'Auto-fix + breaking changes' },
-          ],
-        },
-        {
-          e: '🏷️',
-          t: 'Release & Versioning',
-          b: 'npm version',
-          i: [
-            { c: 'npm version patch', d: 'Bump patch: 1.1.1 → 1.1.2' },
-            { c: 'npm version minor', d: 'Bump minor: 1.1.1 → 1.2.0' },
-            { c: 'npm version major', d: 'Bump major: 1.1.1 → 2.0.0' },
-            { c: 'npm version 1.2.3', d: 'Set versi spesifik' },
-            { c: 'git tag -a v1.1.1 -m "Release v1.1.1"', d: 'Buat Git tag' },
-            { c: 'npm publish --access public', d: 'Publish ke npm registry' },
-            { c: 'npm publish --dry-run', d: 'Simulasi publish' },
-          ],
-        },
-        {
-          e: '🌐',
-          t: 'GitHub Pages & Deploy',
-          b: 'Deploy',
-          i: [
-            { c: 'npm run pages:build', d: 'Build situs showcase' },
-            { c: 'npm run pages:deploy', d: 'Deploy ke GitHub Pages' },
-            { c: 'npx gh-pages -d dist-pages', d: 'Manual deploy via gh-pages' },
-          ],
-        },
-        {
-          e: '🔍',
-          t: 'Debugging & Inspection',
-          b: 'Debug',
-          i: [
-            { c: 'node --inspect src/cli/index.js compile app.pjs', d: 'Debug CLI' },
-            {
-              c: 'node --inspect-brk node_modules/.bin/vitest run tests/test.js',
-              d: 'Debug test spesifik',
-            },
-            { c: 'npm pack --dry-run', d: 'Lihat isi package' },
-            { c: 'npm run analyze:bundle', d: 'Analisis ukuran bundle' },
-            { c: 'npm ls --all', d: 'Cek dependency tree lengkap' },
-            { c: 'npm ls --engine-strict', d: 'Cek engine compatibility' },
-          ],
-        },
-        {
-          e: '🧹',
-          t: 'Cleanup & Maintenance',
-          b: 'Maintenance',
-          i: [
-            { c: 'npm run clean', d: 'Bersihkan folder build' },
-            { c: 'rm -rf node_modules && npm install', d: 'Hapus node_modules & reinstall' },
-            { c: 'npm run prepare', d: 'Reset Git hooks' },
-            { c: 'npm cache clean --force', d: 'Clear npm cache' },
-            { c: 'rm package-lock.json && npm install', d: 'Hapus lock file & regenerate' },
-          ],
-        },
-      ];
-
-      function esc(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      }
-      function escAttr(s) {
-        return String(s)
-          .replace(/&/g, '&amp;')
-          .replace(/"/g, '&quot;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;');
-      }
-
-      function renderCommands(query) {
-        var c = document.getElementById('cmd-container');
-        if (!c) return;
-        var q = (query || '').toLowerCase().trim(),
-          h = '',
-          f = 0;
-        for (var i = 0; i < COMMANDS.length; i++) {
-          var cat = COMMANDS[i],
-            r = '',
-            v = false;
-          for (var j = 0; j < cat.i.length; j++) {
-            var it = cat.i[j];
-            var m =
-              !q ||
-              it.c.toLowerCase().indexOf(q) !== -1 ||
-              it.d.toLowerCase().indexOf(q) !== -1 ||
-              cat.t.toLowerCase().indexOf(q) !== -1;
-            if (m) {
-              v = true;
-              f++;
+      function filterPerintah(cari) {
+        var q = ((cari && cari.value) || '').toLowerCase().trim();
+        var rows = document.querySelectorAll('.cmd-row');
+        var cats = document.querySelectorAll('.category');
+        cats.forEach(function (cat) {
+          var vis = false;
+          cat.querySelectorAll('.cmd-row').forEach(function (row) {
+            var code = (row.querySelector('.cmd-code') || {}).textContent || '';
+            var desc = (row.querySelector('.cmd-desc') || {}).textContent || '';
+            var match =
+              !q || code.toLowerCase().indexOf(q) !== -1 || desc.toLowerCase().indexOf(q) !== -1;
+            row.classList.toggle('hidden', !match);
+            if (match) vis = true;
+          });
+          cat.style.display = vis ? '' : 'none';
+        });
+        var noR = document.getElementById('no-result');
+        if (q) {
+          var vis = document.querySelectorAll('.cmd-row:not(.hidden)').length;
+          if (!vis) {
+            if (!noR) {
+              noR = document.createElement('div');
+              noR.id = 'no-result';
+              noR.className = 'no-result';
+              noR.innerHTML = '<span class="big">🔎</span>Tidak ada hasil';
+              document.getElementById('cmd-container').appendChild(noR);
             }
-            r +=
-              '<div class="cmd-row"' +
-              (m ? '' : ' style="display:none"') +
-              '>' +
-              '<code class="cmd-code">' +
-              esc(it.c) +
-              '</code>' +
-              '<span class="cmd-desc">' +
-              esc(it.d) +
-              '</span>' +
-              '<button class="copy-btn" title="Copy" data-cmd="' +
-              escAttr(it.c) +
-              '">📋</button></div>';
+            noR.style.display = '';
+          } else if (noR) {
+            noR.style.display = 'none';
           }
-          h +=
-            '<section class="category"' +
-            (q && !v ? ' style="display:none"' : '') +
-            '>' +
-            '<div class="cat-header"><span class="cat-emoji">' +
-            cat.e +
-            '</span>' +
-            '<span class="cat-title">' +
-            cat.t +
-            '</span>' +
-            '<span class="cat-count">' +
-            cat.b +
-            '</span></div>' +
-            r +
-            '</section>';
-        }
-        if (!f && q)
-          h =
-            '<div class="no-result"><span class="big">🔎</span>Tidak ada hasil untuk "' +
-            esc(q) +
-            '"</div>';
-        c.innerHTML = h;
-        var btns = c.querySelectorAll('.copy-btn');
-        for (var k = 0; k < btns.length; k++) {
-          btns[k].onclick = function () {
-            var cmd = this.getAttribute('data-cmd');
-            (navigator.clipboard || {}).writeText
-              ? navigator.clipboard
-                  .writeText(cmd)
-                  .then(showToast)
-                  .catch(function () {
-                    var ta = document.createElement('textarea');
-                    ta.value = cmd;
-                    ta.style.cssText = 'position:fixed;opacity:0';
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    showToast();
-                  })
-              : showToast();
-            this.classList.add('copied');
-            var self = this;
-            setTimeout(function () {
-              self.classList.remove('copied');
-            }, 1200);
-          };
+        } else if (noR) {
+          noR.style.display = 'none';
         }
       }
 
-      function showToast() {
+      var _toastTimer;
+      function tampilkanToast(teks) {
         var t = document.getElementById('toast');
-        if (t) {
-          t.classList.add('show');
-          setTimeout(function () {
-            t.classList.remove('show');
-          }, 1800);
-        }
+        if (!t) return;
+        t.textContent = '✓ Tersalin! ' + (teks && teks.value ? teks.value.substring(0, 40) : '');
+        t.classList.add('show');
+        if (_toastTimer) clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(function () {
+          t.classList.remove('show');
+        }, 1800);
       }
-
-      // Initial render — after PromptJS DOM is ready
-      renderCommands('');
     </script>
   </body>
 </html>
