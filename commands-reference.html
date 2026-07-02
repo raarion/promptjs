@@ -11,7 +11,7 @@
     <!-- ⚡ Minimal helper: DOM filter + toast timer (batasan arsitektur: PromptJS belum punya array.filter() reaktif) -->
     <script>
       function filterPerintah(cari) {
-        var q = ((cari && cari.value) || '').toLowerCase().trim();
+        var q = (cari || '').toLowerCase().trim();
         var rows = document.querySelectorAll('.cmd-row');
         var cats = document.querySelectorAll('.category');
         cats.forEach(function (cat) {
@@ -50,7 +50,7 @@
       function tampilkanToast(teks) {
         var t = document.getElementById('toast');
         if (!t) return;
-        t.textContent = '✓ Tersalin! ' + (teks && teks.value ? teks.value.substring(0, 40) : '');
+        t.textContent = '✓ Tersalin! ' + (teks || '');
         t.classList.add('show');
         if (_toastTimer) clearTimeout(_toastTimer);
         _toastTimer = setTimeout(function () {
