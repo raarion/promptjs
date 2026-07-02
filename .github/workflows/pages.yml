@@ -9,6 +9,8 @@ on:
       - 'src/**'
       - 'assets/**'
       - 'package.json'
+      - 'commands-reference.html'
+      - 'commands-reference.pjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 

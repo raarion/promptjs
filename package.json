@@ -36,6 +36,7 @@
     "pjs": "node src/cli/index.js",
     "pages:build": "node scripts/build-pages.js",
     "pages:dev": "node scripts/build-pages.js --watch",
+    "pages:deploy": "npx gh-pages -d dist-pages",
     "prepare": "husky",
     "standalone": "node scripts/build-standalone.js",
     "standalone:watch": "node scripts/build-standalone.js --watch"

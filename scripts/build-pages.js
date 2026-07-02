@@ -1837,6 +1837,21 @@ function copyAssets() {
   }
 }
 
+/**
+ * Copy the commands-reference standalone page and its .pjs source to dist-pages.
+ * This is a static page — no compilation needed, just copy.
+ */
+function copyCommandsReference() {
+  const files = ['commands-reference.html', 'commands-reference.pjs'];
+  for (const file of files) {
+    const src = path.join(REPO_ROOT, file);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, path.join(OUT_DIR, file));
+      process.stderr.write(`  Copied ${file}\n`);
+    }
+  }
+}
+
 // ── Build pipeline ─────────────────────────────────────────────────────────
 
 /**
@@ -2068,6 +2083,9 @@ function build() {
 
   // Copy assets
   copyAssets();
+
+  // Copy commands-reference standalone page
+  copyCommandsReference();
 
   const elapsed = process.hrtime(start);
   const ms = (elapsed[0] * 1000 + elapsed[1] / 1e6).toFixed(1);
