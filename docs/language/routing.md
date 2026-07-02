@@ -124,23 +124,27 @@ The router skips links with `_blank` target, `javascript:` URLs, or external (cr
 
 ## Lifecycle SPA / SPA Lifecycle
 
+Lifecycle mount/unmount ditulis sebagai blok telanjang `dipasang:` / `dilepas:` (tanpa `Ketika`) dan **hanya valid di dalam komponen** (`Komponen`/`Component`) — di level halaman menghasilkan **E4001**. Untuk hook level halaman, gunakan `Ketika muat:`.
+
+Mount/unmount lifecycle is written as bare `dipasang:` / `dilepas:` blocks (no `Ketika`) and is **only valid inside a component** (`Komponen`/`Component`) — at page level it produces **E4001**. For a page-level hook, use `Ketika muat:`.
+
 ```pjs
-Halaman Dashboard:
+Komponen Dashboard:
     data items = []
 
-    Ketika dipasang:
-        ambil dari "/api/items":
-            simpan hasil.ke items
-
-    Ketika dilepas:
+    dipasang:
+        Ambil dari "/api/items":
+            berhasil:
+                simpan __data ke items
+    dilepas:
         kosongkan items
 ```
 
 | Lifecycle | Kompilasi / Compilation | Kapan Dipanggil / When Called |
 |-----------|----------------------|---------------------------|
-| `Ketika dipasang:` | `__dipasangFns.push(fn)` | Setelah mount / After mount |
-| `Ketika dilepas:` | `__dilepasFns.push(fn)` | Sebelum unmount / Before unmount |
-| `Ketika muat:` | `DOMContentLoaded` (non-SPA) / sama seperti dipasang (SPA) | Saat halaman siap / When page is ready |
+| `dipasang:` (dalam komponen) | `__dipasangFns.push(fn)` | Setelah mount / After mount |
+| `dilepas:` (dalam komponen) | `__dilepasFns.push(fn)` | Sebelum unmount / Before unmount |
+| `Ketika muat:` (level halaman) | `DOMContentLoaded` (non-SPA) / sama seperti dipasang (SPA) | Saat halaman siap / When page is ready |
 
 ---
 

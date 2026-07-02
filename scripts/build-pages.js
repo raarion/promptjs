@@ -53,6 +53,12 @@ const EXAMPLE_META = {
       'Counter sederhana dengan reaktivitas Proxy-based. Klik tombol untuk menambah, reset untuk kembali ke nol.',
     tags: ['reaktivitas', 'data', 'on_klik'],
   },
+  'fitur-v1-2': {
+    title: 'Fitur v1.2 — Ergonomi Bahasa',
+    description:
+      'Showcase empat penambahan v1.2: two-way binding (`ikat`), operator string (`berisi`), parameter default komponen, dan fetch inline (`on_klik = ambil ... ke`) dengan auto loading/error.',
+    tags: ['two-way binding', 'operator string', 'fetch inline', 'default param'],
+  },
   todo: {
     title: 'Todo List',
     description:

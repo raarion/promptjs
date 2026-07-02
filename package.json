@@ -1,6 +1,6 @@
 {
   "name": "@raarion/prompt-js",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "PromptJS — bilingual declarative DSL that compiles to vanilla JS with zero dependencies",
   "main": "src/engine/promptjs.js",
   "bin": {

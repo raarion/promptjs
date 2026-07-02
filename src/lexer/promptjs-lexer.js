@@ -116,6 +116,11 @@
     TK_DILEPAS: 'TK_DILEPAS', // dilepas / unmounted (lifecycle)
     TK_KE: 'TK_KE', // ke / to (target preposition for simpan)
 
+    // String/collection word-operators (lower to method calls, not infix symbols)
+    TK_BERISI: 'TK_BERISI', // berisi / contains  -> .includes()
+    TK_DIAWALI: 'TK_DIAWALI', // diawali / starts with -> .startsWith()
+    TK_DIAKHIRI: 'TK_DIAKHIRI', // diakhiri / ends with -> .endsWith()
+
     // Operators
     TK_ASSIGN: 'TK_ASSIGN', // =
     TK_EQ: 'TK_EQ', // ===
@@ -275,6 +280,15 @@
   const WORD_OPERATORS = [
     { phrase: 'tidak sama dengan', type: TT.TK_NEQ, symbol: '!==' },
     { phrase: 'sama dengan', type: TT.TK_EQ, symbol: '===' },
+    // String/collection membership — multi-word English phrases first so they
+    // win over any single-word prefix; `symbol` is the operator name the parser
+    // stores on the BinaryExpression (lowered to a method call, not an infix op).
+    { phrase: 'starts with', type: TT.TK_DIAWALI, symbol: 'diawali' },
+    { phrase: 'ends with', type: TT.TK_DIAKHIRI, symbol: 'diakhiri' },
+    { phrase: 'diawali', type: TT.TK_DIAWALI, symbol: 'diawali' },
+    { phrase: 'diakhiri', type: TT.TK_DIAKHIRI, symbol: 'diakhiri' },
+    { phrase: 'berisi', type: TT.TK_BERISI, symbol: 'berisi' },
+    { phrase: 'contains', type: TT.TK_BERISI, symbol: 'berisi' },
     { phrase: 'paling sedikit', type: TT.TK_GTE, symbol: '>=' },
     { phrase: 'paling banyak', type: TT.TK_LTE, symbol: '<=' },
     { phrase: 'lebih dari', type: TT.TK_GT, symbol: '>' },
@@ -1390,7 +1404,7 @@
     }
 
     // ─── Saat/When, Kembalikan/Return: tokenize sebagai expression ──────
-    // Saat: target bisa `nama` atau `nama.berubah` → expression context OK
+    // Saat: target bisa `nama` atau `nama.path` → expression context OK
     // Kembalikan: nilai return → expression context OK
     // Tapi kita tetap perlu pastikan nama identifier di posisi awal tidak
     // dianggap word operator. Untuk Saat, target biasanya identifier

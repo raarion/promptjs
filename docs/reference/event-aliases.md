@@ -128,17 +128,17 @@ Ketika muat:
         simpan result ke data
 ```
 
-### Ketika dipasang: / Ketika dilepas: (Lifecycle SPA)
+### dipasang: / dilepas: (Lifecycle SPA)
 
-Ini adalah lifecycle hook SPA, bukan event DOM. Hanya valid di dalam blok komponen.
+Ini adalah lifecycle hook SPA, bukan event DOM — jadi **tanpa** kata `Ketika`. Ditulis sebagai blok telanjang `dipasang:` / `dilepas:` dan **hanya valid di dalam blok komponen** (`Komponen`/`Component`); di level halaman menghasilkan **E4001**. Untuk lifecycle level halaman, gunakan `Ketika muat:`.
 
-These are SPA lifecycle hooks, not DOM events. Only valid inside component blocks.
+These are SPA lifecycle hooks, not DOM events — so there is **no** `Ketika` keyword. Write them as bare `dipasang:` / `dilepas:` blocks, **only valid inside a component block** (`Komponen`/`Component`); at page level they produce **E4001**. For page-level lifecycle, use `Ketika muat:`.
 
 ```pjs
 Komponen MyWidget:
-    Ketika dipasang:
+    dipasang:
         tampilkan "Widget mounted"
-    Ketika dilepas:
+    dilepas:
         tampilkan "Widget unmounted"
 ```
 

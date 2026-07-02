@@ -5,6 +5,47 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-07-02 — Ergonomi Bahasa (Language Ergonomics)
+
+> Empat penambahan bahasa **backward-compatible** agar aplikasi interaktif cukup ditulis dengan `.pjs` tanpa turun ke JS vanilla. Kontrak v1.0.0/v1.1.0 tidak berubah; nol regresi.
+
+### Added
+
+- **Parameter default komponen & fungsi** — `Komponen Tombol(label, varian: "primer"):`.
+  Parser mengonsumsi penanda `:` default; emitter meng-emit fallback
+  `const varian = props.varian !== undefined ? props.varian : "primer";`.
+  Param wajib tak boleh setelah param default (**E4006**). (7 regression test)
+- **Operator keanggotaan bilingual** — `berisi`/`contains` (string & array),
+  `diawali`/`starts with`, `diakhiri`/`ends with`. Di-lower ke method call
+  (`.includes()`/`String(a).startsWith(b)`/`String(a).endsWith(b)`), presedensi 4,
+  reaktivitas terjaga di `turunan`, anti-kolisi identifier (`berisiko` tetap
+  identifier). (11 regression test)
+- **Fetch inline sebagai aksi event** — `on_klik = ambil dari "url"` /
+  `... ke items` / `fetch from "url" ke items` / bentuk `:`+cabang
+  `berhasil:`/`gagal:`. Auto-state opt-in `<target>_memuat`/`<target>_galat`
+  (setiap tulisan `typeof`-guarded). Emitter mendaftarkan helper `__setState`
+  pada bentuk-bind (mencegah `ReferenceError` runtime). Bentuk-blok lama tetap
+  didukung. (15 regression test)
+- **Two-way binding form** — `ikat = state` / `bind = state` di body elemen form:
+  sinkron `.value` ↔ state dua arah, _caret-safe_ (tulis hanya saat nilai beda),
+  cleanup listener + unsub `__watch` otomatis ke `__cleanupFns` di mode SPA. (15 regression test)
+- **Dokumentasi & showcase** — bagian inline-fetch di `reactivity.md`, entri README
+  (tabel Fitur + Capability Lock v1.2.0), example showcase `fitur-v1-2` di
+  `examples/` (di-compile oleh `scripts/build-pages.js`), plus test regresi yang
+  meng-compile setiap snippet dokumentasi & example agar tak pernah drift.
+
+### Fixed
+
+- **Doc-sync F-2/F-3** — contoh dokumentasi yang tak sesuai grammar aktual dikoreksi
+  & dikunci test: lifecycle `dipasang:`/`dilepas:` (bukan `Ketika dipasang:`),
+  XSS demo `perbarui html "#sel": jahat` (bukan `atur isi ke`), dan
+  `perbarui <prop> <selector>: <nilai>` (bukan bentuk `ke`).
+
+### Changed
+
+- `package.json`: versi `1.1.1` → `1.2.0`.
+
+
 ## [1.1.1] — 2026-07-02
 
 ### Fixed

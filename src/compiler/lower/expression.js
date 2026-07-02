@@ -74,6 +74,23 @@ function lowerExpression(compiler, node) {
       }
       return node.name;
     case 'BinaryExpression': {
+      // String/collection membership operators lower to method calls rather
+      // than infix operators. `berisi`/`contains` -> .includes() works natively
+      // for BOTH strings and arrays. `diawali`/`diakhiri` are string-prefix/
+      // suffix checks; String(...) coerces so a non-string LHS never throws.
+      const membership = {
+        berisi: 'includes',
+        diawali: 'startsWith',
+        diakhiri: 'endsWith',
+      };
+      if (membership[node.operator]) {
+        const left = lowerExpression(compiler, node.left);
+        const right = lowerExpression(compiler, node.right);
+        if (node.operator === 'berisi') {
+          return `(${left}).includes(${right})`;
+        }
+        return `String(${left}).${membership[node.operator]}(${right})`;
+      }
       const ops = {
         'sama dengan': '===',
         'tidak sama dengan': '!==',

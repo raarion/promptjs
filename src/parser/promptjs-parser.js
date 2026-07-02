@@ -879,8 +879,24 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
   // Expect =
   this._expect(TT.TK_ASSIGN, 'Expected "=" after event name');
 
-  // Parse action expression
-  const action = this._parseExpression();
+  // v1.1: Inline fetch as event action.
+  // `on_klik = ambil dari "url"` (± `: <branches>`) parses the RHS as a full
+  // AmbilLuarStatement (external fetch), NOT an expression. The block-form
+  // (`Ketika diklik:` newline `Ambil dari …:`) already worked; this closes the
+  // inline-form gap so a developer can wire a fetch straight onto an event
+  // without dropping to a nested block or vanilla JS.
+  //
+  // We detect `ambil`/`fetch` followed by `dari`/`from`/`in` (TK_IN). The
+  // legacy DOM form (`ambil nilai dari elemen`) is intentionally NOT accepted
+  // here — as an event action it is meaningless, so it falls through to the
+  // expression path and errors as before (no silent behaviour change).
+  let action;
+  if (this._peek().type === TT.TK_AMBIL && this._peekAt(1).type === TT.TK_IN) {
+    action = this._parseAmbilStatement();
+  } else {
+    // Parse action expression (default path — unchanged).
+    action = this._parseExpression();
+  }
 
   const loc = this._makeLoc(startTok);
 
@@ -979,7 +995,14 @@ PromptJSParser.prototype._parseFungsiDeclaration = function () {
   if (this._match(TT.TK_LPAREN)) {
     while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
       const pTok = this._expect(TT.TK_IDENT, 'Expected parameter name');
-      if (pTok) params.push(AST.buatParameter(pTok.value, null, null, null));
+      // Optional default value: `nama: <expr>`
+      let pDefault = null;
+      if (pTok && this._match(TT.TK_COLON)) {
+        pDefault = this._parseExpression();
+      }
+      if (pTok) {
+        params.push(AST.buatParameter(pTok.value, pTok.loc || null, null, pDefault));
+      }
       if (!this._match(TT.TK_COMMA)) break;
     }
     this._expect(TT.TK_RPAREN, 'Expected ")"');
@@ -1015,7 +1038,14 @@ PromptJSParser.prototype._parseDefineComponent = function () {
   if (this._match(TT.TK_LPAREN)) {
     while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
       const pTok = this._expect(TT.TK_IDENT, 'Expected parameter name');
-      if (pTok) params.push(AST.buatParameter(pTok.value, null, null, null));
+      // Optional default value: `nama: <expr>` (e.g. `varian: "primer"`)
+      let pDefault = null;
+      if (pTok && this._match(TT.TK_COLON)) {
+        pDefault = this._parseExpression();
+      }
+      if (pTok) {
+        params.push(AST.buatParameter(pTok.value, pTok.loc || null, null, pDefault));
+      }
       if (!this._match(TT.TK_COMMA)) break;
     }
     this._expect(TT.TK_RPAREN, 'Expected ")"');
@@ -1148,6 +1178,10 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
     [TT.TK_GTE]: 4,
     [TT.TK_LT]: 4,
     [TT.TK_LTE]: 4,
+    // String/collection membership operators — comparison precedence
+    [TT.TK_BERISI]: 4,
+    [TT.TK_DIAWALI]: 4,
+    [TT.TK_DIAKHIRI]: 4,
     [TT.TK_PLUS]: 5,
     [TT.TK_MINUS]: 5,
     [TT.TK_STAR]: 6,
@@ -1182,6 +1216,11 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
       [TT.TK_NEQ]: '!==',
       [TT.TK_AND]: '&&',
       [TT.TK_OR]: '||',
+      // String/collection membership — kept as named operators; lowered to
+      // method calls (.includes/.startsWith/.endsWith) in expression lowering.
+      [TT.TK_BERISI]: 'berisi',
+      [TT.TK_DIAWALI]: 'diawali',
+      [TT.TK_DIAKHIRI]: 'diakhiri',
     };
     const opStr = opMap[opTok.type] || opTok.value;
 
@@ -1717,7 +1756,27 @@ PromptJSParser.prototype._parseAmbilStatement = function () {
     this._advance(); // consume "dari"/"from"
     const url = this._parseExpression();
 
-    // Expect colon → block body with options + branches
+    // v1.1: The block body (`:` + options/branches) is OPTIONAL. This enables
+    // the bare inline form `on_klik = ambil dari "url"` (fetch-and-forget /
+    // auto-state) with no branches. When no colon follows we skip block parsing
+    // entirely and emit a branch-less fetch. The classic block form
+    // (`Ambil dari "url":` newline berhasil/gagal) is unchanged.
+    if (this._peek().type !== TT.TK_COLON) {
+      // Optional `ke <target>` state binding for the bare inline form:
+      //   `ambil dari "url" ke items`
+      // Emits `__setState(items, __data)` on success and drives auto loading/
+      // error state (`items_memuat` / `items_galat`) — see the emitter. No
+      // binding ⇒ pure fetch-and-forget.
+      let bindTarget = null;
+      if (this._peek().type === TT.TK_KE) {
+        this._advance(); // consume "ke"
+        const tgtTok = this._expect(TT.TK_IDENT, 'Expected state name after "ke"');
+        if (tgtTok) bindTarget = tgtTok.value;
+      }
+      const node = AST.buatAmbilLuarStatement(url, [], loc, null, []);
+      if (bindTarget) node.bindTarget = bindTarget;
+      return node;
+    }
     this._expect(TT.TK_COLON, 'Expected ":" after URL in Ambil dari');
 
     // Parse block body: options (metode, isi, header) + branches (berhasil, gagal, selalu)

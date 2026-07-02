@@ -10,7 +10,7 @@
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
     <img alt="Version" src="https://img.shields.io/badge/version-1.1.1-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-880%20passing-fdfd96?style=for-the-badge&logo=vitest&logoColor=fdfd96">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-935%20passing-fdfd96?style=for-the-badge&logo=vitest&logoColor=fdfd96">
     <img alt="Coverage" src="https://img.shields.io/badge/coverage-84.8%25%20lines-ff964f?style=for-the-badge&logo=vitest&logoColor=ff964f">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
@@ -99,7 +99,7 @@ punggung setiap keputusan di PromptJS:
 | ⚡ **Compile, don't wrap** | PromptJS bukan framework yang membungkus runtime. Ia adalah compiler yang menerjemahkan DSL → vanilla JS. Output bersih, zero dependency, tanpa overhead. |
 | 🛡️ **Keamanan dari awal, bukan setelahnya** | Zero `eval()`, zero `new Function()`. Sanitizer allowlist. CSP built-in. Setiap fitur keamanan dikunci oleh regression test. |
 | 📚 **Dokumentasi adalah fitur, bukan utang** | Setiap keyword, setiap error code, setiap adapter — terdokumentasi. Bilingual. Dengan contoh nyata. |
-| 🧪 **Terukur, bukan klaim** | 880 tests. 84.8% coverage. Mutation testing. CI gate ketat. Tidak ada "seharusnya aman" — semua dibuktikan. |
+| 🧪 **Terukur, bukan klaim** | 935 tests. 84.8% coverage. Mutation testing. CI gate ketat. Tidak ada "seharusnya aman" — semua dibuktikan. |
 | 🌏 **Dibangun dari Indonesia, untuk dunia** | Bilingual ID/EN. Modul ajar siap pakai. Dirancang agar siapa pun — dari pelajar hingga profesional — bisa mulai coding dengan bahasa yang mereka pahami. |
 
 ---
@@ -197,8 +197,8 @@ akses tanpa mengubah kontrak v1.0.0. Berikut peta kemampuan lengkap lintas versi
   guard terpusat** (`src/utils/path-guard.js`) yang dipakai konsisten lintas
   adapter dan CLI `serve`.
 - **Target QA tinggi (terukur, bukan klaim)** — gerbang CI menegakkan: Prettier,
-  typecheck (JSDoc/checkJs), ESLint `--max-warnings=0`, **880 test / 43 file**,
-  ambang coverage per-modul (saat ini ~84.8% lines / 75.23% branch), mutation
+  typecheck (JSDoc/checkJs), ESLint `--max-warnings=0`, **935 test / 48 file**,
+  ambang coverage per-modul (saat ini ~84.8% lines / 75.27% branch), mutation
   testing Stryker pada inti semantik, plus `npm audit` & CodeQL untuk rantai pasok.
 
 ### Baru sejak v1.1.0 — Standalone Browser 🌀
@@ -213,6 +213,17 @@ akses tanpa mengubah kontrak v1.0.0. Berikut peta kemampuan lengkap lintas versi
 - **~50 KB gzipped via CDN** — muat cepat, ideal untuk prototype.
 
 📖 **[Dokumentasi Standalone →](STANDALONE.md)**
+
+### Baru sejak v1.2.0 — Ergonomi Bahasa 🧬
+
+Empat penambahan bahasa yang **backward-compatible** (tidak mengubah kontrak v1.0.0/v1.1.0) — dirancang agar aplikasi interaktif cukup ditulis dengan `.pjs`, tanpa turun ke JS vanilla:
+
+- **Parameter default komponen/fungsi** — `Komponen Tombol(label, varian: "primer"):`. Param tanpa default tak boleh setelah param dengan default (**E4006**). Caller boleh menghilangkan argumen ber-default.
+- **Operator keanggotaan bilingual** — `berisi`/`contains` (string & array), `diawali`/`starts with`, `diakhiri`/`ends with`. Di-lower ke method call, reaktivitas terjaga, anti-kolisi identifier (`berisiko` tetap identifier).
+- **Fetch inline sebagai aksi event** — `on_klik = ambil dari "url" ke items` + auto-state `items_memuat`/`items_galat` (opt-in, `typeof`-guarded). Bentuk-blok lama tetap didukung.
+- **Two-way binding form** — `ikat = state` / `bind = state` di body elemen form: sinkron `.value` ↔ state dua arah, _caret-safe_, cleanup otomatis di mode SPA.
+
+📖 **[Reaktivitas & binding →](docs/language/reactivity.md)** · **[Ekspresi & operator →](docs/language/expressions.md)** · **[Komponen →](docs/language/components.md)**
 
 ### Di luar lingkup v1.x (post-1.x):
 rute bawaan, dan plugin runtime pihak ketiga. Hal-hal ini dapat ditambah di
@@ -278,7 +289,10 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | 🌐 **Bilingual** | Keyword dwibahasa: `Buat`/`Create`, `Jika`/`If`, `Ulangi`/`Loop` |
 | 🌳 **AST-based** | Full Abstract Syntax Tree — recursive-descent parser + structured node types |
 | ⚡ **Reaktivitas** | Proxy-based `data`, computed `turunan`, `Saat` watcher |
-| 🧩 **Komponen** | `Komponen Nama(props):` — composeable, reusable |
+| 🔁 **Two-way Binding** | `ikat`/`bind` di elemen form — sinkron `.value` ↔ state dua arah, caret-safe |
+| 🌐 **Fetch Inline** | `on_klik = ambil dari "url" ke x` — fetch langsung di event + auto `.memuat`/`.galat` |
+| 🔤 **Operator Keanggotaan** | `berisi`/`contains`, `diawali`/`starts with`, `diakhiri`/`ends with` (bilingual) |
+| 🧩 **Komponen** | `Komponen Nama(props):` — composeable, reusable, **parameter default** (`varian: "primer"`) |
 | 🗺️ **SPA Routing** | `router: benar` — pushState, dynamic segments, lifecycle |
 | 🔐 **Auth Guard** | `butuhAuth: benar` + `peran` — redirect-based client guard |
 | 🔌 **Plugin System** | 4 transform hooks: source → JS → CSS → HTML |
@@ -386,7 +400,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 <details>
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
-- `tests/` ← 880 tes, 43 file tes
+- `tests/` ← 935 tes, 48 file tes
 - [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
 - [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
 - [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
@@ -480,7 +494,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
 | **Standalone Browser** | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Test Suite** | **880 tests** (43 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
+| **Test Suite** | **935 tests** (48 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |
 
@@ -495,10 +509,10 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 
 | Sinyal | Nilai (v5) | Gate CI |
 |---|---|---|
-| **Test** | **880 lulus / 880** (43 file, vitest) | wajib hijau |
-| **Determinisme** | 880/880 pada **3 run berturut-turut** — nol flaky | — |
+| **Test** | **935 lulus / 935** (48 file, vitest) | wajib hijau |
+| **Determinisme** | 935/935 pada **3 run berturut-turut** — nol flaky | — |
 | **Coverage lines** | **84.8%** (seluruh proyek via `vitest run --coverage`) | ≥ 80% |
-| **Coverage branches** | **75.23%** | dipantau |
+| **Coverage branches** | **75.27%** | dipantau |
 | **Mutation score — resolver** | **63.91%** (292 mutant, Stryker `stryker.config.json`) | ≥ base 49.72% |
 | **TypeScript JSDoc check** | `tsc --noEmit` — **zero errors** | wajib zero |
 | **ESLint** | `--max-warnings=0` — **zero problems** | wajib zero |
@@ -561,7 +575,7 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 ## ✔️ Quality Assurance
 
 ```bash
-npm test          # 880 tests, 43 test files
+npm test          # 935 tests, 48 test files
 npm run coverage  # gate ≥80% lines (84.8% measured)
 npm run mutation  # Stryker (scoped resolver+analyzer) — 63.91% (baseline 49.72%)
 npm run lint      # ESLint — zero warnings

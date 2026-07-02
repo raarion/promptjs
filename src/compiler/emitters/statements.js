@@ -155,7 +155,13 @@ function install(PromptJSCompiler, accept) {
     this.emit(`// Component: ${node.name}`);
     if (node.params && node.params.length > 0) {
       node.params.forEach((p) => {
-        this.emit(`const ${p.name} = props.${p.name};`);
+        if (p.defaultValue) {
+          // Documented default parameter: fall back when the prop is omitted.
+          const def = this.lowerExpression(p.defaultValue);
+          this.emit(`const ${p.name} = props.${p.name} !== undefined ? props.${p.name} : ${def};`);
+        } else {
+          this.emit(`const ${p.name} = props.${p.name};`);
+        }
       });
     }
     this.emit(`const __root = document.createElement("div");`);
@@ -333,6 +339,11 @@ function install(PromptJSCompiler, accept) {
     // Properti
     if (node.properties) {
       node.properties.forEach((p) => {
+        if (p.key === 'ikat' || p.key === 'bind') {
+          // v1.1: two-way binding declared in the element header property list.
+          this.emitTwoWayBinding(varName, p.value);
+          return;
+        }
         const val = this.lowerExpression(p.value);
         if (p.key === 'teks') this.emit(`${varName}.innerText = ${val};`);
         else if (p.key === 'html')
@@ -408,6 +419,63 @@ function install(PromptJSCompiler, accept) {
    * @param {Object} node - AST node PropertyNode
    * @returns {void | string}
    */
+  /**
+   * Emit two-way binding between a form element's `.value` and a reactive
+   * state variable, for `ikat = <state>` / `bind = <state>`.
+   *
+   * Wiring (both directions, no vanilla JS needed by the developer):
+   *   1. initial : el.value = state.value            (state -> input)
+   *   2. input   : addEventListener('input', ...)     (input -> state via __setState)
+   *   3. reactive: __watch(state, ...)                (state -> input, caret-safe)
+   *
+   * The `input` listener and the `__watch` unsub are both registered into
+   * `__cleanupFns` in SPA mode so nothing leaks across route changes — mirrors
+   * the existing KetikaStatement / reactive-loop cleanup idiom.
+   *
+   * @this {any}
+   * @param {string} elVar - compiled element variable name (the input node)
+   * @param {Object} stateNode - AST expression for the bound state (expected Identifier)
+   * @returns {void}
+   */
+  PromptJSCompiler.prototype.emitTwoWayBinding = function (elVar, stateNode) {
+    // The proxy object is needed for __setState/__watch; a bare Identifier
+    // lowers to `name.value` (a read), so pull the proxy name directly.
+    const proxy =
+      stateNode && stateNode.type === 'Identifier'
+        ? stateNode.name
+        : this.lowerExpression(stateNode).split('.')[0];
+    this.helpers.add('__setState');
+    this.helpers.add('__watch');
+
+    // 1. initial state -> input
+    this.emit(`${elVar}.value = ${proxy}.value;`);
+
+    // 2. input -> state
+    if (this.isSPA) {
+      const handlerVar = this.genVar('bindHandler');
+      this.emit(`const ${handlerVar} = (event) => { __setState(${proxy}, event.target.value); };`);
+      this.emit(`${elVar}.addEventListener("input", ${handlerVar});`);
+      this.emit(
+        `__cleanupFns.push(function() { ${elVar}.removeEventListener("input", ${handlerVar}); });`
+      );
+    } else {
+      this.emit(
+        `${elVar}.addEventListener("input", (event) => { __setState(${proxy}, event.target.value); });`
+      );
+    }
+
+    // 3. state -> input (skip when equal so typing never clobbers the caret)
+    if (this.isSPA) {
+      this.emit(
+        `__cleanupFns.push(__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; }));`
+      );
+    } else {
+      this.emit(
+        `__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; });`
+      );
+    }
+  };
+
   PromptJSCompiler.prototype.visitPropertyNode = function (node) {
     if (!this.currentParent) return; // Tidak ada elemen target — skip
     const val = this.lowerExpression(node.value);
@@ -421,6 +489,10 @@ function install(PromptJSCompiler, accept) {
       this.emit(`${parent}.className = ${val};`);
     } else if (key === 'nilai') {
       this.emit(`${parent}.value = ${val};`);
+    } else if (key === 'ikat' || key === 'bind') {
+      // v1.1: two-way binding \u2014 `ikat = <state>` / `bind = <state>` inside a
+      // form element body wires input.value <-> reactive state, both ways.
+      this.emitTwoWayBinding(parent, node.value);
     } else {
       // Atribut HTML umum: src, href, alt, width, height, id, placeholder, dll.
       // Gunakan direct property assignment (lebih efisien) untuk properti
@@ -798,6 +870,9 @@ function install(PromptJSCompiler, accept) {
         'LanjutkanStatement',
         'PassStatement',
         'LewatiStatement',
+        // v1.1: inline fetch as event action (`on_klik = ambil dari "url"`).
+        // visitAmbilLuarStatement emits the full async fetch IIFE.
+        'AmbilLuarStatement',
       ]);
       if (statementTypes.has(actionType)) {
         // Statement visitor emits via this.emit() internally.
@@ -1337,6 +1412,28 @@ function install(PromptJSCompiler, accept) {
 
     const fetchOptions = fetchOptionPairs.length > 0 ? `{ ${fetchOptionPairs.join(', ')} }` : '{}';
 
+    // v1.1: Automatic `.memuat` (loading) / `.galat` (error) state for the
+    // inline bind form `ambil dari "url" ke <target>`. The companion reactive
+    // vars `<target>_memuat` and `<target>_galat` are OPTIONAL — every write is
+    // `typeof`-guarded so an undeclared flag is a harmless no-op (never a
+    // ReferenceError). Declaring `data items_memuat = salah` in the DSL opts in.
+    const bind = node.bindTarget || null;
+    const memuatVar = bind ? `${bind}_memuat` : null;
+    const galatVar = bind ? `${bind}_galat` : null;
+
+    // Inline bind emits `__setState(...)` directly, so the helper must be
+    // pulled into the tree-shaken bundle explicitly (block-form fetch relied on
+    // a nested SimpanStatement to register it; the bind form has none).
+    if (bind) {
+      this.helpers.add('__setState');
+    }
+
+    // Loading = true (+ clear previous error) BEFORE the request begins.
+    if (bind) {
+      this.emit(`if (typeof ${memuatVar} !== "undefined") __setState(${memuatVar}, true);`);
+      this.emit(`if (typeof ${galatVar} !== "undefined") __setState(${galatVar}, null);`);
+    }
+
     // Emit async IIFE — developer never sees the word "async"
     this.emit(`(async function() {`);
     this.indent++;
@@ -1345,6 +1442,11 @@ function install(PromptJSCompiler, accept) {
     this.emit(`const __response = await fetch(${url}, ${fetchOptions});`);
     this.emit(`if (!__response.ok) throw new Error("HTTP " + __response.status);`);
     this.emit(`const __data = await __response.json();`);
+
+    // v1.1: inline bind — assign fetched data to the bound state on success.
+    if (bind) {
+      this.emit(`__setState(${bind}, __data);`);
+    }
 
     // berhasil: branch
     if (node.branches && node.branches.length > 0) {
@@ -1363,26 +1465,38 @@ function install(PromptJSCompiler, accept) {
       this.emit(`if (__error.name === "AbortError") return;`);
     }
 
+    // v1.1: inline bind — record the error message into `<target>_galat`.
+    if (bind) {
+      this.emit(
+        `if (typeof ${galatVar} !== "undefined") __setState(${galatVar}, __error.message || String(__error));`
+      );
+    }
+
     // gagal: branch
     if (node.branches && node.branches.length > 0) {
       const gagal = node.branches.find((b) => b.kind === 'gagal');
       if (gagal && gagal.action) {
         accept(gagal.action, this);
-      } else {
+      } else if (!bind) {
         this.emit(`console.error("[PromptJS] Ambil gagal:", __error);`);
       }
-    } else {
+    } else if (!bind) {
       this.emit(`console.error("[PromptJS] Ambil gagal:", __error);`);
     }
 
     this.indent--;
 
-    // selalu: branch
+    // selalu: branch and/or auto loading-reset both live in the finally block.
     const selalu = node.branches ? node.branches.find((b) => b.kind === 'selalu') : null;
-    if (selalu && selalu.action) {
+    if ((selalu && selalu.action) || bind) {
       this.emit(`} finally {`);
       this.indent++;
-      accept(selalu.action, this);
+      if (bind) {
+        this.emit(`if (typeof ${memuatVar} !== "undefined") __setState(${memuatVar}, false);`);
+      }
+      if (selalu && selalu.action) {
+        accept(selalu.action, this);
+      }
       this.indent--;
     }
 
