@@ -115,11 +115,17 @@ function __setState(reactive, val) {
 }`.trim(),
 
   __keyedList: `
-function __keyedList(marker, list, keyFn, renderFn) {
+function __keyedList(marker, list, keyFn, renderFn, hooks) {
   // Keyed reconciliation (Opsi B) over the REAL DOM nodes — no vDOM.
   // State (Map<key, {node, item}>) is stashed on the marker so it persists
   // across re-renders. Non-array input clears the list (guard). Duplicate keys
   // are disambiguated as \`\${key}__\${index}\` so each item keeps a stable slot.
+  //
+  // K2a: optional \`hooks.onRemove(node)\` lets a transition wrapper (__flipList)
+  // intercept removals — if it returns true, this fn leaves the node attached
+  // (the wrapper animates it out and detaches on transitionend). Default: null
+  // ⇒ nodes are removed immediately (K1b behavior, byte-for-byte).
+  var onRemove = hooks && hooks.onRemove;
   var prev = marker.__pjsKeyed || new Map();
   if (!Array.isArray(list)) {
     // C-5: consistent clear via replaceChildren (never innerHTML).
@@ -158,9 +164,12 @@ function __keyedList(marker, list, keyFn, renderFn) {
     next.set(key, { node: node, item: item });
     seq.push(node);
   }
-  // Remove nodes whose key disappeared entirely.
+  // Remove nodes whose key disappeared entirely. If a transition wrapper owns
+  // removals (hooks.onRemove returns true), leave the node attached so it can be
+  // animated out and detached later; otherwise remove now (K1b default).
   prev.forEach(function (entry, key) {
     if (!next.has(key) && entry.node && entry.node.parentNode === marker) {
+      if (onRemove && onRemove(entry.node) === true) return;
       marker.removeChild(entry.node);
     }
   });
@@ -191,6 +200,148 @@ function __pjsSame(a, b) {
     if (!Object.prototype.hasOwnProperty.call(b, k) || !Object.is(a[k], b[k])) return false;
   }
   return true;
+}`.trim(),
+
+  __flipList: `
+function __flipList(marker, applyReconcile, opts) {
+  // K2a: FLIP (First/Last/Invert/Play) transitions layered over the keyed
+  // reconciler (__keyedList) \u2014 no vDOM, no eval, no new Function, CSP-safe
+  // (only a transform + class toggles on the element). Opt-in: only called when
+  // the loop used a "dengan transisi <name>" suffix. Absence => plain __keyedList.
+  //
+  //   opts = { name, enter, leave, move, dur }
+  //     name  \u2192 class prefix (default "pjs")
+  //     enter \u2192 class added to newly-inserted nodes         (default name+"-enter")
+  //     leave \u2192 class added to nodes about to be removed    (default name+"-leave")
+  //     move  \u2192 class added to nodes that change position   (default name+"-move")
+  //
+  // applyReconcile(hooks) runs the real __keyedList, but with hooks so this
+  // wrapper can (a) know which nodes leave (to animate before detaching) and
+  // (b) know the final node set. hooks = { onRemove(node) }.
+  var name = (opts && opts.name) || 'pjs';
+  var CL_ENTER = (opts && opts.enter) || name + '-enter';
+  var CL_LEAVE = (opts && opts.leave) || name + '-leave';
+  var CL_MOVE = (opts && opts.move) || name + '-move';
+
+  // Accessibility + non-DOM guard: if reduced-motion is requested, or the
+  // environment lacks the measurement/animation APIs, skip straight to a plain
+  // reconcile with correct final DOM (no animation).
+  var reduce = false;
+  try {
+    reduce =
+      typeof matchMedia === 'function' &&
+      matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) {
+    reduce = false;
+  }
+  var canMeasure =
+    marker.firstChild == null || typeof marker.firstChild.getBoundingClientRect === 'function';
+  if (reduce || !canMeasure) {
+    applyReconcile({ onRemove: null });
+    return;
+  }
+
+  // \u2500\u2500 FIRST: snapshot positions of current children (by node identity) \u2500\u2500\u2500\u2500
+  var first = new Map();
+  var pre = marker.__pjsKeyed;
+  if (pre && typeof pre.forEach === 'function') {
+    pre.forEach(function (entry) {
+      if (entry.node && typeof entry.node.getBoundingClientRect === 'function') {
+        first.set(entry.node, entry.node.getBoundingClientRect());
+      }
+    });
+  }
+
+  // Track leaving nodes so we can animate them out BEFORE detaching.
+  var leaving = [];
+  applyReconcile({
+    onRemove: function (node) {
+      // Defer the actual removal: play a leave animation, then detach on
+      // transitionend (or immediately if no transition fires).
+      leaving.push(node);
+      return true; // signal __keyedList: do NOT remove now, we own it.
+    },
+  });
+
+  // \u2500\u2500 LEAVE: mark leaving nodes, remove on transitionend (C-1 cleanup) \u2500\u2500\u2500\u2500\u2500
+  leaving.forEach(function (node) {
+    __pjsAddClass(node, CL_LEAVE);
+    __pjsOnTransitionEnd(node, function () {
+      __pjsRemoveClass(node, CL_LEAVE);
+      if (node.parentNode === marker) marker.removeChild(node);
+    });
+  });
+
+  // \u2500\u2500 LAST + INVERT + PLAY: for surviving nodes that moved, invert then play \u2500
+  var post = marker.__pjsKeyed;
+  if (post && typeof post.forEach === 'function') {
+    post.forEach(function (entry) {
+      var node = entry.node;
+      if (!node || typeof node.getBoundingClientRect !== 'function') return;
+      var prevRect = first.get(node);
+      var lastRect = node.getBoundingClientRect();
+      if (!prevRect) {
+        // New node \u2192 ENTER.
+        __pjsAddClass(node, CL_ENTER);
+        __pjsOnTransitionEnd(node, function () {
+          __pjsRemoveClass(node, CL_ENTER);
+        });
+        return;
+      }
+      var dx = prevRect.left - lastRect.left;
+      var dy = prevRect.top - lastRect.top;
+      if (dx === 0 && dy === 0) return; // no move.
+      // INVERT: jump the node back to its old spot with a transform.
+      __pjsSetTransform(node, 'translate(' + dx + 'px,' + dy + 'px)');
+      __pjsAddClass(node, CL_MOVE);
+      // Force reflow so the browser registers the inverted start position.
+      void (typeof node.offsetWidth === 'number' ? node.offsetWidth : 0);
+      // PLAY: clear the transform \u2192 CSS transition animates back to natural spot.
+      __pjsSetTransform(node, '');
+      __pjsOnTransitionEnd(node, function () {
+        __pjsRemoveClass(node, CL_MOVE);
+        __pjsSetTransform(node, '');
+      });
+    });
+  }
+}
+
+function __pjsAddClass(node, cls) {
+  if (node.classList && typeof node.classList.add === 'function') node.classList.add(cls);
+  else if (typeof node.className === 'string' && (' ' + node.className + ' ').indexOf(' ' + cls + ' ') < 0)
+    node.className = (node.className ? node.className + ' ' : '') + cls;
+}
+
+function __pjsRemoveClass(node, cls) {
+  if (node.classList && typeof node.classList.remove === 'function') node.classList.remove(cls);
+  else if (typeof node.className === 'string')
+    node.className = (' ' + node.className + ' ').replace(' ' + cls + ' ', ' ').trim();
+}
+
+function __pjsSetTransform(node, val) {
+  if (node.style) node.style.transform = val;
+}
+
+function __pjsOnTransitionEnd(node, cb) {
+  // Fire cb once on the next transitionend, or synchronously if the env has no
+  // event support (jsdom/no-transition) so final DOM is always correct.
+  if (!node.addEventListener) {
+    cb();
+    return;
+  }
+  var done = false;
+  var handler = function () {
+    if (done) return;
+    done = true;
+    if (node.removeEventListener) node.removeEventListener('transitionend', handler);
+    cb();
+  };
+  node.addEventListener('transitionend', handler);
+  // Safety net: if no transition is defined, transitionend never fires. Flush
+  // on a microtask/timeout so nothing gets stuck (bounded, no leak).
+  if (typeof setTimeout === 'function') {
+    setTimeout(handler, (node.__pjsTransDur | 0) || 0);
+  }
 }`.trim(),
 
   __cleanup: `
@@ -423,6 +574,7 @@ function emitRuntimeHelpers(compiler) {
     '__watch',
     '__setState',
     '__keyedList',
+    '__flipList',
     '__cleanup',
     // Error boundary
     '__pjs_handleError',

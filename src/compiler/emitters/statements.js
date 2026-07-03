@@ -1161,32 +1161,55 @@ function install(PromptJSCompiler, accept) {
       this.indent++;
 
       if (keyed) {
-        // ── K1b: keyed diff ────────────────────────────────────────────────
+        // ── K1b: keyed diff ──────────────────────────────────────────────
         // Lower the key expression with the iterator bound to `item`. It runs
         // inside keyFn(item, indeks), so `item`/`indeks` are in scope.
         this.helpers.add('__keyedList');
+
+        // K2a: opt-in FLIP transitions. When the loop used `dengan transisi
+        // <name>`, wrap the keyed reconcile in __flipList so moved/entering/
+        // leaving nodes animate. Absence ⇒ plain __keyedList (K1b unchanged).
+        const transition = node.transitionName || null;
         const keyCode = this.lowerExpression(node.keyExpr);
-        this.emit(
-          `__keyedList(${markerVar}, __list, (${node.iteratorName}, indeks) => (${keyCode}), (${node.iteratorName}, indeks) => {`
-        );
-        this.indent++;
-        // Each item renders into its OWN wrapper node so keyed identity maps
-        // 1:1 to a DOM node the reconciler can reuse / reorder / remove.
-        const itemVar = this.genVar('kitem');
-        this.emit(`const ${itemVar} = document.createElement("span");`);
-        this.emit(`${itemVar}.className = "__promptjs_keyed_item";`);
 
-        const prevParentK = this.currentParent;
-        this.currentParent = itemVar;
-        const prevInBuatK = this._inBuatBody;
-        this._inBuatBody = true;
-        accept(node.body, this);
-        this._inBuatBody = prevInBuatK;
-        this.currentParent = prevParentK;
+        // Emit the shared keyed reconcile. `hooksArg` is the extra __keyedList
+        // argument: "__hooks" under FLIP (so leave/move can be intercepted), or
+        // empty for the plain K1b path.
+        const emitKeyed = (hooksArg) => {
+          this.emit(
+            `__keyedList(${markerVar}, __list, (${node.iteratorName}, indeks) => (${keyCode}), (${node.iteratorName}, indeks) => {`
+          );
+          this.indent++;
+          // Each item renders into its OWN wrapper node so keyed identity maps
+          // 1:1 to a DOM node the reconciler can reuse / reorder / remove.
+          const itemVar = this.genVar('kitem');
+          this.emit(`const ${itemVar} = document.createElement("span");`);
+          this.emit(`${itemVar}.className = "__promptjs_keyed_item";`);
 
-        this.emit(`return ${itemVar};`);
-        this.indent--;
-        this.emit('});');
+          const prevParentK = this.currentParent;
+          this.currentParent = itemVar;
+          const prevInBuatK = this._inBuatBody;
+          this._inBuatBody = true;
+          accept(node.body, this);
+          this._inBuatBody = prevInBuatK;
+          this.currentParent = prevParentK;
+
+          this.emit(`return ${itemVar};`);
+          this.indent--;
+          this.emit(hooksArg ? `}, ${hooksArg});` : '});');
+        };
+
+        if (transition) {
+          this.helpers.add('__flipList');
+          const nameLit = JSON.stringify(String(transition));
+          this.emit(`__flipList(${markerVar}, (__hooks) => {`);
+          this.indent++;
+          emitKeyed('__hooks');
+          this.indent--;
+          this.emit(`}, { name: ${nameLit} });`);
+        } else {
+          emitKeyed(null);
+        }
       } else {
         // ── K1a: full re-render (non-keyed) ────────────────────────────────
         // C-5: consistent DOM clear via replaceChildren() (no innerHTML).

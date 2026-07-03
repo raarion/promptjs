@@ -1158,6 +1158,14 @@ PromptJSResolver.prototype.visitUlangiStatement = function (node) {
     accept(node.keyExpr, this);
   }
 
+  // K2a: FLIP transitions require stable keyed identity to animate moves, so a
+  // `dengan transisi <name>` without `dengan kunci` is meaningless. Drop it
+  // (fall back to K1a/K1b) rather than silently pretending to animate — this
+  // keeps the "honest keyword" contract: transitions ONLY engage on keyed lists.
+  if (node.transitionName && !node.keyExpr) {
+    delete node.transitionName;
+  }
+
   accept(node.body, this);
   this.currentScope = prevScope;
 };
