@@ -149,4 +149,4 @@ A teaching-module program (status *Pre-release*) for schools, bootcamps, courses
 
 ---
 
-← [Deployment](deployment.md) · [Kembali ke Index / Back to Index](../README.md)
+← [Deployment](deployment.md) · [Kembali ke Index / Back to Index](../../README.md)

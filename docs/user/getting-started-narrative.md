@@ -46,9 +46,9 @@ If you understand that sentence, you already understand the soul of PromptJS. Th
 
 ### Perhentian 2 — Menyiapkan Alat / Stop 2 — Setting Up the Tools
 
-Perhentian kedua adalah [Installation](installation.md). Di sinilah niat berubah menjadi kesiapan. Yang kamu butuhkan cuma **Node.js ≥ 20.19.0** dan npm yang sudah menyertai Node. Tidak ada lagi yang harus dipasang di sisi *runtime* — karena output PromptJS adalah JavaScript vanilla yang jalan di browser mana pun.
+Perhentian kedua adalah [Installation](installation.md). Di sinilah niat berubah menjadi kesiapan. Yang kamu butuhkan cuma **Node.js ≥ 22.0.0** dan npm yang sudah menyertai Node. Tidak ada lagi yang harus dipasang di sisi *runtime* — karena output PromptJS adalah JavaScript vanilla yang jalan di browser mana pun.
 
-The second stop is [Installation](installation.md). This is where intent becomes readiness. All you need is **Node.js ≥ 20.19.0** and the npm that ships with Node. Nothing else needs to be installed on the *runtime* side — because PromptJS output is vanilla JavaScript that runs in any browser.
+The second stop is [Installation](installation.md). This is where intent becomes readiness. All you need is **Node.js ≥ 22.0.0** and the npm that ships with Node. Nothing else needs to be installed on the *runtime* side — because PromptJS output is vanilla JavaScript that runs in any browser.
 
 Cara tercepat memasangnya adalah lewat npm:
 
@@ -66,9 +66,9 @@ Note: the npm package name is `prompt-js` (with a hyphen), but the command you r
 pjs version
 ```
 
-Kalau terminal membalas `PromptJS v1.0.0`, kamu sudah resmi siap. Kalau belum, halaman [Installation](installation.md) punya bagian *Troubleshooting* untuk dua masalah paling umum: `pjs: command not found` dan versi Node yang terlalu lama.
+Kalau terminal membalas `PromptJS v1.2.0`, kamu sudah resmi siap. Kalau belum, halaman [Installation](installation.md) punya bagian *Troubleshooting* untuk dua masalah paling umum: `pjs: command not found` dan versi Node yang terlalu lama.
 
-If the terminal replies `PromptJS v1.0.0`, you are officially ready. If not, the [Installation](installation.md) page has a *Troubleshooting* section for the two most common issues: `pjs: command not found` and an outdated Node version.
+If the terminal replies `PromptJS v1.2.0`, you are officially ready. If not, the [Installation](installation.md) page has a *Troubleshooting* section for the two most common issues: `pjs: command not found` and an outdated Node version.
 
 ### Perhentian 3 — Lima Menit Pertama / Stop 3 — Your First Five Minutes
 
@@ -134,9 +134,9 @@ Tersesat di tengah jalan bukan tanda kamu gagal — itu tanda kamu sedang belaja
 
 Getting lost along the way isn't a sign of failure — it's a sign you're truly learning. When a term feels unfamiliar, open the [Glossary](../reference/glossary.md): every Indonesian keyword has an English counterpart and a short description. When an error appears on screen, don't panic — PromptJS error messages are deliberately friendly, complete with a code and a suggested fix, all catalogued in [Error Codes](../reference/error-codes.md).
 
-Dan kalau kamu benar-benar baru di dunia coding, ketahuilah: PromptJS Academy sedang disiapkan khusus untukmu — modul ajar berurutan dari "Apa itu coding" sampai proyek full-stack. Kisah lengkapnya ada di [Roadmap](../project/roadmap-narrative.md).
+Dan kalau kamu benar-benar baru di dunia coding, ketahuilah: PromptJS Academy sedang disiapkan khusus untukmu — modul ajar berurutan dari "Apa itu coding" sampai proyek full-stack. Kisah lengkapnya ada di [Roadmap](../project/roadmap.md).
 
-And if you're entirely new to coding, know this: the PromptJS Academy is being prepared just for you — sequential learning modules from "What is coding" all the way to a full-stack project. The full story is in the [Roadmap](../project/roadmap-narrative.md).
+And if you're entirely new to coding, know this: the PromptJS Academy is being prepared just for you — sequential learning modules from "What is coding" all the way to a full-stack project. The full story is in the [Roadmap](../project/roadmap.md).
 
 ---
 

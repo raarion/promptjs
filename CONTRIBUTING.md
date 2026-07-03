@@ -91,7 +91,7 @@ Every push / PR runs, across Node 22 / 24:
 1. `npm run format:check` — Prettier formatting
 2. `npm run typecheck` — JSDoc type checking (checkJs per-file)
 3. `npm run lint` — ESLint with `--max-warnings=0`
-4. `npm test` — Vitest suite (243 tests)
+4. `npm test` — Vitest suite (1025 tests)
 5. Smoke compile via CLI
 6. Compile all `examples/*.pjs`
 

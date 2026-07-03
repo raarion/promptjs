@@ -85,7 +85,7 @@ pjs version
 Output yang diharapkan / Expected output:
 
 ```
-PromptJS v1.1.1
+PromptJS v1.2.0
 ```
 
 Perintah `pjs help` menampilkan daftar lengkap semua command dan opsi yang tersedia.
@@ -153,7 +153,7 @@ If installing globally, use `npm install -g prompt-js`.
 
 PromptJS memerlukan Node.js ≥ 22.0.0. Cek versi kamu:
 
-PromptJS requires Node.js ≥ 20.19.0. Check your version:
+PromptJS requires Node.js ≥ 22.0.0. Check your version:
 
 ```bash
 node --version
