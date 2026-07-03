@@ -683,6 +683,34 @@ PromptJSParser.prototype._parseSetelahStatement = function () {
  *
  * @returns {Object} AST node UlangiStatement
  */
+/**
+ * K1b keyed diff: optionally parse a `dengan kunci <expr>` suffix on an
+ * iteration loop, right before the trailing `:`.
+ *
+ * `dengan` / `kunci` are not reserved keywords — they lex as plain IDENT — so
+ * we peek for the exact two-identifier sequence and only then consume + parse
+ * the key expression. Anything else is left untouched (no false positives).
+ * This is the "honest keyword": its presence genuinely switches the emitter to
+ * keyed reconciliation; its absence keeps the K1a full-re-render behavior.
+ *
+ * @returns {Object | null} the parsed key expression, or null if absent
+ */
+PromptJSParser.prototype._tryParseDenganKunci = function () {
+  const t0 = this._peek();
+  const t1 = this._peekAt(1);
+  if (
+    t0.type === TT.TK_IDENT &&
+    t0.value === 'dengan' &&
+    t1.type === TT.TK_IDENT &&
+    t1.value === 'kunci'
+  ) {
+    this._advance(); // consume `dengan`
+    this._advance(); // consume `kunci`
+    return this._parseExpression();
+  }
+  return null;
+};
+
 PromptJSParser.prototype._parseUlangiStatement = function () {
   const startTok = this._advance(); // consume Ulangi/Loop
 
@@ -725,11 +753,21 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
         );
       }
 
-      // Regular iteration: "Ulangi i in items:"
+      // Regular iteration: "Ulangi i in items:" (optional `dengan kunci <expr>`)
+      const iterKeyExpr = this._tryParseDenganKunci();
       this._expect(TT.TK_COLON, 'Expected ":" after loop source');
       const iterLoc = this._makeLoc(startTok);
       const iterBody = this._parseBlock();
-      return AST.buatUlangiStatement(iteratorName, source, iterBody, 'dari', iterLoc, null, null);
+      return AST.buatUlangiStatement(
+        iteratorName,
+        source,
+        iterBody,
+        'dari',
+        iterLoc,
+        null,
+        null,
+        iterKeyExpr
+      );
     }
 
     // Try counted loop: "Ulangi N kali:"
@@ -799,6 +837,9 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
     );
   }
 
+  // Optional keyed diff suffix: "... dengan kunci <expr>:" (K1b)
+  const keyExpr = this._tryParseDenganKunci();
+
   // Expect colon
   this._expect(TT.TK_COLON, 'Expected ":" after loop source');
 
@@ -807,7 +848,7 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
   // Parse body block
   const body = this._parseBlock();
 
-  return AST.buatUlangiStatement(iteratorName, source, body, 'dari', loc, null, null);
+  return AST.buatUlangiStatement(iteratorName, source, body, 'dari', loc, null, null, keyExpr);
 };
 
 // --- Pass Statement ---

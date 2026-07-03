@@ -114,6 +114,85 @@ function __setState(reactive, val) {
   reactive.value = val;
 }`.trim(),
 
+  __keyedList: `
+function __keyedList(marker, list, keyFn, renderFn) {
+  // Keyed reconciliation (Opsi B) over the REAL DOM nodes — no vDOM.
+  // State (Map<key, {node, item}>) is stashed on the marker so it persists
+  // across re-renders. Non-array input clears the list (guard). Duplicate keys
+  // are disambiguated as \`\${key}__\${index}\` so each item keeps a stable slot.
+  var prev = marker.__pjsKeyed || new Map();
+  if (!Array.isArray(list)) {
+    // C-5: consistent clear via replaceChildren (never innerHTML).
+    marker.replaceChildren();
+    marker.__pjsKeyed = new Map();
+    return;
+  }
+  var next = new Map();
+  var seq = [];
+  var seen = Object.create(null);
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var rawKey = String(keyFn(item, i));
+    var key = rawKey;
+    if (seen[rawKey] !== undefined) {
+      seen[rawKey]++;
+      key = rawKey + '__' + i;
+    } else {
+      seen[rawKey] = 0;
+    }
+    var entry = prev.get(key);
+    var node;
+    if (entry && __pjsSame(entry.item, item)) {
+      // Same key AND unchanged value → reuse the existing DOM node as-is.
+      node = entry.node;
+    } else {
+      // New key, or the item changed → (re)render its content. Reusing the key
+      // slot keeps ordering stable; the fresh node reflects the new data so the
+      // \`dengan kunci\` keyword stays honest (updates ARE visible). If a stale
+      // node existed for this key, drop it so it does not linger in the marker.
+      if (entry && entry.node && entry.node.parentNode === marker) {
+        marker.removeChild(entry.node);
+      }
+      node = renderFn(item, i);
+    }
+    next.set(key, { node: node, item: item });
+    seq.push(node);
+  }
+  // Remove nodes whose key disappeared entirely.
+  prev.forEach(function (entry, key) {
+    if (!next.has(key) && entry.node && entry.node.parentNode === marker) {
+      marker.removeChild(entry.node);
+    }
+  });
+  // Reorder / insert: walk the desired sequence in REVERSE, using insertBefore
+  // against the node that should follow each one (simple O(n), LIS deferred).
+  var after = null;
+  for (var j = seq.length - 1; j >= 0; j--) {
+    var cur = seq[j];
+    if (cur.parentNode !== marker || cur.nextSibling !== after) {
+      marker.insertBefore(cur, after);
+    }
+    after = cur;
+  }
+  marker.__pjsKeyed = next;
+}
+
+function __pjsSame(a, b) {
+  // Cheap value equality for keyed reuse: identity, or shallow-equal plain
+  // objects/arrays (one level). Good enough to detect "item changed" without a
+  // deep clone; primitives fall through to Object.is.
+  if (Object.is(a, b)) return true;
+  if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return false;
+  var ka = Object.keys(a);
+  var kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;
+  for (var i = 0; i < ka.length; i++) {
+    var k = ka[i];
+    if (!Object.prototype.hasOwnProperty.call(b, k) || !Object.is(a[k], b[k])) return false;
+  }
+  return true;
+}`.trim(),
+
   __cleanup: `
 function __cleanup(reactive) {
   var effect = __effectMap.get(reactive);
@@ -343,6 +422,7 @@ function emitRuntimeHelpers(compiler) {
     '__createComputed',
     '__watch',
     '__setState',
+    '__keyedList',
     '__cleanup',
     // Error boundary
     '__pjs_handleError',

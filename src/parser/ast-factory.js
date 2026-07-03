@@ -639,9 +639,10 @@ function buatJikaStatement(condition, consequent, loc, docstring, alternate) {
  * @param {SourceLocation} [loc] - Lokasi statement
  * @param {ASTNode} [docstring] - Docstring yang menempel (opsional)
  * @param {ASTNode} [rangeEnd] - Akhir range (hanya untuk `kind: 'rentang'`)
+ * @param {ASTNode} [keyExpr] - Ekspresi kunci `dengan kunci <expr>` (K1b keyed diff, hanya `kind: 'dari'`/`'in'`)
  * @returns {Object}} Node UlangiStatement
  */
-function buatUlangiStatement(iteratorName, source, body, kind, loc, docstring, rangeEnd) {
+function buatUlangiStatement(iteratorName, source, body, kind, loc, docstring, rangeEnd, keyExpr) {
   const node = {
     type: 'UlangiStatement',
     loc: ensureLoc(loc),
@@ -652,6 +653,7 @@ function buatUlangiStatement(iteratorName, source, body, kind, loc, docstring, r
     kind: kind,
   };
   if (rangeEnd !== undefined && rangeEnd !== null) node.rangeEnd = rangeEnd;
+  if (keyExpr !== undefined && keyExpr !== null) node.keyExpr = keyExpr;
   return node;
 }
 

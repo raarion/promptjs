@@ -59,6 +59,12 @@ const EXAMPLE_META = {
       'Showcase empat penambahan v1.2: two-way binding (`ikat`), operator string (`berisi`), parameter default komponen, dan fetch inline (`on_klik = ambil ... ke`) dengan auto loading/error.',
     tags: ['two-way binding', 'operator string', 'fetch inline', 'default param'],
   },
+  'keyed-list': {
+    title: 'Daftar Reaktif Berkunci — v1.3.0',
+    description:
+      'Reactive list rendering (K1a) + keyed diff `dengan kunci` (K1b): node DOM asli dipakai ulang saat urutan berubah — tanpa Virtual DOM. Tambah, hapus di tengah, dan kosongkan untuk melihat rekonsiliasi berkunci.',
+    tags: ['reaktivitas', 'keyed diff', 'Ulangi untuk', 'dengan kunci'],
+  },
   todo: {
     title: 'Todo List',
     description:

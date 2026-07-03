@@ -47,5 +47,17 @@ module.exports = [
       },
     },
   },
+  {
+    // Benchmarks are standalone ES modules (.mjs) run via `node bench/*.mjs`
+    // in a Node + jsdom context; they are NOT part of the test suite.
+    files: ['bench/**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+  },
   prettier,
 ];

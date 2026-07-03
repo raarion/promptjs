@@ -1121,8 +1121,105 @@ function install(PromptJSCompiler, accept) {
       accept(node.body, this);
       this.indent--;
       this.emit(`}`);
+    } else if (node.sourceReactive && node.source && node.source.type === 'Identifier') {
+      // Reactive list render over `ulangi item dari <reactive>:`.
+      //
+      //   - WITHOUT `dengan kunci`  → K1a full re-render (non-keyed).
+      //   - WITH    `dengan kunci`  → K1b keyed diff (Opsi B, Map<key,node>),
+      //                               reusing/reordering the REAL DOM nodes
+      //                               (no vDOM). The keyword is "honest": its
+      //                               presence genuinely changes behavior.
+      //
+      // Shared plumbing:
+      //   1. a <span> marker owns all list children (siblings stay untouched)
+      //   2. __watch(proxy, ...) drives re-render on change
+      //   3. in SPA mode the unsub is registered via __cleanupFns.push (C-1:
+      //      per-watcher teardown via unsub, NOT the destructive __cleanup)
+      this.helpers.add('__watch');
+
+      // __watch needs the PROXY (bare name), while lowerExpression() unwraps a
+      // reactive identifier to `<name>.value`. Use the identifier name directly.
+      const proxy = node.source.name;
+      const keyed = !!node.keyExpr;
+
+      const markerVar = this.genVar('lmarker');
+      this.emit(`const ${markerVar} = document.createElement("span");`);
+      this.emit(`${markerVar}.className = "__promptjs_list_marker";`);
+      if (this.currentParent) {
+        this.emit(`${this.currentParent}.appendChild(${markerVar});`);
+      } else if (this.isSPA && this._spaPageRoot) {
+        this.emit(`${this._spaPageRoot}.appendChild(${markerVar});`);
+      } else {
+        this.emit(`document.body.appendChild(${markerVar});`);
+      }
+
+      if (this.isSPA) {
+        this.emit(`__cleanupFns.push(__watch(${proxy}, (__list) => {`);
+      } else {
+        this.emit(`__watch(${proxy}, (__list) => {`);
+      }
+      this.indent++;
+
+      if (keyed) {
+        // ── K1b: keyed diff ────────────────────────────────────────────────
+        // Lower the key expression with the iterator bound to `item`. It runs
+        // inside keyFn(item, indeks), so `item`/`indeks` are in scope.
+        this.helpers.add('__keyedList');
+        const keyCode = this.lowerExpression(node.keyExpr);
+        this.emit(
+          `__keyedList(${markerVar}, __list, (${node.iteratorName}, indeks) => (${keyCode}), (${node.iteratorName}, indeks) => {`
+        );
+        this.indent++;
+        // Each item renders into its OWN wrapper node so keyed identity maps
+        // 1:1 to a DOM node the reconciler can reuse / reorder / remove.
+        const itemVar = this.genVar('kitem');
+        this.emit(`const ${itemVar} = document.createElement("span");`);
+        this.emit(`${itemVar}.className = "__promptjs_keyed_item";`);
+
+        const prevParentK = this.currentParent;
+        this.currentParent = itemVar;
+        const prevInBuatK = this._inBuatBody;
+        this._inBuatBody = true;
+        accept(node.body, this);
+        this._inBuatBody = prevInBuatK;
+        this.currentParent = prevParentK;
+
+        this.emit(`return ${itemVar};`);
+        this.indent--;
+        this.emit('});');
+      } else {
+        // ── K1a: full re-render (non-keyed) ────────────────────────────────
+        // C-5: consistent DOM clear via replaceChildren() (no innerHTML).
+        this.emit(`${markerVar}.replaceChildren();`);
+        // Guard: only iterate real arrays; non-array / null / empty ⇒ empty.
+        this.emit(`if (Array.isArray(__list)) {`);
+        this.indent++;
+        this.emit(`__list.forEach((${node.iteratorName}, indeks) => {`);
+        this.indent++;
+
+        // Render children into the marker (nested loops nest their own markers).
+        const prevParent = this.currentParent;
+        this.currentParent = markerVar;
+        const prevInBuat = this._inBuatBody;
+        this._inBuatBody = true;
+        accept(node.body, this);
+        this._inBuatBody = prevInBuat;
+        this.currentParent = prevParent;
+
+        this.indent--;
+        this.emit('});');
+        this.indent--;
+        this.emit('}');
+      }
+
+      this.indent--;
+      if (this.isSPA) {
+        this.emit('}));');
+      } else {
+        this.emit('});');
+      }
     } else {
-      // "ulangi item dari sumber:" → forEach
+      // "ulangi item dari sumber:" → forEach (non-reactive: render once)
       this.emit(`${source}.forEach((${node.iteratorName}, indeks) => {`);
       this.indent++;
       accept(node.body, this);
