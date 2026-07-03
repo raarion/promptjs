@@ -5,6 +5,47 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — DRAFT v1.3.1 — FLIP List Transitions (K2)
+
+> **Status: DRAFT release notes** — belum di-tag/rilis. Milestone K2 (#2) di branch
+> `feat/list-transitions`. Menambah animasi FLIP (enter/leave/move) opt-in di atas
+> keyed reconciler K1b. Prinsip inti dipertahankan sepenuhnya: **NO Virtual DOM,
+> zero `eval()`, zero `new Function()`, CSP-safe**. Kontrak v1.0–v1.3.0 tidak
+> berubah; nol regresi dari baseline **1017** (K2a, branch).
+
+### Added
+
+- **K2a — FLIP list transitions (`dengan transisi <nama>`)** (#52). Animasi
+  **FLIP** (First/Last/Invert/Play) opt-in di atas keyed reconciler K1b via helper
+  `__flipList`. Sintaks: `Ulangi untuk item dari $daftar dengan kunci item.id dengan
+  transisi fade:`. Tanpa modifier ini, perilaku K1b tidak berubah sama sekali
+  (**keyword jujur**). Mekanik: ukur posisi sebelum rekonsiliasi (First), jalankan
+  K1b (Last), terapkan `transform` instan (Invert), hapus transform via CSS
+  transition (Play). Kelas `<nama>-enter` / `<nama>-leave` / `<nama>-move`
+  ditambah/dihapus otomatis; nama kelas konfigurable. **`prefers-reduced-motion`
+  dihormati**: animasi dilewati, DOM tetap benar. Edge case: interupsi mutasi cepat
+  (listener `{once:true}` + safety timeout), leave-before-remove (node tetap di DOM
+  sampai `transitionend`), identitas node terjaga (node DOM yang sama, bukan
+  dibuat ulang), SPA navigate-away cleanup via `__cleanupFns`. **CSP-safe**: animasi
+  via class CSS + `style.transform`, zero eval, zero `new Function()`. Bundle delta:
+  **+1289 B gzip** (keyed+transisi vs keyed-only, diukur dari output `pages:build`).
+  (20 regression test — parse + emit + runtime JSDOM)
+- **K2b — Dokumentasi, showcase & catatan rilis** (#53). Bagian "Transisi Daftar
+  (FLIP)" di `reactivity.md` (sintaks opt-in, mekanik FLIP, tabel kelas CSS +
+  contoh, catatan transisi butuh kunci, prefers-reduced-motion, edge case, penegasan
+  no-vDOM/CSP-safe, `__flipList` di tabel helper tree-shake), entri di
+  `syntax-reference.md`, example showcase `examples/list-transitions.pjs`
+  (di-compile `scripts/build-pages.js`, **9 example** total), plus test doc-sync
+  agar snippet tak pernah drift. (8 regression test)
+
+### Notes
+
+- **Prinsip inti tetap:** FLIP transitions bekerja murni atas DOM nyata — no vDOM,
+  zero eval, zero `new Function()`, CSP-safe.
+- Nol regresi: suite bertumbuh 1017 (K2a, branch) → **1025** (K2b, +8 test K2b).
+- Bundle delta K2a: **+1289 B gzip** (keyed+transisi vs keyed-only).
+- Jumlah example: **9** (tambah `list-transitions`).
+
 ## [1.3.0] — Unreleased (DRAFT) — Reactive & Keyed Lists (K1)
 
 > **Status: DRAFT release notes** — belum di-tag/rilis. Milestone K1 (#1) di branch `feat/keyed-list`. Menambah rendering daftar reaktif dan diff berkunci **Opsi B** (`Map<kunci,node>`) langsung di atas node DOM asli. Prinsip inti dipertahankan sepenuhnya: **NO Virtual DOM, zero `eval()`, zero `new Function()`**. Kontrak v1.0–v1.2 tidak berubah; nol regresi dari baseline **951** (main).

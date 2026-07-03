@@ -711,6 +711,45 @@ PromptJSParser.prototype._tryParseDenganKunci = function () {
   return null;
 };
 
+/**
+ * K2a list transitions: optionally parse a `dengan transisi <name>` suffix on a
+ * keyed iteration loop, right before the trailing `:`.
+ *
+ * Like `dengan kunci`, the words `dengan` / `transisi` are NOT reserved — they
+ * lex as plain IDENT — so we peek for the exact two-identifier sequence and only
+ * then consume + read the transition name. Anything else is left untouched (no
+ * false positives). This is another "honest keyword": its presence genuinely
+ * switches the emitter to FLIP-wrapped reconciliation; its absence keeps the
+ * K1b keyed behavior byte-for-byte.
+ *
+ * The `<name>` is a simple identifier or string literal (a CSS class prefix),
+ * NOT a full expression — transition names are static styling hooks, so keeping
+ * them literal avoids ambiguity and keeps the emit CSP-safe (no dynamic eval).
+ *
+ * @returns {string | null} the transition name, or null if absent
+ */
+PromptJSParser.prototype._tryParseDenganTransisi = function () {
+  const t0 = this._peek();
+  const t1 = this._peekAt(1);
+  if (
+    t0.type === TT.TK_IDENT &&
+    t0.value === 'dengan' &&
+    t1.type === TT.TK_IDENT &&
+    t1.value === 'transisi'
+  ) {
+    this._advance(); // consume `dengan`
+    this._advance(); // consume `transisi`
+    const nameTok = this._peek();
+    if (nameTok.type === TT.TK_IDENT || nameTok.type === TT.TK_STRING) {
+      this._advance();
+      return String(nameTok.value);
+    }
+    // `dengan transisi` with no readable name → default hook name.
+    return 'pjs';
+  }
+  return null;
+};
+
 PromptJSParser.prototype._parseUlangiStatement = function () {
   const startTok = this._advance(); // consume Ulangi/Loop
 
@@ -753,8 +792,10 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
         );
       }
 
-      // Regular iteration: "Ulangi i in items:" (optional `dengan kunci <expr>`)
+      // Regular iteration: "Ulangi i in items:" (optional `dengan kunci <expr>`
+      // then optional `dengan transisi <name>` — transitions require a key).
       const iterKeyExpr = this._tryParseDenganKunci();
+      const iterTransition = this._tryParseDenganTransisi();
       this._expect(TT.TK_COLON, 'Expected ":" after loop source');
       const iterLoc = this._makeLoc(startTok);
       const iterBody = this._parseBlock();
@@ -766,7 +807,8 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
         iterLoc,
         null,
         null,
-        iterKeyExpr
+        iterKeyExpr,
+        iterTransition
       );
     }
 
@@ -837,8 +879,10 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
     );
   }
 
-  // Optional keyed diff suffix: "... dengan kunci <expr>:" (K1b)
+  // Optional keyed diff suffix: "... dengan kunci <expr>:" (K1b), then optional
+  // transition suffix "... dengan transisi <name>:" (K2a — requires a key).
   const keyExpr = this._tryParseDenganKunci();
+  const transitionName = this._tryParseDenganTransisi();
 
   // Expect colon
   this._expect(TT.TK_COLON, 'Expected ":" after loop source');
@@ -848,7 +892,17 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
   // Parse body block
   const body = this._parseBlock();
 
-  return AST.buatUlangiStatement(iteratorName, source, body, 'dari', loc, null, null, keyExpr);
+  return AST.buatUlangiStatement(
+    iteratorName,
+    source,
+    body,
+    'dari',
+    loc,
+    null,
+    null,
+    keyExpr,
+    transitionName
+  );
 };
 
 // --- Pass Statement ---

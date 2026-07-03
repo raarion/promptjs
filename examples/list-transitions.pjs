@@ -1,0 +1,30 @@
+---
+title: Transisi Daftar FLIP — v1.3.1
+description: Demo FLIP transitions (enter/leave/move) pada keyed list. Tambah item (enter), hapus item (leave), acak urutan (move) — semua via CSS class, tanpa vDOM, zero eval.
+---
+
+Halaman DemoTransisi:
+    data items = []
+    data idCounter = 0
+    data inputNama = ""
+
+    Buat div .demo-controls:
+        Buat masukan #inputNama .input-nama:
+            ikat = inputNama
+        Buat tombol #btnTambah .btn-tambah: "Tambah"
+            Ketika diklik:
+                Jika panjang(inputNama) > 0:
+                    tambahkan { id: idCounter, label: inputNama } ke items
+                    simpan idCounter + 1 ke idCounter
+                    simpan "" ke inputNama
+        Buat tombol #btnAcak .btn-acak: "Acak Urutan"
+            Ketika diklik:
+                simpan items ke items
+
+    Buat ul #daftar .daftar-transisi:
+        Ulangi untuk item dari $items dengan kunci item.id dengan transisi fade:
+            Buat li .item-baris:
+                Buat span .item-label: item.label
+                Buat tombol .btn-hapus: "×"
+                    Ketika diklik:
+                        simpan items ke items

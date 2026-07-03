@@ -65,6 +65,12 @@ const EXAMPLE_META = {
       'Reactive list rendering (K1a) + keyed diff `dengan kunci` (K1b): node DOM asli dipakai ulang saat urutan berubah — tanpa Virtual DOM. Tambah, hapus di tengah, dan kosongkan untuk melihat rekonsiliasi berkunci.',
     tags: ['reaktivitas', 'keyed diff', 'Ulangi untuk', 'dengan kunci'],
   },
+  'list-transitions': {
+    title: 'Transisi Daftar FLIP — v1.3.1',
+    description:
+      'FLIP transitions (enter/leave/move) opt-in via `dengan transisi <nama>` di atas keyed list. Tambah item (enter), hapus item (leave), acak urutan (move) — animasi via CSS class, tanpa vDOM, zero eval, CSP-safe.',
+    tags: ['FLIP', 'transisi', 'dengan transisi', 'keyed diff', 'animasi'],
+  },
   todo: {
     title: 'Todo List',
     description:

@@ -118,6 +118,12 @@ Ulangi untuk item dari $daftar:
 Ulangi untuk item dari $daftar dengan kunci item.id:
     Buat li: item.label
 
+# Loop berkunci + FLIP transitions (v1.3.1) — opt-in; tanpa modifier ini = K1b apa adanya
+# Kelas CSS fade-enter / fade-leave / fade-move ditambah/dihapus otomatis oleh runtime
+# prefers-reduced-motion dihormati: animasi dilewati, DOM tetap benar
+Ulangi untuk item dari $daftar dengan kunci item.id dengan transisi fade:
+    Buat li: item.label
+
 # Loop N kali
 Ulangi 5 kali:
     Buat span: "Item"
