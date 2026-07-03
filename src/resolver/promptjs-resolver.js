@@ -1150,6 +1150,14 @@ PromptJSResolver.prototype.visitUlangiStatement = function (node) {
     this.addSymbol(node.iteratorName, 'ubah', node, { isWritable: false });
   }
 
+  // K1b: the `dengan kunci <expr>` key expression is evaluated per item, so it
+  // resolves inside the iterasi scope (it may reference the iterator, e.g.
+  // `dengan kunci item.id`). Only meaningful for the reactive iteration form;
+  // for a non-reactive source it is a harmless no-op flag (fallback to K1a).
+  if (node.keyExpr) {
+    accept(node.keyExpr, this);
+  }
+
   accept(node.body, this);
   this.currentScope = prevScope;
 };

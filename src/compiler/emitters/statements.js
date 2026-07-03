@@ -1122,13 +1122,17 @@ function install(PromptJSCompiler, accept) {
       this.indent--;
       this.emit(`}`);
     } else if (node.sourceReactive && node.source && node.source.type === 'Identifier') {
-      // K1a: "ulangi item dari <reactive>:" → reactive list render.
+      // Reactive list render over `ulangi item dari <reactive>:`.
       //
-      // Foundation (NON-keyed): re-render the WHOLE list whenever the source
-      // array changes. Keyed diff (Opsi B, `dengan kunci`) is K1b/#49 — out of
-      // scope here. We mirror the proven visitSaatStatement marker idiom:
+      //   - WITHOUT `dengan kunci`  → K1a full re-render (non-keyed).
+      //   - WITH    `dengan kunci`  → K1b keyed diff (Opsi B, Map<key,node>),
+      //                               reusing/reordering the REAL DOM nodes
+      //                               (no vDOM). The keyword is "honest": its
+      //                               presence genuinely changes behavior.
+      //
+      // Shared plumbing:
       //   1. a <span> marker owns all list children (siblings stay untouched)
-      //   2. __watch(proxy, ...) re-renders on change
+      //   2. __watch(proxy, ...) drives re-render on change
       //   3. in SPA mode the unsub is registered via __cleanupFns.push (C-1:
       //      per-watcher teardown via unsub, NOT the destructive __cleanup)
       this.helpers.add('__watch');
@@ -1136,6 +1140,7 @@ function install(PromptJSCompiler, accept) {
       // __watch needs the PROXY (bare name), while lowerExpression() unwraps a
       // reactive identifier to `<name>.value`. Use the identifier name directly.
       const proxy = node.source.name;
+      const keyed = !!node.keyExpr;
 
       const markerVar = this.genVar('lmarker');
       this.emit(`const ${markerVar} = document.createElement("span");`);
@@ -1154,27 +1159,59 @@ function install(PromptJSCompiler, accept) {
         this.emit(`__watch(${proxy}, (__list) => {`);
       }
       this.indent++;
-      // C-5: consistent DOM clear via replaceChildren() (no innerHTML).
-      this.emit(`${markerVar}.replaceChildren();`);
-      // Guard: only iterate real arrays; non-array / null / empty ⇒ empty render.
-      this.emit(`if (Array.isArray(__list)) {`);
-      this.indent++;
-      this.emit(`__list.forEach((${node.iteratorName}, indeks) => {`);
-      this.indent++;
 
-      // Render children into the marker (nested loops nest their own markers).
-      const prevParent = this.currentParent;
-      this.currentParent = markerVar;
-      const prevInBuat = this._inBuatBody;
-      this._inBuatBody = true;
-      accept(node.body, this);
-      this._inBuatBody = prevInBuat;
-      this.currentParent = prevParent;
+      if (keyed) {
+        // ── K1b: keyed diff ────────────────────────────────────────────────
+        // Lower the key expression with the iterator bound to `item`. It runs
+        // inside keyFn(item, indeks), so `item`/`indeks` are in scope.
+        this.helpers.add('__keyedList');
+        const keyCode = this.lowerExpression(node.keyExpr);
+        this.emit(
+          `__keyedList(${markerVar}, __list, (${node.iteratorName}, indeks) => (${keyCode}), (${node.iteratorName}, indeks) => {`
+        );
+        this.indent++;
+        // Each item renders into its OWN wrapper node so keyed identity maps
+        // 1:1 to a DOM node the reconciler can reuse / reorder / remove.
+        const itemVar = this.genVar('kitem');
+        this.emit(`const ${itemVar} = document.createElement("span");`);
+        this.emit(`${itemVar}.className = "__promptjs_keyed_item";`);
 
-      this.indent--;
-      this.emit('});');
-      this.indent--;
-      this.emit('}');
+        const prevParentK = this.currentParent;
+        this.currentParent = itemVar;
+        const prevInBuatK = this._inBuatBody;
+        this._inBuatBody = true;
+        accept(node.body, this);
+        this._inBuatBody = prevInBuatK;
+        this.currentParent = prevParentK;
+
+        this.emit(`return ${itemVar};`);
+        this.indent--;
+        this.emit('});');
+      } else {
+        // ── K1a: full re-render (non-keyed) ────────────────────────────────
+        // C-5: consistent DOM clear via replaceChildren() (no innerHTML).
+        this.emit(`${markerVar}.replaceChildren();`);
+        // Guard: only iterate real arrays; non-array / null / empty ⇒ empty.
+        this.emit(`if (Array.isArray(__list)) {`);
+        this.indent++;
+        this.emit(`__list.forEach((${node.iteratorName}, indeks) => {`);
+        this.indent++;
+
+        // Render children into the marker (nested loops nest their own markers).
+        const prevParent = this.currentParent;
+        this.currentParent = markerVar;
+        const prevInBuat = this._inBuatBody;
+        this._inBuatBody = true;
+        accept(node.body, this);
+        this._inBuatBody = prevInBuat;
+        this.currentParent = prevParent;
+
+        this.indent--;
+        this.emit('});');
+        this.indent--;
+        this.emit('}');
+      }
+
       this.indent--;
       if (this.isSPA) {
         this.emit('}));');
