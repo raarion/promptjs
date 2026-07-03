@@ -18,7 +18,7 @@ PromptJS uses a 5-digit error/warning code system. Total of 86 codes: 67 errors 
 | E3xxx / W3xxx | Resolver | 5E + 3W = 8 |
 | E4xxx / W4xxx | Analyzer | 15E + 8W = 23 |
 | E5xxx / W5xxx | Compiler | 5E + 2W = 7 |
-| E6xxx / W6xxx | Runtime | 4E + 0W = 4 |
+| E6xxx / W6xxx | Runtime | 4E + 3W = 7 |
 | E0xxx / W0xxx | System | 1E + 1W = 2 |
 
 **Format output / Output format:**
