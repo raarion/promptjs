@@ -5,20 +5,20 @@
 
 ---
 
-PromptJS menggunakan sistem kode error/warning 5 digit. Total 86 kode: 67 error (`E`) dan 19 warning (`W`). Setiap kode dikaitkan dengan tahap kompilasi.
+PromptJS menggunakan sistem kode error/warning 5 digit. Total 88 kode: 69 error (`E`) dan 19 warning (`W`). Setiap kode dikaitkan dengan tahap kompilasi.
 
-PromptJS uses a 5-digit error/warning code system. Total of 86 codes: 67 errors (`E`) and 19 warnings (`W`). Each code is associated with a compilation stage.
+PromptJS uses a 5-digit error/warning code system. Total of 88 codes: 69 errors (`E`) and 19 warnings (`W`). Each code is associated with a compilation stage.
 
 **Konvensi penomoran / Numbering convention:**
 
 | Rentang / Range | Tahap / Stage | Jumlah / Count |
 |----------------|---------------|----------------|
-| E1xxx / W1xxx | Lexer | 9E + 1W = 10 |
-| E2xxx / W2xxx | Parser | 28E + 4W = 32 |
+| E1xxx / W1xxx | Lexer | 10E + 1W = 11 |
+| E2xxx / W2xxx | Parser | 29E + 4W = 33 |
 | E3xxx / W3xxx | Resolver | 5E + 3W = 8 |
 | E4xxx / W4xxx | Analyzer | 15E + 8W = 23 |
 | E5xxx / W5xxx | Compiler | 5E + 2W = 7 |
-| E6xxx / W6xxx | Runtime | 4E + 3W = 7 |
+| E6xxx / W6xxx | Runtime | 4E + 0W = 4 |
 | E0xxx / W0xxx | System | 1E + 1W = 2 |
 
 **Format output / Output format:**
