@@ -5,6 +5,52 @@ All notable changes to PromptJS are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — Unreleased (DRAFT) — Reactive & Keyed Lists (K1)
+
+> **Status: DRAFT release notes** — belum di-tag/rilis. Milestone K1 (#1) di branch `feat/keyed-list`. Menambah rendering daftar reaktif dan diff berkunci **Opsi B** (`Map<kunci,node>`) langsung di atas node DOM asli. Prinsip inti dipertahankan sepenuhnya: **NO Virtual DOM, zero `eval()`, zero `new Function()`**. Kontrak v1.0–v1.2 tidak berubah; nol regresi dari baseline **951** (main).
+
+### Added
+
+- **K1a — Daftar reaktif (`Ulangi untuk … dari <sumber>:`)** (#48). Bila sumber
+  loop **reaktif** (`data`/`turunan`), daftar **dirender ulang otomatis** saat
+  array berubah: render dibungkus `__watch(<proxy>, …)`, marker dibersihkan via
+  `replaceChildren()` (C-5), dengan guard `Array.isArray` (non-array/`null`/kosong
+  → render kosong tanpa error). Sumber **non-reaktif** (`tetap`/`ubah`/literal)
+  tetap `forEach` sekali jalan (tanpa `__watch`, tanpa overhead). Reuse sinyal
+  reaktivitas yang sudah ada (`fromArrayReactive`/`isReactive`, C-3). Nested loop
+  didukung; two-way binding dalam item tetap berfungsi. (13 regression test)
+- **K1b — Diff berkunci `dengan kunci <expr>`** (#49). Rekonsiliasi berkunci
+  **Opsi B** atas node DOM asli via helper `__keyedList` (`Map<kunci,node>`):
+  node dengan kunci sama **dipakai ulang** & ditata ulang (`insertBefore` reverse
+  O(n); LIS ditunda), node baru dirender, node yang kuncinya hilang dihapus.
+  Kunci duplikat di-disambiguasi `` `${kunci}__${indeks}` ``; guard non-array &
+  array kosong. **Keyword jujur**: `dengan kunci` benar-benar mengaktifkan keyed
+  diff; tanpanya fallback ke render-ulang penuh K1a. (18 regression test)
+- **K1c — Uji integritas & guard sinyal reaktivitas** (#50). Menegaskan invariant
+  yang menjaga fitur tetap jujur & bebas bocor: keyword jujur (emit + identitas
+  node runtime), C-3 (sumber non-reaktif tidak memakai `__watch`/`__keyedList`),
+  dan **C-1 diperkuat** — teardown watcher daftar via `unsub` (`__cleanupFns.push`),
+  **bukan** `__cleanup(sumber)` yang destruktif; watcher sibling (multi/berulang/
+  nested) pada sumber sama tidak ikut mati. (10 regression test)
+- **K1d — Dokumentasi, showcase & catatan rilis** (#51). Bagian "Daftar Reaktif &
+  Keyed Diff" di `reactivity.md` (sintaks, kapan keyed vs non-keyed, edge case,
+  penegasan no-vDOM, tabel helper diperbarui), entri di `syntax-reference.md`,
+  example showcase `examples/keyed-list.pjs` (di-compile `scripts/build-pages.js`),
+  plus test docs/showcase-sync agar snippet tak pernah drift. (5 regression test)
+
+### Benchmark
+
+- `bench/reactive-list.bench.mjs` — baseline render/re-render 100 & 1000 item.
+  Target #47 terpenuhi: 100 item ≤1.5×, 1000 item ≤2× terhadap `forEach`
+  non-reaktif (bench di `bench/*.mjs`, tidak dihitung sebagai unit test).
+
+### Notes
+
+- **Prinsip inti tetap:** keyed diff bekerja murni atas DOM nyata — no vDOM,
+  zero eval, zero `new Function()`.
+- Nol regresi: suite bertumbuh 951 (main) → 997 (branch, +46 test K1a–K1d:
+  13 + 18 + 10 + 5).
+
 ## [1.2.0] — 2026-07-02 — Ergonomi Bahasa (Language Ergonomics)
 
 > Empat penambahan bahasa **backward-compatible** agar aplikasi interaktif cukup ditulis dengan `.pjs` tanpa turun ke JS vanilla. Kontrak v1.0.0/v1.1.0 tidak berubah; nol regresi.

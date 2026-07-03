@@ -190,3 +190,52 @@ describe('showcase sync v1.2 — examples/fitur-v1-2.pjs', () => {
     expect(r.errors || []).toEqual([]);
   });
 });
+
+// ─── K1d (v1.3.0): reactive list + keyed diff docs / showcase ────────────────
+describe('docs sync v1.3 — reactive list & keyed diff (reactivity.md)', () => {
+  it('reactive non-keyed loop snippet compiles', () => {
+    expect(
+      ok(
+        'Halaman P:\n    data daftar = []\n    Ulangi untuk item dari $daftar:\n        Buat teks: item.label\n'
+      )
+    ).toBe(true);
+  });
+
+  it('keyed `dengan kunci <expr>` snippet compiles and emits __keyedList', () => {
+    const r = Engine.compile(
+      'Halaman P:\n' +
+        '    data daftar = []\n' +
+        '    Ulangi untuk item dari $daftar dengan kunci item.id:\n' +
+        '        Buat teks: item.label\n'
+    );
+    expect(r.success).toBe(true);
+    expect(r.errors || []).toEqual([]);
+    // the documented keyed behaviour must actually be wired (honest keyword)
+    expect(r.js).toContain('__keyedList(');
+  });
+
+  it('syntax-reference.md keyed loop snippet compiles', () => {
+    expect(
+      ok(
+        'Halaman P:\n    data daftar = []\n    Ulangi untuk item dari $daftar dengan kunci item.id:\n        Buat li: item.label\n'
+      )
+    ).toBe(true);
+  });
+});
+
+describe('showcase sync v1.3 — examples/keyed-list.pjs', () => {
+  it('the keyed-list showcase example compiles clean', () => {
+    const src = readFileSync(resolve(__dirname, '..', 'examples', 'keyed-list.pjs'), 'utf8');
+    const r = Engine.compile(src);
+    expect(r.success).toBe(true);
+    expect(r.errors || []).toEqual([]);
+  });
+
+  it('the showcase actually exercises the keyed diff (emits __keyedList)', () => {
+    const src = readFileSync(resolve(__dirname, '..', 'examples', 'keyed-list.pjs'), 'utf8');
+    const r = Engine.compile(src);
+    expect(r.js).toContain('__keyedList(');
+    // core principle: showcase output carries zero eval / zero new Function
+    expect(r.js).not.toMatch(/\beval\(|new Function\(/);
+  });
+});

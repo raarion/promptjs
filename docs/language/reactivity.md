@@ -193,6 +193,59 @@ __setState(daftar, [...daftar.value]);
 
 ---
 
+## Daftar Reaktif & Keyed Diff / Reactive Lists & Keyed Diff (v1.3.0)
+
+Sejak v1.3.0, `Ulangi untuk … dari <sumber>:` yang bersumber pada nilai **reaktif** (`data` atau `turunan`) akan **me-render ulang daftar secara otomatis** setiap kali array berubah. Sumber **non-reaktif** (`tetap`, `ubah`, atau literal) tetap memakai `forEach` sekali jalan seperti sebelumnya — tidak ada `__watch`, tanpa overhead.
+
+Since v1.3.0, `Ulangi untuk … dari <source>:` over a **reactive** value (`data` or `turunan`) **re-renders the list automatically** whenever the array changes. A **non-reactive** source (`tetap`, `ubah`, or a literal) keeps the original one-shot `forEach` — no `__watch`, no overhead.
+
+```pjs
+data daftar = []
+Ulangi untuk item dari $daftar:
+    Buat teks: item.label
+```
+
+Jalur reaktif membungkus render dalam `__watch(daftar, …)`, membersihkan marker via `replaceChildren()`, dan menjaga guard `Array.isArray` (sumber non-array atau `null` merender kosong tanpa error). Dalam mode SPA (`router: benar`), unsub dari `__watch` didaftarkan ke `__cleanupFns` sehingga tidak bocor antar-rute.
+
+The reactive path wraps the render in `__watch(daftar, …)`, clears the marker via `replaceChildren()`, and keeps an `Array.isArray` guard (a non-array or `null` source renders empty without throwing). In SPA mode (`router: benar`), the `__watch` unsub is registered into `__cleanupFns` so it never leaks across routes.
+
+### Diff Berkunci / Keyed Diff — `dengan kunci <expr>`
+
+Tambahkan `dengan kunci <expr>` untuk mengaktifkan **rekonsiliasi berkunci** (Opsi B) di atas **node DOM asli** — **tanpa Virtual DOM**. Setiap item dipetakan `Map<kunci, node>`; saat array berubah, node yang kuncinya sama **dipakai ulang** (di-`insertBefore` untuk menata ulang), node baru dirender, node yang kuncinya hilang dihapus. Ini menjaga identitas DOM (fokus input, state scroll, animasi) tetap stabil saat urutan berubah.
+
+Add `dengan kunci <expr>` to switch on **keyed reconciliation** (Opsi B) over the **real DOM nodes** — **no Virtual DOM**. Each item is mapped in a `Map<key, node>`; when the array changes, nodes with an unchanged key are **reused** (reordered via `insertBefore`), new nodes are rendered, and nodes whose key disappeared are removed. This keeps DOM identity (input focus, scroll state, animations) stable across reordering.
+
+```pjs
+data daftar = []
+Ulangi untuk item dari $daftar dengan kunci item.id:
+    Buat teks: item.label
+```
+
+> **Keyword jujur / Honest keyword.** `dengan kunci` **benar-benar** mengubah perilaku menjadi keyed diff (node dipakai ulang saat urutan berubah). **Tanpa** `dengan kunci`, loop reaktif memakai render-ulang penuh (K1a) — kata kunci tidak pernah "bohong". · `dengan kunci` genuinely switches to the keyed diff (nodes are reused on reorder). **Without** it, the reactive loop uses a full re-render (K1a) — the keyword never lies.
+
+**Kapan pakai yang mana / When to use which:**
+
+| Situasi / Situation | Rekomendasi / Recommendation |
+| --- | --- |
+| Daftar statis / jarang berubah · static / rarely-changing list | Non-keyed (`Ulangi untuk …`) — paling ringan |
+| Sumber reaktif tetapi append-only · reactive, append-only | Non-keyed reaktif — cukup |
+| Reorder / insert / remove di tengah · reorder / insert / remove in the middle | **Keyed** (`dengan kunci`) — jaga identitas node |
+| Item berisi input / fokus / animasi · items hold input / focus / animation | **Keyed** — hindari kehilangan state saat urutan berubah |
+
+**Edge case yang ditangani / Handled edge cases:**
+
+- **Kunci duplikat / duplicate keys** → di-disambiguasi sebagai `` `${kunci}__${indeks}` `` sehingga tiap item punya slot stabil.
+- **Array kosong / empty array** → marker dibersihkan (0 anak).
+- **Non-array guard** → `null`/objek/angka merender kosong tanpa error (`Array.isArray`).
+- **Nested loop** → tiap level punya marker + `__keyedList` sendiri.
+- **Two-way binding di dalam item** → tetap berfungsi; `__setState` terpasang per item.
+
+> **C-1 (teardown aman / safe teardown).** Watcher daftar dibersihkan lewat `unsub` yang dikembalikan `__watch` (didaftarkan via `__cleanupFns.push`), **bukan** `__cleanup(sumber)` yang destruktif. Dengan begitu, membongkar satu daftar **tidak mematikan** watcher lain (mis. `Saat`) pada sumber yang sama. · The list watcher is torn down through the `unsub` returned by `__watch` (registered via `__cleanupFns.push`), **not** the destructive `__cleanup(source)` — so unmounting one list never kills a sibling watcher (e.g. a `Saat`) on the same source.
+
+**Prinsip inti tetap / Core principles preserved:** keyed diff bekerja murni atas node DOM nyata — **NO vDOM, zero `eval()`, zero `new Function()`**. Reorder memakai `insertBefore` reverse O(n) sederhana (LIS ditunda hingga benchmark menuntut). · the keyed diff works purely over real DOM nodes — **NO vDOM, zero `eval()`, zero `new Function()`**. Reordering uses a simple reverse O(n) `insertBefore` (LIS deferred until a benchmark demands it).
+
+---
+
 ## Tree-Shaking Runtime Helpers / Helper yang Di-Tree-Shake
 
 Compiler mempertahankan Set `helpers` selama traversal AST. Setiap visitor menambahkan nama helper yang dipakai. `emitRuntimeHelpers()` hanya memancang helper yang ada di Set.
@@ -203,7 +256,8 @@ The compiler maintains a `helpers` Set during AST traversal. Each visitor adds t
 |--------|---------------------------|-------------------|
 | `__createReactive` | Deklarasi `data` | Proxy wrapper dengan subscriber tracking |
 | `__createComputed` | Deklarasi `turunan` | Computed effect yang auto-subscribe ke deps |
-| `__watch` | Statement `Saat` | Manual watcher subscription |
+| `__watch` | Statement `Saat`, daftar reaktif `Ulangi untuk` | Manual watcher subscription (re-render daftar / list re-render) |
+| `__keyedList` | `Ulangi untuk … dengan kunci` | Keyed diff `Map<kunci,node>` atas DOM asli (Opsi B, no vDOM) |
 | `__setState` | `simpan` ke variabel reaktif, mutasi array | Trigger reactive update pada Proxy |
 | `__cleanup` | Internal | Unsubscribe semua dependency reactive |
 | `__pjs_handleError` | Event handler `Ketika` | Error boundary: console.error + clear overlay |

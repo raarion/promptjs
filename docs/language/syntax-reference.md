@@ -114,6 +114,10 @@ selain itu:
 Ulangi untuk item dari $daftar:
     Buat li: $item
 
+# Loop array reaktif berkunci (v1.3.0) — keyed diff atas node DOM asli (no vDOM)
+Ulangi untuk item dari $daftar dengan kunci item.id:
+    Buat li: item.label
+
 # Loop N kali
 Ulangi 5 kali:
     Buat span: "Item"
