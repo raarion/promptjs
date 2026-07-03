@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * PromptJS v1.2.0 — CLI Entry Point / Titik Masuk CLI
+ * PromptJS v1.3.1 — CLI Entry Point / Titik Masuk CLI
  * ============================================================================
  *
  * Entry point untuk `pjs` CLI. Parse argv, dispatch ke sub-command
@@ -17,14 +17,14 @@ const path = require('path');
 /**
  * Dapatkan versi PromptJS dari `package.json`.
  *
- * @returns {string} String versi (mis. `'1.0.0'`)
+ * @returns {string} String versi (mis. `'1.3.1'`)
  */
 function getVersion() {
   try {
     const pkg = require(path.resolve(__dirname, '../../package.json'));
-    return pkg.version || '1.0.0';
+    return pkg.version || '1.3.1';
   } catch {
-    return '1.0.0';
+    return '1.3.1';
   }
 }
 

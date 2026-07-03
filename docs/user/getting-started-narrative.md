@@ -66,9 +66,9 @@ Note: the npm package name is `prompt-js` (with a hyphen), but the command you r
 pjs version
 ```
 
-Kalau terminal membalas `PromptJS v1.2.0`, kamu sudah resmi siap. Kalau belum, halaman [Installation](installation.md) punya bagian *Troubleshooting* untuk dua masalah paling umum: `pjs: command not found` dan versi Node yang terlalu lama.
+Kalau terminal membalas `PromptJS v1.3.1`, kamu sudah resmi siap. Kalau belum, halaman [Installation](installation.md) punya bagian *Troubleshooting* untuk dua masalah paling umum: `pjs: command not found` dan versi Node yang terlalu lama.
 
-If the terminal replies `PromptJS v1.2.0`, you are officially ready. If not, the [Installation](installation.md) page has a *Troubleshooting* section for the two most common issues: `pjs: command not found` and an outdated Node version.
+If the terminal replies `PromptJS v1.3.1`, you are officially ready. If not, the [Installation](installation.md) page has a *Troubleshooting* section for the two most common issues: `pjs: command not found` and an outdated Node version.
 
 ### Perhentian 3 — Lima Menit Pertama / Stop 3 — Your First Five Minutes
 

@@ -162,7 +162,7 @@ if (typeof document !== 'undefined') {
 if (typeof window !== 'undefined') {
   window.PromptJS = {
     compile: PromptJS.compile,
-    version: '1.0.0',
+    version: '1.3.1',
   };
 }
 

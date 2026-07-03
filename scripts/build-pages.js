@@ -172,9 +172,9 @@ function getExampleOutputName(filePath) {
 function getVersion() {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf-8'));
-    return pkg.version || '0.3.0';
+    return pkg.version || '1.3.1';
   } catch {
-    return '0.3.0';
+    return '1.3.1';
   }
 }
 

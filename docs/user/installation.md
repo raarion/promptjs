@@ -85,7 +85,7 @@ pjs version
 Output yang diharapkan / Expected output:
 
 ```
-PromptJS v1.2.0
+PromptJS v1.3.1
 ```
 
 Perintah `pjs help` menampilkan daftar lengkap semua command dan opsi yang tersedia.

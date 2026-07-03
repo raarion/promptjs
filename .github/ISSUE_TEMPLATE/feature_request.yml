@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the idea! PromptJS v1.0.0 has an intentionally bounded scope
+        Thanks for the idea! PromptJS v1.x has an intentionally bounded scope
         (see the README "Capabilities" section). Please explain the problem
         before the solution so we can evaluate fit.
   - type: textarea

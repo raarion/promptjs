@@ -1,6 +1,6 @@
 ---
 judul: "PromptJS Command Reference"
-versi: "v1.1.1"
+versi: "v1.3.1"
 placeholderCari: "Cari command... (misal: build, test, lint, audit)"
 ---
 
@@ -616,17 +616,17 @@ Halaman Utama:
                     Buat span.cat-count: "npm version"
                 Buat div.cmd-row:
                     Buat code.cmd-code: "npm version patch"
-                    Buat span.cmd-desc: "Bump patch: 1.1.1 → 1.1.2"
+                    Buat span.cmd-desc: "Bump patch: 1.3.1 → 1.3.2"
                     Buat tombol.copy-btn: "📋"
                         on_klik = navigator.clipboard.writeText("npm version patch")
                 Buat div.cmd-row:
                     Buat code.cmd-code: "npm version minor"
-                    Buat span.cmd-desc: "Bump minor: 1.1.1 → 1.2.0"
+                    Buat span.cmd-desc: "Bump minor: 1.3.1 → 1.4.0"
                     Buat tombol.copy-btn: "📋"
                         on_klik = navigator.clipboard.writeText("npm version minor")
                 Buat div.cmd-row:
                     Buat code.cmd-code: "npm version major"
-                    Buat span.cmd-desc: "Bump major: 1.1.1 → 2.0.0"
+                    Buat span.cmd-desc: "Bump major: 1.3.1 → 2.0.0"
                     Buat tombol.copy-btn: "📋"
                         on_klik = navigator.clipboard.writeText("npm version major")
                 Buat div.cmd-row:
@@ -635,10 +635,10 @@ Halaman Utama:
                     Buat tombol.copy-btn: "📋"
                         on_klik = navigator.clipboard.writeText("npm version 1.2.3")
                 Buat div.cmd-row:
-                    Buat code.cmd-code: "git tag -a v1.1.1 -m \"Release v1.1.1\""
+                    Buat code.cmd-code: "git tag -a v1.3.1 -m \"Release v1.3.1\""
                     Buat span.cmd-desc: "Buat Git tag"
                     Buat tombol.copy-btn: "📋"
-                        on_klik = navigator.clipboard.writeText("git tag -a v1.1.1 -m \"Release v1.1.1\"")
+                        on_klik = navigator.clipboard.writeText("git tag -a v1.3.1 -m \"Release v1.3.1\"")
                 Buat div.cmd-row:
                     Buat code.cmd-code: "npm publish --access public"
                     Buat span.cmd-desc: "Publish ke npm registry"

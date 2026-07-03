@@ -8,7 +8,7 @@
 
   <p>
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
+    <img alt="Version" src="https://img.shields.io/badge/version-1.3.1-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
     <img alt="Tests" src="https://img.shields.io/badge/tests-1025%20passing-fdfd96?style=for-the-badge&logo=vitest&logoColor=fdfd96">
     <img alt="Coverage" src="https://img.shields.io/badge/coverage-84.8%25%20lines-ff964f?style=for-the-badge&logo=vitest&logoColor=ff964f">
@@ -247,7 +247,7 @@ minor/major berikutnya tanpa melanggar kontrak 1.0.x di atas.
 | **T-1** CLI coverage 0% | ⚪ Test | ✅ Fixed | Suite integrasi CLI (spawn binary + serve e2e) |
 | **T-2** Coverage cabang adapter/emitter (S-12/S-21/S-24) | ⚪ Test | ✅ Fixed | Suite edge/branch v6 untuk `static`/`vercel`/`statements` (+70 test) |
 
-**Verifikasi akhir di `main`:** ESLint 0 warning · tsc 0 error · Prettier clean · **880/880 test lulus** (43 file) · coverage lines **84.8%** / branch **75.23%** · `npm audit` 0 kerentanan · versi tetap **v1.0.0**.
+**Verifikasi pada milestone v1.0.0 (snapshot historis):** ESLint 0 warning · tsc 0 error · Prettier clean · **880/880 test lulus** (43 file) · coverage lines **84.8%** / branch **75.23%** · `npm audit` 0 kerentanan · versi saat itu **v1.0.0**. _(Status terkini di `main`: **1025 test / 54 file** hijau, rilis current **v1.3.1**.)_
 
 > ⚠️ **Catatan jujur:** auth guard PromptJS bersifat **client-side/advisory** — bukan kontrol keamanan server. Untuk otorisasi sesungguhnya, verifikasi peran **wajib** dilakukan di server (gunakan seam `window.__pjs_verifyPeran`).
 
@@ -264,7 +264,7 @@ Setelah tiga gelombang keamanan, satu PR lanjutan menutup temuan audit & DX yang
 | 5 | **Hapus `@ts-nocheck`** (`builder.js`, `css.js`) | Blanket-suppress dihapus; typecheck tetap 0 error |
 | 6 | **Normalisasi version banner** | Banner identitas `v0.x` → `v1.0.0` (marker historis dipertahankan) |
 
-**QA gate:** **880/880 test** (43 file) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · coverage gate ≥80% lines (lines 84.8% / branch 75.23%) · Stryker mutation 63.91% (naik dari baseline 49.72%) · **v1.0.0**.
+**QA gate (snapshot v1.0.0):** **880/880 test** (43 file) · ESLint `--max-warnings=0` · tsc 0 error · Prettier clean · coverage gate ≥80% lines (lines 84.8% / branch 75.23%) · Stryker mutation 63.91% (naik dari baseline 49.72%) · versi saat itu **v1.0.0**. _(Terkini: **1025 test / 54 file**, rilis current **v1.3.1**.)_
 
 ---
 
