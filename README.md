@@ -8,9 +8,9 @@
 
   <p>
     <a href="https://github.com/raarion/promptjs/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-d8b4fe?style=for-the-badge&logo=open-source-initiative&logoColor=d8b4fe"></a>
-    <img alt="Version" src="https://img.shields.io/badge/version-1.1.1-86efac?style=for-the-badge&logo=git&logoColor=86efac">
+    <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-86efac?style=for-the-badge&logo=git&logoColor=86efac">
     <img alt="Zero Dependencies" src="https://img.shields.io/badge/runtime-zero--deps-7dd3fc?style=for-the-badge&logo=rocket&logoColor=7dd3fc">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-935%20passing-fdfd96?style=for-the-badge&logo=vitest&logoColor=fdfd96">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-1025%20passing-fdfd96?style=for-the-badge&logo=vitest&logoColor=fdfd96">
     <img alt="Coverage" src="https://img.shields.io/badge/coverage-84.8%25%20lines-ff964f?style=for-the-badge&logo=vitest&logoColor=ff964f">
     <a href="https://raarion.github.io/promptjs/"><img alt="Live Showcase" src="https://img.shields.io/badge/showcase-live-fca5a5?style=for-the-badge&logo=github&logoColor=fca5a5"></a>
   </p>
@@ -99,7 +99,7 @@ punggung setiap keputusan di PromptJS:
 | ⚡ **Compile, don't wrap** | PromptJS bukan framework yang membungkus runtime. Ia adalah compiler yang menerjemahkan DSL → vanilla JS. Output bersih, zero dependency, tanpa overhead. |
 | 🛡️ **Keamanan dari awal, bukan setelahnya** | Zero `eval()`, zero `new Function()`. Sanitizer allowlist. CSP built-in. Setiap fitur keamanan dikunci oleh regression test. |
 | 📚 **Dokumentasi adalah fitur, bukan utang** | Setiap keyword, setiap error code, setiap adapter — terdokumentasi. Bilingual. Dengan contoh nyata. |
-| 🧪 **Terukur, bukan klaim** | 935 tests. 84.8% coverage. Mutation testing. CI gate ketat. Tidak ada "seharusnya aman" — semua dibuktikan. |
+| 🧪 **Terukur, bukan klaim** | 1025 tests. 84.8% coverage. Mutation testing. CI gate ketat. Tidak ada "seharusnya aman" — semua dibuktikan. |
 | 🌏 **Dibangun dari Indonesia, untuk dunia** | Bilingual ID/EN. Modul ajar siap pakai. Dirancang agar siapa pun — dari pelajar hingga profesional — bisa mulai coding dengan bahasa yang mereka pahami. |
 
 ---
@@ -197,7 +197,7 @@ akses tanpa mengubah kontrak v1.0.0. Berikut peta kemampuan lengkap lintas versi
   guard terpusat** (`src/utils/path-guard.js`) yang dipakai konsisten lintas
   adapter dan CLI `serve`.
 - **Target QA tinggi (terukur, bukan klaim)** — gerbang CI menegakkan: Prettier,
-  typecheck (JSDoc/checkJs), ESLint `--max-warnings=0`, **935 test / 48 file**,
+  typecheck (JSDoc/checkJs), ESLint `--max-warnings=0`, **1025 test / 54 file**,
   ambang coverage per-modul (saat ini ~84.8% lines / 75.27% branch), mutation
   testing Stryker pada inti semantik, plus `npm audit` & CodeQL untuk rantai pasok.
 
@@ -400,7 +400,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 <details>
 <summary><b>🔽 Click to expand — Testing & CI</b></summary>
 
-- `tests/` ← 935 tes, 48 file tes
+- `tests/` ← 1025 tes, 54 file tes
 - [snapshot-codegen.test.js](tests/snapshot-codegen.test.js) ← Snapshot codegen
 - [v0.5-compiler-infra.test.js](tests/v0.5-compiler-infra.test.js) ← Compiler core
 - [v0.6-spa.test.js](tests/v0.6-spa.test.js) ← SPA routing
@@ -494,7 +494,7 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | **Keyword Bilingual** (ID + EN) | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Docs Bilingual** | **✅** 🏆 | ❌ | ❌ | parsial | banyak | ❌ |
 | **Standalone Browser** | **✅** 🏆 | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Test Suite** | **935 tests** (48 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
+| **Test Suite** | **1025 tests** (54 file) | 3,000+ | — | 4,000+ | 10,000+ | — |
 | **Modul Ajar / Edukasi** | 🚧 Academy | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Mekanisme** | Compile → vanilla JS | Compile → vanilla JS | Fine-grained reactive | Virtual DOM | Virtual DOM | Runtime reactive |
 
@@ -509,8 +509,8 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 
 | Sinyal | Nilai (v5) | Gate CI |
 |---|---|---|
-| **Test** | **935 lulus / 935** (48 file, vitest) | wajib hijau |
-| **Determinisme** | 935/935 pada **3 run berturut-turut** — nol flaky | — |
+| **Test** | **1025 lulus / 1025** (54 file, vitest) | wajib hijau |
+| **Determinisme** | 1025/1025 pada **3 run berturut-turut** — nol flaky | — |
 | **Coverage lines** | **84.8%** (seluruh proyek via `vitest run --coverage`) | ≥ 80% |
 | **Coverage branches** | **75.27%** | dipantau |
 | **Mutation score — resolver** | **63.91%** (292 mutant, Stryker `stryker.config.json`) | ≥ base 49.72% |
@@ -575,7 +575,7 @@ PromptJS dirancang bukan cuma buat developer — tapi juga buat siapa pun yang b
 ## ✔️ Quality Assurance
 
 ```bash
-npm test          # 935 tests, 48 test files
+npm test          # 1025 tests, 54 test files
 npm run coverage  # gate ≥80% lines (84.8% measured)
 npm run mutation  # Stryker (scoped resolver+analyzer) — 63.91% (baseline 49.72%)
 npm run lint      # ESLint — zero warnings

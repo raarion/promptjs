@@ -246,6 +246,79 @@ Ulangi untuk item dari $daftar dengan kunci item.id:
 
 ---
 
+## Transisi Daftar (FLIP) — v1.3.1
+
+Tambahkan `dengan transisi <nama>` **setelah** `dengan kunci <expr>` untuk mengaktifkan animasi **FLIP** (First → Last → Invert → Play) pada keyed list. Tanpa modifier ini, perilaku K1b tidak berubah sama sekali — **opt-in murni**.
+
+Add `dengan transisi <name>` **after** `dengan kunci <expr>` to enable **FLIP** (First → Last → Invert → Play) animations on a keyed list. Without this modifier, K1b behaviour is completely unchanged — **purely opt-in**.
+
+```pjs
+data daftar = []
+Ulangi untuk item dari $daftar dengan kunci item.id dengan transisi fade:
+    Buat li: item.label
+```
+
+> **Transisi butuh kunci / Transitions require a key.** `dengan transisi` hanya berlaku bila loop juga memakai `dengan kunci`. Tanpa `dengan kunci`, modifier transisi diabaikan dan tidak ada animasi — **keyword jujur**. · `dengan transisi` only takes effect when the loop also uses `dengan kunci`. Without `dengan kunci`, the transition modifier is ignored and no animation occurs — **honest keyword**.
+
+### Mekanik FLIP / FLIP Mechanics
+
+FLIP bekerja murni via **CSS class + `transform`** — tanpa vDOM, tanpa `eval()`, tanpa `new Function()`:
+
+FLIP works purely via **CSS class + `transform`** — no vDOM, no `eval()`, no `new Function()`:
+
+1. **First** — ukur posisi (`getBoundingClientRect`) semua node _sebelum_ rekonsiliasi.
+2. **Last** — jalankan rekonsiliasi keyed (K1b): node dipakai ulang, diurutkan ulang, node baru dimasukkan, node lama ditandai untuk dihapus.
+3. **Invert** — hitung delta posisi; terapkan `transform: translate(dx, dy)` instan (tanpa transisi) agar node tampak di posisi lama.
+4. **Play** — hapus `transform` (dengan CSS `transition: transform`) sehingga node bergerak mulus ke posisi baru.
+
+### Kelas CSS / CSS Classes
+
+Tiga kelas ditambahkan/dihapus otomatis oleh runtime. Nama default diturunkan dari `<nama>` yang diberikan:
+
+| Kelas / Class | Default | Kapan / When |
+|---|---|---|
+| `<nama>-enter` | mis. `fade-enter` | Ditambah ke node baru saat dimasukkan; dihapus setelah frame pertama (play enter). |
+| `<nama>-leave` | mis. `fade-leave` | Ditambah ke node yang akan dihapus; node baru dihapus dari DOM **setelah** `transitionend`. |
+| `<nama>-move` | mis. `fade-move` | Ditambah ke node yang berpindah posisi selama fase Play; dihapus setelah `transitionend`. |
+
+**Contoh CSS minimal / Minimal CSS example:**
+
+```css
+/* Enter: fade in */
+.fade-enter { opacity: 0; }
+
+/* Leave: fade out (node tetap di DOM sampai transisi selesai) */
+.fade-leave { opacity: 0; transition: opacity 0.3s; }
+
+/* Move: geser mulus ke posisi baru */
+.fade-move { transition: transform 0.3s; }
+```
+
+Nama kelas dapat dikustomisasi via opsi runtime (lihat `__flipList` di tabel helper di bawah).
+
+### Aksesibilitas / Accessibility
+
+Runtime **menghormati `prefers-reduced-motion`**. Bila media query `(prefers-reduced-motion: reduce)` aktif, semua animasi dilewati: rekonsiliasi tetap berjalan (DOM benar), tetapi tidak ada class enter/leave/move yang ditambahkan dan tidak ada `transform` yang diterapkan. Mutasi terjadi instan.
+
+The runtime **respects `prefers-reduced-motion`**. When the `(prefers-reduced-motion: reduce)` media query is active, all animations are skipped: reconciliation still runs (DOM is correct), but no enter/leave/move classes are added and no `transform` is applied. Mutations happen instantly.
+
+### Edge Case yang Ditangani / Handled Edge Cases
+
+- **Interupsi mutasi cepat / Rapid mutation interruption** — bila array berubah lagi sebelum animasi selesai, FLIP baru dijalankan dari posisi saat ini; listener `transitionend` lama di-cleanup via `{once: true}` + safety timeout sehingga tidak ada listener yang bocor.
+- **Leave sebelum remove / Leave-before-remove** — node yang dihapus tetap di DOM selama animasi leave berlangsung; baru dilepas dari DOM setelah `transitionend` (atau safety timeout). Ini menjaga animasi fade-out tetap terlihat.
+- **Identitas node terjaga / Node identity preserved** — node yang berpindah posisi adalah **node DOM yang sama** (bukan dibuat ulang); fokus input, scroll state, dan animasi CSS yang sedang berjalan tidak terganggu.
+- **SPA navigate-away** — bila pengguna berpindah rute saat transisi berlangsung, `__cleanupFns` memastikan semua listener `transitionend` dan watcher daftar dibersihkan. Tidak ada kebocoran memori atau listener orphan.
+
+### Prinsip Inti / Core Principles
+
+Transisi FLIP **tidak melanggar** prinsip inti PromptJS:
+
+- **NO vDOM** — animasi bekerja langsung atas node DOM nyata.
+- **Zero `eval()` / zero `new Function()`** — animasi via penambahan class CSS dan `style.transform`; tidak ada kode yang di-eval.
+- **CSP-safe** — tidak ada string yang dieksekusi sebagai kode; aman untuk Content Security Policy ketat.
+
+---
+
 ## Tree-Shaking Runtime Helpers / Helper yang Di-Tree-Shake
 
 Compiler mempertahankan Set `helpers` selama traversal AST. Setiap visitor menambahkan nama helper yang dipakai. `emitRuntimeHelpers()` hanya memancang helper yang ada di Set.
@@ -258,6 +331,7 @@ The compiler maintains a `helpers` Set during AST traversal. Each visitor adds t
 | `__createComputed` | Deklarasi `turunan` | Computed effect yang auto-subscribe ke deps |
 | `__watch` | Statement `Saat`, daftar reaktif `Ulangi untuk` | Manual watcher subscription (re-render daftar / list re-render) |
 | `__keyedList` | `Ulangi untuk … dengan kunci` | Keyed diff `Map<kunci,node>` atas DOM asli (Opsi B, no vDOM) |
+| `__flipList` | `Ulangi untuk … dengan kunci … dengan transisi` | FLIP transitions (enter/leave/move) di atas `__keyedList`; opt-in, CSP-safe |
 | `__setState` | `simpan` ke variabel reaktif, mutasi array | Trigger reactive update pada Proxy |
 | `__cleanup` | Internal | Unsubscribe semua dependency reactive |
 | `__pjs_handleError` | Event handler `Ketika` | Error boundary: console.error + clear overlay |

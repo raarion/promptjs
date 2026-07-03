@@ -8,6 +8,12 @@
 > keamanan + 3 wave hardening (S-1..S-6, T-1), serta enrichment test suite **v5**
 > (880 test, branch coverage semantic-core dinaikkan, mutation score Stryker
 > dinaikkan dari baseline 49.72% → **63.91%** terverifikasi) — semua tetap pada v1.0.0.
+>
+> **Update K1+K2 (branch `feat/list-transitions`):** suite test tumbuh ke **1025 test
+> (54 file)** setelah K1 (reactive+keyed list) dan K2 (FLIP transitions). Benchmark
+> performa tersedia di `bench/reactive-list.bench.mjs` dan
+> `bench/list-transitions.bench.mjs` (jalankan: `node bench/<name>.bench.mjs`; tidak
+> dihitung sebagai unit test).
 
 ---
 
@@ -87,7 +93,7 @@ Aplikasi counter sederhana: judul, tombol klik, tampilan jumlah. Dikompilasi/dib
 ## 🌐 Bilingual & Aksesibilitas Bahasa
 
 | Framework | Keyword Bilingual | Docs Bilingual | Target pembelajar |
-|---|---|---|---|
+|---|---|---|
 | **PromptJS** | ✅ ID + EN | ✅ ID + EN | Developer + Pelajar (SMA/Kuliah) |
 | Svelte 5 | ❌ EN only | ❌ EN only | Developer |
 | Alpine.js | ❌ EN only | ❌ EN only | Developer |
@@ -164,7 +170,7 @@ dari baseline v4 **49.72% → 63.91%** (total, `ignoreStatic`).
 ## 🏫 Kesiapan Edukasi / Education Readiness
 
 | Framework | Modul Ajar | Kurikulum Sekolah | Slide Presentasi | Target Umur |
-|---|---|---|---|---|
+|---|---|---|---|
 | **PromptJS** | 🚧 Pre-release (Academy) | 🚧 Disesuaikan | 🚧 Direncanakan | 14+ |
 | Svelte 5 | ✅ Tutorial interaktif | ❌ | ❌ | 18+ |
 | React 19 | ✅ Banyak kursus | ❌ | ❌ | 18+ |
