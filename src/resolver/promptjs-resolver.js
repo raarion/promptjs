@@ -1129,6 +1129,20 @@ PromptJSResolver.prototype.visitUlangiStatement = function (node) {
   // Resolve source di scope sekarang (Tim B sudah benar)
   accept(node.source, this);
 
+  // K1a: expose source reactivity to the emitter so a `Ulangi untuk` over a
+  // reactive array (`data`/`turunan`) can re-render when the array changes.
+  // Reuse the SAME detection idiom as HapusDariStatement (C-3: don't build a
+  // new flag from zero) — only for the iterasi/`dari` form with a simple
+  // Identifier source. Counted (`kali`) / range (`rentang`) loops are never
+  // reactive-list renders, so they are intentionally left untouched.
+  if (node.source && node.source.type === 'Identifier') {
+    const sourceSymbol = this.currentScope.lookup(node.source.name);
+    if (sourceSymbol) {
+      node.sourceSymbol = sourceSymbol;
+      node.sourceReactive = sourceSymbol.kind === 'data' || sourceSymbol.kind === 'turunan';
+    }
+  }
+
   const prevScope = this.currentScope;
   this.currentScope = new Scope('iterasi', prevScope);
 

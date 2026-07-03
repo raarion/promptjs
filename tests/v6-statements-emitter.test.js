@@ -305,14 +305,17 @@ describe('v6 — Buat element selector & properties', () => {
 // 9. Control flow inside element bodies — Ulangi loop + Jika/Lainnya
 // ════════════════════════════════════════════════════════════════════════
 describe('v6 — control flow emitters', () => {
-  it('Ulangi untuk ... dari <reactive-array> emits a .map render loop', () => {
+  it('Ulangi untuk ... dari <reactive-array> emits a reactive __watch render loop (K1a)', () => {
     const js = compileOk(
       W(
         '  data daftar = [1,2,3]\n  Buat ul:\n    Ulangi untuk item dari daftar:\n      Buat li: item'
       )
     );
-    // Iterates over the reactive array (lowered with .value) to build children.
-    expect(js).toContain('daftar.value');
+    // K1a: a loop over a reactive (`data`) array now re-renders on change —
+    // it subscribes via __watch on the PROXY (bare `daftar`, no `.value`),
+    // guards Array.isArray, and rebuilds children into a marker each time.
+    expect(js).toContain('__watch(daftar,');
+    expect(js).toContain('Array.isArray(');
     expect(js).toContain('createElement("li")');
   });
 

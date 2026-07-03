@@ -1121,8 +1121,68 @@ function install(PromptJSCompiler, accept) {
       accept(node.body, this);
       this.indent--;
       this.emit(`}`);
+    } else if (node.sourceReactive && node.source && node.source.type === 'Identifier') {
+      // K1a: "ulangi item dari <reactive>:" → reactive list render.
+      //
+      // Foundation (NON-keyed): re-render the WHOLE list whenever the source
+      // array changes. Keyed diff (Opsi B, `dengan kunci`) is K1b/#49 — out of
+      // scope here. We mirror the proven visitSaatStatement marker idiom:
+      //   1. a <span> marker owns all list children (siblings stay untouched)
+      //   2. __watch(proxy, ...) re-renders on change
+      //   3. in SPA mode the unsub is registered via __cleanupFns.push (C-1:
+      //      per-watcher teardown via unsub, NOT the destructive __cleanup)
+      this.helpers.add('__watch');
+
+      // __watch needs the PROXY (bare name), while lowerExpression() unwraps a
+      // reactive identifier to `<name>.value`. Use the identifier name directly.
+      const proxy = node.source.name;
+
+      const markerVar = this.genVar('lmarker');
+      this.emit(`const ${markerVar} = document.createElement("span");`);
+      this.emit(`${markerVar}.className = "__promptjs_list_marker";`);
+      if (this.currentParent) {
+        this.emit(`${this.currentParent}.appendChild(${markerVar});`);
+      } else if (this.isSPA && this._spaPageRoot) {
+        this.emit(`${this._spaPageRoot}.appendChild(${markerVar});`);
+      } else {
+        this.emit(`document.body.appendChild(${markerVar});`);
+      }
+
+      if (this.isSPA) {
+        this.emit(`__cleanupFns.push(__watch(${proxy}, (__list) => {`);
+      } else {
+        this.emit(`__watch(${proxy}, (__list) => {`);
+      }
+      this.indent++;
+      // C-5: consistent DOM clear via replaceChildren() (no innerHTML).
+      this.emit(`${markerVar}.replaceChildren();`);
+      // Guard: only iterate real arrays; non-array / null / empty ⇒ empty render.
+      this.emit(`if (Array.isArray(__list)) {`);
+      this.indent++;
+      this.emit(`__list.forEach((${node.iteratorName}, indeks) => {`);
+      this.indent++;
+
+      // Render children into the marker (nested loops nest their own markers).
+      const prevParent = this.currentParent;
+      this.currentParent = markerVar;
+      const prevInBuat = this._inBuatBody;
+      this._inBuatBody = true;
+      accept(node.body, this);
+      this._inBuatBody = prevInBuat;
+      this.currentParent = prevParent;
+
+      this.indent--;
+      this.emit('});');
+      this.indent--;
+      this.emit('}');
+      this.indent--;
+      if (this.isSPA) {
+        this.emit('}));');
+      } else {
+        this.emit('});');
+      }
     } else {
-      // "ulangi item dari sumber:" → forEach
+      // "ulangi item dari sumber:" → forEach (non-reactive: render once)
       this.emit(`${source}.forEach((${node.iteratorName}, indeks) => {`);
       this.indent++;
       accept(node.body, this);
