@@ -225,6 +225,16 @@ Empat penambahan bahasa yang **backward-compatible** (tidak mengubah kontrak v1.
 
 📖 **[Reaktivitas & binding →](docs/language/reactivity.md)** · **[Ekspresi & operator →](docs/language/expressions.md)** · **[Komponen →](docs/language/components.md)**
 
+### Baru sejak v1.3.1 — Daftar Reaktif & Transisi FLIP ⚡
+
+Tiga penambahan **backward-compatible** untuk daftar dinamis (K1 + K2) — render daftar besar tanpa vDOM, dengan animasi opt-in yang CSP-safe:
+
+- **Daftar reaktif** — `Ulangi untuk … dari <data>:` otomatis re-render saat array reaktif berubah. Sumber non-reaktif tetap `forEach` sekali jalan, nol overhead.
+- **Diff berkunci** — `dengan kunci <expr>` / `with key` — rekonsiliasi `Map<key, node>` atas DOM asli, tanpa vDOM. Node reuse + reorder O(n).
+- **FLIP transitions** — `dengan transisi <nama>` / `with transition <name>` — animasi enter/leave/move opt-in. CSP-safe (CSS class + `style.transform`). Menghormati `prefers-reduced-motion`.
+
+📖 **[Daftar reaktif & diff →](docs/language/reactivity.md)**
+
 ### Di luar lingkup v1.x (post-1.x):
 
 Fitur yang secara eksplisit TIDAK termasuk dalam kontrak v1.x: komponen bawaan,
@@ -294,6 +304,9 @@ pjs build --adapter static   # Build produksi (static | node | vercel)
 | 🔁 **Two-way Binding** | `ikat`/`bind` di elemen form — sinkron `.value` ↔ state dua arah, caret-safe |
 | 🌐 **Fetch Inline** | `on_klik = ambil dari "url" ke x` — fetch langsung di event + auto `.memuat`/`.galat` |
 | 🔤 **Operator Keanggotaan** | `berisi`/`contains`, `diawali`/`starts with`, `diakhiri`/`ends with` (bilingual) |
+| 📋 **Daftar Reaktif** | `Ulangi untuk … dari data:` — auto re-render saat array reaktif berubah |
+| 🔑 **Diff Berkunci** | `dengan kunci <expr>` — keyed reconciliation atas DOM asli, tanpa vDOM |
+| ✨ **FLIP Transitions** | `dengan transisi <nama>` — animasi enter/leave/move opt-in, CSP-safe |
 | 🧩 **Komponen** | `Komponen Nama(props):` — composeable, reusable, **parameter default** (`varian: "primer"`) |
 | 🗺️ **SPA Routing** | `router: benar` — pushState, dynamic segments, lifecycle |
 | 🔐 **Auth Guard** | `butuhAuth: benar` + `peran` — redirect-based client guard |

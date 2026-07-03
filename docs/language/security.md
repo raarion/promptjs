@@ -44,7 +44,7 @@ external runtime dependency.
 | Sanitasi HTML / HTML sanitization | `__sanitizeHTML` | `runtime.js:173–242` | Fail-closed, otomatis / automatic |
 | Atribut aman / Safe attributes | `__safeAttr` | `runtime.js:244–265` | Fail-closed, otomatis / automatic |
 | Auth guard peran / Role guard | `__pjs_verifyPeran` (seam) | `promptjs-compiler.js:136–156` | Client-side / advisory |
-| Peringatan keamanan / Security warnings | `PJS-W1001`, `PJS-W1002` | `runtime.js:250, 257` | Runtime, console |
+| Peringatan keamanan / Security warnings | `PJS-W1001`, `PJS-W1002`, `PJS-W1003` | `runtime.js:480, 507, 488` | Runtime, console |
 | Error keamanan / Security errors | `E5004`, `E5005` | `error-codes.js:124–125` | Compile-time, fail-closed |
 | Penahanan path / Path containment | `isInsideRoot`, `safeResolve` | `utils/path-guard.js` | Fail-closed, otomatis / automatic |
 | Content-Security-Policy | `--csp` / `config.csp` | `build.js:54`, `config.js:164–166`, `static.js:165–181` | Build-time, opt-in |
@@ -218,14 +218,17 @@ block a dangerous construct. Consistent format:
 
 | Kode / Code | Pemicu / Trigger | Sumber / Source | Penanganan / Handling |
 |-------------|------------------|-----------------|------------------------|
-| `PJS-W1001` | Atribut event-handler inline (`on*`) diblokir / Inline `on*` event-handler attribute blocked | `runtime.js:250` | Gunakan `addEventListener` atau pengikat acara PromptJS, bukan atribut `on*` inline |
-| `PJS-W1002` | URL skema tidak aman (`javascript:`/`data:`/`vbscript:`) diblokir / Unsafe-scheme URL blocked | `runtime.js:257` | Gunakan URL `http(s):`, `mailto:`, atau path relatif |
+| `PJS-W1001` | Atribut event-handler inline (`on*`) diblokir / Inline `on*` event-handler attribute blocked | `runtime.js:480` | Gunakan `addEventListener` atau pengikat acara PromptJS, bukan atribut `on*` inline |
+| `PJS-W1002` | URL skema tidak aman (`javascript:`/`data:`/`vbscript:`) diblokir / Unsafe-scheme URL blocked | `runtime.js:507,512` | Gunakan URL `http(s):`, `mailto:`, atau path relatif |
+| `PJS-W1003` | Nilai `style` tidak aman (`javascript:`, `expression()`, `-moz-binding`) diblokir / Unsafe `style` value blocked | `runtime.js:488` | Hindari `javascript:`, `expression()`, atau `-moz-binding` di CSS inline; pakai kelas CSS / blok `Gaya:` |
 
 ```text
 [PromptJS] PJS-W1001: atribut event-handler diblokir demi keamanan: onclick
   (saran: gunakan addEventListener atau pengikat acara PromptJS, jangan atribut on* inline)
 [PromptJS] PJS-W1002: URL skema tidak aman diblokir pada atribut href: javascript:alert(1)
   (saran: gunakan URL http(s):, mailto:, atau path relatif)
+[PromptJS] PJS-W1003: nilai style tidak aman diblokir: expression(alert(1))
+  (saran: hindari javascript:, expression(), atau -moz-binding di CSS inline)
 ```
 
 Peringatan ini bersifat **informatif** — perilaku tetap fail-closed (atribut
@@ -400,7 +403,7 @@ When enabled, the `static` adapter injects a
 
 - [Auth](auth.md) — Direktif auth guard & alur login/logout.
 - [Error Codes](../reference/error-codes.md) — Daftar lengkap `E5004`, `E5005`,
-  `PJS-W1001`, `PJS-W1002`.
+  `PJS-W1001`, `PJS-W1002`, `PJS-W1003`.
 - [Glossary](../reference/glossary.md) — Istilah keamanan (`__sanitizeHTML`,
   `__safeAttr`, `__pjs_verifyPeran`, fail-closed, advisory).
 - [Adapters](adapters.md) — Adapter `static`/`vercel` & guard penahanan path

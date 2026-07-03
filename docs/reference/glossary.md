@@ -141,8 +141,26 @@ PromptJS injects several security helpers into the compiled runtime (see `src/co
 |-------------|----------------------------|------------------|
 | `PJS-W1001` | `__safeAttr` menolak atribut event-handler inline (`onclick`, `onerror`, ...) | `console.warn('[PromptJS] PJS-W1001: atribut event-handler diblokir demi keamanan: ...')` — atribut tidak dipasang, app tetap jalan |
 | `PJS-W1002` | `__safeAttr` menolak URL berskema tidak aman pada atribut URL (`href`, `src`, ...) | `console.warn('[PromptJS] PJS-W1002: URL skema tidak aman diblokir ...')` — atribut tidak dipasang, app tetap jalan |
+| `PJS-W1003` | `__safeAttr` menolak nilai `style` tidak aman (`javascript:`, `expression()`, `-moz-binding`) | `console.warn('[PromptJS] PJS-W1003: nilai style tidak aman diblokir: ...')` — atribut `style` tidak dipasang, app tetap jalan |
 
-> Catatan: `PJS-W1001`/`PJS-W1002` adalah warning **runtime** (dicetak ke console browser), berbeda dari kode diagnostik compile-time `Wxxxx` di [Error Codes](error-codes.md). Keduanya memakai konvensi prefix `[PromptJS] KODE: pesan (saran: ...)` berbahasa Indonesia.
+> Catatan: `PJS-W1001`/`PJS-W1002`/`PJS-W1003` adalah warning **runtime** (dicetak ke console browser), berbeda dari kode diagnostik compile-time `Wxxxx` di [Error Codes](error-codes.md). Keduanya memakai konvensi prefix `[PromptJS] KODE: pesan (saran: ...)` berbahasa Indonesia.
+
+---
+
+## Daftar Reaktif & Transisi / Reactive Lists & Transitions
+
+_(v1.3.1 — K1 + K2)_
+
+| Istilah ID | English Term | Deskripsi / Description |
+|---|---|---|
+| daftar reaktif | reactive list | `Ulangi untuk … dari <data>:` yang otomatis re-render saat array reaktif berubah / `Ulangi untuk … dari <data>:` that auto re-renders when the reactive array changes |
+| kunci | key | Identifier per-item untuk diff berkunci / Per-item identifier for keyed diff |
+| dengan kunci | keyed modifier _(ID-only)_ | Modifier suffix loop untuk rekonsiliasi berkunci; kata `dengan`/`kunci` dikenali via lookahead, bukan token / Loop-suffix modifier for keyed reconciliation; detected via lookahead, not a token |
+| diff berkunci | keyed diff | Rekonsiliasi via `Map<key, node>` atas DOM asli, tanpa vDOM / Reconciliation via `Map<key, node>` over real DOM, no vDOM |
+| dengan transisi | transition modifier _(ID-only)_ | Modifier FLIP setelah `dengan kunci`; nama transisi berupa identifier/string literal / FLIP modifier after `dengan kunci`; transition name is an identifier/string literal |
+| FLIP | FLIP | First/Last/Invert/Play — animasi layout via CSS class + `style.transform`, CSP-safe, hormati `prefers-reduced-motion` / Layout animation via CSS class + `style.transform`, CSP-safe, respects `prefers-reduced-motion` |
+| `__keyedList` | `__keyedList` | Helper runtime: rekonsiliasi daftar berkunci (`runtime.js:118`) / Runtime helper: keyed-list reconciliation |
+| `__flipList` | `__flipList` | Helper runtime: transisi FLIP di atas `__keyedList` (`runtime.js:206`) / Runtime helper: FLIP transitions layered over `__keyedList` |
 
 ---
 
