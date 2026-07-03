@@ -41,7 +41,7 @@ Error bound  Mount/unmt   Auto-async    Config       Pattern   Docs restru  npm 
 - ✅ **`arahkan`** — expression path fix
 - ✅ **Package name** `@raarion/prompt-js`, npm publish, release workflow
 - ✅ **CI/CD** — Node 22.x + 24.x, format + typecheck + lint + test + demo compile
-- ✅ **880 tests** _(snapshot pada rilis v1.0.0)_, 84.8% coverage, 63.91% mutation score
+- ✅ **1025 tests** _(v1.3.1)_, 84.8% coverage, 63.91% mutation score (snapshot historis v1.0.0: 880 tests)
 - ✅ **30+ docs files** di `docs/`
 
 > **Status terkini (HEAD `main`):** **1025 tests** hijau di 54 file test (Vitest), 84.8% coverage. Angka 880 di atas adalah snapshot historis rilis v1.0.0. / _Current status (HEAD `main`): **1025 tests** green across 54 test files; the 880 figure above is the historical v1.0.0 snapshot._

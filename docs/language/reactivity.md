@@ -193,11 +193,11 @@ __setState(daftar, [...daftar.value]);
 
 ---
 
-## Daftar Reaktif & Keyed Diff / Reactive Lists & Keyed Diff (v1.3.0)
+## Daftar Reaktif & Keyed Diff / Reactive Lists & Keyed Diff (v1.3.1)
 
-Sejak v1.3.0, `Ulangi untuk … dari <sumber>:` yang bersumber pada nilai **reaktif** (`data` atau `turunan`) akan **me-render ulang daftar secara otomatis** setiap kali array berubah. Sumber **non-reaktif** (`tetap`, `ubah`, atau literal) tetap memakai `forEach` sekali jalan seperti sebelumnya — tidak ada `__watch`, tanpa overhead.
+Sejak v1.3.1, `Ulangi untuk … dari <sumber>:` yang bersumber pada nilai **reaktif** (`data` atau `turunan`) akan **me-render ulang daftar secara otomatis** setiap kali array berubah. Sumber **non-reaktif** (`tetap`, `ubah`, atau literal) tetap memakai `forEach` sekali jalan seperti sebelumnya — tidak ada `__watch`, tanpa overhead.
 
-Since v1.3.0, `Ulangi untuk … dari <source>:` over a **reactive** value (`data` or `turunan`) **re-renders the list automatically** whenever the array changes. A **non-reactive** source (`tetap`, `ubah`, or a literal) keeps the original one-shot `forEach` — no `__watch`, no overhead.
+Since v1.3.1, `Ulangi untuk … dari <source>:` over a **reactive** value (`data` or `turunan`) **re-renders the list automatically** whenever the array changes. A **non-reactive** source (`tetap`, `ubah`, or a literal) keeps the original one-shot `forEach` — no `__watch`, no overhead.
 
 ```pjs
 data daftar = []

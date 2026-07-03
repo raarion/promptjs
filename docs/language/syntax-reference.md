@@ -114,7 +114,7 @@ selain itu:
 Ulangi untuk item dari $daftar:
     Buat li: $item
 
-# Loop array reaktif berkunci (v1.3.0) — keyed diff atas node DOM asli (no vDOM)
+# Loop array reaktif berkunci (v1.3.1) — keyed diff atas node DOM asli (no vDOM)
 Ulangi untuk item dari $daftar dengan kunci item.id:
     Buat li: item.label
 

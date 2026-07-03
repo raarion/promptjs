@@ -226,6 +226,8 @@ Empat penambahan bahasa yang **backward-compatible** (tidak mengubah kontrak v1.
 📖 **[Reaktivitas & binding →](docs/language/reactivity.md)** · **[Ekspresi & operator →](docs/language/expressions.md)** · **[Komponen →](docs/language/components.md)**
 
 ### Di luar lingkup v1.x (post-1.x):
+
+Fitur yang secara eksplisit TIDAK termasuk dalam kontrak v1.x: komponen bawaan,
 rute bawaan, dan plugin runtime pihak ketiga. Hal-hal ini dapat ditambah di
 minor/major berikutnya tanpa melanggar kontrak 1.0.x di atas.
 

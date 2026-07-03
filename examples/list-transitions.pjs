@@ -1,5 +1,5 @@
 ---
-title: Transisi Daftar FLIP — v1.3.1
+judul: Transisi Daftar FLIP — v1.3.1
 description: Demo FLIP transitions (enter/leave/move) pada keyed list. Tambah item (enter), hapus item (leave), acak urutan (move) — semua via CSS class, tanpa vDOM, zero eval.
 ---
 
