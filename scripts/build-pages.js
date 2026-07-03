@@ -60,7 +60,7 @@ const EXAMPLE_META = {
     tags: ['two-way binding', 'operator string', 'fetch inline', 'default param'],
   },
   'keyed-list': {
-    title: 'Daftar Reaktif Berkunci — v1.3.0',
+    title: `Daftar Reaktif Berkunci — v${getVersion()}`,
     description:
       'Reactive list rendering (K1a) + keyed diff `dengan kunci` (K1b): node DOM asli dipakai ulang saat urutan berubah — tanpa Virtual DOM. Tambah, hapus di tengah, dan kosongkan untuk melihat rekonsiliasi berkunci.',
     tags: ['reaktivitas', 'keyed diff', 'Ulangi untuk', 'dengan kunci'],

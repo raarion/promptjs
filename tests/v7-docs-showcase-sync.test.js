@@ -191,7 +191,7 @@ describe('showcase sync v1.2 — examples/fitur-v1-2.pjs', () => {
   });
 });
 
-// ─── K1d (v1.3.0): reactive list + keyed diff docs / showcase ────────────────
+// ─── K1d (v1.3.1): reactive list + keyed diff docs / showcase ────────────────
 describe('docs sync v1.3 — reactive list & keyed diff (reactivity.md)', () => {
   it('reactive non-keyed loop snippet compiles', () => {
     expect(
