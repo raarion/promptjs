@@ -47,6 +47,12 @@ PromptJS supports bilingual keywords — Indonesian and English — that can be 
 | | `pass` | TK_PASS | Alias English / English alias |
 | `selama` | `while` | TK_SELAMA | Loop kondisi / While loop |
 | `setelah` | `after` | TK_SETELAH | Post-completion hook / Hook setelah selesai |
+| `dengan kunci` | _(ID-only)_ | TK_IDENT + TK_IDENT (lookahead) | Modifier daftar berkunci — suffix pada `Ulangi untuk … dari <data>:` / Keyed-list modifier |
+| `dengan transisi` | _(ID-only)_ | TK_IDENT + TK_IDENT (lookahead) | Modifier transisi FLIP — setelah `dengan kunci` / FLIP transition modifier |
+
+**Catatan / Note:** `dengan kunci` dan `dengan transisi` (v1.3.1) BUKAN token tunggal — kata `dengan`/`kunci`/`transisi` di-lex sebagai `TK_IDENT` biasa dan dikenali parser via lookahead dua-token, hanya di posisi suffix loop sebelum `:`. Saat ini keduanya **ID-only** (belum ada alias English `with key`/`with transition`).
+
+`dengan kunci` and `dengan transisi` (v1.3.1) are NOT single tokens — `dengan`/`kunci`/`transisi` lex as plain `TK_IDENT` and are detected by a two-token lookahead, only at the loop-suffix position before `:`. Both are currently **ID-only** (no English `with key`/`with transition` alias yet).
 
 ---
 

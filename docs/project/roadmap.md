@@ -48,15 +48,28 @@ Error bound  Mount/unmt   Auto-async    Config       Pattern   Docs restru  npm 
 
 ---
 
-## Post-v1.0.0 (Planned)
+## Riwayat Rilis Post-v1.0.0 / Post-v1.0.0 Release History
+
+Rilis yang **sudah dikapalkan** setelah v1.0.0 (bukan rencana). Detail lengkap tiap versi ada di [CHANGELOG.md](../../CHANGELOG.md).
+
+| Versi | Tanggal | Fitur Utama / Key Features |
+|---|---|---|
+| **v1.3.1** | 2026-07-03 | Daftar reaktif, diff berkunci (`dengan kunci`), FLIP transitions (`dengan transisi`) — K1 + K2 |
+| **v1.2.0** | 2026-07-02 | Ergonomi bahasa: parameter default, operator keanggotaan, fetch inline, two-way binding |
+| **v1.1.1** | 2026-07-02 | Perbaikan dokumentasi |
+| **v1.1.0** | 2026-06-30 | Standalone browser (CDN) — kompilasi `.pjs` langsung di browser |
+
+> Catatan: rencana awal (v1.1 Hydration, v1.2 LSP, v1.3 Multi-peran) telah **direvisi** — jalur rilis yang benar-benar dikapalkan tercermin di tabel di atas.
+
+---
+
+## v1.4+ (Direncanakan) / Planned
 
 | Versi | Fokus | Detail |
 |---|---|---|
-| **v1.1** | Hydration | SSR + client-side rehydration, marker-based |
-| **v1.2** | LSP | Language Server Protocol — autocomplete, go-to-def, hover docs |
-| **v1.3** | Multi-peran | `peran: admin,editor` — comma-separated roles |
+| **v1.4** | TBD | Prioritas ditentukan pasca-v1.3.1 |
 | **v1.5** | Component Library | Komponen bawaan ditulis di `.pjs` (Dialog, Toast, Form, Table) |
-| **v2.0** | Compiler Port | Rust/Go compiler — binary tunggal, 10x faster compile |
+| **v2.0** | Compiler Port | Rust/Go compiler — binary tunggal, 10x faster compile; LSP (autocomplete, go-to-def, hover docs) |
 
 ---
 

@@ -39,7 +39,8 @@
     "pages:deploy": "npx gh-pages -d dist-pages",
     "prepare": "husky",
     "standalone": "node scripts/build-standalone.js",
-    "standalone:watch": "node scripts/build-standalone.js --watch"
+    "standalone:watch": "node scripts/build-standalone.js --watch",
+    "prepublishOnly": "npm run standalone"
   },
   "lint-staged": {
     "*.{js,ts}": [
