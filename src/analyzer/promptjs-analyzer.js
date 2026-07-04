@@ -677,6 +677,28 @@ PromptJSAnalyzer.prototype.visitTampilkanStatement = function (node) {
       `Mode yang valid: ${validModes.join(', ')}.`
     );
   }
+  // S2-DX-1: `tampilkan "#box"` treats the string as a MESSAGE (→ alert),
+  // whereas `sembunyikan`/`kosongkan` operate on an ELEMENT via selector.
+  // A string literal that looks like a CSS selector (starts with `#`/`.`) is
+  // almost always a footgun (developer meant to show an element). Warn W3005 —
+  // but only for the plain message form (no mountTarget / mode), so legitimate
+  // `tampilkan <comp> di <mount>` is untouched.
+  const t = node.target;
+  if (
+    !node.mountTarget &&
+    !node.mode &&
+    t &&
+    t.type === 'Literal' &&
+    typeof t.value === 'string' &&
+    /^\s*[#.][\w-]/.test(t.value)
+  ) {
+    this.addWarning(
+      'W3005',
+      `\`tampilkan "${t.value}"\` memperlakukan string sebagai PESAN (alert), bukan elemen selector "${t.value}".`,
+      node.loc,
+      `Untuk menampilkan ELEMEN, hapus tanda kutip: \`tampilkan ${t.value.trim()}\`. Untuk sengaja menampilkan pesan, abaikan peringatan ini.`
+    );
+  }
   this.genericVisit(node);
 };
 

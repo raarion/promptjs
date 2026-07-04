@@ -87,6 +87,13 @@ const W3001 = 'W3001'; // Variabel dideklarasikan tapi tidak pernah digunakan
 const W3002 = 'W3002'; // Variabel shadowing variabel di scope luar
 const W3003 = 'W3003'; // Watcher target bukan data reaktif
 const W3004 = 'W3004'; // Transisi diabaikan karena list tidak berkunci (DX-2)
+const W3005 = 'W3005'; // `tampilkan "<selector>"` diperlakukan sbg pesan alert, bukan elemen (S2-DX-1)
+// W-keyed-dup: kunci duplikat pada keyed list. Ini adalah RUNTIME warning
+// (`console.warn` di helper __keyedList saat data mengandung kunci ganda),
+// BUKAN diagnostik compile-time — compiler tidak dapat melihat data runtime,
+// jadi tidak pernah muncul di `warnings[]`. Didaftarkan di sini hanya agar
+// kode formal `W-keyed-dup` dapat ditelusuri & didokumentasikan (S2 knowledge-gap).
+const W_KEYED_DUP = 'W-keyed-dup';
 
 // ═══════════════════════════════════════════════════════════════
 // ANALYZER (E4xxx / W4xxx)
@@ -213,6 +220,10 @@ ERROR_MESSAGES[W3001] = 'Variabel "{name}" dideklarasikan tapi tidak pernah digu
 ERROR_MESSAGES[W3002] = 'Variabel "{name}" shadowing variabel di scope luar';
 ERROR_MESSAGES[W3003] = 'Watcher target bukan data reaktif';
 ERROR_MESSAGES[W3004] = 'Transisi diabaikan karena daftar tidak berkunci';
+ERROR_MESSAGES[W3005] =
+  '`tampilkan "{sel}"` memperlakukan string sebagai PESAN (alert), bukan elemen selector';
+ERROR_MESSAGES[W_KEYED_DUP] =
+  'Kunci duplikat pada keyed list; item di-disambiguasi (runtime warning, bukan compile)';
 
 // -- Analyzer --
 ERROR_MESSAGES[E4001] = 'Lifecycle hook hanya valid di dalam komponen';
@@ -342,6 +353,8 @@ ERROR_SUGGESTIONS[W4103] =
 ERROR_SUGGESTIONS[W4104] = 'Gunakan data/turunan reaktif sebagai target watcher.';
 ERROR_SUGGESTIONS[W3004] =
   'Tambahkan "dengan kunci <ekspresi>" agar transisi FLIP dapat melacak identitas item.';
+ERROR_SUGGESTIONS[W3005] =
+  'Untuk menampilkan/menyembunyikan sebuah ELEMEN gunakan selector tanpa tanda kutip, mis. `tampilkan #box`. String dengan tanda kutip akan tampil sebagai pesan alert.';
 ERROR_SUGGESTIONS[E4201] =
   'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.';
 
@@ -617,6 +630,8 @@ module.exports = {
   W3002: W3002,
   W3003: W3003,
   W3004: W3004,
+  W3005: W3005,
+  'W-keyed-dup': W_KEYED_DUP,
 
   // Analyzer errors
   E4001: E4001,

@@ -1405,8 +1405,14 @@ function install(PromptJSCompiler, accept) {
           `${tgt}.value.push(${val}); __setState(${tgt.split('.')[0]}, [...${tgt}.value]);`
         );
       } else {
-        // Numeric/string add for reactive scalar
-        this.emit(`__setState(${tgt.split('.')[0]}, ${tgt} + ${val});`);
+        // Numeric/string add for reactive scalar. The read side MUST unwrap the
+        // reactive Proxy via `.value` (S2-BUG-1c: `${tgt} + ${val}` emitted
+        // `hitung + 3` — Proxy coercion → "[object Object]3" at runtime). We are
+        // in the reactive branch, so the state variable is `tgt.split('.')[0]`;
+        // read it as `<name>.value` to match __setState's write side.
+        const stateName = tgt.split('.')[0];
+        const readExpr = tgt.endsWith('.value') ? tgt : `${stateName}.value`;
+        this.emit(`__setState(${stateName}, ${readExpr} + ${val});`);
       }
     } else {
       // ubah → plain variable, push to array if it's an array, else add
