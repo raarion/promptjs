@@ -29,6 +29,9 @@ const EVENT_ALIASES = require('../lexer/promptjs-lexer').EVENT_ALIASES;
  * @typedef {Object} ParseResult
  * @property {Object} ast - Root AST node (Program)
  * @property {Object[]} errors - Daftar error yang terjadi selama parsing
+ * @property {boolean} [hadFatalParseError] - True jika terjadi error token
+ *   yang tidak dapat dipulihkan (E2020); dipakai engine untuk menekan cascade
+ *   E3001 pada subtree yang rusak (DX-1 FIX)
  */
 
 /**
@@ -79,6 +82,7 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   this.errors = [];
   this.frontMatterDecls = [];
   this._exprDepth = 0; // LOW-4: guard kedalaman rekursi ekspresi
+  this._hadFatalParseError = false; // [DX-1] set true on E2020 token fallback
 
   // Pre-populate external data from front-matter as TetapDeclaration nodes
   if (frontMatterData) {
@@ -116,6 +120,9 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   return {
     ast: AST.buatProgramNode(fullBody, null, 'promptjs'),
     errors: this.errors,
+    // [DX-1 FIX] Signal that an unrecoverable token error (E2020) occurred so the
+    // resolver can suppress the misleading E3001 cascade on the broken subtree.
+    hadFatalParseError: !!this._hadFatalParseError,
   };
 };
 
@@ -413,6 +420,7 @@ PromptJSParser.prototype._parseSelector = function () {
   let tag = '';
   const classes = [];
   let id = null;
+  const attributes = [];
 
   // If the IDENT token has raw selector metadata from lexer
   if (
@@ -426,6 +434,17 @@ PromptJSParser.prototype._parseSelector = function () {
     tag = sel.tag;
     classes.push(...sel.classes);
     id = sel.id;
+
+    // BUG-2 fix: forward inline attributes `[attr="val"]` from the lexer.
+    // The lexer emits raw `{ key, value }` descriptors (value=null means a
+    // valueless/boolean attribute); wrap each into a proper AttributeNode with
+    // a Literal value so the emitter's emitSafeAttribute path receives them.
+    if (Array.isArray(sel.attributes) && sel.attributes.length > 0) {
+      for (const a of sel.attributes) {
+        const valNode = AST.buatLiteral(a.value == null ? '' : String(a.value), 'string', null);
+        attributes.push(AST.buatAttributeNode(a.key, valNode, null));
+      }
+    }
 
     // Consume any extra DOT and HASH tokens that the lexer also emitted
     while (this._peek().type === TT.TK_DOT || this._peek().type === TT.TK_HASH) {
@@ -448,7 +467,7 @@ PromptJSParser.prototype._parseSelector = function () {
     }
   }
 
-  return AST.buatSelector(tag, null, id, classes, []);
+  return AST.buatSelector(tag, null, id, classes, attributes);
 };
 
 // --- Block parsing ---
@@ -1612,13 +1631,23 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
 
   // Fallback: skip and report
   this._advance();
+  // [DX-1 FIX] Human-readable E2020: show the offending source text (`tok.value`)
+  // instead of leaking the internal token name (`TK_BUAT`), and always attach an
+  // actionable Saran. The `_hadFatalParseError` flag lets the resolver suppress
+  // the misleading cascade (e.g. a phantom E3001 "span tidak dideklarasikan").
+  const shown =
+    tok.value !== undefined && tok.value !== null && String(tok.value).length > 0
+      ? `"${tok.value}"`
+      : 'token tidak terduga';
+  this._hadFatalParseError = true;
   this.errors.push({
     code: 'E2020',
     severity: 'error',
-    message: `Unexpected token: ${tok.type} ("${tok.value}")`,
+    message: `Token tidak terduga ${shown} di baris ${tok.line}. Kemungkinan blok sebelumnya kosong atau kurang isi/label.`,
     line: tok.line,
     column: tok.col,
-    suggestion: '',
+    suggestion:
+      'Pastikan blok sebelumnya memiliki isi (mis. label/teks setelah ":"), atau periksa sintaks di sekitar posisi ini.',
   });
   return AST.buatLiteral(null, 'null', null);
 };

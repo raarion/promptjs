@@ -1154,9 +1154,14 @@
     let tag = '';
     const classes = [];
     let id = null;
+    // BUG-2/BUG-4 fix: attributes tokenized from `[attr="val"]` blocks, and the
+    // tag/class/id segments now terminate at `[` and whitespace so trailing
+    // spaces or attribute blocks never leak into the tag name.
+    const attributes = [];
+    const isSegStop = (ch) => ch === '.' || ch === '#' || ch === '[' || ch === ' ' || ch === '\t';
 
     // First segment: tag name (can include underscore for component names like card_produk)
-    while (pos < selector.length && selector[pos] !== '.' && selector[pos] !== '#') {
+    while (pos < selector.length && !isSegStop(selector[pos])) {
       tag += selector[pos];
       pos++;
     }
@@ -1166,7 +1171,7 @@
       if (selector[pos] === '.') {
         pos++; // skip dot
         let cls = '';
-        while (pos < selector.length && selector[pos] !== '.' && selector[pos] !== '#') {
+        while (pos < selector.length && !isSegStop(selector[pos])) {
           cls += selector[pos];
           pos++;
         }
@@ -1174,12 +1179,48 @@
       } else if (selector[pos] === '#') {
         pos++; // skip hash
         let idStr = '';
-        while (pos < selector.length && selector[pos] !== '.' && selector[pos] !== '#') {
+        while (pos < selector.length && !isSegStop(selector[pos])) {
           idStr += selector[pos];
           pos++;
         }
         id = idStr || null;
+      } else if (selector[pos] === '[') {
+        // Attribute block: [key], [key="val"], [key='val'], [key=val]
+        pos++; // skip '['
+        let key = '';
+        while (pos < selector.length && selector[pos] !== '=' && selector[pos] !== ']') {
+          key += selector[pos];
+          pos++;
+        }
+        key = key.trim();
+        let value = null; // null => boolean/valueless attribute
+        if (selector[pos] === '=') {
+          pos++; // skip '='
+          let quote = null;
+          if (selector[pos] === '"' || selector[pos] === "'") {
+            quote = selector[pos];
+            pos++;
+          }
+          let val = '';
+          if (quote) {
+            while (pos < selector.length && selector[pos] !== quote) {
+              val += selector[pos];
+              pos++;
+            }
+            if (selector[pos] === quote) pos++; // skip closing quote
+          } else {
+            while (pos < selector.length && selector[pos] !== ']') {
+              val += selector[pos];
+              pos++;
+            }
+            val = val.trim();
+          }
+          value = val;
+        }
+        if (selector[pos] === ']') pos++; // skip ']'
+        if (key) attributes.push({ key: key, value: value });
       } else {
+        // Whitespace or any other filler between segments: skip silently.
         pos++;
       }
     }
@@ -1191,6 +1232,7 @@
         tag: tag,
         classes: classes,
         id: id,
+        attributes: attributes,
       })
     );
 

@@ -178,6 +178,11 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
   // Pass front-matter data to resolver for $external symbol registration
   const resolver = new Resolver();
   resolver._frontMatterData = frontMatterData; // Patch hook
+  // [DX-1 FIX] When the parser hit an unrecoverable token error (E2020), the
+  // partial AST contains broken subtrees; suppress the misleading E3001
+  // "identifier not declared" cascade that would otherwise blame tags/labels
+  // (e.g. "span tidak dideklarasikan") for a syntax error.
+  resolver._suppressUndeclaredCascade = !!parseResult.hadFatalParseError;
 
   let resolveResult;
   try {

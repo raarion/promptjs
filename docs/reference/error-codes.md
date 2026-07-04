@@ -76,7 +76,7 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | E2017 | Error | Target event tidak valid | Periksa target dan nama event |
 | E2018 | Error | Nama event tidak valid | Periksa nama event (diklik, diketik, ditekan, dll.) |
 | E2019 | Error | "lainnya" hanya valid di akhir rantai "jika"/"kalau" | Pastikan "lainnya" mengikuti "jika" atau "kalau" |
-| E2020 | Error | Indentasi tidak konsisten | Periksa indentasi (2 spasi per level) |
+| E2020 | Error | Token tidak terduga (unexpected token) | Periksa sintaks di sekitar token ini; pastikan blok sebelumnya memiliki isi/label |
 | E2021 | Error | Sumber data ulangi tidak valid | Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>: |
 | E2022 | Error | Target "tampilkan" tidak valid | Periksa target tampilkan |
 | E2023 | Error | Token tidak terduga di akhir file | Ini menandakan bug Lexer; laporkan ke tim |
@@ -105,6 +105,7 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | W3001 | Warning | Variabel "{name}" dideklarasikan tapi tidak pernah digunakan | - |
 | W3002 | Warning | Variabel "{name}" shadowing variabel di scope luar | - |
 | W3003 | Warning | Watcher target bukan data reaktif | - |
+| W3004 | Warning | Transisi diabaikan karena daftar tidak berkunci | Tambahkan "dengan kunci <ekspresi>" agar transisi FLIP dapat melacak identitas item |
 
 ---
 

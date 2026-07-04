@@ -57,7 +57,7 @@ const E2016 = 'E2016'; // Token '->' diharapkan
 const E2017 = 'E2017'; // Target event tidak valid
 const E2018 = 'E2018'; // Nama event tidak valid
 const E2019 = 'E2019'; // lainnya hanya valid di akhir rantai jika/kalau
-const E2020 = 'E2020'; // Indentasi tidak konsisten
+const E2020 = 'E2020'; // Token tidak terduga (unexpected token) saat parsing
 const E2021 = 'E2021'; // Sumber data ulangi tidak valid
 const E2022 = 'E2022'; // Target tampilkan tidak valid
 const E2023 = 'E2023'; // Token tidak terduga di akhir file
@@ -86,6 +86,7 @@ const E3005 = 'E3005'; // "ketika" tanpa target di luar blok buat/komponen
 const W3001 = 'W3001'; // Variabel dideklarasikan tapi tidak pernah digunakan
 const W3002 = 'W3002'; // Variabel shadowing variabel di scope luar
 const W3003 = 'W3003'; // Watcher target bukan data reaktif
+const W3004 = 'W3004'; // Transisi diabaikan karena list tidak berkunci (DX-2)
 
 // ═══════════════════════════════════════════════════════════════
 // ANALYZER (E4xxx / W4xxx)
@@ -187,7 +188,7 @@ ERROR_MESSAGES[E2016] = 'Token "->" diharapkan';
 ERROR_MESSAGES[E2017] = 'Target event tidak valid';
 ERROR_MESSAGES[E2018] = 'Nama event tidak valid';
 ERROR_MESSAGES[E2019] = '"lainnya" hanya valid di akhir rantai "jika"/"kalau"';
-ERROR_MESSAGES[E2020] = 'Indentasi tidak konsisten';
+ERROR_MESSAGES[E2020] = 'Token tidak terduga';
 ERROR_MESSAGES[E2021] = 'Sumber data ulangi tidak valid';
 ERROR_MESSAGES[E2022] = 'Target "tampilkan" tidak valid';
 ERROR_MESSAGES[E2023] = 'Token tidak terduga di akhir file';
@@ -211,6 +212,7 @@ ERROR_MESSAGES[E3005] = '"ketika" tanpa target hanya boleh di dalam blok "buat" 
 ERROR_MESSAGES[W3001] = 'Variabel "{name}" dideklarasikan tapi tidak pernah digunakan';
 ERROR_MESSAGES[W3002] = 'Variabel "{name}" shadowing variabel di scope luar';
 ERROR_MESSAGES[W3003] = 'Watcher target bukan data reaktif';
+ERROR_MESSAGES[W3004] = 'Transisi diabaikan karena daftar tidak berkunci';
 
 // -- Analyzer --
 ERROR_MESSAGES[E4001] = 'Lifecycle hook hanya valid di dalam komponen';
@@ -295,7 +297,8 @@ ERROR_SUGGESTIONS[E2016] = 'Gunakan pola: perbarui <properti> <target> -> <nilai
 ERROR_SUGGESTIONS[E2017] = 'Periksa target dan nama event';
 ERROR_SUGGESTIONS[E2018] = 'Periksa nama event (diklik, diketik, dsb.)';
 ERROR_SUGGESTIONS[E2019] = 'Pastikan "lainnya" mengikuti "jika" atau "kalau"';
-ERROR_SUGGESTIONS[E2020] = 'Periksa indentasi (2 spasi per level)';
+ERROR_SUGGESTIONS[E2020] =
+  'Periksa sintaks di sekitar token ini; pastikan blok sebelumnya memiliki isi/label.';
 ERROR_SUGGESTIONS[E2021] =
   'Gunakan: ulangi <nama> dari <sumber>: / ulangi <N> kali: / ulangi <nama> dari <A> sampai <B>:';
 ERROR_SUGGESTIONS[E2022] = 'Periksa target tampilkan';
@@ -337,6 +340,8 @@ ERROR_SUGGESTIONS[E4101] =
 ERROR_SUGGESTIONS[W4103] =
   'Jika state reaktif tidak pernah dibaca, pertimbangkan ubah biasa atau hapus mutasinya.';
 ERROR_SUGGESTIONS[W4104] = 'Gunakan data/turunan reaktif sebagai target watcher.';
+ERROR_SUGGESTIONS[W3004] =
+  'Tambahkan "dengan kunci <ekspresi>" agar transisi FLIP dapat melacak identitas item.';
 ERROR_SUGGESTIONS[E4201] =
   'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.';
 
@@ -611,6 +616,7 @@ module.exports = {
   W3001: W3001,
   W3002: W3002,
   W3003: W3003,
+  W3004: W3004,
 
   // Analyzer errors
   E4001: E4001,

@@ -419,6 +419,8 @@ PromptJSCompiler.prototype._validateNodeTypes = function (node) {
     'KomponenDeclaration',
     'FungsiDeclaration',
     'GunakanStatement',
+    'MuatUlangStatement',
+    'KembaliStatement',
     'JalankanExpression',
     'RantaiAksi',
     'BinaryExpression',

@@ -136,6 +136,7 @@ function __keyedList(marker, list, keyFn, renderFn, hooks) {
   var next = new Map();
   var seq = [];
   var seen = Object.create(null);
+  var __warnedDup = false;
   for (var i = 0; i < list.length; i++) {
     var item = list[i];
     var rawKey = String(keyFn(item, i));
@@ -143,6 +144,17 @@ function __keyedList(marker, list, keyFn, renderFn, hooks) {
     if (seen[rawKey] !== undefined) {
       seen[rawKey]++;
       key = rawKey + '__' + i;
+      // [DX-3] Duplicate keys are safely disambiguated (\`key__index\`) so the
+      // DOM stays stable, but a duplicate key usually signals a data bug (keys
+      // should be unique). Surface a ONE-TIME informational warning per render
+      // so the developer is aware, without spamming the console.
+      if (!__warnedDup && typeof console !== 'undefined' && console.warn) {
+        __warnedDup = true;
+        console.warn(
+          '[PromptJS][W-keyed-dup] Kunci duplikat "' + rawKey + '" pada keyed list; ' +
+          'di-disambiguasi menjadi "' + key + '". Pastikan setiap item punya kunci unik.'
+        );
+      }
     } else {
       seen[rawKey] = 0;
     }
