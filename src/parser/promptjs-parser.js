@@ -1762,14 +1762,28 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
   const loc = this._makeLoc(tok);
 
   if (kind === 'kurangi' || kind === 'remove') {
-    // kurangi <target> [ke <value>]
-    const target = this._parseExpression();
+    // Three forms (statement position):
+    //   1. `kurangi <target>`              → decrement by 1
+    //   2. `kurangi <target> ke <value>`   → subtract <value> from <target>
+    //   3. `kurangi <value> dari <target>` → subtract <value> from <target>
+    // Form 3 (S2-BUG-1): the FIRST expression is the VALUE and the target
+    // follows `dari`/`from`/`in` (TK_IN). Without this branch the parser
+    // mis-mapped `kurangi 1 dari hitung` as target=`1`, silently dropping
+    // `dari hitung` → emitter produced `__setState(document, 1 - 1)`.
+    const firstArg = this._parseExpression();
+    if (this._peek().type === TT.TK_IN) {
+      this._advance(); // consume dari/from/in
+      const target = this._parseExpression();
+      // firstArg is the value being subtracted; target is what we mutate.
+      return AST.buatKurangiStatement(target, loc, null, firstArg);
+    }
     let value = null;
     if (this._peek().type === TT.TK_KE) {
       this._advance();
       value = this._parseExpression();
     }
-    return AST.buatKurangiStatement(target, loc, null, value);
+    // Form 1/2: firstArg is the target.
+    return AST.buatKurangiStatement(firstArg, loc, null, value);
   }
 
   // simpan/tambahkan/sisipkan <value> ke <target>

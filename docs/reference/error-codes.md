@@ -106,6 +106,8 @@ Error objects have bilingual fields: `code`/`kode`, `message`/`pesan`, `suggesti
 | W3002 | Warning | Variabel "{name}" shadowing variabel di scope luar | - |
 | W3003 | Warning | Watcher target bukan data reaktif | - |
 | W3004 | Warning | Transisi diabaikan karena daftar tidak berkunci | Tambahkan "dengan kunci <ekspresi>" agar transisi FLIP dapat melacak identitas item |
+| W3005 | Warning | `tampilkan "<selector>"` memperlakukan string sebagai PESAN (alert), bukan elemen selector | Untuk menampilkan ELEMEN hapus tanda kutip, mis. `tampilkan #box` |
+| W-keyed-dup | Warning (runtime) | Kunci duplikat pada keyed list; item di-disambiguasi `key__i` — `console.warn` saat render, BUKAN diagnostik compile | Pastikan setiap item punya kunci unik |
 
 ---
 

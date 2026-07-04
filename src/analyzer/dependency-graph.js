@@ -161,8 +161,18 @@ function buildDependencyGraph(ast) {
     if (!sym || sym.kind !== 'turunan' || !sym.declarationNode) return;
     const init = sym.declarationNode.init;
     const refs = collectIdentifierReferences(init, []);
+    const seenEdge = new Set();
     refs.forEach(function (ref) {
-      if (!ref.symbol || !ref.symbol.id || ref.symbol.id === sym.id) return;
+      if (!ref.symbol || !ref.symbol.id) return;
+      // S2-INK-1: previously a self-reference (`turunan c = c + a`) was
+      // dropped by an `ref.symbol.id === sym.id` guard, so the `c → c`
+      // self-edge never reached detectCycles and the real cycle passed
+      // silently (success:true, no E4201). Record the self-edge too — a
+      // turunan that reads itself IS a dependency cycle. Deduplicate so a
+      // symbol referenced multiple times only yields one edge.
+      const edgeKey = String(sym.id) + '>' + String(ref.symbol.id);
+      if (seenEdge.has(edgeKey)) return;
+      seenEdge.add(edgeKey);
       dependencies.push({
         from: sym.name,
         fromSymbolId: sym.id || null,
