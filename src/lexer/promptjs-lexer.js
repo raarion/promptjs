@@ -525,6 +525,28 @@
   }
 
   /**
+   * Check whether position `pos` in `line` falls inside a string literal.
+   * Handles escaped quotes inside both single and double-quoted strings.
+   *
+   * @param {string} line - The full source line
+   * @param {number} pos  - Character index to check
+   * @returns {boolean}
+   */
+  function _isInStringAt(line, pos) {
+    let inDouble = false;
+    let inSingle = false;
+    for (let i = 0; i < pos; i++) {
+      if (line[i] === '\\' && (inDouble || inSingle)) {
+        i++; // skip escaped char
+        continue;
+      }
+      if (line[i] === '"' && !inSingle) inDouble = !inDouble;
+      if (line[i] === "'" && !inDouble) inSingle = !inSingle;
+    }
+    return inDouble || inSingle;
+  }
+
+  /**
    * Tokenize source code PromptJS menjadi daftar token.
    *
    * Algoritma utama:
@@ -649,7 +671,18 @@
 
       // --- LIM-08: Block comment (/* ... */) handling ---
       if (this._inBlockComment) {
-        const closeIdx = rawLine.indexOf('*/');
+        // Find */ that is NOT inside a string literal
+        let searchFrom = 0;
+        let closeIdx = -1;
+        while (searchFrom < rawLine.length) {
+          const idx = rawLine.indexOf('*/', searchFrom);
+          if (idx === -1) break;
+          if (!_isInStringAt(rawLine, idx)) {
+            closeIdx = idx;
+            break;
+          }
+          searchFrom = idx + 2;
+        }
         if (closeIdx !== -1) {
           this._inBlockComment = false;
           // If there's content after */ on the same line, process it
@@ -677,9 +710,31 @@
       // Only check if line is NOT already a single-line comment
       const trimmedPreview = rawLine.trim();
       if (!trimmedPreview.startsWith('--') && !trimmedPreview.startsWith('//')) {
-        const openIdx = rawLine.indexOf('/*');
+        // Find /* that is NOT inside a string literal
+        let searchFrom = 0;
+        let openIdx = -1;
+        while (searchFrom < rawLine.length) {
+          const idx = rawLine.indexOf('/*', searchFrom);
+          if (idx === -1) break;
+          if (!_isInStringAt(rawLine, idx)) {
+            openIdx = idx;
+            break;
+          }
+          searchFrom = idx + 2;
+        }
         if (openIdx !== -1) {
-          const closeIdx = rawLine.indexOf('*/', openIdx + 2);
+          // Find matching */ also not inside a string
+          let closeIdx = -1;
+          let searchClose = openIdx + 2;
+          while (searchClose < rawLine.length) {
+            const idx = rawLine.indexOf('*/', searchClose);
+            if (idx === -1) break;
+            if (!_isInStringAt(rawLine, idx)) {
+              closeIdx = idx;
+              break;
+            }
+            searchClose = idx + 2;
+          }
           if (closeIdx === -1) {
             // /* without closing */ — skip this line, enter block comment mode
             this._inBlockComment = true;
