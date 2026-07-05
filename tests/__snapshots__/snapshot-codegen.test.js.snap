@@ -6,13 +6,13 @@ exports[`D1 — Snapshot Codegen > Composite: end-to-end > composite-counter: da
   const hitung = __createReactive(0);
   // @source 2:1 BuatStatement
   const __el_1 = document.createElement("button");
-  const __txt_3 = document.createTextNode("Klik aku");
-  __el_1.appendChild(__txt_3);
+  const __txt_2 = document.createTextNode("Klik aku");
+  __el_1.appendChild(__txt_2);
   __el_1.addEventListener("click", (event) => {
     try {
       alert(hitung.value);
     } catch(__e) {
-      __pjs_handleError(__e, "fragment", "on_diklik");
+      __pjs_handleError(__e, "tombol", "on_diklik");
     }
   });
   document.body.appendChild(__el_1);"
@@ -341,13 +341,13 @@ exports[`D1 — Snapshot Codegen > Statement: OnEventStatement > on-event-klik: 
 "(function() {
   // @source 1:1 BuatStatement
   const __el_1 = document.createElement("button");
-  const __txt_3 = document.createTextNode("Klik");
-  __el_1.appendChild(__txt_3);
+  const __txt_2 = document.createTextNode("Klik");
+  __el_1.appendChild(__txt_2);
   __el_1.addEventListener("click", (event) => {
     try {
       alert("hi");
     } catch(__e) {
-      __pjs_handleError(__e, "fragment", "on_diklik");
+      __pjs_handleError(__e, "tombol", "on_diklik");
     }
   });
   document.body.appendChild(__el_1);"

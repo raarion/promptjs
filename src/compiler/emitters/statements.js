@@ -303,11 +303,16 @@ function install(PromptJSCompiler, accept) {
     // correctly. Without this, `on_klik = ...` inside a multi-child Buat
     // body (which auto-wraps in a fragment) would emit `__el_2` instead
     // of the actual parent element variable name.
+    //
+    // BUG-03 FIX: When currentParent is null (page root), the fragment
+    // would get varName but no createElement call — any SelfReference to
+    // it would produce a ReferenceError. Set compiledVarName to null so
+    // the resolver/compiler can detect the invalid state.
     if (tag === 'fragment') {
-      // Make this fragment "transparent" — children see the grand-parent's
-      // compiledVarName as their SelfReference target.
       if (this.currentParent) {
         node.compiledVarName = this.currentParent;
+      } else {
+        node.compiledVarName = null;
       }
       if (node.body) accept(node.body, this);
       if (node.action) accept(node.action, this);

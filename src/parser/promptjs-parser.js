@@ -525,14 +525,39 @@ PromptJSParser.prototype._parseBlock = function () {
 
   if (statements.length === 0) return null;
 
-  // Auto-fragment: if multiple top-level children, wrap in fragment
+  // Auto-fragment: if multiple top-level children, wrap in fragment.
+  // BUG-03 FIX: KetikaStatement (event handlers) must NOT be wrapped in the
+  // auto-fragment. When at page root (or inside Jika at page root), the
+  // fragment would get a compiledVarName but no createElement call, causing
+  // the event handler's SelfReference to point at a phantom (undeclared)
+  // variable. Excluding them ensures the resolver emits E3005 instead of
+  // producing broken JavaScript.
   if (statements.length > 1) {
-    const fragSelector = AST.buatSelector('fragment', null, null, [], []);
-    const fragBody = AST.buatBlockStatement(statements, null);
-    return AST.buatBlockStatement(
-      [AST.buatBuatStatement(fragSelector, null, null, null, fragBody, null)],
-      null
-    );
+    const nonEventStmts = statements.filter(function (s) {
+      return s.type !== 'KetikaStatement';
+    });
+    const eventStmts = statements.filter(function (s) {
+      return s.type === 'KetikaStatement';
+    });
+
+    const result = [];
+    // Only create a fragment wrapper when there are 2+ non-event statements
+    if (nonEventStmts.length > 1) {
+      const fragSelector = AST.buatSelector('fragment', null, null, [], []);
+      const fragBody = AST.buatBlockStatement(nonEventStmts, null);
+      result.push(AST.buatBuatStatement(fragSelector, null, null, null, fragBody, null));
+    } else if (nonEventStmts.length === 1) {
+      result.push(nonEventStmts[0]);
+    }
+    // Event handlers are left as siblings — resolver will emit E3005 if
+    // they lack an explicit target and have no Buat parent.
+    for (let _i = 0; _i < eventStmts.length; _i++) {
+      result.push(eventStmts[_i]);
+    }
+
+    if (result.length > 0) {
+      return AST.buatBlockStatement(result, null);
+    }
   }
 
   return AST.buatBlockStatement(statements, null);
