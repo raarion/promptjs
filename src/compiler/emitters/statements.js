@@ -644,6 +644,18 @@ function install(PromptJSCompiler, accept) {
     const item = this.lowerExpression(node.item);
     const isReactive = node.fromArrayReactive;
 
+    // BUG-07 FIX: Use deep equality for object removal instead of reference equality
+    // When removing an object literal like `hapus {id: "1"} dari catatan`,
+    // referential equality (`__item !== {id: "1"}`) always returns true,
+    // so the filter never removes the matching object.
+    const isObjectItem = node.item && node.item.type === 'ObjectLiteral';
+    const compareOp = isObjectItem
+      ? `!__promptjs_deepEqual(__item, ${item})`
+      : `__item !== ${item}`;
+    if (isObjectItem) {
+      this.helpers.add('__promptjs_deepEqual');
+    }
+
     // Resolve the array expression — prefer resolver-attached name, else lower the expression
     let arr;
     if (node.fromArrayResolved) {
@@ -656,13 +668,12 @@ function install(PromptJSCompiler, accept) {
 
     if (isReactive) {
       // Reactive array: use filter to remove item and trigger Proxy setter
-      // arr.value = arr.value.filter(__item => __item !== item)
       this.helpers.add('__setState');
-      this.emit(`${arr}.value = ${arr}.value.filter((__item) => __item !== ${item});`);
+      this.emit(`${arr}.value = ${arr}.value.filter((__item) => ${compareOp});`);
       this.emit(`__setState(${arr}, [...${arr}.value]);`);
     } else {
       // Non-reactive array: use filter with assignment
-      this.emit(`${arr} = ${arr}.filter((__item) => __item !== ${item});`);
+      this.emit(`${arr} = ${arr}.filter((__item) => ${compareOp});`);
     }
   };
 
@@ -736,6 +747,61 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitKetikaStatement = function (node) {
+    // BUG-17 FIX: on_kelas / on_class → reactive class binding, not addEventListener
+    // When a user writes `on_kelas = tema` inside a Buat block, they want
+    // the element's className to reactively track the value of `tema`, not
+    // to listen for a DOM event named "on_kelas".
+    if (
+      node.event === 'on_kelas' ||
+      node.event === 'on_class' ||
+      node.event === 'kelas' ||
+      node.event === 'class'
+    ) {
+      this.helpers.add('__watch');
+      let elTarget = 'document';
+      if (node.target) {
+        if (node.target.type === 'SelfReference') {
+          elTarget = node.target.referencedNode.compiledVarName || 'null';
+        } else if (node.target.type === 'Identifier') {
+          elTarget = node.target.name;
+        } else {
+          elTarget = this.resolveTarget(node.target);
+        }
+      }
+      // Resolve the expression (RHS of on_kelas = ...)
+      let watchExpr;
+      if (node.action) {
+        watchExpr = this.lowerExpression(node.action);
+      } else if (node.body) {
+        // Body form: fall back to emitting body inside __watch callback
+        watchExpr = null;
+      }
+      // Determine the reactive source to watch
+      let watchTarget;
+      if (node.action && node.action.type === 'Identifier') {
+        watchTarget = node.action.name;
+      } else if (watchExpr) {
+        watchTarget = watchExpr;
+      } else {
+        watchTarget = elTarget; // fallback
+      }
+      // Emit initial className assignment
+      if (watchExpr) {
+        this.emit(`${elTarget}.className = ${watchExpr};`);
+      }
+      // Emit __watch for reactive updates
+      if (this.isSPA) {
+        this.emit(
+          `__cleanupFns.push(__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; }));`
+        );
+      } else {
+        this.emit(
+          `__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; });`
+        );
+      }
+      return;
+    }
+
     const eventMap = {
       diklik: 'click',
       diketik: 'input',
@@ -1364,12 +1430,29 @@ function install(PromptJSCompiler, accept) {
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, gunakan __setState
       // resolveTarget returns name.value but __setState needs the proxy object itself
-      const tgtName =
-        node.target && node.target.type === 'Identifier' ? node.target.name : tgt.split('.')[0];
+      // [BUG-12 FIX] When target is a MemberExpression (e.g. item.aktif inside
+      // a loop), the root variable may not be reactive. Check target type to
+      // determine the correct tgtName for __setState.
+      let tgtName;
+      if (node.target && node.target.type === 'Identifier') {
+        tgtName = node.target.name;
+      } else if (node.target && node.target.type === 'MemberExpression') {
+        // For MemberExpression targets on reactive arrays, we need the array
+        // proxy name, not the member path. Find the root identifier.
+        let root = node.target.object;
+        while (root && root.type === 'MemberExpression') {
+          root = root.object;
+        }
+        tgtName = root ? root.name : tgt.split('.')[0];
+      } else {
+        tgtName = tgt.split('.')[0];
+      }
       this.helpers.add('__setState');
       this.emit(`__setState(${tgtName}, ${val});`);
     } else {
       // ubah → plain variable, assignment langsung
+      // [BUG-12 FIX] tgt is now correctly resolved for MemberExpression targets
+      // (e.g. "item.aktif" instead of "null")
       this.emit(`${tgt} = ${val};`);
     }
   };
@@ -1390,6 +1473,10 @@ function install(PromptJSCompiler, accept) {
     const tgt = this.resolveTarget(node.target);
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
+      // [BUG-01 FIX] Register __setState helper — previously missing, causing
+      // ReferenceError at runtime when tambahkan was used without simpan.
+      this.helpers.add('__setState');
+
       // Heuristic: if value lowers to a string literal or the target is
       // initialized as an array, treat as array push. Otherwise numeric add.
       // Safer: always emit array-push form when target init was an array.
@@ -1415,8 +1502,23 @@ function install(PromptJSCompiler, accept) {
         this.emit(`__setState(${stateName}, ${readExpr} + ${val});`);
       }
     } else {
-      // ubah → plain variable, push to array if it's an array, else add
-      this.emit(`${tgt}.push(${val});`);
+      // [BUG-06 FIX] Check if target is a numeric ubah variable — previously
+      // always emitted .push() which causes TypeError for non-array variables.
+      // Heuristic: if the ubah variable is not initialized as an array, emit
+      // increment instead of push.
+      const sym = node.targetSymbol;
+      const initIsArray =
+        sym &&
+        sym.declarationNode &&
+        sym.declarationNode.init &&
+        (sym.declarationNode.init.type === 'ArrayLiteral' ||
+          Array.isArray(sym.declarationNode.init.value));
+      if (initIsArray) {
+        this.emit(`${tgt}.push(${val});`);
+      } else {
+        // Numeric increment for ubah scalar variable
+        this.emit(`${tgt} = ${tgt} + ${val};`);
+      }
     }
   };
 
@@ -1432,6 +1534,9 @@ function install(PromptJSCompiler, accept) {
     // Default ke 1 jika tidak ada value (kurangi counter → counter - 1)
     const jumlah = node.value ? this.lowerExpression(node.value) : '1';
     if (this._isTargetReactive(node)) {
+      // [BUG-01 FIX] Register __setState helper — previously missing.
+      this.helpers.add('__setState');
+
       // data/turunan → Proxy, akses via .value
       const tgtName = tgtRaw.split('.')[0];
       const valExpr = this.lowerExpression(node.target);
@@ -1453,6 +1558,9 @@ function install(PromptJSCompiler, accept) {
     const val = this.lowerExpression(node.value);
     const tgt = this.resolveTarget(node.target);
     if (this._isTargetReactive(node)) {
+      // [BUG-01 FIX] Register __setState helper — previously missing.
+      this.helpers.add('__setState');
+
       // data/turunan → Proxy, push lalu trigger reaktivitas via spread assignment
       this.emit(`${tgt}.value.push(${val}); __setState(${tgt.split('.')[0]}, [...${tgt}.value]);`);
     } else {
@@ -1889,7 +1997,16 @@ function install(PromptJSCompiler, accept) {
    * @this {any}
    * @param {Object} node - AST node ObjectLiteral
    * @returns {void | string}
+   */ /**
+   * Emit arrow function expression — BUG-05 FIX.
+   * @this {any}
+   * @param {Object} node - AST node ArrowFunctionExpression
+   * @returns {string}
    */
+  PromptJSCompiler.prototype.visitArrowFunctionExpression = function (node) {
+    return this.lowerExpression(node);
+  };
+
   PromptJSCompiler.prototype.visitObjectLiteral = function (node) {
     return this.lowerExpression(node);
   };

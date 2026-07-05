@@ -1019,6 +1019,27 @@ function buatLiteral(value, kind, loc) {
  * @param {SourceLocation} [loc] - Lokasi identifier
  * @returns {Object} & { type: 'Identifier', name: string }} Node Identifier
  */
+
+/**
+ * Membuat node `ArrowFunctionExpression` — fungsi panah (x => expr).
+ *
+ * BUG-05 FIX: Arrow function parsing support.
+ *
+ * @param {Array} params - Parameter array (Identifier nodes)
+ * @param {Object} body - Expression body atau BlockStatement
+ * @param {SourceLocation} [loc] - Lokasi
+ * @param {boolean} [isExpression] - true jika body adalah expression (bukan block)
+ * @returns {Object} { type: 'ArrowFunctionExpression', params, body, expression, loc } Node ArrowFunctionExpression
+ */
+function buatArrowFunctionExpression(params, body, loc, isExpression) {
+  return {
+    type: 'ArrowFunctionExpression',
+    loc: ensureLoc(loc),
+    params: params || [],
+    body: body,
+    expression: isExpression !== false,
+  };
+}
 function buatIdentifier(name, loc) {
   return {
     type: 'Identifier',
@@ -1339,6 +1360,7 @@ module.exports = {
   buatRantaiAksi: buatRantaiAksi,
   buatLiteral: buatLiteral,
   buatIdentifier: buatIdentifier,
+  buatArrowFunctionExpression: buatArrowFunctionExpression,
   buatBinaryExpression: buatBinaryExpression,
   buatUnaryExpression: buatUnaryExpression,
   buatConditionalExpression: buatConditionalExpression,

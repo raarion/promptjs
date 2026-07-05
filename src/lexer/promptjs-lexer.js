@@ -1243,7 +1243,9 @@
             pos++;
           }
           let val = '';
+          let isQuoted = false;
           if (quote) {
+            isQuoted = true;
             while (pos < selector.length && selector[pos] !== quote) {
               val += selector[pos];
               pos++;
@@ -1256,7 +1258,12 @@
             }
             val = val.trim();
           }
-          value = val;
+          // BUG-10 FIX: Track whether the value was quoted so the parser can
+          // decide between a string literal and a variable reference.
+          // Unquoted identifiers (e.g. [href=url]) should become Identifier
+          // nodes; quoted values (e.g. [href="https://example.com"]) stay as
+          // Literal nodes.
+          value = { __raw: val, __quoted: isQuoted };
         }
         if (selector[pos] === ']') pos++; // skip ']'
         if (key) attributes.push({ key: key, value: value });
@@ -1462,7 +1469,22 @@
             this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, restCol + 1));
             const afterColon = rest.substring(1).trim();
             // Type hint bisa sampai '=' atau sampai akhir baris
-            const eqIdx = afterColon.indexOf('=');
+            // BUG-05 FIX: Skip '=' that is part of '=>' or inside parentheses
+            let eqIdx = -1;
+            let parenDepth = 0;
+            for (let i = 0; i < afterColon.length; i++) {
+              const c = afterColon[i];
+              if (c === '(') parenDepth++;
+              else if (c === ')') parenDepth--;
+              else if (c === '=' && parenDepth === 0) {
+                // Check if this = is part of =>
+                if (i + 1 < afterColon.length && afterColon[i + 1] === '>') {
+                  continue; // skip => arrow
+                }
+                eqIdx = i;
+                break;
+              }
+            }
             if (eqIdx >= 0) {
               const typeHint = afterColon.substring(0, eqIdx).trim();
               const initPart = afterColon.substring(eqIdx + 1).trim();
@@ -1474,8 +1496,17 @@
                 this._tokenizeExpression(initPart, lineNum, restCol + 2 + eqIdx + 1);
               }
             } else if (afterColon) {
-              // Hanya type hint, tidak ada init
-              this.tokens.push(new Token(TT.TK_IDENT, afterColon, lineNum, restCol + 2));
+              // No '=' found after ':'. If the content looks like an expression
+              // (contains parens, operators, arrow functions, etc.), it's an init
+              // value, NOT a type hint. BUG-05 FIX.
+              const isExprLike = /[()=><+\-*/%,!&|]/.test(afterColon);
+              if (isExprLike) {
+                // Treat as init expression (no type hint)
+                this._tokenizeExpression(afterColon, lineNum, restCol + 2);
+              } else {
+                // Hanya type hint, tidak ada init
+                this.tokens.push(new Token(TT.TK_IDENT, afterColon, lineNum, restCol + 2));
+              }
             }
           }
         }
@@ -1875,6 +1906,23 @@
    * @param {string[] | null} lines - Daftar baris front-matter (dari `tokenize()`)
    * @returns {Object<string, any> | null} Objek front-matter dengan key-value pairs, atau `null` jika input kosong
    */
+  /**
+   * Helper: assign value to result object, handling duplicate keys by converting to array.
+   * @param {Object} result
+   * @param {string} key
+   * @param {*} value
+   */
+  function _fmAssign(result, key, value) {
+    if (result[key] !== undefined) {
+      if (!Array.isArray(result[key])) {
+        result[key] = [result[key]];
+      }
+      result[key].push(value);
+    } else {
+      result[key] = value;
+    }
+  }
+
   PromptJSLexer.parseFrontMatter = function (lines) {
     if (!lines || lines.length === 0) return null;
     const result = /** @type {Object<string, any>} */ ({});
@@ -1891,20 +1939,20 @@
         (value.startsWith('./') || value.startsWith('/')) &&
         /\.(json|csv|txt|yml|yaml|xml)$/i.test(value)
       ) {
-        result[key] = { type: 'file', path: value };
+        _fmAssign(result, key, { type: 'file', path: value });
       }
       // Inline JSON object: starts with {
       else if (value.startsWith('{')) {
         // Try strict JSON first; if fails, try lenient (unquoted keys)
         try {
-          result[key] = { type: 'inline', value: JSON.parse(value) };
+          _fmAssign(result, key, { type: 'inline', value: JSON.parse(value) });
         } catch {
           try {
             // Lenient: wrap keys in quotes for unquoted YAML-like objects
             const fixed = value.replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":');
-            result[key] = { type: 'inline', value: JSON.parse(fixed) };
+            _fmAssign(result, key, { type: 'inline', value: JSON.parse(fixed) });
           } catch {
-            result[key] = { type: 'inline', value: value };
+            _fmAssign(result, key, { type: 'inline', value: value });
           }
         }
       }
@@ -1913,9 +1961,9 @@
         // Try as JSON first (numbers, booleans, etc)
         try {
           const parsed = JSON.parse(value);
-          result[key] = { type: 'inline', value: parsed };
+          _fmAssign(result, key, { type: 'inline', value: parsed });
         } catch {
-          result[key] = { type: 'inline', value: value };
+          _fmAssign(result, key, { type: 'inline', value: value });
         }
       }
     }

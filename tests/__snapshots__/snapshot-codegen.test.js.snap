@@ -130,7 +130,7 @@ exports[`D1 — Snapshot Codegen > Expression: MemberExpression > member-access:
   // @source 1:1 TetapDeclaration
   const orang = { "nama": "Budi" };
   // @source 2:1 TetapDeclaration
-  const n = orang.name;"
+  const n = orang.nama;"
 `;
 
 exports[`D1 — Snapshot Codegen > Expression: ObjectLiteral > object-basic: { nama: "Budi", umur: 30 } 1`] = `

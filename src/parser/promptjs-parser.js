@@ -436,12 +436,35 @@ PromptJSParser.prototype._parseSelector = function () {
     id = sel.id;
 
     // BUG-2 fix: forward inline attributes `[attr="val"]` from the lexer.
-    // The lexer emits raw `{ key, value }` descriptors (value=null means a
-    // valueless/boolean attribute); wrap each into a proper AttributeNode with
-    // a Literal value so the emitter's emitSafeAttribute path receives them.
+    // BUG-10 fix: distinguish between quoted and unquoted attribute values.
+    // Quoted values become Literal nodes; unquoted identifiers become
+    // Identifier nodes so they compile to reactive references (e.g. url.value).
     if (Array.isArray(sel.attributes) && sel.attributes.length > 0) {
       for (const a of sel.attributes) {
-        const valNode = AST.buatLiteral(a.value == null ? '' : String(a.value), 'string', null);
+        let valNode;
+        if (a.value == null) {
+          // Boolean/valueless attribute, e.g. [disabled]
+          valNode = AST.buatLiteral('', 'string', null);
+        } else if (typeof a.value === 'object' && a.value.__raw !== undefined) {
+          // Structured value from BUG-10 lexer fix
+          if (a.value.__quoted) {
+            // Quoted string literal: [href="https://example.com"]
+            valNode = AST.buatLiteral(String(a.value.__raw), 'string', null);
+          } else {
+            // Unquoted identifier: [href=url] → variable reference
+            const raw = a.value.__raw;
+            // Only treat as identifier if it's a valid JS identifier pattern
+            if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(raw)) {
+              valNode = AST.buatIdentifier(raw, null);
+            } else {
+              // Complex expression like a URL path — treat as string literal
+              valNode = AST.buatLiteral(String(raw), 'string', null);
+            }
+          }
+        } else {
+          // Legacy format (plain string value)
+          valNode = AST.buatLiteral(String(a.value), 'string', null);
+        }
         attributes.push(AST.buatAttributeNode(a.key, valNode, null));
       }
     }
@@ -1052,6 +1075,60 @@ PromptJSParser.prototype._parsePropertyOrExpr = function () {
  *
  * @returns {Object} AST node DataDeclaration / TetapDeclaration / UbahDeclaration / TurunanDeclaration
  */
+/**
+ * Parse block-style data declaration body (YAML-style arrays/objects).
+ * BUG-14: Handles indented content after `data nama:` such as:
+ *   data daftarSederhana:
+ *     - "a"
+ *     - "b"
+ *
+ * @returns {Object} AST node (ArrayLiteral or ObjectLiteral)
+ */
+PromptJSParser.prototype._parseDataBlock = function () {
+  if (this._peek().type !== TT.TK_INDENT) {
+    return null;
+  }
+  this._advance(); // consume INDENT
+
+  const items = [];
+  const props = [];
+
+  while (this._peek().type !== TT.TK_DEDENT && !this._atEnd()) {
+    if (this._peek().type === TT.TK_MINUS) {
+      // Array item: - "value" or - expression
+      this._advance(); // consume -
+      // Parse only a PRIMARY expression (not a full expression that would
+      // consume subsequent TK_MINUS tokens as subtraction operators).
+      const item = this._parsePrimaryExpression();
+      items.push(item);
+    } else if (
+      this._peek().type === TT.TK_IDENT &&
+      this._peekAt(1) &&
+      this._peekAt(1).type === TT.TK_COLON
+    ) {
+      // Object property: key: value
+      const keyTok = this._advance(); // consume key
+      this._advance(); // consume :
+      const val = this._parseExpression();
+      props.push(AST.buatPropertyNode(String(keyTok.value), val, null, false));
+    } else {
+      // Skip unexpected tokens
+      this._advance();
+    }
+  }
+
+  if (this._peek().type === TT.TK_DEDENT) {
+    this._advance(); // consume DEDENT
+  }
+
+  if (items.length > 0) {
+    return AST.buatArrayLiteral(items, null);
+  } else if (props.length > 0) {
+    return AST.buatObjectLiteral(props, null);
+  }
+  return null;
+};
+
 PromptJSParser.prototype._parseDataDeclaration = function () {
   const kindTok = this._advance(); // consume keyword
   const keyword = kindTok.value.toLowerCase();
@@ -1061,15 +1138,40 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
   const name = nameTok ? nameTok.value : '_';
 
   // Optional type hint: `name: typeHint = value` or `name = value`
+  // BUG-05 FIX: Also handle `name: <expr>` where the colon is followed by
+  // an expression that serves as the init value (no separate type hint).
+  // This handles cases like `ubah positif: angka.saring(x => x > 3)`.
   let typeHint = null;
-  if (this._match(TT.TK_COLON)) {
-    const hintTok = this._expect(TT.TK_IDENT, 'Expected type hint name');
-    if (hintTok) typeHint = hintTok.value;
-  }
-
-  // Expect =
   let init = null;
-  if (this._match(TT.TK_ASSIGN)) {
+  if (this._match(TT.TK_COLON)) {
+    // BUG-14 FIX: Check if next token is TK_INDENT -> block-style data declaration
+    // data daftarSederhana:
+    //   - "a"
+    //   - "b"
+    if (this._peek().type === TT.TK_INDENT) {
+      init = this._parseDataBlock();
+    } else {
+      // Peek ahead: if the next token is a single IDENT followed by =, it's a type hint.
+      // Otherwise, the entire expression after : is the init value.
+      const nextTok = this._peek();
+      const nextNextTok = this._peekAt(1);
+      if (
+        nextTok &&
+        nextTok.type === TT.TK_IDENT &&
+        nextNextTok &&
+        nextNextTok.type === TT.TK_ASSIGN
+      ) {
+        // It's a type hint: `name: typeHint = value`
+        const hintTok = this._advance();
+        typeHint = hintTok.value;
+        this._advance(); // consume =
+        init = this._parseExpression();
+      } else {
+        // No type hint — the entire expression after : is the init value
+        init = this._parseExpression();
+      }
+    } // end of BUG-14 else block
+  } else if (this._match(TT.TK_ASSIGN)) {
     init = this._parseExpression();
   }
 
@@ -1187,6 +1289,19 @@ PromptJSParser.prototype._parseSaatStatement = function () {
 
   // Parse target (the reactive variable being watched)
   const target = this._parseExpression();
+
+  // [BUG-02 FIX] Accept optional "berubah"/"changes" keyword after target.
+  // The documentation lists `Saat tema berubah:` as valid syntax, but the
+  // parser previously rejected it because it expected ':' immediately after
+  // the target expression. Now we consume the optional keyword.
+  const nextTok = this._peek();
+  if (
+    nextTok &&
+    nextTok.type === TT.TK_IDENT &&
+    (nextTok.value === 'berubah' || nextTok.value === 'changes')
+  ) {
+    this._advance(); // consume berubah/changes
+  }
 
   // Expect colon
   this._expect(TT.TK_COLON, 'Expected ":" after saat target');
@@ -1457,9 +1572,16 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return expr;
   }
 
-  // Identifier or keyword-as-identifier
+  // Identifier or keyword-as-identifier (or arrow function: x => expr)
   if (tok.type === TT.TK_IDENT) {
     this._advance();
+    // BUG-05 FIX: Check if this is a single-param arrow function (x => expr)
+    if (this._peek().type === TT.TK_ARROW) {
+      this._advance(); // consume =>
+      const params = [AST.buatIdentifier(tok.value, this._makeLoc(tok))];
+      const body = this._parseExpression();
+      return AST.buatArrowFunctionExpression(params, body, this._makeLoc(tok), true);
+    }
     return AST.buatIdentifier(tok.value, this._makeLoc(tok));
   }
 
@@ -1525,7 +1647,25 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
       // "kurangi target" → decrement by 1
       return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target: firstArg };
     }
-    const value = this._parseExpression();
+    let value = this._parseExpression();
+    // BUG-16 FIX: Support space-separated method arguments in inline simpan
+    if (this._peek() && this._peek().type !== TT.TK_KE) {
+      if (value && (value.type === 'MemberExpression' || value.type === 'Identifier')) {
+        const args = [];
+        while (this._peek() && this._peek().type !== TT.TK_KE && !this._atEnd()) {
+          const arg = this._parseExpression();
+          args.push(arg);
+        }
+        if (args.length > 0) {
+          value = {
+            type: 'CallExpression',
+            callee: value,
+            arguments: args,
+            loc: value.loc,
+          };
+        }
+      }
+    }
     if (this._peek().type === TT.TK_KE) {
       this._advance();
       const target = this._parseExpression();
@@ -1575,9 +1715,54 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return { type: 'PerbaruiStatement', loc: null, property, target, value };
   }
 
-  // Parenthesized expression
+  // Parenthesized expression OR arrow function params: (x, y) => expr
   if (tok.type === TT.TK_LPAREN) {
     this._advance();
+    // BUG-05 FIX: Check if this is an arrow function by looking for pattern: (id, id, ...) =>
+    // Save position for backtracking
+    const savedPos = this._pos;
+    const savedTokens = this.tokens.slice();
+    const possibleParams = [];
+    let isArrow = false;
+    try {
+      // Try to parse as parameter list
+      if (this._peek().type === TT.TK_RPAREN) {
+        // () => expr  (zero params)
+        this._advance(); // consume )
+        if (this._peek().type === TT.TK_ARROW) {
+          isArrow = true;
+        }
+      } else if (this._peek().type === TT.TK_IDENT) {
+        // Parse comma-separated identifiers
+        while (true) {
+          if (this._peek().type !== TT.TK_IDENT) break;
+          const paramTok = this._advance();
+          possibleParams.push(AST.buatIdentifier(paramTok.value, this._makeLoc(paramTok)));
+          if (this._peek().type === TT.TK_COMMA) {
+            this._advance(); // consume comma
+          } else {
+            break;
+          }
+        }
+        if (this._peek().type === TT.TK_RPAREN) {
+          this._advance(); // consume )
+          if (this._peek().type === TT.TK_ARROW) {
+            isArrow = true;
+          }
+        }
+      }
+    } catch {
+      // Not an arrow function, will backtrack
+    }
+    if (isArrow) {
+      // It IS an arrow function: (x, y) => expr
+      this._advance(); // consume =>
+      const body = this._parseExpression();
+      return AST.buatArrowFunctionExpression(possibleParams, body, this._makeLoc(tok), true);
+    }
+    // Not an arrow function — backtrack and parse as parenthesized expression
+    this._pos = savedPos;
+    this.tokens = savedTokens;
     const expr = this._parseExpression();
     this._expect(TT.TK_RPAREN, 'Expected ")"');
     return expr;
@@ -1787,7 +1972,31 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
   }
 
   // simpan/tambahkan/sisipkan <value> ke <target>
-  const value = this._parseExpression();
+  // BUG-16 FIX: Support space-separated method arguments.
+  // "simpan teks.apakahAda "World" ke hasil" — after parsing the MemberExpression
+  // for the value, if the next token is not TK_KE and looks like an argument,
+  // wrap the value into a CallExpression.
+  let value = this._parseExpression();
+  // Collect space-separated arguments until we hit TK_KE
+  if (this._peek() && this._peek().type !== TT.TK_KE) {
+    // Check if value is a method reference (MemberExpression) that might need args
+    if (value && (value.type === 'MemberExpression' || value.type === 'Identifier')) {
+      const args = [];
+      while (this._peek() && this._peek().type !== TT.TK_KE && !this._atEnd()) {
+        const arg = this._parseExpression();
+        args.push(arg);
+      }
+      if (args.length > 0) {
+        // Wrap value + args into a CallExpression
+        value = {
+          type: 'CallExpression',
+          callee: value,
+          arguments: args,
+          loc: value.loc,
+        };
+      }
+    }
+  }
   this._expect(TT.TK_KE, 'Expected "ke" after value in simpan/tambahkan/sisipkan');
   const target = this._parseExpression();
 
@@ -1861,6 +2070,31 @@ PromptJSParser.prototype._parseKetikaStatement = function () {
   const eventTok = this._expect(TT.TK_IDENT, 'Expected event name after "ketika"');
   const event = eventTok ? eventTok.value : 'diklik';
 
+  // BUG-09 FIX: Parse event modifiers (.cegah, .hentikan, .sekali, etc.)
+  // "Ketika diklik .cegah:" → event="diklik", modifiers=["cegah"]
+  const modifiers = [];
+  const VALID_MODIFIERS = {
+    cegah: true,
+    prevent: true,
+    sekali: true,
+    once: true,
+    hentikan: true,
+    stop: true,
+  };
+  while (this._peek().type === TT.TK_DOT) {
+    this._advance(); // consume DOT
+    const modTok = this._peek();
+    if (modTok.type === TT.TK_IDENT && VALID_MODIFIERS[modTok.value.toLowerCase()]) {
+      this._advance(); // consume modifier name
+      modifiers.push(modTok.value.toLowerCase());
+    } else {
+      // Not a valid modifier — this DOT might be part of a target expression
+      // Backtrack: put the DOT back by decrementing pos
+      this._pos--;
+      break;
+    }
+  }
+
   // Optional target
   let target = null;
   if (this._peek().type === TT.TK_IDENT && this._peek().value !== 'diklik') {
@@ -1872,7 +2106,11 @@ PromptJSParser.prototype._parseKetikaStatement = function () {
 
   const body = this._parseBlock();
 
-  return AST.buatKetikaStatement(event, loc, null, target, body, null);
+  const node = AST.buatKetikaStatement(event, loc, null, target, body, null);
+  if (modifiers.length > 0) {
+    node.modifiers = modifiers;
+  }
+  return node;
 };
 
 /**

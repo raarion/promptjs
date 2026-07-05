@@ -333,6 +333,16 @@ PromptJSCompiler.prototype.resolveTarget = function (targetNode) {
     }
     return 'null';
   }
+  // [BUG-12 FIX] Handle MemberExpression targets (e.g. item.aktif inside loops).
+  // Previously, resolveTarget returned 'null' for MemberExpression nodes, causing
+  // simpan value ke item.prop to compile to __setState(null, value).
+  if (targetNode.type === 'MemberExpression') {
+    const objCode = this.resolveTarget(targetNode.object);
+    const propName = targetNode.property
+      ? targetNode.property.name || this.lowerExpression(targetNode.property)
+      : 'undefined';
+    return `${objCode}.${propName}`;
+  }
   // Fallback
   return targetNode.name || 'null';
 };
@@ -458,6 +468,7 @@ PromptJSCompiler.prototype._validateNodeTypes = function (node) {
     'TernaryExpression',
     'HapusDariExpression',
     'SimpanExpression',
+    'ArrowFunctionExpression',
   ];
   for (let i = 0; i < allTypes.length; i++) {
     validTypes.add(allTypes[i]);

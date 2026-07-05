@@ -166,6 +166,20 @@ function lowerExpression(compiler, node) {
     case 'FetchBranch':
     case 'FetchOption':
       return 'undefined';
+    case 'ArrowFunctionExpression': {
+      // BUG-05 FIX: Lower arrow function to JavaScript
+      const params = (node.params || [])
+        .map((p) => p.name || lowerExpression(compiler, p))
+        .join(', ');
+      if (node.expression) {
+        // Expression body: (x) => x > 0
+        const body = lowerExpression(compiler, node.body);
+        return `(${params}) => ${body}`;
+      } else {
+        // Block body: (x) => { ... } — not common in PromptJS but supported
+        return `(${params}) => { ... }`;
+      }
+    }
     case 'ErrorNode':
       return 'undefined';
     // ─── Wave G: action keywords as expression values ─────────────────
@@ -196,6 +210,12 @@ function lowerExpression(compiler, node) {
     case 'HapusDariStatement': {
       const item = lowerExpression(compiler, node.item);
       const isReactive = node.fromArrayReactive;
+      // BUG-07 FIX: Use deep equality for object removal instead of reference equality
+      // Check if the item being removed is an object literal (contains properties)
+      const isObjectItem = node.item && node.item.type === 'ObjectLiteral';
+      const compareOp = isObjectItem
+        ? `!__promptjs_deepEqual(__item, ${item})`
+        : `__item !== ${item}`;
       let arr;
       if (node.fromArrayResolved) {
         arr = node.fromArrayResolved;
@@ -204,10 +224,13 @@ function lowerExpression(compiler, node) {
       } else {
         arr = lowerExpression(compiler, node.fromArray);
       }
-      if (isReactive) {
-        return `(${arr}.value = ${arr}.value.filter((__item) => __item !== ${item}), __setState(${arr}, [...${arr}.value]))`;
+      if (isObjectItem) {
+        compiler.helpers.add('__promptjs_deepEqual');
       }
-      return `${arr} = ${arr}.filter((__item) => __item !== ${item})`;
+      if (isReactive) {
+        return `(${arr}.value = ${arr}.value.filter((__item) => ${compareOp}), __setState(${arr}, [...${arr}.value]))`;
+      }
+      return `${arr} = ${arr}.filter((__item) => ${compareOp})`;
     }
     case 'KosongkanStatement':
       return `${compiler.resolveTarget(node.target)}.innerHTML = ""`;

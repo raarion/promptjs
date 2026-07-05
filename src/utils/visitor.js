@@ -195,6 +195,8 @@ function getChildKeys(nodeType) {
       return ['value'];
     case 'Parameter':
       return ['defaultValue'];
+    case 'ArrowFunctionExpression':
+      return ['params', 'body'];
     case 'SelfReference':
       return [];
     case 'DataDeclaration':
@@ -335,6 +337,7 @@ const nodeTypes = [
   'FetchOption',
   'SelfReference',
   'ErrorNode',
+  'ArrowFunctionExpression',
 ];
 
 nodeTypes.forEach(function (type) {

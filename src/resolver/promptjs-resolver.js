@@ -120,7 +120,7 @@ const JS_GLOBALS = new Set([
 // ============================================================================
 // ALIAS PROPERTI (dari Tim A)
 // ============================================================================
-const ALIAS_PROPERTI = {
+const _ALIAS_PROPERTI_LEGACY = {
   panjang: 'length',
   nilai: 'value',
   teks: 'innerText',
@@ -144,7 +144,7 @@ const ALIAS_PROPERTI = {
 // ALIAS METHOD — Indonesian method names → JavaScript method names
 // Digunakan untuk akses method pada objek (arr.untukSetiap → arr.forEach)
 // ============================================================================
-const ALIAS_METHOD = {
+const _ALIAS_METHOD_LEGACY = {
   untukSetiap: 'forEach',
   untukSetiapItem: 'forEach',
   sisip: 'push',
@@ -230,6 +230,11 @@ const VALID_EVENT_NAMES = new Set([
   'ditinggal-kursor',
   'dipasang',
   'dilepas-dari-dom',
+  // BUG-17: Reactive class binding — not real DOM events but valid PromptJS reactive bindings
+  'on_kelas',
+  'on_class',
+  'kelas',
+  'class',
 ]);
 
 // ============================================================================
@@ -490,7 +495,10 @@ PromptJSResolver.prototype.gatherGlobals = function (ast) {
     if (node.type === 'DataDeclaration')
       this.addSymbol(node.name, 'data', node, { isReactive: true, isWritable: true });
     else if (node.type === 'TetapDeclaration')
-      this.addSymbol(node.name, 'tetap', node, { isWritable: false, isExternal: !!node._isExternal });
+      this.addSymbol(node.name, 'tetap', node, {
+        isWritable: false,
+        isExternal: !!node._isExternal,
+      });
     else if (node.type === 'UbahDeclaration')
       this.addSymbol(node.name, 'ubah', node, { isWritable: true });
     else if (node.type === 'TurunanDeclaration')
@@ -600,31 +608,260 @@ PromptJSResolver.prototype.visitMemberExpression = function (node) {
       node.property.isVirtual = true;
     }
 
-    // Cek alias properti terlebih dahulu
-    if (ALIAS_PROPERTI[propName]) {
-      node.property.originalName = propName;
-      node.property.name = ALIAS_PROPERTI[propName];
-      node.isTranslatedAlias = true;
-    }
-    // Cek alias method (untukSetiap → forEach, sisip → push, dll)
-    else if (ALIAS_METHOD[propName]) {
-      node.property.originalName = propName;
-      node.property.name = ALIAS_METHOD[propName];
-      node.isTranslatedMethodAlias = true;
-      // Tandai jika method ini bermutasi array (perlu trigger reaktivitas)
-      const MUTATING_METHODS = new Set([
-        'push',
-        'pop',
-        'shift',
-        'unshift',
-        'splice',
-        'sort',
-        'reverse',
-        'fill',
-      ]);
-      node.isMutatingMethod = MUTATING_METHODS.has(ALIAS_METHOD[propName]);
+    // [BUG-13 FIX] Context-aware alias resolution: only apply DOM aliases
+    // when the object is a DOM element reference, not when it's a user data
+    // variable. Previously, aliases like nama→name, isi→fill were applied
+    // unconditionally, corrupting user data property names (e.g. data
+    // orang = {nama: "Budi"} → orang.name instead of orang.nama).
+    //
+    // Strategy: Check if the object is a known DOM reference. If it is,
+    // apply aliases. If it's a data/turunan/ubah variable, skip aliases
+    // that are DOM-specific. Some aliases are "universal" (panjang→length,
+    // untukSetiap→forEach) and should still be applied to arrays.
+    const isDomContext = this._isDomElement(node.object);
+    const isReactiveData = this._isReactiveDataVar(node.object);
+    const isArrayLike = this._isArrayLikeVar(node.object);
+
+    // Universal aliases that apply to ALL contexts (arrays, data, DOM)
+    const UNIVERSAL_PROPERTI = {
+      panjang: 'length',
+    };
+    const UNIVERSAL_METHOD = {
+      // Array methods
+      untukSetiap: 'forEach',
+      untukSetiapItem: 'forEach',
+      sisip: 'push',
+      sisipAkhir: 'push',
+      ambilAkhir: 'pop',
+      ambilAwal: 'shift',
+      sisipAwal: 'unshift',
+      gabung: 'join',
+      saring: 'filter',
+      pilih: 'map',
+      kurangi: 'reduce',
+      temukan: 'find',
+      temukanIndex: 'findIndex',
+      apakahAda: 'includes',
+      urutkan: 'sort',
+      balik: 'reverse',
+      potong: 'slice',
+      sambung: 'splice',
+      isi: 'fill',
+      setiap: 'every',
+      beberapa: 'some',
+      indeksDari: 'indexOf',
+      indeksTerakhir: 'lastIndexOf',
+      datar: 'flat',
+      petakanDatar: 'flatMap',
+      keTeks: 'toString',
+      gabungTeks: 'join',
+      // BUG-15 FIX: String methods — these must be translated everywhere
+      // including reactive data vars, because JS doesn't have .keBesar()
+      keBesar: 'toUpperCase',
+      keKecil: 'toLowerCase',
+      keKecilAwal: 'toLocaleLowerCase',
+      keBesarAwal: 'toLocaleUpperCase',
+      pangkas: 'trim',
+      pangkasAwal: 'trimStart',
+      pangkasAkhir: 'trimEnd',
+      ulang: 'repeat',
+      ganti: 'replace',
+      gantiSemua: 'replaceAll',
+      cocok: 'match',
+      cari: 'search',
+      bagi: 'split',
+      mulaiDengan: 'startsWith',
+      akhiriDengan: 'endsWith',
+      subTeks: 'substring',
+      potongTeks: 'substr',
+      normalisasi: 'normalize',
+      ulangi: 'repeat',
+      charDi: 'charAt',
+      kodeCharDi: 'charCodeAt',
+      teksBerulang: 'concat',
+    };
+
+    // DOM-only property aliases (only apply when object is a DOM element)
+    const DOM_ONLY_PROPERTI = {
+      nilai: 'value',
+      teks: 'innerText',
+      html: 'innerHTML',
+      tipe: 'type',
+      nama: 'name',
+      ditandai: 'checked',
+      nonaktif: 'disabled',
+      anak: 'children',
+      induk: 'parentElement',
+      fokus: 'focus',
+      atribut: 'getAttribute',
+      sumber: 'src',
+      tautan: 'href',
+      kelas: 'className',
+      gaya: 'style',
+      placeholder: 'placeholder',
+    };
+
+    if (isDomContext) {
+      // DOM element: apply all aliases (universal + DOM-specific)
+      if (DOM_ONLY_PROPERTI[propName]) {
+        node.property.originalName = propName;
+        node.property.name = DOM_ONLY_PROPERTI[propName];
+        node.isTranslatedAlias = true;
+      } else if (UNIVERSAL_PROPERTI[propName]) {
+        node.property.originalName = propName;
+        node.property.name = UNIVERSAL_PROPERTI[propName];
+        node.isTranslatedAlias = true;
+      }
+      // Apply method aliases for DOM elements
+      if (UNIVERSAL_METHOD[propName]) {
+        node.property.originalName = propName;
+        node.property.name = UNIVERSAL_METHOD[propName];
+        node.isTranslatedMethodAlias = true;
+        const MUTATING_METHODS = new Set([
+          'push',
+          'pop',
+          'shift',
+          'unshift',
+          'splice',
+          'sort',
+          'reverse',
+          'fill',
+        ]);
+        node.isMutatingMethod = MUTATING_METHODS.has(UNIVERSAL_METHOD[propName]);
+      }
+    } else if (isArrayLike || !isReactiveData) {
+      // Array or non-reactive variable: apply universal aliases only
+      if (UNIVERSAL_PROPERTI[propName]) {
+        node.property.originalName = propName;
+        node.property.name = UNIVERSAL_PROPERTI[propName];
+        node.isTranslatedAlias = true;
+      }
+      if (UNIVERSAL_METHOD[propName]) {
+        node.property.originalName = propName;
+        node.property.name = UNIVERSAL_METHOD[propName];
+        node.isTranslatedMethodAlias = true;
+        const MUTATING_METHODS = new Set([
+          'push',
+          'pop',
+          'shift',
+          'unshift',
+          'splice',
+          'sort',
+          'reverse',
+          'fill',
+        ]);
+        node.isMutatingMethod = MUTATING_METHODS.has(UNIVERSAL_METHOD[propName]);
+      }
+    } else if (isReactiveData) {
+      // BUG-15 FIX: Reactive data objects should still have METHOD aliases translated
+      // (e.g. teks.keBesar → toUpperCase, arr.saring → filter) because these are
+      // JavaScript built-in method names that need translation. Only DATA PROPERTY
+      // names (like UNIVERSAL_PROPERTI and DOM_ONLY_PROPERTI) should be preserved
+      // as-is to avoid breaking user-defined property access (e.g. orang.nama).
+      if (UNIVERSAL_METHOD[propName]) {
+        node.property.originalName = propName;
+        node.property.name = UNIVERSAL_METHOD[propName];
+        node.isTranslatedMethodAlias = true;
+        const MUTATING_METHODS = new Set([
+          'push',
+          'pop',
+          'shift',
+          'unshift',
+          'splice',
+          'sort',
+          'reverse',
+          'fill',
+        ]);
+        node.isMutatingMethod = MUTATING_METHODS.has(UNIVERSAL_METHOD[propName]);
+      }
+      // UNIVERSAL_PROPERTI and DOM_ONLY_PROPERTI are NOT applied on reactive data
+      // to preserve user-defined property names (BUG-13 fix).
     }
   }
+};
+
+/**
+ * [BUG-13 FIX] Check if a node refers to a DOM element.
+ * A node is a DOM element if:
+ * - It has compiledVarName (set by the compiler for Buat elements)
+ * - It references a symbol of kind 'komponen'
+ * - It is 'document', 'window', 'Math', 'JSON', 'console', 'localStorage', 'sessionStorage'
+ * - It is a SelfReference
+ *
+ * @param {Object} node - AST node to check
+ * @returns {boolean} True if node refers to a DOM element
+ */
+PromptJSResolver.prototype._isDomElement = function (node) {
+  if (!node) return false;
+  if (node.type === 'SelfReference') return true;
+  if (node.compiledVarName) return true;
+  if (node.type === 'Identifier') {
+    // Check if it's a known JS global that's a DOM-related object
+    if (JS_GLOBALS.has(node.name)) {
+      const domGlobals = new Set([
+        'document',
+        'window',
+        'localStorage',
+        'sessionStorage',
+        'console',
+      ]);
+      return domGlobals.has(node.name);
+    }
+    // Check if the resolved symbol is a DOM element (set by BuatStatement)
+    if (node.resolved) {
+      return node.resolved.kind === 'komponen' || node.resolved.isDomElement === true;
+    }
+  }
+  // MemberExpression: check if the root is a DOM element
+  if (node.type === 'MemberExpression') {
+    return this._isDomElement(node.object);
+  }
+  return false;
+};
+
+/**
+ * [BUG-13 FIX] Check if a node refers to a reactive data/turunan variable.
+ *
+ * @param {Object} node - AST node to check
+ * @returns {boolean} True if node is a reactive data variable
+ */
+PromptJSResolver.prototype._isReactiveDataVar = function (node) {
+  if (!node) return false;
+  if (node.type === 'Identifier' && node.resolved) {
+    return node.resolved.kind === 'data' || node.resolved.kind === 'turunan';
+  }
+  if (node.type === 'MemberExpression') {
+    // For obj.prop, check if obj is reactive (accessing .value on it)
+    // But the user is accessing a sub-property, so the root is what matters
+    let root = node.object;
+    while (root && root.type === 'MemberExpression') {
+      root = root.object;
+    }
+    if (root && root.type === 'Identifier' && root.resolved) {
+      return root.resolved.kind === 'data' || root.resolved.kind === 'turunan';
+    }
+  }
+  return false;
+};
+
+/**
+ * [BUG-13 FIX] Check if a node refers to an array-like variable.
+ * An array-like variable is one whose init value is an ArrayLiteral,
+ * or whose typeHint is 'array'.
+ *
+ * @param {Object} node - AST node to check
+ * @returns {boolean} True if node is likely an array
+ */
+PromptJSResolver.prototype._isArrayLikeVar = function (node) {
+  if (!node) return false;
+  if (node.type === 'Identifier' && node.resolved) {
+    const sym = node.resolved;
+    if (sym.declarationNode && sym.declarationNode.init) {
+      return sym.declarationNode.init.type === 'ArrayLiteral';
+    }
+    if (sym.typeHint === 'array') return true;
+  }
+  return false;
 };
 
 /**
@@ -637,6 +874,34 @@ PromptJSResolver.prototype.visitMemberExpression = function (node) {
  * @this {any}
  * @returns {void}
  */
+/**
+ * Visitor untuk ArrowFunctionExpression — BUG-05 FIX.
+ * Creates a new scope for arrow function params and visits the body.
+ * @param {Object} node - AST node ArrowFunctionExpression
+ */
+PromptJSResolver.prototype.visitArrowFunctionExpression = function (node) {
+  const prevScope = this.currentScope;
+  this.currentScope = new Scope('arrow', prevScope);
+
+  // Add params to scope
+  if (node.params) {
+    for (const param of node.params) {
+      if (param.type === 'Identifier') {
+        const sym = new SemanticSymbol(param.name, 'ubah', null, param.loc);
+        sym.isWritable = false; // arrow params are read-only in the body
+        this.currentScope.define(param.name, sym);
+      }
+    }
+  }
+
+  // Visit body
+  if (node.body) {
+    accept(node.body, this);
+  }
+
+  this.currentScope = prevScope;
+};
+
 PromptJSResolver.prototype.visitCallExpression = function (node) {
   // Visit callee
   accept(node.callee, this);
@@ -763,6 +1028,23 @@ PromptJSResolver.prototype.visitSimpanStatement = function (node) {
     this._trackWrite(node.target, node);
   } else if (node.target && node.target.type === 'Identifier') {
     this._trackWrite(node.target.name, node);
+  } else if (node.target && node.target.type === 'MemberExpression') {
+    // [BUG-12 FIX] Track writes to MemberExpression targets (e.g. item.aktif).
+    // Resolve the root object to find the symbol (loop variable, reactive data, etc.)
+    let root = node.target.object;
+    while (root && root.type === 'MemberExpression') {
+      root = root.object;
+    }
+    if (root && root.type === 'Identifier') {
+      const rootSymbol = this.currentScope.lookup(root.name);
+      if (rootSymbol) {
+        // Set targetSymbol to the root symbol so the compiler knows whether
+        // the root is reactive or not. For loop variables (ubah, non-reactive),
+        // this means _isTargetReactive returns false → direct assignment.
+        node.targetSymbol = rootSymbol;
+        rootSymbol.writeCount++;
+      }
+    }
   }
   this.genericVisit(node);
 };

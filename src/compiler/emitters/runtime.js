@@ -404,6 +404,23 @@ function __promptjs_apakahAda(arr, item) {
   return false;
 }`.trim(),
 
+  // BUG-07 FIX: Deep equality comparison for object removal
+  __promptjs_deepEqual: `
+function __promptjs_deepEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== 'object') return false;
+  var keysA = Object.keys(a);
+  var keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (var i = 0; i < keysA.length; i++) {
+    var key = keysA[i];
+    if (!__promptjs_deepEqual(a[key], b[key])) return false;
+  }
+  return true;
+}`.trim(),
+
   // ── HTML Sanitizer (v1.0.0) ────────────────────────────────────────
   // S-2: Sanitizer berbasis PARSING DOM dengan ALLOWLIST — bukan blocklist regex.
   // Strategi aman-secara-default (safe-by-default):
@@ -594,6 +611,7 @@ function emitRuntimeHelpers(compiler) {
     '__promptjs_panjang',
     '__promptjs_apakahKosong',
     '__promptjs_apakahAda',
+    '__promptjs_deepEqual',
     '__sanitizeHTML',
     '__safeAttr',
   ];
