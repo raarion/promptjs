@@ -521,6 +521,7 @@
     this.pendingDedents = 0;
     this.inFrontMatter = false;
     this._bracketDepth = 0; // F-1: track bracket depth for multi-line array/object suppression
+    this._inBlockComment = false; // LIM-08: track /* */ block comment state across lines
   }
 
   /**
@@ -549,6 +550,7 @@
     this.pendingDedents = 0;
     this.inFrontMatter = false;
     this._bracketDepth = 0; // F-1 fix: reset bracket tracking
+    this._inBlockComment = false; // LIM-08 fix: reset block comment state
 
     const lines = source.split('\n');
 
@@ -641,6 +643,67 @@
           // Accumulate front-matter lines (parse later)
           if (!this.frontMatter) this.frontMatter = [];
           this.frontMatter.push(rawLine);
+          continue;
+        }
+      }
+
+      // --- LIM-08: Block comment (/* ... */) handling ---
+      if (this._inBlockComment) {
+        const closeIdx = rawLine.indexOf('*/');
+        if (closeIdx !== -1) {
+          this._inBlockComment = false;
+          // If there's content after */ on the same line, process it
+          const afterComment = rawLine.substring(closeIdx + 2).trim();
+          if (afterComment === '') continue;
+          // Fall through: re-parse this line as normal content (adjust indent)
+          // Replace rawLine so indent/content extraction works on the remainder
+          // We need to re-measure indent for the remainder — use original indent
+          const indent = this._measureIndent(rawLine);
+          if (indent === -2 || indent < 0 || indent > rawLine.length) continue;
+          if (this._bracketDepth === 0) this._emitIndentDedent(indent, lineNum);
+          const cleanedContent = afterComment;
+          const tokenCountBefore = this.tokens.length;
+          this._tokenizeLine(cleanedContent, lineNum, indent);
+          for (let j = tokenCountBefore; j < this.tokens.length; j++) {
+            const t = this.tokens[j];
+            if (t.type === TT.TK_LBRACKET || t.type === TT.TK_LBRACE) this._bracketDepth++;
+            else if (t.type === TT.TK_RBRACKET || t.type === TT.TK_RBRACE)
+              this._bracketDepth = Math.max(0, this._bracketDepth - 1);
+          }
+        }
+        continue;
+      }
+      // Check for block comment open on this line (but not inside strings)
+      // Only check if line is NOT already a single-line comment
+      const trimmedPreview = rawLine.trim();
+      if (!trimmedPreview.startsWith('--') && !trimmedPreview.startsWith('//')) {
+        const openIdx = rawLine.indexOf('/*');
+        if (openIdx !== -1) {
+          const closeIdx = rawLine.indexOf('*/', openIdx + 2);
+          if (closeIdx === -1) {
+            // /* without closing */ — skip this line, enter block comment mode
+            this._inBlockComment = true;
+            continue;
+          }
+          // /* ... */ on the same line — strip it and process the remainder
+          // Handle content before and after the comment
+          const before = rawLine.substring(0, openIdx).trim();
+          const after = rawLine.substring(closeIdx + 2).trim();
+          const effectiveContent = (before + ' ' + after).trim();
+          if (effectiveContent === '') continue;
+          // Process the cleaned line normally
+          const indent = this._measureIndent(rawLine);
+          if (indent === -2 || indent < 0 || indent > rawLine.length) continue;
+          if (this._bracketDepth === 0) this._emitIndentDedent(indent, lineNum);
+          const content = effectiveContent;
+          const tokenCountBefore = this.tokens.length;
+          this._tokenizeLine(content, lineNum, indent);
+          for (let j = tokenCountBefore; j < this.tokens.length; j++) {
+            const t = this.tokens[j];
+            if (t.type === TT.TK_LBRACKET || t.type === TT.TK_LBRACE) this._bracketDepth++;
+            else if (t.type === TT.TK_RBRACKET || t.type === TT.TK_RBRACE)
+              this._bracketDepth = Math.max(0, this._bracketDepth - 1);
+          }
           continue;
         }
       }

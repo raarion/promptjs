@@ -170,6 +170,22 @@ function extractGayaBlocks(source, scope) {
 }
 
 /**
+ * Strip CSS block and line comments from a Gaya source string.
+ * Handles multi-line block comments and single-line // comments.
+ * Used before indent-based CSS parsing to prevent malformed output (BUG-04).
+ *
+ * @param {string} css - Raw CSS source
+ * @returns {string} CSS with comments removed
+ */
+function stripCSSComments(css) {
+  // Remove block comments first (may span multiple lines)
+  let result = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Remove single-line comments (// to end of line)
+  result = result.replace(/\/\/.*$/gm, '');
+  return result;
+}
+
+/**
  * Parse CSS rules from indent-based Gaya block source.
  *
  * @param {string} gayaSource - Indent-based CSS source (from Gaya: block)
@@ -177,7 +193,10 @@ function extractGayaBlocks(source, scope) {
  * @returns {CSSRule[]}
  */
 function parseGayaRules(gayaSource, scope) {
-  const lines = gayaSource.split('\n').filter((l) => l.trim() !== '');
+  // BUG-04: Strip CSS comments before parsing so /* ... */ and // don't
+  // produce malformed selectors or properties.
+  const cleaned = stripCSSComments(gayaSource);
+  const lines = cleaned.split('\n').filter((l) => l.trim() !== '');
   if (lines.length === 0) return [];
 
   // Find minimum indent (base indent for this block)
