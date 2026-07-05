@@ -1364,12 +1364,29 @@ function install(PromptJSCompiler, accept) {
     if (this._isTargetReactive(node)) {
       // data/turunan → Proxy, gunakan __setState
       // resolveTarget returns name.value but __setState needs the proxy object itself
-      const tgtName =
-        node.target && node.target.type === 'Identifier' ? node.target.name : tgt.split('.')[0];
+      // [BUG-12 FIX] When target is a MemberExpression (e.g. item.aktif inside
+      // a loop), the root variable may not be reactive. Check target type to
+      // determine the correct tgtName for __setState.
+      let tgtName;
+      if (node.target && node.target.type === 'Identifier') {
+        tgtName = node.target.name;
+      } else if (node.target && node.target.type === 'MemberExpression') {
+        // For MemberExpression targets on reactive arrays, we need the array
+        // proxy name, not the member path. Find the root identifier.
+        let root = node.target.object;
+        while (root && root.type === 'MemberExpression') {
+          root = root.object;
+        }
+        tgtName = root ? root.name : tgt.split('.')[0];
+      } else {
+        tgtName = tgt.split('.')[0];
+      }
       this.helpers.add('__setState');
       this.emit(`__setState(${tgtName}, ${val});`);
     } else {
       // ubah → plain variable, assignment langsung
+      // [BUG-12 FIX] tgt is now correctly resolved for MemberExpression targets
+      // (e.g. "item.aktif" instead of "null")
       this.emit(`${tgt} = ${val};`);
     }
   };
@@ -1390,6 +1407,10 @@ function install(PromptJSCompiler, accept) {
     const tgt = this.resolveTarget(node.target);
     const val = this.lowerExpression(node.value);
     if (this._isTargetReactive(node)) {
+      // [BUG-01 FIX] Register __setState helper — previously missing, causing
+      // ReferenceError at runtime when tambahkan was used without simpan.
+      this.helpers.add('__setState');
+
       // Heuristic: if value lowers to a string literal or the target is
       // initialized as an array, treat as array push. Otherwise numeric add.
       // Safer: always emit array-push form when target init was an array.
@@ -1415,8 +1436,23 @@ function install(PromptJSCompiler, accept) {
         this.emit(`__setState(${stateName}, ${readExpr} + ${val});`);
       }
     } else {
-      // ubah → plain variable, push to array if it's an array, else add
-      this.emit(`${tgt}.push(${val});`);
+      // [BUG-06 FIX] Check if target is a numeric ubah variable — previously
+      // always emitted .push() which causes TypeError for non-array variables.
+      // Heuristic: if the ubah variable is not initialized as an array, emit
+      // increment instead of push.
+      const sym = node.targetSymbol;
+      const initIsArray =
+        sym &&
+        sym.declarationNode &&
+        sym.declarationNode.init &&
+        (sym.declarationNode.init.type === 'ArrayLiteral' ||
+          Array.isArray(sym.declarationNode.init.value));
+      if (initIsArray) {
+        this.emit(`${tgt}.push(${val});`);
+      } else {
+        // Numeric increment for ubah scalar variable
+        this.emit(`${tgt} = ${tgt} + ${val};`);
+      }
     }
   };
 
@@ -1432,6 +1468,9 @@ function install(PromptJSCompiler, accept) {
     // Default ke 1 jika tidak ada value (kurangi counter → counter - 1)
     const jumlah = node.value ? this.lowerExpression(node.value) : '1';
     if (this._isTargetReactive(node)) {
+      // [BUG-01 FIX] Register __setState helper — previously missing.
+      this.helpers.add('__setState');
+
       // data/turunan → Proxy, akses via .value
       const tgtName = tgtRaw.split('.')[0];
       const valExpr = this.lowerExpression(node.target);
@@ -1453,6 +1492,9 @@ function install(PromptJSCompiler, accept) {
     const val = this.lowerExpression(node.value);
     const tgt = this.resolveTarget(node.target);
     if (this._isTargetReactive(node)) {
+      // [BUG-01 FIX] Register __setState helper — previously missing.
+      this.helpers.add('__setState');
+
       // data/turunan → Proxy, push lalu trigger reaktivitas via spread assignment
       this.emit(`${tgt}.value.push(${val}); __setState(${tgt.split('.')[0]}, [...${tgt}.value]);`);
     } else {

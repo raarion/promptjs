@@ -1188,6 +1188,19 @@ PromptJSParser.prototype._parseSaatStatement = function () {
   // Parse target (the reactive variable being watched)
   const target = this._parseExpression();
 
+  // [BUG-02 FIX] Accept optional "berubah"/"changes" keyword after target.
+  // The documentation lists `Saat tema berubah:` as valid syntax, but the
+  // parser previously rejected it because it expected ':' immediately after
+  // the target expression. Now we consume the optional keyword.
+  const nextTok = this._peek();
+  if (
+    nextTok &&
+    nextTok.type === TT.TK_IDENT &&
+    (nextTok.value === 'berubah' || nextTok.value === 'changes')
+  ) {
+    this._advance(); // consume berubah/changes
+  }
+
   // Expect colon
   this._expect(TT.TK_COLON, 'Expected ":" after saat target');
 
