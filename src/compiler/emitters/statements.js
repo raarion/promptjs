@@ -736,6 +736,61 @@ function install(PromptJSCompiler, accept) {
    * @returns {void | string}
    */
   PromptJSCompiler.prototype.visitKetikaStatement = function (node) {
+    // BUG-17 FIX: on_kelas / on_class → reactive class binding, not addEventListener
+    // When a user writes `on_kelas = tema` inside a Buat block, they want
+    // the element's className to reactively track the value of `tema`, not
+    // to listen for a DOM event named "on_kelas".
+    if (
+      node.event === 'on_kelas' ||
+      node.event === 'on_class' ||
+      node.event === 'kelas' ||
+      node.event === 'class'
+    ) {
+      this.helpers.add('__watch');
+      let elTarget = 'document';
+      if (node.target) {
+        if (node.target.type === 'SelfReference') {
+          elTarget = node.target.referencedNode.compiledVarName || 'null';
+        } else if (node.target.type === 'Identifier') {
+          elTarget = node.target.name;
+        } else {
+          elTarget = this.resolveTarget(node.target);
+        }
+      }
+      // Resolve the expression (RHS of on_kelas = ...)
+      let watchExpr;
+      if (node.action) {
+        watchExpr = this.lowerExpression(node.action);
+      } else if (node.body) {
+        // Body form: fall back to emitting body inside __watch callback
+        watchExpr = null;
+      }
+      // Determine the reactive source to watch
+      let watchTarget;
+      if (node.action && node.action.type === 'Identifier') {
+        watchTarget = node.action.name;
+      } else if (watchExpr) {
+        watchTarget = watchExpr;
+      } else {
+        watchTarget = elTarget; // fallback
+      }
+      // Emit initial className assignment
+      if (watchExpr) {
+        this.emit(`${elTarget}.className = ${watchExpr};`);
+      }
+      // Emit __watch for reactive updates
+      if (this.isSPA) {
+        this.emit(
+          `__cleanupFns.push(__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; }));`
+        );
+      } else {
+        this.emit(
+          `__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; });`
+        );
+      }
+      return;
+    }
+
     const eventMap = {
       diklik: 'click',
       diketik: 'input',
@@ -1931,7 +1986,16 @@ function install(PromptJSCompiler, accept) {
    * @this {any}
    * @param {Object} node - AST node ObjectLiteral
    * @returns {void | string}
+   */ /**
+   * Emit arrow function expression — BUG-05 FIX.
+   * @this {any}
+   * @param {Object} node - AST node ArrowFunctionExpression
+   * @returns {string}
    */
+  PromptJSCompiler.prototype.visitArrowFunctionExpression = function (node) {
+    return this.lowerExpression(node);
+  };
+
   PromptJSCompiler.prototype.visitObjectLiteral = function (node) {
     return this.lowerExpression(node);
   };

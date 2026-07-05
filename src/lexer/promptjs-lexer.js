@@ -1462,7 +1462,22 @@
             this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, restCol + 1));
             const afterColon = rest.substring(1).trim();
             // Type hint bisa sampai '=' atau sampai akhir baris
-            const eqIdx = afterColon.indexOf('=');
+            // BUG-05 FIX: Skip '=' that is part of '=>' or inside parentheses
+            let eqIdx = -1;
+            let parenDepth = 0;
+            for (let i = 0; i < afterColon.length; i++) {
+              const c = afterColon[i];
+              if (c === '(') parenDepth++;
+              else if (c === ')') parenDepth--;
+              else if (c === '=' && parenDepth === 0) {
+                // Check if this = is part of =>
+                if (i + 1 < afterColon.length && afterColon[i + 1] === '>') {
+                  continue; // skip => arrow
+                }
+                eqIdx = i;
+                break;
+              }
+            }
             if (eqIdx >= 0) {
               const typeHint = afterColon.substring(0, eqIdx).trim();
               const initPart = afterColon.substring(eqIdx + 1).trim();
@@ -1474,8 +1489,17 @@
                 this._tokenizeExpression(initPart, lineNum, restCol + 2 + eqIdx + 1);
               }
             } else if (afterColon) {
-              // Hanya type hint, tidak ada init
-              this.tokens.push(new Token(TT.TK_IDENT, afterColon, lineNum, restCol + 2));
+              // No '=' found after ':'. If the content looks like an expression
+              // (contains parens, operators, arrow functions, etc.), it's an init
+              // value, NOT a type hint. BUG-05 FIX.
+              const isExprLike = /[()=><+\-*/%,!&|]/.test(afterColon);
+              if (isExprLike) {
+                // Treat as init expression (no type hint)
+                this._tokenizeExpression(afterColon, lineNum, restCol + 2);
+              } else {
+                // Hanya type hint, tidak ada init
+                this.tokens.push(new Token(TT.TK_IDENT, afterColon, lineNum, restCol + 2));
+              }
             }
           }
         }

@@ -166,6 +166,20 @@ function lowerExpression(compiler, node) {
     case 'FetchBranch':
     case 'FetchOption':
       return 'undefined';
+    case 'ArrowFunctionExpression': {
+      // BUG-05 FIX: Lower arrow function to JavaScript
+      const params = (node.params || [])
+        .map((p) => p.name || lowerExpression(compiler, p))
+        .join(', ');
+      if (node.expression) {
+        // Expression body: (x) => x > 0
+        const body = lowerExpression(compiler, node.body);
+        return `(${params}) => ${body}`;
+      } else {
+        // Block body: (x) => { ... } — not common in PromptJS but supported
+        return `(${params}) => { ... }`;
+      }
+    }
     case 'ErrorNode':
       return 'undefined';
     // ─── Wave G: action keywords as expression values ─────────────────

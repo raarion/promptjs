@@ -1061,15 +1061,32 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
   const name = nameTok ? nameTok.value : '_';
 
   // Optional type hint: `name: typeHint = value` or `name = value`
+  // BUG-05 FIX: Also handle `name: <expr>` where the colon is followed by
+  // an expression that serves as the init value (no separate type hint).
+  // This handles cases like `ubah positif: angka.saring(x => x > 3)`.
   let typeHint = null;
-  if (this._match(TT.TK_COLON)) {
-    const hintTok = this._expect(TT.TK_IDENT, 'Expected type hint name');
-    if (hintTok) typeHint = hintTok.value;
-  }
-
-  // Expect =
   let init = null;
-  if (this._match(TT.TK_ASSIGN)) {
+  if (this._match(TT.TK_COLON)) {
+    // Peek ahead: if the next token is a single IDENT followed by =, it's a type hint.
+    // Otherwise, the entire expression after : is the init value.
+    const nextTok = this._peek();
+    const nextNextTok = this._peekAt(1);
+    if (
+      nextTok &&
+      nextTok.type === TT.TK_IDENT &&
+      nextNextTok &&
+      nextNextTok.type === TT.TK_ASSIGN
+    ) {
+      // It's a type hint: `name: typeHint = value`
+      const hintTok = this._advance();
+      typeHint = hintTok.value;
+      this._advance(); // consume =
+      init = this._parseExpression();
+    } else {
+      // No type hint — the entire expression after : is the init value
+      init = this._parseExpression();
+    }
+  } else if (this._match(TT.TK_ASSIGN)) {
     init = this._parseExpression();
   }
 
@@ -1470,9 +1487,16 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return expr;
   }
 
-  // Identifier or keyword-as-identifier
+  // Identifier or keyword-as-identifier (or arrow function: x => expr)
   if (tok.type === TT.TK_IDENT) {
     this._advance();
+    // BUG-05 FIX: Check if this is a single-param arrow function (x => expr)
+    if (this._peek().type === TT.TK_ARROW) {
+      this._advance(); // consume =>
+      const params = [AST.buatIdentifier(tok.value, this._makeLoc(tok))];
+      const body = this._parseExpression();
+      return AST.buatArrowFunctionExpression(params, body, this._makeLoc(tok), true);
+    }
     return AST.buatIdentifier(tok.value, this._makeLoc(tok));
   }
 
@@ -1588,9 +1612,54 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return { type: 'PerbaruiStatement', loc: null, property, target, value };
   }
 
-  // Parenthesized expression
+  // Parenthesized expression OR arrow function params: (x, y) => expr
   if (tok.type === TT.TK_LPAREN) {
     this._advance();
+    // BUG-05 FIX: Check if this is an arrow function by looking for pattern: (id, id, ...) =>
+    // Save position for backtracking
+    const savedPos = this._pos;
+    const savedTokens = this.tokens.slice();
+    const possibleParams = [];
+    let isArrow = false;
+    try {
+      // Try to parse as parameter list
+      if (this._peek().type === TT.TK_RPAREN) {
+        // () => expr  (zero params)
+        this._advance(); // consume )
+        if (this._peek().type === TT.TK_ARROW) {
+          isArrow = true;
+        }
+      } else if (this._peek().type === TT.TK_IDENT) {
+        // Parse comma-separated identifiers
+        while (true) {
+          if (this._peek().type !== TT.TK_IDENT) break;
+          const paramTok = this._advance();
+          possibleParams.push(AST.buatIdentifier(paramTok.value, this._makeLoc(paramTok)));
+          if (this._peek().type === TT.TK_COMMA) {
+            this._advance(); // consume comma
+          } else {
+            break;
+          }
+        }
+        if (this._peek().type === TT.TK_RPAREN) {
+          this._advance(); // consume )
+          if (this._peek().type === TT.TK_ARROW) {
+            isArrow = true;
+          }
+        }
+      }
+    } catch {
+      // Not an arrow function, will backtrack
+    }
+    if (isArrow) {
+      // It IS an arrow function: (x, y) => expr
+      this._advance(); // consume =>
+      const body = this._parseExpression();
+      return AST.buatArrowFunctionExpression(possibleParams, body, this._makeLoc(tok), true);
+    }
+    // Not an arrow function — backtrack and parse as parenthesized expression
+    this._pos = savedPos;
+    this.tokens = savedTokens;
     const expr = this._parseExpression();
     this._expect(TT.TK_RPAREN, 'Expected ")"');
     return expr;

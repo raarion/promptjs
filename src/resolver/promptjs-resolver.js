@@ -230,6 +230,11 @@ const VALID_EVENT_NAMES = new Set([
   'ditinggal-kursor',
   'dipasang',
   'dilepas-dari-dom',
+  // BUG-17: Reactive class binding — not real DOM events but valid PromptJS reactive bindings
+  'on_kelas',
+  'on_class',
+  'kelas',
+  'class',
 ]);
 
 // ============================================================================
@@ -822,6 +827,34 @@ PromptJSResolver.prototype._isArrayLikeVar = function (node) {
  * @this {any}
  * @returns {void}
  */
+/**
+ * Visitor untuk ArrowFunctionExpression — BUG-05 FIX.
+ * Creates a new scope for arrow function params and visits the body.
+ * @param {Object} node - AST node ArrowFunctionExpression
+ */
+PromptJSResolver.prototype.visitArrowFunctionExpression = function (node) {
+  const prevScope = this.currentScope;
+  this.currentScope = new Scope('arrow', prevScope);
+
+  // Add params to scope
+  if (node.params) {
+    for (const param of node.params) {
+      if (param.type === 'Identifier') {
+        const sym = new SemanticSymbol(param.name, 'ubah', null, param.loc);
+        sym.isWritable = false; // arrow params are read-only in the body
+        this.currentScope.define(param.name, sym);
+      }
+    }
+  }
+
+  // Visit body
+  if (node.body) {
+    accept(node.body, this);
+  }
+
+  this.currentScope = prevScope;
+};
+
 PromptJSResolver.prototype.visitCallExpression = function (node) {
   // Visit callee
   accept(node.callee, this);

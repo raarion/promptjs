@@ -468,6 +468,7 @@ PromptJSCompiler.prototype._validateNodeTypes = function (node) {
     'TernaryExpression',
     'HapusDariExpression',
     'SimpanExpression',
+    'ArrowFunctionExpression',
   ];
   for (let i = 0; i < allTypes.length; i++) {
     validTypes.add(allTypes[i]);
