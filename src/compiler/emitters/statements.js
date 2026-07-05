@@ -644,6 +644,18 @@ function install(PromptJSCompiler, accept) {
     const item = this.lowerExpression(node.item);
     const isReactive = node.fromArrayReactive;
 
+    // BUG-07 FIX: Use deep equality for object removal instead of reference equality
+    // When removing an object literal like `hapus {id: "1"} dari catatan`,
+    // referential equality (`__item !== {id: "1"}`) always returns true,
+    // so the filter never removes the matching object.
+    const isObjectItem = node.item && node.item.type === 'ObjectLiteral';
+    const compareOp = isObjectItem
+      ? `!__promptjs_deepEqual(__item, ${item})`
+      : `__item !== ${item}`;
+    if (isObjectItem) {
+      this.helpers.add('__promptjs_deepEqual');
+    }
+
     // Resolve the array expression — prefer resolver-attached name, else lower the expression
     let arr;
     if (node.fromArrayResolved) {
@@ -656,13 +668,12 @@ function install(PromptJSCompiler, accept) {
 
     if (isReactive) {
       // Reactive array: use filter to remove item and trigger Proxy setter
-      // arr.value = arr.value.filter(__item => __item !== item)
       this.helpers.add('__setState');
-      this.emit(`${arr}.value = ${arr}.value.filter((__item) => __item !== ${item});`);
+      this.emit(`${arr}.value = ${arr}.value.filter((__item) => ${compareOp});`);
       this.emit(`__setState(${arr}, [...${arr}.value]);`);
     } else {
       // Non-reactive array: use filter with assignment
-      this.emit(`${arr} = ${arr}.filter((__item) => __item !== ${item});`);
+      this.emit(`${arr} = ${arr}.filter((__item) => ${compareOp});`);
     }
   };
 

@@ -627,6 +627,7 @@ PromptJSResolver.prototype.visitMemberExpression = function (node) {
       panjang: 'length',
     };
     const UNIVERSAL_METHOD = {
+      // Array methods
       untukSetiap: 'forEach',
       untukSetiapItem: 'forEach',
       sisip: 'push',
@@ -654,6 +655,30 @@ PromptJSResolver.prototype.visitMemberExpression = function (node) {
       petakanDatar: 'flatMap',
       keTeks: 'toString',
       gabungTeks: 'join',
+      // BUG-15 FIX: String methods — these must be translated everywhere
+      // including reactive data vars, because JS doesn't have .keBesar()
+      keBesar: 'toUpperCase',
+      keKecil: 'toLowerCase',
+      keKecilAwal: 'toLocaleLowerCase',
+      keBesarAwal: 'toLocaleUpperCase',
+      pangkas: 'trim',
+      pangkasAwal: 'trimStart',
+      pangkasAkhir: 'trimEnd',
+      ulang: 'repeat',
+      ganti: 'replace',
+      gantiSemua: 'replaceAll',
+      cocok: 'match',
+      cari: 'search',
+      bagi: 'split',
+      mulaiDengan: 'startsWith',
+      akhiriDengan: 'endsWith',
+      subTeks: 'substring',
+      potongTeks: 'substr',
+      normalisasi: 'normalize',
+      ulangi: 'repeat',
+      charDi: 'charAt',
+      kodeCharDi: 'charCodeAt',
+      teksBerulang: 'concat',
     };
 
     // DOM-only property aliases (only apply when object is a DOM element)
@@ -727,9 +752,31 @@ PromptJSResolver.prototype.visitMemberExpression = function (node) {
         ]);
         node.isMutatingMethod = MUTATING_METHODS.has(UNIVERSAL_METHOD[propName]);
       }
+    } else if (isReactiveData) {
+      // BUG-15 FIX: Reactive data objects should still have METHOD aliases translated
+      // (e.g. teks.keBesar → toUpperCase, arr.saring → filter) because these are
+      // JavaScript built-in method names that need translation. Only DATA PROPERTY
+      // names (like UNIVERSAL_PROPERTI and DOM_ONLY_PROPERTI) should be preserved
+      // as-is to avoid breaking user-defined property access (e.g. orang.nama).
+      if (UNIVERSAL_METHOD[propName]) {
+        node.property.originalName = propName;
+        node.property.name = UNIVERSAL_METHOD[propName];
+        node.isTranslatedMethodAlias = true;
+        const MUTATING_METHODS = new Set([
+          'push',
+          'pop',
+          'shift',
+          'unshift',
+          'splice',
+          'sort',
+          'reverse',
+          'fill',
+        ]);
+        node.isMutatingMethod = MUTATING_METHODS.has(UNIVERSAL_METHOD[propName]);
+      }
+      // UNIVERSAL_PROPERTI and DOM_ONLY_PROPERTI are NOT applied on reactive data
+      // to preserve user-defined property names (BUG-13 fix).
     }
-    // If isReactiveData and not arrayLike and not DOM → skip ALL aliases
-    // (user data properties should be preserved as-is)
   }
 };
 

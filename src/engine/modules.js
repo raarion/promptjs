@@ -59,46 +59,54 @@ function extractModuleDirectives(frontMatterData) {
     // Check for kirim:/share: entries
     // Front-matter parser produces { type: 'inline', value: ... }
     // For kirim: apiKey = "abc123", the key would be "kirim" and value would be the rest
+    // BUG-08 FIX: Handle multiple kirim/share entries (stored as array when duplicate keys)
     if (key === 'kirim' || key === 'share') {
       hasModuleDirectives = true;
-      const val = info && info.value !== undefined ? info.value : info;
-      if (typeof val === 'string') {
-        // Parse "apiKey = \"abc123\"" or "formatTanggal dari utils.pjs"
-        const shareMatch = val.match(/^(\w+)\s*=\s*(.+)$/);
-        if (shareMatch) {
-          // Inline value: kirim: apiKey = "abc123"
-          const name = shareMatch[1];
-          let value = shareMatch[2].trim();
-          // Try to parse as JSON for proper typing
-          try {
-            value = JSON.parse(value);
-          } catch {
-            /* keep as string */
-          }
-          shares[name] = value;
-        } else {
-          // Re-export: kirim: formatTanggal dari "utils.pjs"
-          const reExportMatch = val.match(/^(\w+)\s+(?:dari|from)\s+["'](.+?)["']$/);
-          if (reExportMatch) {
-            shares[reExportMatch[1]] = {
-              __reExport: true,
-              from: reExportMatch[2],
-              name: reExportMatch[1],
-            };
+      const entries = Array.isArray(info) ? info : [info];
+      for (const entry of entries) {
+        const val = entry && entry.value !== undefined ? entry.value : entry;
+        if (typeof val === 'string') {
+          // Parse "apiKey = \"abc123\"" or "formatTanggal dari utils.pjs"
+          const shareMatch = val.match(/^(\w+)\s*=\s*(.+)$/);
+          if (shareMatch) {
+            // Inline value: kirim: apiKey = "abc123"
+            const name = shareMatch[1];
+            let value = shareMatch[2].trim();
+            // Try to parse as JSON for proper typing
+            try {
+              value = JSON.parse(value);
+            } catch {
+              /* keep as string */
+            }
+            shares[name] = value;
+          } else {
+            // Re-export: kirim: formatTanggal dari "utils.pjs"
+            const reExportMatch = val.match(/^(\w+)\s+(?:dari|from)\s+["'](.+?)["']$/);
+            if (reExportMatch) {
+              shares[reExportMatch[1]] = {
+                __reExport: true,
+                from: reExportMatch[2],
+                name: reExportMatch[1],
+              };
+            }
           }
         }
       }
     }
 
     // Check for terima:/get: entries
+    // BUG-08 FIX: Handle multiple terima entries (stored as array when duplicate keys)
     if (key === 'terima' || key === 'get') {
       hasModuleDirectives = true;
-      const val = info && info.value !== undefined ? info.value : info;
-      if (typeof val === 'string') {
-        // Parse "apiKey dari \"config.pjs\"" or "apiKey from 'config.pjs'"
-        const importMatch = val.match(/^(\w+)\s+(?:dari|from)\s+["'](.+?)["']$/);
-        if (importMatch) {
-          imports[importMatch[1]] = { from: importMatch[2], name: importMatch[1] };
+      const entries = Array.isArray(info) ? info : [info];
+      for (const entry of entries) {
+        const val = entry && entry.value !== undefined ? entry.value : entry;
+        if (typeof val === 'string') {
+          // Parse "apiKey dari \"config.pjs\"" or "apiKey from 'config.pjs'"
+          const importMatch = val.match(/^(\w+)\s+(?:dari|from)\s+["'](.+?)["']$/);
+          if (importMatch) {
+            imports[importMatch[1]] = { from: importMatch[2], name: importMatch[1] };
+          }
         }
       }
     }

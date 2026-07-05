@@ -1243,7 +1243,9 @@
             pos++;
           }
           let val = '';
+          let isQuoted = false;
           if (quote) {
+            isQuoted = true;
             while (pos < selector.length && selector[pos] !== quote) {
               val += selector[pos];
               pos++;
@@ -1256,7 +1258,12 @@
             }
             val = val.trim();
           }
-          value = val;
+          // BUG-10 FIX: Track whether the value was quoted so the parser can
+          // decide between a string literal and a variable reference.
+          // Unquoted identifiers (e.g. [href=url]) should become Identifier
+          // nodes; quoted values (e.g. [href="https://example.com"]) stay as
+          // Literal nodes.
+          value = { __raw: val, __quoted: isQuoted };
         }
         if (selector[pos] === ']') pos++; // skip ']'
         if (key) attributes.push({ key: key, value: value });
@@ -1899,6 +1906,23 @@
    * @param {string[] | null} lines - Daftar baris front-matter (dari `tokenize()`)
    * @returns {Object<string, any> | null} Objek front-matter dengan key-value pairs, atau `null` jika input kosong
    */
+  /**
+   * Helper: assign value to result object, handling duplicate keys by converting to array.
+   * @param {Object} result
+   * @param {string} key
+   * @param {*} value
+   */
+  function _fmAssign(result, key, value) {
+    if (result[key] !== undefined) {
+      if (!Array.isArray(result[key])) {
+        result[key] = [result[key]];
+      }
+      result[key].push(value);
+    } else {
+      result[key] = value;
+    }
+  }
+
   PromptJSLexer.parseFrontMatter = function (lines) {
     if (!lines || lines.length === 0) return null;
     const result = /** @type {Object<string, any>} */ ({});
@@ -1915,20 +1939,20 @@
         (value.startsWith('./') || value.startsWith('/')) &&
         /\.(json|csv|txt|yml|yaml|xml)$/i.test(value)
       ) {
-        result[key] = { type: 'file', path: value };
+        _fmAssign(result, key, { type: 'file', path: value });
       }
       // Inline JSON object: starts with {
       else if (value.startsWith('{')) {
         // Try strict JSON first; if fails, try lenient (unquoted keys)
         try {
-          result[key] = { type: 'inline', value: JSON.parse(value) };
+          _fmAssign(result, key, { type: 'inline', value: JSON.parse(value) });
         } catch {
           try {
             // Lenient: wrap keys in quotes for unquoted YAML-like objects
             const fixed = value.replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":');
-            result[key] = { type: 'inline', value: JSON.parse(fixed) };
+            _fmAssign(result, key, { type: 'inline', value: JSON.parse(fixed) });
           } catch {
-            result[key] = { type: 'inline', value: value };
+            _fmAssign(result, key, { type: 'inline', value: value });
           }
         }
       }
@@ -1937,9 +1961,9 @@
         // Try as JSON first (numbers, booleans, etc)
         try {
           const parsed = JSON.parse(value);
-          result[key] = { type: 'inline', value: parsed };
+          _fmAssign(result, key, { type: 'inline', value: parsed });
         } catch {
-          result[key] = { type: 'inline', value: value };
+          _fmAssign(result, key, { type: 'inline', value: value });
         }
       }
     }

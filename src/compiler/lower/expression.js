@@ -210,6 +210,12 @@ function lowerExpression(compiler, node) {
     case 'HapusDariStatement': {
       const item = lowerExpression(compiler, node.item);
       const isReactive = node.fromArrayReactive;
+      // BUG-07 FIX: Use deep equality for object removal instead of reference equality
+      // Check if the item being removed is an object literal (contains properties)
+      const isObjectItem = node.item && node.item.type === 'ObjectLiteral';
+      const compareOp = isObjectItem
+        ? `!__promptjs_deepEqual(__item, ${item})`
+        : `__item !== ${item}`;
       let arr;
       if (node.fromArrayResolved) {
         arr = node.fromArrayResolved;
@@ -218,10 +224,13 @@ function lowerExpression(compiler, node) {
       } else {
         arr = lowerExpression(compiler, node.fromArray);
       }
-      if (isReactive) {
-        return `(${arr}.value = ${arr}.value.filter((__item) => __item !== ${item}), __setState(${arr}, [...${arr}.value]))`;
+      if (isObjectItem) {
+        compiler.helpers.add('__promptjs_deepEqual');
       }
-      return `${arr} = ${arr}.filter((__item) => __item !== ${item})`;
+      if (isReactive) {
+        return `(${arr}.value = ${arr}.value.filter((__item) => ${compareOp}), __setState(${arr}, [...${arr}.value]))`;
+      }
+      return `${arr} = ${arr}.filter((__item) => ${compareOp})`;
     }
     case 'KosongkanStatement':
       return `${compiler.resolveTarget(node.target)}.innerHTML = ""`;
