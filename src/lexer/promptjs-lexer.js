@@ -1289,47 +1289,71 @@
         }
         id = idStr || null;
       } else if (selector[pos] === '[') {
-        // Attribute block: [key], [key="val"], [key='val'], [key=val]
+        // Attribute block — supports multiple attributes in one bracket:
+        //   [key], [key="val"], [key='val'], [key=val],
+        //   [key1=val1 key2="val2" key3], etc.
         pos++; // skip '['
-        let key = '';
-        while (pos < selector.length && selector[pos] !== '=' && selector[pos] !== ']') {
-          key += selector[pos];
-          pos++;
-        }
-        key = key.trim();
-        let value = null; // null => boolean/valueless attribute
-        if (selector[pos] === '=') {
-          pos++; // skip '='
-          let quote = null;
-          if (selector[pos] === '"' || selector[pos] === "'") {
-            quote = selector[pos];
+        while (pos < selector.length && selector[pos] !== ']') {
+          // Skip whitespace between attributes
+          while (pos < selector.length && (selector[pos] === ' ' || selector[pos] === '\t')) {
             pos++;
           }
-          let val = '';
-          let isQuoted = false;
-          if (quote) {
-            isQuoted = true;
-            while (pos < selector.length && selector[pos] !== quote) {
-              val += selector[pos];
-              pos++;
-            }
-            if (selector[pos] === quote) pos++; // skip closing quote
-          } else {
-            while (pos < selector.length && selector[pos] !== ']') {
-              val += selector[pos];
-              pos++;
-            }
-            val = val.trim();
+          if (selector[pos] === ']' || pos >= selector.length) break;
+
+          // Parse key (stop at '=', ']', or whitespace)
+          let key = '';
+          while (
+            pos < selector.length &&
+            selector[pos] !== '=' &&
+            selector[pos] !== ']' &&
+            selector[pos] !== ' ' &&
+            selector[pos] !== '\t'
+          ) {
+            key += selector[pos];
+            pos++;
           }
-          // BUG-10 FIX: Track whether the value was quoted so the parser can
-          // decide between a string literal and a variable reference.
-          // Unquoted identifiers (e.g. [href=url]) should become Identifier
-          // nodes; quoted values (e.g. [href="https://example.com"]) stay as
-          // Literal nodes.
-          value = { __raw: val, __quoted: isQuoted };
+          key = key.trim();
+
+          let value = null; // null => boolean/valueless attribute
+          if (selector[pos] === '=') {
+            pos++; // skip '='
+            let quote = null;
+            if (selector[pos] === '"' || selector[pos] === "'") {
+              quote = selector[pos];
+              pos++;
+            }
+            let val = '';
+            let isQuoted = false;
+            if (quote) {
+              isQuoted = true;
+              while (pos < selector.length && selector[pos] !== quote) {
+                val += selector[pos];
+                pos++;
+              }
+              if (selector[pos] === quote) pos++; // skip closing quote
+            } else {
+              // Unquoted value: stop at ']' or whitespace
+              while (
+                pos < selector.length &&
+                selector[pos] !== ']' &&
+                selector[pos] !== ' ' &&
+                selector[pos] !== '\t'
+              ) {
+                val += selector[pos];
+                pos++;
+              }
+              val = val.trim();
+            }
+            // BUG-10 FIX: Track whether the value was quoted so the parser can
+            // decide between a string literal and a variable reference.
+            // Unquoted identifiers (e.g. [href=url]) should become Identifier
+            // nodes; quoted values (e.g. [href="https://example.com"]) stay as
+            // Literal nodes.
+            value = { __raw: val, __quoted: isQuoted };
+          }
+          if (key) attributes.push({ key: key, value: value });
         }
-        if (selector[pos] === ']') pos++; // skip ']'
-        if (key) attributes.push({ key: key, value: value });
+        if (selector[pos] === ']') pos++; // skip closing ']'
       } else {
         // Whitespace or any other filler between segments: skip silently.
         pos++;
