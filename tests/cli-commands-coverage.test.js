@@ -155,4 +155,24 @@ describe('build.js (in-process) — coverage T-1', () => {
     const js = fs.readFileSync(path.join(dir, 'dist', 'index.js'), 'utf8');
     expect(js.length).toBeGreaterThan(0);
   });
+
+  it('BUG-11b: runBuild inlines CSS from Gaya blocks into HTML <style> tag', () => {
+    const dir = mkTmp('pjs-ip-build-css-');
+    const srcDir = path.join(dir, 'src');
+    fs.mkdirSync(srcDir, { recursive: true });
+    // Write a .pjs file with Gaya block
+    fs.writeFileSync(
+      path.join(srcDir, 'page.pjs'),
+      'Buat div.kartu: "styled"\n\nGaya:\n    .kartu:\n        warna: putih\n        latar: #1a1a2e\n        sudut: 8px\n',
+      'utf-8'
+    );
+    runInDir(dir, () => runBuild({ _: ['src'], 'out-dir': 'dist' }));
+    const htmlPath = path.join(dir, 'dist', 'page.html');
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    const html = fs.readFileSync(htmlPath, 'utf-8');
+    // BUG-11b fix: CSS must be inlined in <style> tag
+    expect(html).toContain('<style>');
+    expect(html).toContain('.kartu');
+    expect(html).toContain('#1a1a2e');
+  });
 });

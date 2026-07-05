@@ -223,7 +223,7 @@ function runBuild(argv) {
     fs.writeFileSync(jsOutPath, js, 'utf-8');
 
     // Write HTML file
-    const htmlContent = buildHtml(js, filePath, { prerender: false });
+    const htmlContent = buildHtml(js, filePath, { prerender: false, css: result.css || '' });
     ensureDirForFile(htmlOutPath);
     fs.writeFileSync(htmlOutPath, htmlContent, 'utf-8');
 
@@ -232,7 +232,7 @@ function runBuild(argv) {
     );
 
     compiled++;
-    compiledResults.push({ filePath, js, jsOutPath, htmlOutPath });
+    compiledResults.push({ filePath, js, css: result.css || '', jsOutPath, htmlOutPath });
   }
 
   // Copy static assets (non-.pjs files)
@@ -247,7 +247,7 @@ function runBuild(argv) {
       const jsdom = require('jsdom');
       const { JSDOM } = jsdom;
 
-      for (const { filePath, js, htmlOutPath } of compiledResults) {
+      for (const { filePath, js, css, htmlOutPath } of compiledResults) {
         try {
           const dom = new JSDOM(
             `<!DOCTYPE html><html><body><div id="app"></div><script>${js}</script></body></html>`,
@@ -256,7 +256,7 @@ function runBuild(argv) {
           const rendered = dom.window.document.getElementById('app').innerHTML;
 
           // Write prerendered HTML
-          const prerenderedHtml = buildPrerenderedHtml(rendered, filePath);
+          const prerenderedHtml = buildPrerenderedHtml(rendered, filePath, css);
           fs.writeFileSync(htmlOutPath, prerenderedHtml, 'utf-8');
           process.stderr.write(`  ${green}✓${reset} ${path.basename(htmlOutPath)} (prerendered)\n`);
           dom.window.close();
@@ -295,25 +295,15 @@ function runBuild(argv) {
  *
  * @param {string} jsCode - Kode JS hasil compile
  * @param {string} filePath - Path file `.pjs` asli (untuk judul HTML)
- * @param {Object} _options - Opsi build (reserved untuk future use)
+ * @param {Object} options - Opsi build
+ * @param {string} [options.css=''] - CSS dari Gaya blocks (di-inline dalam `<style>`)
  * @returns {string} String HTML lengkap
  */
-function buildHtml(jsCode, filePath, _options) {
+function buildHtml(jsCode, filePath, options) {
   const title = path.basename(filePath, '.pjs');
-  return `<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)}</title>
-</head>
-<body>
-  <div id="app"></div>
-  <script>
-${jsCode}
-  </script>
-</body>
-</html>`;
+  const cssCode = (options && options.css) || '';
+  const cssTag = cssCode ? `  <style>\n${cssCode}\n  </style>\n` : '';
+  return `<!DOCTYPE html>\n<html lang="id">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${escapeHtml(title)}</title>\n${cssTag}</head>\n<body>\n  <div id="app"></div>\n  <script>\n${jsCode}\n  </script>\n</body>\n</html>`;
 }
 
 /**
@@ -324,17 +314,20 @@ ${jsCode}
  *
  * @param {string} renderedContent - HTML yang sudah di-prerender oleh jsdom
  * @param {string} filePath - Path file `.pjs` asli
+ * @param {string} [cssCode=''] - CSS dari Gaya blocks
  * @returns {string} String HTML lengkap
  */
-function buildPrerenderedHtml(renderedContent, filePath) {
+function buildPrerenderedHtml(renderedContent, filePath, cssCode) {
   const title = path.basename(filePath, '.pjs');
+  cssCode = cssCode || '';
+  const cssTag = cssCode ? `  <style>\n${cssCode}\n  </style>\n` : '';
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
-</head>
+${cssTag}</head>
 <body>
   <div id="app">${renderedContent}</div>
 </body>
