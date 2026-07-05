@@ -881,13 +881,35 @@
    */
   PromptJSLexer.prototype._tokenizeStringLine = function (content, lineNum, baseCol) {
     const quote = content[0];
-    const endIdx = content.length - 1;
-    // Find matching closing quote
-    if (content[endIdx] === quote) {
-      const text = content.substring(1, endIdx);
+
+    // F-3 fix: find the FIRST unescaped closing quote, not just at end of line.
+    // This enables patterns like: "text " + \$var or "label: " + expr
+    let closeIdx = -1;
+    for (let i = 1; i < content.length; i++) {
+      if (content[i] === '\\' && i + 1 < content.length) {
+        i++; // skip escaped character
+        continue;
+      }
+      if (content[i] === quote) {
+        closeIdx = i;
+        break;
+      }
+    }
+
+    if (closeIdx >= 0) {
+      // String ditemukan — emit sebagai TK_STRING
+      const text = content.substring(1, closeIdx);
       this.tokens.push(new Token(TT.TK_STRING, text, lineNum, baseCol + 1, content));
+
+      // Jika ada sisa setelah string (mis. " + expr), tokenize sebagai expression
+      const remainder = content.substring(closeIdx + 1).trim();
+      if (remainder) {
+        // Q-1 fix: also handle CSS single-quote font-family values
+        // If remainder starts with comma (CSS context), skip it
+        this._tokenizeExpression(remainder, lineNum, baseCol + closeIdx + 1);
+      }
     } else {
-      // Unterminated string
+      // Unterminated string — no closing quote found anywhere on line
       const text = content.substring(1);
       this.tokens.push(new Token(TT.TK_STRING, text, lineNum, baseCol + 1, content));
       this.errors.push(
