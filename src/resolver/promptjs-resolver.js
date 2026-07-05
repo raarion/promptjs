@@ -280,6 +280,7 @@ function SemanticSymbol(name, kind, node, scope, metadata = {}) {
   this.isParameter = kind === 'parameter';
   this.isComponent = kind === 'komponen';
   this.isFunction = kind === 'fungsi';
+  this.isExternal = metadata.isExternal || false; // F-2: track front-matter directives
 
   // Shadowing (Tim B)
   this.shadowedSymbol = metadata.shadowedSymbol || null;
@@ -489,7 +490,7 @@ PromptJSResolver.prototype.gatherGlobals = function (ast) {
     if (node.type === 'DataDeclaration')
       this.addSymbol(node.name, 'data', node, { isReactive: true, isWritable: true });
     else if (node.type === 'TetapDeclaration')
-      this.addSymbol(node.name, 'tetap', node, { isWritable: false });
+      this.addSymbol(node.name, 'tetap', node, { isWritable: false, isExternal: !!node._isExternal });
     else if (node.type === 'UbahDeclaration')
       this.addSymbol(node.name, 'ubah', node, { isWritable: true });
     else if (node.type === 'TurunanDeclaration')

@@ -358,6 +358,10 @@ PromptJSAnalyzer.prototype.emitUsageWarnings = function () {
     const sym = symbols[i];
     if (!sym || !sym.name || sym.kind === 'parameter') continue;
 
+    // F-2 fix: skip external (front-matter data directives like judul, deskripsi, produk).
+    // These are compiler directives, not user-declared symbols — warning on them is noise.
+    if (sym.isExternal) continue;
+
     // Mode normal sengaja tidak memperingatkan fungsi/komponen top-level agar
     // tidak bising pada library/component catalog. Gunakan --strict-usage untuk itu.
     if (!strictUsage && (sym.kind === 'fungsi' || sym.kind === 'komponen')) continue;

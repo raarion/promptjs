@@ -520,6 +520,7 @@
     this.indentStack = [0];
     this.pendingDedents = 0;
     this.inFrontMatter = false;
+    this._bracketDepth = 0; // F-1: track bracket depth for multi-line array/object suppression
   }
 
   /**
@@ -547,6 +548,7 @@
     this.indentStack = [0];
     this.pendingDedents = 0;
     this.inFrontMatter = false;
+    this._bracketDepth = 0; // F-1 fix: reset bracket tracking
 
     const lines = source.split('\n');
 
@@ -678,11 +680,28 @@
       }
       if (indent > rawLine.length) continue; // all-whitespace line
 
-      this._emitIndentDedent(indent, lineNum);
+      // F-1 fix: suppress INDENT/DEDENT while inside bracket-delimited
+      // context (multi-line arrays/objects). The bracket depth is tracked
+      // from previous lines and updated after tokenizing the current line.
+      if (this._bracketDepth === 0) {
+        this._emitIndentDedent(indent, lineNum);
+      }
 
       // --- Tokenize the content of the line ---
       const content = rawLine.substring(indent);
+      const tokenCountBefore = this.tokens.length;
       this._tokenizeLine(content, lineNum, indent);
+
+      // F-1 fix: update bracket depth from newly emitted tokens.
+      // Count TK_LBRACKET/TK_LBRACE as +1, TK_RBRACKET/TK_RBRACE as -1.
+      for (let j = tokenCountBefore; j < this.tokens.length; j++) {
+        const t = this.tokens[j];
+        if (t.type === TT.TK_LBRACKET || t.type === TT.TK_LBRACE) {
+          this._bracketDepth++;
+        } else if (t.type === TT.TK_RBRACKET || t.type === TT.TK_RBRACE) {
+          this._bracketDepth = Math.max(0, this._bracketDepth - 1);
+        }
+      }
     }
 
     // Emit remaining DEDENTs at EOF
