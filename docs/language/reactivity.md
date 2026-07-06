@@ -86,6 +86,78 @@ Kata `berubah` bersifat opsional — `Saat hitung:` juga berfungsi. Watcher meny
 
 The word `berubah` is optional — `Saat hitung:` also works. Watchers insert a hidden marker `<span>` in the DOM to hold their output.
 
+> ⚠️ **Penting — `teks = <data>` di properti elemen TIDAK reaktif secara otomatis.** Menulis `teks = hitung` langsung di daftar properti sebuah `Buat` (atau di docstring inline `Buat span: hitung`) hanya membaca `.value` SEKALI saat elemen dibuat (`el.innerText = hitung.value;`) — perubahan berikutnya pada `hitung` TIDAK memperbarui elemen tersebut secara diam-diam pun tidak error, hanya tidak update. Untuk teks yang harus ikut berubah, bungkus dengan `Saat`:
+>
+> ```pjs
+> # ❌ Snapshot sekali — TIDAK update saat hitung berubah:
+> Buat span: hitung
+>
+> # ✅ Reaktif — update setiap kali hitung berubah:
+> Saat hitung:
+>     Buat span: hitung
+> ```
+>
+> Ini juga berlaku untuk `turunan`. Lihat juga [#80 — Direct reactive turunan display/property binding is partial](https://github.com/raarion/promptjs/issues/80) untuk status backlog seputar binding tampilan langsung yang lebih ringkas tanpa `Saat`.
+>
+> ⚠️ **Important — `teks = <data>` in an element's property list is NOT automatically reactive.** Writing `teks = hitung` directly in a `Buat` block's property list (or in the inline docstring form `Buat span: hitung`) only reads `.value` ONCE at element-creation time (`el.innerText = hitung.value;`) — subsequent changes to `hitung` do NOT update that element, silently (no error, just no update). For text that must track a reactive value, wrap it in `Saat`:
+>
+> ```pjs
+> # ❌ One-time snapshot — does NOT update when hitung changes:
+> Buat span: hitung
+>
+> # ✅ Reactive — updates every time hitung changes:
+> Saat hitung:
+>     Buat span: hitung
+> ```
+>
+> This also applies to `turunan`. See also [#80 — Direct reactive turunan display/property binding is partial](https://github.com/raarion/promptjs/issues/80) for the backlog status of a more ergonomic direct-display binding that doesn't require `Saat`.
+
+---
+
+## Dynamic Class Binding / Binding Kelas Dinamis — `on_kelas`
+
+`on_kelas` (atau `on_class`) di dalam body elemen mengikat `className` elemen ke ekspresi reaktif secara OTOMATIS — elemen mendapat class awal saat dibuat, dan `className`-nya diperbarui setiap kali dependency reaktifnya berubah. Tidak perlu `Saat` manual atau `querySelector` untuk kasus umum ini.
+
+`on_kelas` (or `on_class`) inside an element's body binds the element's `className` to a reactive expression AUTOMATICALLY — the element gets its initial class when created, and its `className` updates every time the reactive expression's dependency changes. No manual `Saat` or `querySelector` needed for this common case.
+
+```pjs
+data tema = "terang"
+
+Buat div#kotak:
+    on_kelas = tema
+```
+
+**Kompilasi / Compiles to:**
+```js
+const __el_1 = document.createElement("div");
+__el_1.id = "kotak";
+__el_1.className = tema.value;
+__watch(tema, (nilaiBaru) => { __el_1.className = nilaiBaru; });
+```
+
+Ekspresi apa pun boleh dipakai di sisi kanan — bukan hanya identifier tunggal. Ternary dan konkatenasi string umum dipakai untuk kelas kondisional:
+
+Any expression is allowed on the right-hand side — not just a bare identifier. Ternaries and string concatenation are common for conditional classes:
+
+```pjs
+data aktif = benar
+
+Buat div#dalam:
+    on_kelas = aktif ? "item-aktif" : "item-nonaktif"
+```
+
+Untuk ekspresi non-identifier seperti di atas, compiler membungkusnya secara otomatis dengan `__createComputed(...)` (mekanisme yang sama dengan `turunan`) sebelum memasangnya ke `__watch`, sehingga `className` tetap ikut berubah setiap kali `aktif` berubah:
+
+For non-identifier expressions like the one above, the compiler automatically wraps them with `__createComputed(...)` (the same machinery `turunan` uses) before attaching `__watch` to it, so `className` still updates every time `aktif` changes:
+
+```js
+const __classComputed_1 = __createComputed(() => (aktif.value ? "item-aktif" : "item-nonaktif"));
+__el_1.className = __classComputed_1.value;
+__watch(__classComputed_1, (nilaiBaru) => { __el_1.className = nilaiBaru; });
+```
+
+> **Catatan backlog / Backlog note.** Kombinasi `Saat <x>: Buat ...: on_kelas = ...` (di mana binding kelas berada di dalam elemen yang dirender ulang oleh watcher) sudah diverifikasi bekerja pada elemen yang benar (bukan marker watcher). Namun interaksi `on_kelas` yang lebih kompleks masih dipantau di [#77 — reactive class binding via saat + kelas may target watcher marker](https://github.com/raarion/promptjs/issues/77). · The `Saat <x>: Buat ...: on_kelas = ...` combination (where the class binding lives inside an element re-rendered by the watcher) has been verified to target the correct element (not the watcher marker). More complex `on_kelas` interactions remain tracked at [#77 — reactive class binding via saat + kelas may target watcher marker](https://github.com/raarion/promptjs/issues/77).
+
 ---
 
 ## Two-way Binding / Ikat Dua Arah
@@ -93,6 +165,7 @@ The word `berubah` is optional — `Saat hitung:` also works. Watchers insert a 
 `ikat` (atau `bind`) di dalam body elemen form menautkan `.value` elemen dengan variabel reaktif secara DUA ARAH — tanpa perlu `Ketika ... diketik:` manual atau `querySelector`. Mengetik di input memperbarui state; mengubah state memperbarui input.
 
 `ikat` (or `bind`) inside a form element body links the element's `.value` to a reactive variable BOTH ways — no manual `Ketika ... diketik:` or `querySelector` needed. Typing into the input updates the state; changing the state updates the input.
+
 
 ```pjs
 data nama = ""
