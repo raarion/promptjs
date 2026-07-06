@@ -306,11 +306,18 @@ PromptJSAnalyzer.prototype.buildSemanticGraph = function () {
     for (let i = 0; i < graph.cycles.length; i++) {
       const cycle = graph.cycles[i];
       const names = this._symbolNamesFromIds(cycle.symbolIds || []);
+      // LIM-3 FIX: per-symbol suggestion — identify which turunan to break
+      // Cycle: A -> B -> C -> A — suggest breaking the last edge (C -> A)
+      const suggestion = names.length >= 2
+        ? 'Ubah ekspresi turunan "' + names[names.length - 2] + '" agar tidak bergantung pada "' + names[names.length - 1] + '", atau pecah cycle dengan menjadikan salah satu sebagai "Data" biasa.'
+        : names.length === 1
+          ? 'Ekspresi turunan "' + names[0] + '" merujuk ke dirinya sendiri. Hapus referensi diri atau ubah menjadi "Data" biasa.'
+          : 'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.';
       this.addError(
         'E4201',
         'Dependency cycle pada data turunan: ' + names.join(' -> '),
         null,
-        'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.'
+        suggestion
       );
     }
   }

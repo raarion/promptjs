@@ -128,7 +128,7 @@ describe('v5 diagnostic text — analyzer messages & suggestions', () => {
     expect(e).toBeDefined();
     expect(e.message).toBe('Dependency cycle pada data turunan: a -> b -> a');
     expect(e.suggestion).toBe(
-      'Ubah salah satu ekspresi turunan agar tidak saling bergantung secara melingkar.'
+      'Ubah ekspresi turunan "b" agar tidak bergantung pada "a", atau pecah cycle dengan menjadikan salah satu sebagai "Data" biasa.'
     );
   });
 

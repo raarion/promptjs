@@ -1634,6 +1634,10 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     tok.type === TT.TK_ARAHKAN
   ) {
     const kwTok = this._advance();
+    // LIM-2 FIX: "arahkan ke <url>" — optional "ke" after arahkan (inline expression path)
+    if (kwTok.type === TT.TK_ARAHKAN && this._peek().type === TT.TK_KE) {
+      this._advance(); // consume optional "ke"
+    }
     const target = this._parseExpression();
     const loc = this._makeLoc(kwTok);
     // v1.0: "hapus <item> dari <array>" → HapusDariStatement (inline expression path)
@@ -1668,6 +1672,23 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
         this._advance(); // consume dari/from/in
         const target = this._parseExpression();
         return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target, value: firstArg };
+      }
+      // LIM-4 FIX: detect "kurangi <literal> ke <target>" — invalid form (inline path)
+      if (this._peek() && this._peek().type === TT.TK_KE && firstArg.type === 'Literal') {
+        this._advance(); // consume ke
+        this._parseExpression(); // consume the mistaken target
+        const errorLoc = this._makeLoc(kwTok);
+        this.errors.push({
+          code: 'E2020',
+          severity: 'error',
+          stage: 'Parser',
+          message: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+          pesan: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+          suggestion: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
+          saran: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
+          loc: errorLoc,
+        });
+        return { type: 'ErrorNode', loc: errorLoc };
       }
       // "kurangi target" → decrement by 1
       return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target: firstArg };
@@ -1923,6 +1944,10 @@ PromptJSParser.prototype._parseHapusStatement = function () {
  */
 PromptJSParser.prototype._parseTargetStatement = function (nodeType) {
   const tok = this._advance();
+  // LIM-2 FIX: "arahkan ke <url>" — optional "ke" after arahkan
+  if (nodeType === 'ArahkanStatement' && this._peek().type === TT.TK_KE) {
+    this._advance(); // consume optional "ke"
+  }
   const target = this._parseExpression();
   const loc = this._makeLoc(tok);
   switch (nodeType) {
@@ -1980,12 +2005,32 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
     // follows `dari`/`from`/`in` (TK_IN). Without this branch the parser
     // mis-mapped `kurangi 1 dari hitung` as target=`1`, silently dropping
     // `dari hitung` → emitter produced `__setState(document, 1 - 1)`.
+    //
+    // LIM-4 FIX: `kurangi <value> ke <target>` is NOT a valid form.
+    // If firstArg is a literal (number/string) and next is `ke`, the user
+    // likely meant `kurangi <value> dari <target>`. Emit E2020 with suggestion.
     const firstArg = this._parseExpression();
     if (this._peek().type === TT.TK_IN) {
       this._advance(); // consume dari/from/in
       const target = this._parseExpression();
       // firstArg is the value being subtracted; target is what we mutate.
       return AST.buatKurangiStatement(target, loc, null, firstArg);
+    }
+    // LIM-4: detect `kurangi <literal> ke <target>` — invalid form
+    if (this._peek().type === TT.TK_KE && firstArg.type === 'Literal') {
+      this._advance(); // consume ke
+      this._parseExpression(); // consume the mistaken target (advance past it)
+      this.errors.push({
+        code: 'E2020',
+        severity: 'error',
+        stage: 'Parser',
+        message: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+        pesan: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+        suggestion: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
+        saran: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
+        loc: loc,
+      });
+      return { type: 'ErrorNode', loc: loc };
     }
     let value = null;
     if (this._peek().type === TT.TK_KE) {
@@ -2075,10 +2120,23 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
   const nameTok = this._expect(TT.TK_IDENT, 'Expected component name after "gunakan"');
   const componentName = nameTok ? nameTok.value : '_';
 
-  // Optional props — "dengan" is not a keyword in TT, so we check if next
-  // token is TK_IDENT with value "dengan". For now, skip complex prop parsing.
-  // The simple form: `gunakan NamaKomponen` (no props)
+  // LIM-1 FIX: Optional props in parentheses — "Gunakan Nama(prop: val, prop2: val2)"
+  // Mirrors the Buat Nama(prop: val) syntax already supported in _parseBuatStatement.
+  if (this._peek().type === TT.TK_LPAREN) {
+    this._advance(); // consume (
+    const props = [];
+    while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
+      const keyTok = this._expect(TT.TK_IDENT, 'Expected property name in component props');
+      this._expect(TT.TK_COLON, 'Expected ":" after property name');
+      const valExpr = this._parseExpression();
+      if (keyTok) props.push({ key: keyTok.value, value: valExpr });
+      if (!this._match(TT.TK_COMMA)) break;
+    }
+    this._expect(TT.TK_RPAREN, 'Expected ")" to close component props');
+    return AST.buatGunakanStatement(componentName, loc, null, props, null);
+  }
 
+  // The simple form: `gunakan NamaKomponen` (no props)
   return AST.buatGunakanStatement(componentName, loc, null);
 };
 

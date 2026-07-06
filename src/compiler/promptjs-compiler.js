@@ -475,7 +475,25 @@ PromptJSCompiler.prototype._validateNodeTypes = function (node) {
   }
 
   if (!validTypes.has(node.type)) {
-    const err = new Error(`[E5001] Node AST bertipe "${node.type}" tidak didukung oleh compiler`);
+    // MIS-1 FIX: per-node suggestion for E5001
+    const UNKNOWN_TYPE_SUGGESTIONS = {
+      ForStatement: 'Gunakan "UlangiStatement" (keyword "ulangi") untuk loop.',
+      ForInStatement: 'Gunakan "UlangiStatement" (keyword "ulangi") untuk iterasi.',
+      ForOfStatement: 'Gunakan "UlangiStatement" (keyword "ulangi") untuk iterasi.',
+      WhileStatement: 'Gunakan "SelamaStatement" (keyword "selama") untuk conditional loop.',
+      IfStatement: 'Gunakan "JikaStatement" (keyword "jika") untuk percabangan.',
+      ReturnStatement: 'Gunakan "KembalikanStatement" (keyword "kembalikan") untuk return.',
+      FunctionDeclaration: 'Gunakan "FungsiDeclaration" (keyword "fungsi") untuk deklarasi fungsi.',
+      VariableDeclaration: 'Gunakan "DataDeclaration", "TetapDeclaration", atau "UbahDeclaration" sesuai mutabilitas.',
+      ExpressionStatement: 'Ekspresi statement otomatis ditangani; periksa apakah node AST sudah di-lower dengan benar.',
+      SwitchStatement: 'Gunakan rantai "jika"/"kalau" untuk percabangan multi-kondisi.',
+      TryStatement: 'PromptJS belum mendukung try/catch — gunakan "ambil" untuk fetch dengan error handling.',
+      ClassDeclaration: 'Gunakan "KomponenDeclaration" (keyword "komponen") untuk mendefinisikan komponen.',
+      ImportDeclaration: 'Gunakan "AmbilLuarStatement" (keyword "ambil luar") untuk import.',
+      ExportDeclaration: 'PromptJS menggunakan "fungsi" dan "komponen" yang otomatis terekspos.',
+    };
+    const hint = UNKNOWN_TYPE_SUGGESTIONS[node.type] || 'Periksa apakah node type sudah didukung oleh compiler.';
+    const err = new Error(`[E5001] Node AST bertipe "${node.type}" tidak didukung oleh compiler. ${hint}`);
     throw err;
   }
 
