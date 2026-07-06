@@ -1,4 +1,3 @@
-// @ts-check
 /**
  * v11 - BUG-04 + LIM-08: Block comment support
  *

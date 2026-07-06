@@ -781,19 +781,42 @@ function install(PromptJSCompiler, accept) {
         // Body form: fall back to emitting body inside __watch callback
         watchExpr = null;
       }
-      // Determine the reactive source to watch
+      // Determine the reactive source to watch.
+      //
+      // LIM-CLASS-01 FIX: __watch() expects a *reactive proxy* (an object,
+      // used as a WeakMap key) — not the plain value produced by evaluating
+      // an expression. When the RHS is a bare Identifier (e.g. `on_kelas =
+      // tema`), that identifier already IS the reactive proxy, so we can
+      // watch it directly. But when the RHS is any other expression (e.g.
+      // a ternary `aktif ? "a" : "b"`, string concatenation, etc.), lowering
+      // it produces a *value* string like `(aktif.value ? "a" : "b")`.
+      // Passing that value straight into __watch(...) crashes at runtime
+      // with "Invalid value used as weak map key" because __subscribers is
+      // a WeakMap and the value can be a primitive (string/boolean/etc.).
+      //
+      // Fix: wrap non-identifier expressions in __createComputed() first,
+      // producing a real reactive proxy whose `.value` is recomputed
+      // whenever its dependencies change — then watch *that* computed proxy.
       let watchTarget;
+      let usesComputed = false;
       if (node.action && node.action.type === 'Identifier') {
         watchTarget = node.action.name;
       } else if (watchExpr) {
-        watchTarget = watchExpr;
+        this.helpers.add('__createComputed');
+        this.helpers.add('__createReactive');
+        watchTarget = this.genVar('classComputed');
+        this.emit(`const ${watchTarget} = __createComputed(() => ${watchExpr});`);
+        usesComputed = true;
       } else {
         watchTarget = elTarget; // fallback
       }
       // Emit initial className assignment
-      if (watchExpr) {
+      if (usesComputed) {
+        this.emit(`${elTarget}.className = ${watchTarget}.value;`);
+      } else if (watchExpr) {
         this.emit(`${elTarget}.className = ${watchExpr};`);
       }
+
       // Emit __watch for reactive updates
       if (this.isSPA) {
         this.emit(

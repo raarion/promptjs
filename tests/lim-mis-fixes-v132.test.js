@@ -23,7 +23,9 @@ describe('LIM-1: Gunakan Nama(prop: val) — parenthesized props', () => {
   });
 
   it('accepts Gunakan with multiple paren props', () => {
-    const r = compile('Komponen Kartu:\n  Tampilkan "Kartu"\n\nGunakan Kartu(judul: "Halo", isi: "Dunia")');
+    const r = compile(
+      'Komponen Kartu:\n  Tampilkan "Kartu"\n\nGunakan Kartu(judul: "Halo", isi: "Dunia")'
+    );
     expect(r.success).toBe(true);
     expect(r.js).toContain('"judul": "Halo"');
     expect(r.js).toContain('"isi": "Dunia"');
@@ -38,7 +40,7 @@ describe('LIM-1: Gunakan Nama(prop: val) — parenthesized props', () => {
   it('reports E3004 for Gunakan with props but undeclared component', () => {
     const r = compile('Gunakan TidakAda(nama: "test")');
     expect(r.success).toBe(false);
-    const e = r.errors.find(e => e.code === 'E3004');
+    const e = r.errors.find((e) => e.code === 'E3004');
     expect(e).toBeDefined();
   });
 });
@@ -79,7 +81,7 @@ describe('LIM-3: E4201 per-symbol suggestion for mutual turunan cycles', () => {
   it('suggests breaking specific symbol for mutual cycle', () => {
     const r = compile('Data x = 1\nTurunan a = b + 1\nTurunan b = a + 1');
     expect(r.success).toBe(false);
-    const e = r.errors.find(e => e.code === 'E4201');
+    const e = r.errors.find((e) => e.code === 'E4201');
     expect(e).toBeDefined();
     expect(e.message).toContain('a -> b -> a');
     expect(e.suggestion).toContain('"b"');
@@ -90,7 +92,7 @@ describe('LIM-3: E4201 per-symbol suggestion for mutual turunan cycles', () => {
   it('suggests self-reference for self-cycle', () => {
     const r = compile('Turunan x = x + 1');
     expect(r.success).toBe(false);
-    const e = r.errors.find(e => e.code === 'E4201');
+    const e = r.errors.find((e) => e.code === 'E4201');
     expect(e).toBeDefined();
     expect(e.message).toContain('x -> x');
     expect(e.suggestion).toContain('"x"');
@@ -99,7 +101,7 @@ describe('LIM-3: E4201 per-symbol suggestion for mutual turunan cycles', () => {
   it('handles triple cycle with specific suggestion', () => {
     const r = compile('Data x = 1\nTurunan a = b + 1\nTurunan b = c + 1\nTurunan c = a + 1');
     expect(r.success).toBe(false);
-    const e = r.errors.find(e => e.code === 'E4201');
+    const e = r.errors.find((e) => e.code === 'E4201');
     expect(e).toBeDefined();
     expect(e.message).toContain('a -> b -> c -> a');
     expect(e.suggestion).toContain('"c"');
@@ -114,7 +116,7 @@ describe('LIM-4: kurangi <value> ke <target> — rejected with E2020', () => {
   it('rejects "kurangi 5 ke hitung" with E2020', () => {
     const r = compile('Data hitung = 10\n\nkurangi 5 ke hitung');
     expect(r.success).toBe(false);
-    const e = r.errors.find(e => e.code === 'E2020');
+    const e = r.errors.find((e) => e.code === 'E2020');
     expect(e).toBeDefined();
     expect(e.message).toContain('kurangi');
     expect(e.message).toContain('dari');

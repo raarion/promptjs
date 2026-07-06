@@ -68,6 +68,9 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "overrides": {
+    "qs": "6.15.3"
+  },
   "license": "MIT",
   "author": "raarion",
   "homepage": "https://raarion.github.io/promptjs/",

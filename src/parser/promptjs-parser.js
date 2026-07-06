@@ -1682,8 +1682,10 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
           code: 'E2020',
           severity: 'error',
           stage: 'Parser',
-          message: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
-          pesan: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+          message:
+            'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+          pesan:
+            'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
           suggestion: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
           saran: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
           loc: errorLoc,
@@ -2024,8 +2026,10 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
         code: 'E2020',
         severity: 'error',
         stage: 'Parser',
-        message: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
-        pesan: 'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+        message:
+          'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
+        pesan:
+          'Sintaks "kurangi <nilai> ke <target>" tidak valid. Gunakan "kurangi <nilai> dari <target>" untuk mengurangi nilai dari target.',
         suggestion: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
         saran: 'Gunakan "kurangi <nilai> dari <target>", mis. "kurangi 5 dari hitung".',
         loc: loc,

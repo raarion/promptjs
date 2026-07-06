@@ -296,6 +296,7 @@ function runBuild(argv) {
  * @param {string} jsCode - Kode JS hasil compile
  * @param {string} filePath - Path file `.pjs` asli (untuk judul HTML)
  * @param {Object} options - Opsi build
+ * @param {boolean} [options.prerender=false] - Reserved; prerender ditangani terpisah oleh buildPrerenderedHtml()
  * @param {string} [options.css=''] - CSS dari Gaya blocks (di-inline dalam `<style>`)
  * @returns {string} String HTML lengkap
  */
