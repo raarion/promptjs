@@ -376,10 +376,13 @@ exports[`D1 — Snapshot Codegen > Statement: SaatStatement > saat-basic: Saat h
   const __wmarker_1 = document.createElement("span");
   __wmarker_1.className = "__promptjs_watcher_marker";
   document.body.appendChild(__wmarker_1);
+  const __saatCleanup_2 = [];
   __watch(hitung, (nilaiBaru, nilaiLama) => {
+    __saatCleanup_2.forEach((__fn) => __fn());
+    __saatCleanup_2.length = 0;
     __wmarker_1.innerHTML = "";
-    const __txt_2 = document.createTextNode("berubah");
-    __wmarker_1.appendChild(__txt_2);
+    const __txt_3 = document.createTextNode("berubah");
+    __wmarker_1.appendChild(__txt_3);
   });"
 `;
 

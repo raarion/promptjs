@@ -470,15 +470,16 @@ function install(PromptJSCompiler, accept) {
     }
 
     // 3. state -> input (skip when equal so typing never clobbers the caret)
-    if (this.isSPA) {
-      this.emit(
-        `__cleanupFns.push(__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; }));`
-      );
-    } else {
-      this.emit(
-        `__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; });`
-      );
-    }
+    // LIM-SAAT-LEAK-01: use wrapTrackedSubscription so a two-way binding
+    // declared inside a `Saat` block gets its watch unsubscribed on the
+    // NEXT re-render of that `Saat`, instead of leaking a duplicate watcher
+    // on every toggle. Falls back to the existing SPA/`__cleanupFns` and
+    // plain-emit behavior outside of a `Saat` block (unchanged).
+    this.emit(
+      this.wrapTrackedSubscription(
+        `__watch(${proxy}, (__v) => { if (${elVar}.value !== __v) ${elVar}.value = __v; })`
+      )
+    );
   };
 
   PromptJSCompiler.prototype.visitPropertyNode = function (node) {
@@ -817,16 +818,19 @@ function install(PromptJSCompiler, accept) {
         this.emit(`${elTarget}.className = ${watchExpr};`);
       }
 
-      // Emit __watch for reactive updates
-      if (this.isSPA) {
-        this.emit(
-          `__cleanupFns.push(__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; }));`
-        );
-      } else {
-        this.emit(
-          `__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; });`
-        );
-      }
+      // Emit __watch for reactive updates.
+      // LIM-SAAT-LEAK-01: route through wrapTrackedSubscription so an
+      // `on_kelas`/`on_class` binding declared inside a `Saat` block gets
+      // its watch unsubscribed on the NEXT re-render of that `Saat` —
+      // otherwise every re-render registers one more permanent watcher on
+      // the (fresh) child element, leaking a subscriber per toggle. Falls
+      // back to the existing SPA/`__cleanupFns` and plain-emit behavior
+      // outside of a `Saat` block (unchanged).
+      this.emit(
+        this.wrapTrackedSubscription(
+          `__watch(${watchTarget}, (nilaiBaru) => { ${elTarget}.className = nilaiBaru; })`
+        )
+      );
       return;
     }
 
@@ -1009,6 +1013,21 @@ function install(PromptJSCompiler, accept) {
    * hanya marker ini yang di-clear, sehingga sibling elements di parent
    * utama tidak ikut terhapus.
    *
+   * LIM-SAAT-LEAK-01: children rendered inside a `Saat` body can themselves
+   * register subscriptions (`on_kelas`/`on_class`, `ikat`/`bind`, a nested
+   * `Saat`, or a reactive `Ulangi untuk ... dari <reactive>` list). Before
+   * this fix, each re-render of the OUTER `Saat` registered a brand-new
+   * duplicate subscriber on the freshly-created children WITHOUT ever
+   * removing the previous batch — an unbounded watcher/listener leak.
+   * Fix: this `Saat` now owns a local `__saatCleanup_N` array; every child
+   * subscription registers its unsub into it (via
+   * `wrapTrackedSubscription`/`openTrackedSubscription` in compiler.js,
+   * which consults `this._saatCleanupStack`), and the array is drained
+   * (each fn called, then emptied) at the START of every re-render — so
+   * the previous batch of child watchers is torn down before the new one
+   * is created. The stack means nested `Saat` blocks never touch a
+   * parent's cleanup array.
+   *
    * @this {any}
    * @param {Object} node - AST node SaatStatement
    * @returns {void | string}
@@ -1035,6 +1054,11 @@ function install(PromptJSCompiler, accept) {
       this.emit(`document.body.appendChild(${markerVar});`);
     }
 
+    // LIM-SAAT-LEAK-01: this Saat's own local cleanup array, declared
+    // OUTSIDE the watch callback so it survives across re-renders.
+    const cleanupVar = this.genVar('saatCleanup');
+    this.emit(`const ${cleanupVar} = [];`);
+
     // v0.6: SPA mode — wrap __watch in __cleanupFns.push() for cleanup on unmount
     if (this.isSPA) {
       this.emit(`__cleanupFns.push(__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
@@ -1042,6 +1066,11 @@ function install(PromptJSCompiler, accept) {
       this.emit(`__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
     }
     this.indent++;
+    // LIM-SAAT-LEAK-01: unsubscribe every child watch registered by the
+    // PREVIOUS render before clearing/re-rendering the marker. On the very
+    // first firing the array is empty, so this is a harmless no-op.
+    this.emit(`${cleanupVar}.forEach((__fn) => __fn());`);
+    this.emit(`${cleanupVar}.length = 0;`);
     // Clear hanya marker ini, bukan parent.
     this.emit(`${markerVar}.innerHTML = "";`);
 
@@ -1052,9 +1081,14 @@ function install(PromptJSCompiler, accept) {
     // dan visitCallExpression tetap merender text node di sini.
     const prevInBuat = this._inBuatBody;
     this._inBuatBody = true;
+    // LIM-SAAT-LEAK-01: push this Saat's cleanup array so subscriptions
+    // registered while rendering its body land here, not on a parent's
+    // array or the page-level SPA cleanup.
+    this._saatCleanupStack.push(cleanupVar);
 
     if (node.body) accept(node.body, this);
 
+    this._saatCleanupStack.pop();
     this._inBuatBody = prevInBuat;
     this.currentParent = prevParent;
     this.indent--;
@@ -1247,11 +1281,13 @@ function install(PromptJSCompiler, accept) {
         this.emit(`document.body.appendChild(${markerVar});`);
       }
 
-      if (this.isSPA) {
-        this.emit(`__cleanupFns.push(__watch(${proxy}, (__list) => {`);
-      } else {
-        this.emit(`__watch(${proxy}, (__list) => {`);
-      }
+      // LIM-SAAT-LEAK-01: a reactive list declared inside a `Saat` block
+      // must have its watcher unsubscribed on the NEXT re-render of that
+      // `Saat` (via openTrackedSubscription/closeTrackedSubscription below),
+      // not just at SPA unmount — otherwise every parent re-render leaks one
+      // more permanent list watcher. Outside of a `Saat`, behavior is
+      // unchanged (SPA: `__cleanupFns`; non-SPA: plain call).
+      this.emit(this.openTrackedSubscription(`__watch(${proxy}, (__list) => {`));
       this.indent++;
 
       if (keyed) {
@@ -1330,11 +1366,7 @@ function install(PromptJSCompiler, accept) {
       }
 
       this.indent--;
-      if (this.isSPA) {
-        this.emit('}));');
-      } else {
-        this.emit('});');
-      }
+      this.emit(this.closeTrackedSubscription());
     } else {
       // "ulangi item dari sumber:" → forEach (non-reactive: render once)
       this.emit(`${source}.forEach((${node.iteratorName}, indeks) => {`);

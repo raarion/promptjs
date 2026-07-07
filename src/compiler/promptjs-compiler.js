@@ -47,6 +47,9 @@ function PromptJSCompiler() {
   // v0.5: source map tracking
   this.sourceMapData = [];
   this.currentSource = '';
+  // LIM-SAAT-LEAK-01: stack of local cleanup-array variable names, one per
+  // currently-open `Saat` block. See visitSaatStatement / emitTrackedWatch*.
+  this._saatCleanupStack = [];
 }
 
 PromptJSCompiler.prototype = Object.create(BaseVisitor.prototype);
@@ -83,6 +86,8 @@ PromptJSCompiler.prototype.compile = function (ast) {
   this.helpers = new Set();
   this.sourceMapData = [];
   this.currentSource = ast.source || 'program.pjs';
+  // LIM-SAAT-LEAK-01: reset per-compile; see constructor comment.
+  this._saatCleanupStack = [];
 
   // v0.6: SPA mode flags from engine (set via ast properties)
   this.isSPA = !!ast.isSPA;
@@ -284,6 +289,76 @@ PromptJSCompiler.prototype.emit = function (code, loc) {
  */
 PromptJSCompiler.prototype.genVar = function (prefix = 'v') {
   return Codegen.genVar(this, prefix);
+};
+
+/**
+ * LIM-SAAT-LEAK-01: emit a `__watch(...)` (or `__keyedList`/`__flipList`-style
+ * subscription helper) call wrapped for automatic cleanup, choosing between
+ * three destinations depending on where we currently are:
+ *
+ *   1. Inside an open `Saat` block (`this._saatCleanupStack` non-empty):
+ *      push the unsub into that `Saat`'s LOCAL cleanup array so it is
+ *      unsubscribed on the *next* re-render of that same `Saat` (or its
+ *      teardown in SPA mode). Without this, every re-render of a `Saat`
+ *      re-registers `on_kelas` / `ikat` / nested-`Saat` / reactive-list
+ *      watchers on its children WITHOUT ever removing the previous ones —
+ *      each toggle leaks one more subscriber forever.
+ *   2. Else, in SPA mode: push into the page-level `__cleanupFns` (existing
+ *      v0.6 behavior, unmount-time cleanup) — unchanged.
+ *   3. Else (non-SPA, top-level): emit the raw call with no wrapper —
+ *      unchanged existing behavior for the common case.
+ *
+ * @this {any}
+ * @param {string} callExpr - The already-built `__watch(...)` (or similar)
+ *   call expression, WITHOUT a trailing semicolon.
+ * @returns {string} The statement to emit (may wrap callExpr in a push()).
+ */
+PromptJSCompiler.prototype.wrapTrackedSubscription = function (callExpr) {
+  if (this._saatCleanupStack.length > 0) {
+    const localCleanupVar = this._saatCleanupStack[this._saatCleanupStack.length - 1];
+    return `${localCleanupVar}.push(${callExpr});`;
+  }
+  if (this.isSPA) {
+    return `__cleanupFns.push(${callExpr});`;
+  }
+  return `${callExpr};`;
+};
+
+/**
+ * LIM-SAAT-LEAK-01: multi-line variant of `wrapTrackedSubscription` for
+ * subscriptions whose callback body is emitted across several `this.emit()`
+ * calls (e.g. the reactive-list `__watch(proxy, (__list) => { ...many
+ * lines... })` block), where wrapping the whole call as one string isn't
+ * practical. Returns just the OPENING line; pair with
+ * `closeTrackedSubscription()` to close it correctly.
+ *
+ * @this {any}
+ * @param {string} openExpr - Opening fragment, e.g. `__watch(items, (__list) => {`
+ * @returns {string} The opening statement to emit.
+ */
+PromptJSCompiler.prototype.openTrackedSubscription = function (openExpr) {
+  if (this._saatCleanupStack.length > 0) {
+    const localCleanupVar = this._saatCleanupStack[this._saatCleanupStack.length - 1];
+    return `${localCleanupVar}.push(${openExpr}`;
+  }
+  if (this.isSPA) {
+    return `__cleanupFns.push(${openExpr}`;
+  }
+  return openExpr;
+};
+
+/**
+ * Closing counterpart to `openTrackedSubscription()` — emits the matching
+ * closing syntax (`}));` when wrapped in a `.push(...)`, or `});` when not).
+ *
+ * @this {any}
+ * @returns {string} The closing statement to emit.
+ */
+PromptJSCompiler.prototype.closeTrackedSubscription = function () {
+  if (this._saatCleanupStack.length > 0 || this.isSPA) {
+    return '}));';
+  }
+  return '});';
 };
 
 /**
