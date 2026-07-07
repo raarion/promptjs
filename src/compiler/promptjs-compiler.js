@@ -362,6 +362,57 @@ PromptJSCompiler.prototype.closeTrackedSubscription = function () {
 };
 
 /**
+ * v132 stabilization (Lapis 1–3 pass, generalized cleanup ownership):
+ *
+ * `wrapTrackedSubscription` (above) only ever wraps a `__watch(...)`-style
+ * CALL EXPRESSION that itself returns an unsub function. Several call sites
+ * instead need to register an arbitrary teardown STATEMENT/closure that does
+ * not come from a `__watch(...)` return value — e.g.
+ * `function() { el.removeEventListener("click", handler); }` for a plain
+ * `Ketika` event handler, or `function() { ctrl.abort(); }` for an inline
+ * fetch's `AbortController`. Before this pass, those call sites each
+ * independently decided "SPA → __cleanupFns.push(...), else bare" WITHOUT
+ * ever consulting `this._saatCleanupStack` — so a cleanup created while
+ * rendering inside a `Saat` block always leaked into the page-level
+ * `__cleanupFns` (freed only at full SPA unmount) instead of the `Saat`'s
+ * own local cleanup array (freed on the NEXT re-render of that `Saat`).
+ *
+ * This helper generalizes the SAME three-way routing already used by
+ * `wrapTrackedSubscription`, but for a cleanup FUNCTION EXPRESSION (already
+ * fully built as a string, e.g. `function() { ... }`) rather than a
+ * `__watch(...)` call — so it can be reused by any visitor that registers a
+ * teardown callback, not just reactive-subscription call sites.
+ *
+ * Priority (identical to `wrapTrackedSubscription`):
+ *   1. Inside an open `Saat` block → push into that `Saat`'s local cleanup
+ *      array (torn down on the Saat's NEXT re-render, or when that array's
+ *      own drain-closure is itself torn down further up the chain).
+ *   2. Else, in SPA mode → push into the page-level `__cleanupFns`
+ *      (torn down at `unmount()`).
+ *   3. Else (non-SPA, top-level) → no cleanup registration needed/possible
+ *      (there is no unmount concept at all outside SPA mode) — returns
+ *      `null` so callers can skip emitting anything, matching the existing
+ *      non-SPA behavior of emitting a bare/unwrapped statement with no
+ *      cleanup tracking.
+ *
+ * @this {any}
+ * @param {string} cleanupFnExpr - A complete `function() { ... }` (or
+ *   equivalent) expression string, WITHOUT a trailing semicolon.
+ * @returns {string | null} The statement to emit, or `null` if no cleanup
+ *   registration applies (non-SPA, top-level).
+ */
+PromptJSCompiler.prototype.registerCleanup = function (cleanupFnExpr) {
+  if (this._saatCleanupStack.length > 0) {
+    const localCleanupVar = this._saatCleanupStack[this._saatCleanupStack.length - 1];
+    return `${localCleanupVar}.push(${cleanupFnExpr});`;
+  }
+  if (this.isSPA) {
+    return `__cleanupFns.push(${cleanupFnExpr});`;
+  }
+  return null;
+};
+
+/**
  * Resolve target element menjadi ekspresi JavaScript.
  *
  * Menangani empat jenis node target:
