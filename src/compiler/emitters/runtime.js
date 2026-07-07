@@ -162,14 +162,28 @@ function __keyedList(marker, list, keyFn, renderFn, hooks) {
     var node;
     if (entry && __pjsSame(entry.item, item)) {
       // Same key AND unchanged value → reuse the existing DOM node as-is.
+      // Its listeners/watchers (registered under entry.node.__pjsCleanup)
+      // stay attached and untouched — this is the "safe reuse" case.
       node = entry.node;
     } else {
-      // New key, or the item changed → (re)render its content. Reusing the key
-      // slot keeps ordering stable; the fresh node reflects the new data so the
-      // \`dengan kunci\` keyword stays honest (updates ARE visible). If a stale
-      // node existed for this key, drop it so it does not linger in the marker.
-      if (entry && entry.node && entry.node.parentNode === marker) {
-        marker.removeChild(entry.node);
+      // New key, or the item changed → (re)render its content. Reusing the
+      // key slot keeps ordering stable; the fresh node reflects the new data
+      // so the \`dengan kunci\` keyword stays honest (updates ARE visible).
+      //
+      // v132 stabilization (P0.4): if a stale node existed for this key, its
+      // per-item cleanups (Ketika/ikat/on_kelas/nested-Saat registered while
+      // rendering the OLD node via renderFn) must be drained BEFORE the old
+      // node is discarded — otherwise the old node's listeners stay alive
+      // forever (only reachable via the closure, never torn down), even
+      // though the node itself is detached and replaced.
+      if (entry && entry.node) {
+        if (typeof entry.node.__pjsCleanup !== 'undefined' && entry.node.__pjsCleanup) {
+          entry.node.__pjsCleanup.forEach(function (__fn) { __fn(); });
+          entry.node.__pjsCleanup.length = 0;
+        }
+        if (entry.node.parentNode === marker) {
+          marker.removeChild(entry.node);
+        }
       }
       node = renderFn(item, i);
     }
@@ -181,6 +195,12 @@ function __keyedList(marker, list, keyFn, renderFn, hooks) {
   // animated out and detached later; otherwise remove now (K1b default).
   prev.forEach(function (entry, key) {
     if (!next.has(key) && entry.node && entry.node.parentNode === marker) {
+      // v132 stabilization (P0.4): drain this removed item's own cleanups
+      // (same reasoning as the replace-case above) before detaching it.
+      if (typeof entry.node.__pjsCleanup !== 'undefined' && entry.node.__pjsCleanup) {
+        entry.node.__pjsCleanup.forEach(function (__fn) { __fn(); });
+        entry.node.__pjsCleanup.length = 0;
+      }
       if (onRemove && onRemove(entry.node) === true) return;
       marker.removeChild(entry.node);
     }
