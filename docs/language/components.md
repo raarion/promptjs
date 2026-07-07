@@ -152,6 +152,8 @@ The `window.Name` registration allows the component to be referenced dynamically
 - Parameter tanpa default tidak boleh setelah parameter dengan default (E4006) / Required params cannot follow default params.
 - `data` di dalam komponen memiliki perilaku kompilasi yang berbeda dari halaman / `data` inside components has different compilation behavior than pages.
 - `Gunakan` hanya boleh merujuk ke komponen (PascalCase), bukan elemen biasa (E4010) / `Gunakan` can only reference components, not regular elements.
+- **Belum ada slot/transklusi (v132 backlog).** Komponen bersarang (nesting) sudah berfungsi, tetapi belum ada cara meneruskan konten anak dari pemanggil ke dalam body komponen (mis. body kartu kustom, header/body/footer modal). Desain minimal (default-slot saja, tanpa slot bernama) sudah ditulis di [LIM/MIS Mapping v132 § Slots design decision](../project/lim-mis-mapping-v132.md#slots-design-decision-82), dijadwalkan v1.3.3/v1.4.0. Progres: [GitHub issue #82](https://github.com/raarion/promptjs/issues/82).
+- **No slot/transclusion yet (v132 backlog).** Nested components already work, but there is no way to pass child content from the caller into a component's body (e.g. custom card bodies, modal header/body/footer). A minimal design (default slot only, no named slots) is written up in [LIM/MIS Mapping v132 § Slots design decision](../project/lim-mis-mapping-v132.md#slots-design-decision-82), scheduled for v1.3.3/v1.4.0. Tracking: [GitHub issue #82](https://github.com/raarion/promptjs/issues/82).
 
 ---
 

@@ -174,6 +174,10 @@ Blok `Gaya:` menggunakan sintaks CSS indentasi — selector diikuti properti yan
 
 **Bukti / Evidence:** Ekstraksi CSS dilakukan oleh modul `src/engine/css.js`. Pada dev server (`serve.js`), CSS disisipkan via `<style>` tag di HTML wrapper. Pada multi-page build (`builder.js`), CSS semua halaman digabung ke `prompt.css`.
 
+> **Belum ada CSS scoping (v132 backlog).** Semua `Gaya:` bersifat GLOBAL — belum ada isolasi style otomatis per-komponen, jadi selector yang sama di file berbeda bisa saling bentrok. Desain yang direkomendasikan (atribut scope opt-in mirip Vue, di-generate saat kompilasi) sudah ditulis di [LIM/MIS Mapping v132 § CSS scoping design decision](../project/lim-mis-mapping-v132.md#css-scoping-design-decision-79), dijadwalkan v1.3.3. Progres: [GitHub issue #79](https://github.com/raarion/promptjs/issues/79).
+>
+> **No CSS scoping yet (v132 backlog).** All `Gaya:` styles are GLOBAL — there is no automatic per-component style isolation yet, so the same selector in different files can collide. The recommended design (an opt-in, compile-time-generated scope attribute, Vue-style) is written up in [LIM/MIS Mapping v132 § CSS scoping design decision](../project/lim-mis-mapping-v132.md#css-scoping-design-decision-79), scheduled for v1.3.3. Tracking: [GitHub issue #79](https://github.com/raarion/promptjs/issues/79).
+
 ---
 
 ## Langkah 7: Hitungan Tugas / Step 7: Task Count

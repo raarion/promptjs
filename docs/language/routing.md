@@ -148,6 +148,14 @@ Komponen Dashboard:
 
 ---
 
+## Routing Guards / Route Guards (Backlog)
+
+> **Status v132: belum tersedia / not yet available.** Saat ini hanya ada guard *page-level* lewat direktif `butuhAuth: benar` (lihat [Auth](auth.md)) — redirect jika belum login. Belum ada API untuk guard per-rute yang lebih fleksibel (mis. redirect keluar dari halaman login jika SUDAH login, atau guard async). Desain yang direkomendasikan (direktif `jikaAuth`, sinkron dan async) sudah ditulis di [LIM/MIS Mapping v132 § Routing guards design decision](../project/lim-mis-mapping-v132.md#routing-guards-design-decision-81) dan dijadwalkan untuk v1.3.3, bukan v132. Progres/diskusi: [GitHub issue #81](https://github.com/raarion/promptjs/issues/81).
+>
+> **v132 status: not yet available.** Currently only a page-level guard exists via the `butuhAuth: benar` directive (see [Auth](auth.md)) — redirects if not authenticated. There is no more flexible per-route guard API yet (e.g. redirecting AWAY from a login page if already authenticated, or an async guard). The recommended design (a `jikaAuth` directive, sync and async) is written up in [LIM/MIS Mapping v132 § Routing guards design decision](../project/lim-mis-mapping-v132.md#routing-guards-design-decision-81) and scheduled for v1.3.3, not v132. Tracking: [GitHub issue #81](https://github.com/raarion/promptjs/issues/81).
+
+---
+
 ## MPA vs SPA / MPA vs SPA
 
 | Aspek / Aspect | MPA (default) | SPA (`router: benar`) |
