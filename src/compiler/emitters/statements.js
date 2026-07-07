@@ -456,13 +456,20 @@ function install(PromptJSCompiler, accept) {
     this.emit(`${elVar}.value = ${proxy}.value;`);
 
     // 2. input -> state
+    // v132 stabilization (P0.3): route this listener's removeEventListener
+    // teardown through registerCleanup() instead of unconditionally pushing
+    // to the page-level __cleanupFns. Before this fix, this was the ONLY
+    // half of `ikat` that ignored `this._saatCleanupStack` — the state→input
+    // watch below (step 3) already used wrapTrackedSubscription, creating an
+    // internal asymmetry where toggling a `Saat` containing `ikat` cleaned
+    // up one direction but not the other. Same routing as visitKetikaStatement.
     if (this.isSPA) {
       const handlerVar = this.genVar('bindHandler');
       this.emit(`const ${handlerVar} = (event) => { __setState(${proxy}, event.target.value); };`);
       this.emit(`${elVar}.addEventListener("input", ${handlerVar});`);
-      this.emit(
-        `__cleanupFns.push(function() { ${elVar}.removeEventListener("input", ${handlerVar}); });`
-      );
+      const removeExpr = `function() { ${elVar}.removeEventListener("input", ${handlerVar}); }`;
+      const cleanupStmt = this.registerCleanup(removeExpr);
+      if (cleanupStmt) this.emit(cleanupStmt);
     } else {
       this.emit(
         `${elVar}.addEventListener("input", (event) => { __setState(${proxy}, event.target.value); });`
@@ -866,6 +873,18 @@ function install(PromptJSCompiler, accept) {
     };
 
     const eventName = eventMap[node.event] || node.event;
+
+    // v132 stabilization (P0.1): `.sekali`/`.once` is a listener OPTION
+    // (the 3rd argument to addEventListener, `{ once: true }`), not a
+    // statement executed inside the handler body like `.cegah`/`.hentikan`
+    // (which map to `event.preventDefault()`/`event.stopPropagation()`
+    // calls). It was previously listed in the parser's VALID_MODIFIERS
+    // (so it parsed and landed on `node.modifiers` correctly) but the
+    // compiler's MODIFIER_MAP below never had an entry for it — so it was
+    // silently accepted and had literally zero effect on the emitted JS.
+    const wantsOnce = !!(
+      node.modifiers && node.modifiers.some((m) => m === 'sekali' || m === 'once')
+    );
     let target = 'document';
 
     if (node.target) {
@@ -911,7 +930,7 @@ function install(PromptJSCompiler, accept) {
         const handlerVar = this.genVar('handler');
         this.emit(`const ${handlerVar} = (event) => {`);
         // Handler body will be emitted below, then we close + addEventListener + push cleanup
-        this._pendingSpaHandler = { target, eventName, handlerVar };
+        this._pendingSpaHandler = { target, eventName, handlerVar, wantsOnce };
       } else {
         this.emit(`${target}.addEventListener("${eventName}", (event) => {`);
       }
@@ -994,12 +1013,29 @@ function install(PromptJSCompiler, accept) {
     // v0.6 patch: SPA mode — close handler var, addEventListener, track cleanup
     if (this._pendingSpaHandler) {
       const h = this._pendingSpaHandler;
+      const hOptsSuffix = h.wantsOnce ? ', { once: true }' : '';
       this.emit('};');
-      this.emit(`${h.target}.addEventListener("${h.eventName}", ${h.handlerVar});`);
-      this.emit(
-        `__cleanupFns.push(function() { ${h.target}.removeEventListener("${h.eventName}", ${h.handlerVar}); });`
-      );
+      this.emit(`${h.target}.addEventListener("${h.eventName}", ${h.handlerVar}${hOptsSuffix});`);
+      // v132 stabilization (P0.2): route this listener's teardown through
+      // registerCleanup() instead of an unconditional __cleanupFns.push —
+      // when this Ketika is declared inside an open `Saat` block, its
+      // cleanup now lands in that Saat's OWN local cleanup array (freed on
+      // the Saat's next re-render), matching the same routing already used
+      // for on_kelas/ikat/nested-Saat/reactive-list watchers since #77.
+      // Falls back to the previous __cleanupFns behavior when not nested
+      // inside a Saat (still SPA top-level, unchanged from before this fix).
+      const removeExpr = `function() { ${h.target}.removeEventListener("${h.eventName}", ${h.handlerVar}); }`;
+      const cleanupStmt = this.registerCleanup(removeExpr);
+      if (cleanupStmt) this.emit(cleanupStmt);
       this._pendingSpaHandler = null;
+    } else if (wantsOnce) {
+      // v132 stabilization (P0.1): non-SPA bare addEventListener call — no
+      // separate handler variable exists to reference in a removeListener
+      // cleanup (and non-SPA has no unmount concept to hang cleanup off of
+      // anyway), so the ONLY thing needed here is passing `{ once: true }`
+      // as the 3rd argument, closing the callback with `}, { once: true });`
+      // instead of the plain `});`.
+      this.emit('}, { once: true });');
     } else {
       this.emit('});');
     }
@@ -1321,6 +1357,19 @@ function install(PromptJSCompiler, accept) {
         this.emit(`document.body.appendChild(${markerVar});`);
       }
 
+      // v132 stabilization (P0.4): for the NON-KEYED (K1a) path, declare
+      // this list's own local cleanup array OUTSIDE the __watch callback
+      // (same pattern as visitSaatStatement's `cleanupVar`) so it survives
+      // across re-renders and can be drained at the START of each one,
+      // BEFORE the previous batch of item nodes is thrown away by
+      // replaceChildren(). Declared here (not inside the K1a branch below)
+      // so it is available to reference from the __watch callback opener.
+      // The keyed (K1b) path does NOT use this — see the per-entry
+      // approach inside __keyedList's renderFn wrapper below instead,
+      // since keyed items may be REUSED (not recreated) across renders.
+      const listCleanupVar = keyed ? null : this.genVar('listCleanup');
+      if (listCleanupVar) this.emit(`const ${listCleanupVar} = [];`);
+
       // LIM-SAAT-LEAK-01: a reactive list declared inside a `Saat` block
       // must have its watcher unsubscribed on the NEXT re-render of that
       // `Saat` (via openTrackedSubscription/closeTrackedSubscription below),
@@ -1329,6 +1378,14 @@ function install(PromptJSCompiler, accept) {
       // unchanged (SPA: `__cleanupFns`; non-SPA: plain call).
       this.emit(this.openTrackedSubscription(`__watch(${proxy}, (__list) => {`));
       this.indent++;
+      if (listCleanupVar) {
+        // v132 stabilization (P0.4): drain the PREVIOUS render's per-item
+        // cleanups (Ketika/ikat/on_kelas/nested-Saat registered on items
+        // from the last render) before this render's replaceChildren()
+        // discards those nodes — mirrors visitSaatStatement exactly.
+        this.emit(`${listCleanupVar}.forEach((__fn) => __fn());`);
+        this.emit(`${listCleanupVar}.length = 0;`);
+      }
 
       if (keyed) {
         // ── K1b: keyed diff ──────────────────────────────────────────────
@@ -1355,12 +1412,23 @@ function install(PromptJSCompiler, accept) {
           const itemVar = this.genVar('kitem');
           this.emit(`const ${itemVar} = document.createElement("span");`);
           this.emit(`${itemVar}.className = "__promptjs_keyed_item";`);
+          // v132 stabilization (P0.4): this item's OWN cleanup array, drained
+          // by __keyedList itself (runtime.js) right before this exact node
+          // is discarded (replaced or removed) — NOT before every render
+          // like a `Saat`'s array, since a REUSED node (same key, unchanged
+          // item) must keep its listeners alive across renders. Stored ON
+          // the node (not a compiler-local var) because __keyedList needs to
+          // reach it from a DIFFERENT renderFn invocation than the one that
+          // created it.
+          this.emit(`${itemVar}.__pjsCleanup = [];`);
 
           const prevParentK = this.currentParent;
           this.currentParent = itemVar;
           const prevInBuatK = this._inBuatBody;
           this._inBuatBody = true;
+          this._saatCleanupStack.push(`${itemVar}.__pjsCleanup`);
           accept(node.body, this);
+          this._saatCleanupStack.pop();
           this._inBuatBody = prevInBuatK;
           this.currentParent = prevParentK;
 
@@ -1382,6 +1450,19 @@ function install(PromptJSCompiler, accept) {
         }
       } else {
         // ── K1a: full re-render (non-keyed) ────────────────────────────────
+        // v132 stabilization (P0.4): every full re-render throws away ALL
+        // previous item nodes (via replaceChildren()) and recreates them
+        // from scratch — so any Ketika/ikat/on_kelas/nested-Saat registered
+        // on a PREVIOUS render's items must be torn down BEFORE the new
+        // batch is created, exactly like a `Saat` block already does for
+        // its own children. `listCleanupVar` (declared OUTSIDE the __watch
+        // callback above, and already drained at the start of this render)
+        // is pushed onto `_saatCleanupStack` for the duration of rendering
+        // items — reusing the SAME mechanism (not a parallel one) so
+        // `registerCleanup`/`wrapTrackedSubscription` calls made while
+        // rendering list items automatically land here with zero changes
+        // needed at those call sites: a list is now, structurally, "just
+        // another cleanup context", the same as a `Saat` block.
         // C-5: consistent DOM clear via replaceChildren() (no innerHTML).
         this.emit(`${markerVar}.replaceChildren();`);
         // Guard: only iterate real arrays; non-array / null / empty ⇒ empty.
@@ -1395,7 +1476,9 @@ function install(PromptJSCompiler, accept) {
         this.currentParent = markerVar;
         const prevInBuat = this._inBuatBody;
         this._inBuatBody = true;
+        this._saatCleanupStack.push(listCleanupVar);
         accept(node.body, this);
+        this._saatCleanupStack.pop();
         this._inBuatBody = prevInBuat;
         this.currentParent = prevParent;
 
@@ -1737,10 +1820,25 @@ function install(PromptJSCompiler, accept) {
     }
 
     // v0.7: SPA mode — AbortController for request cancellation on unmount
+    //
+    // v132 stabilization (P0.5): route this AbortController's teardown
+    // through registerCleanup() instead of unconditionally pushing to the
+    // page-level __cleanupFns. Before this fix, an `ambil ... ke <target>`
+    // declared inside a `Saat` block created a NEW AbortController on every
+    // re-render, but the OLD one was only ever aborted at full SPA unmount —
+    // meaning a stale (superseded) in-flight request could still resolve and
+    // overwrite fresher data written by a later render (a real race
+    // condition, not just a cleanup-array memory leak). Now, when nested
+    // inside a `Saat`, the PREVIOUS render's AbortController is aborted as
+    // part of that Saat's normal pre-render drain (the same array used for
+    // on_kelas/ikat/Ketika/nested-Saat), so a re-render genuinely cancels
+    // the outdated request before starting the new one.
     if (this.isSPA) {
       const ctrlVar = this.genVar('ctrl');
       this.emit(`const ${ctrlVar} = new AbortController();`);
-      this.emit(`__cleanupFns.push(function() { ${ctrlVar}.abort(); });`);
+      const abortExpr = `function() { ${ctrlVar}.abort(); }`;
+      const cleanupStmt = this.registerCleanup(abortExpr);
+      if (cleanupStmt) this.emit(cleanupStmt);
       fetchOptionPairs.push(`"signal": ${ctrlVar}.signal`);
     }
 
