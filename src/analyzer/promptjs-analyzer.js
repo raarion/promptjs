@@ -438,6 +438,29 @@ PromptJSAnalyzer.prototype.visitKomponenDeclaration = function (node) {
   const prevInComponent = this.context.inComponent;
   this.context.inComponent = true;
 
+  // v132 stabilization (P1.2): PascalCase validation for component names.
+  // docs/language/components.md explicitly documents this as producing
+  // E2003 ("Nama komponen harus diawali huruf kapital"), and the code was
+  // registered in src/parser/error-codes.js (message + suggestion), but was
+  // NEVER actually invoked anywhere in the pipeline — a lowercase component
+  // name like `Komponen kartu(...)` compiled successfully with zero
+  // diagnostics, silently contradicting the documented contract. Enforced
+  // here (Analyzer) rather than the parser/lexer because component name
+  // validation for other rules (E4005 duplicate param, E4006 param order)
+  // already lives here, keeping all "is this component declaration valid"
+  // checks in one place; error code is still E2003 per the existing
+  // registry/docs (getStage() derives "Parser" from the code's digit
+  // regardless of which pipeline stage actually raises it, so this does not
+  // change the documented stage attribution).
+  if (node.name && !/^[A-Z]/.test(node.name)) {
+    this.addError(
+      'E2003',
+      `Nama komponen "${node.name}" harus diawali huruf kapital (PascalCase).`,
+      node.loc,
+      'Gunakan PascalCase untuk nama komponen, mis. "Kartu" bukan "kartu".'
+    );
+  }
+
   // 1. Validasi Parameter (Section 15.3 context)
   const paramNames = new Set();
   let foundDefault = false;
@@ -672,6 +695,39 @@ PromptJSAnalyzer.prototype.visitGunakanStatement = function (node) {
         node.loc,
         'Pastikan nama yang direferensikan adalah komponen (PascalCase).'
       );
+    } else if (symbol && symbol.kind === 'komponen' && node.props && node.props.length > 0) {
+      // v132 stabilization (P1.3): warn on props passed to a component
+      // instantiation that do NOT match any declared parameter name. Before
+      // this fix, a typo like `Gunakan Kartu(judl: "x")` (meant to be
+      // `judul`) compiled with zero diagnostics — the component's `judul`
+      // parameter silently received `undefined` at runtime, with no signal
+      // pointing at the actual mistake. This is a WARNING (not an error):
+      // the component's own scope is chained to its declaration site (see
+      // Lapis 3 audit notes on resolver scope), so an "unknown" prop could
+      // still be intentionally consumed by something the component
+      // references from its own outer scope — flagging as an error would
+      // be too strong given that legitimate (if unusual) use case.
+      const declComponent =
+        symbol.declarationNode && symbol.declarationNode.type === 'KomponenDeclaration'
+          ? symbol.declarationNode
+          : null;
+      if (declComponent && declComponent.params) {
+        const declaredNames = new Set(declComponent.params.map((p) => p.name));
+        node.props.forEach((prop) => {
+          const propKey = prop && prop.key;
+          if (propKey && !declaredNames.has(propKey)) {
+            const validNames = Array.from(declaredNames);
+            this.addWarning(
+              'W4005',
+              `Prop "${propKey}" tidak dikenal pada komponen "${node.componentName}".`,
+              node.loc,
+              validNames.length > 0
+                ? `Parameter yang dideklarasikan: ${validNames.join(', ')}. Periksa kemungkinan salah ketik.`
+                : `Komponen "${node.componentName}" tidak mendeklarasikan parameter apa pun.`
+            );
+          }
+        });
+      }
     }
   }
   this.genericVisit(node);
