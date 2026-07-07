@@ -1217,11 +1217,35 @@
     }
 
     // === Component invocation: "Buat Name(arg: val, ...)" (no colon, no body) ===
+    // v132 stabilization (P0.6): the trailing `$` anchor here used to REQUIRE
+    // the entire rest of the line to end exactly at `)` — so a component
+    // invocation written with a trailing block-opener colon, e.g.
+    // `Buat Kartu(judul: "Kopi Aceh", harga: 45000):` (the exact form
+    // documented in docs/language/components.md and docs/language/
+    // syntax-reference.md), NEVER matched here at all (the line does not end
+    // in `)`, it ends in `):`). Execution fell through to the generic
+    // "find the first colon not in a string" search below, which has no
+    // concept of parenthesis depth and matched the FIRST colon — the one
+    // INSIDE `(judul: ...)` — as if it were the block-opener colon. That
+    // silently produced a corrupt tag name (`"Kartu(judul"`) instead of a
+    // real component invocation or a clear diagnostic.
+    //
+    // Fix: accept an OPTIONAL trailing `:` (with only whitespace, if
+    // anything, following it) after the closing `)`, and — when present —
+    // emit it as a proper TK_COLON block-opener token (with no body content
+    // expected on this line; a component invocation with a trailing colon
+    // has no inline content of its own, matching the no-colon form's shape
+    // plus the colon). This makes both forms ("Buat Name(...)" and
+    // "Buat Name(...):") parse identically as a GunakanStatement, which is
+    // also consistent with how "Gunakan Name(...)" already accepts an
+    // optional trailing colon with no special meaning (see
+    // _parseGunakanStatement in the parser, unchanged by this fix).
     if (kwToken === TT.TK_BUAT) {
-      const invMatch = afterKeyword.match(/^([A-Za-z_]\w*)\s*\((.*)\)$/);
+      const invMatch = afterKeyword.match(/^([A-Za-z_]\w*)\s*\((.*)\)(\s*:)?\s*$/);
       if (invMatch) {
         const invName = invMatch[1];
         const invArgs = invMatch[2];
+        const hasTrailingColon = !!invMatch[3];
         const invNameCol = baseCol + keyword.length + 2;
         this.tokens.push(
           new Token(TT.TK_IDENT, invName, lineNum, invNameCol, {
@@ -1236,7 +1260,12 @@
         if (invArgs.trim()) {
           this._tokenizeExpression(invArgs, lineNum, invParenCol + 1);
         }
-        this.tokens.push(new Token(TT.TK_RPAREN, ')', lineNum, invParenCol + invArgs.length + 1));
+        const invRparenCol = invParenCol + invArgs.length + 1;
+        this.tokens.push(new Token(TT.TK_RPAREN, ')', lineNum, invRparenCol));
+        if (hasTrailingColon) {
+          const colonOffset = content.lastIndexOf(':');
+          this.tokens.push(new Token(TT.TK_COLON, ':', lineNum, baseCol + colonOffset + 1));
+        }
         return;
       }
     }
