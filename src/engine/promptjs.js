@@ -171,6 +171,11 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
       return this._makeResult(null, this.errors, [], null, css);
     }
   }
+  // v132 stabilization: surface parser-level warnings (mis. W2005 unknown
+  // event modifier) — previously the parser had no warnings channel at all.
+  if (parseResult.warnings && parseResult.warnings.length > 0) {
+    this.warnings.push(...parseResult.warnings);
+  }
 
   const ast = parseResult.ast;
 
