@@ -1818,7 +1818,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     this._advance();
     // BUG-05 FIX: Check if this is an arrow function by looking for pattern: (id, id, ...) =>
     // Save position for backtracking
-    const savedPos = this._pos;
+    const savedPos = this.pos;
     const savedTokens = this.tokens.slice();
     const possibleParams = [];
     let isArrow = false;
@@ -1859,7 +1859,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
       return AST.buatArrowFunctionExpression(possibleParams, body, this._makeLoc(tok), true);
     }
     // Not an arrow function — backtrack and parse as parenthesized expression
-    this._pos = savedPos;
+    this.pos = savedPos;
     this.tokens = savedTokens;
     const expr = this._parseExpression();
     this._expect(TT.TK_RPAREN, 'Expected ")"');
