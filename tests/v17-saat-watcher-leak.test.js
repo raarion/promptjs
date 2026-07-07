@@ -255,3 +255,278 @@ describe('LIM-SAAT-LEAK-01 — runtime: no leak across re-renders', () => {
     }).not.toThrow();
   });
 });
+
+/**
+ * ## #77 closure-verification follow-up (found during re-investigation of
+ * this issue against the latest `v132` HEAD, NOT part of the original
+ * LIM-SAAT-LEAK-01 fix commit)
+ *
+ * Two additional leak angles were found and fixed alongside this test file:
+ *
+ *   1. A NESTED `Saat`'s own outer watch registration was never itself
+ *      routed through the tracked-cleanup mechanism — only the reactive
+ *      CHILDREN inside a `Saat` were tracked, not a nested `Saat` block
+ *      acting as one of those children. Toggling an OUTER `Saat` therefore
+ *      still leaked one new permanent subscription per toggle on whatever
+ *      reactive source an INNER `Saat` watched.
+ *   2. In SPA mode, `unmount()` only unsubscribed a `Saat`'s own outer
+ *      watch (via `__cleanupFns`) — it never drained that `Saat`'s local
+ *      child-cleanup array, so the LAST rendered batch of `on_kelas`/
+ *      `ikat`/list child watches stayed subscribed forever after unmount.
+ *
+ * Both are verified fixed below using the real subscriber-count on the
+ * reactive proxy (via a `WeakMap` probe) rather than DOM inspection alone,
+ * since a leaked subscriber may not always be DOM-visible.
+ */
+describe('LIM-SAAT-LEAK-01 — nested Saat watch itself is cleaned up (not just its children)', () => {
+  function countSubscribers(win, proxy) {
+    const subs = win.__SUBS_PROBE.get(proxy);
+    return subs ? subs.size : 0;
+  }
+
+  function runSourceWithSubsProbe(source) {
+    const r = compile(source);
+    expect(r.success).toBe(true);
+    expect(r.errors).toEqual([]);
+
+    function makeEl(tag) {
+      const el = {
+        tagName: tag,
+        _className: '',
+        _id: '',
+        children: [],
+        parentNode: null,
+        set className(v) {
+          this._className = String(v);
+        },
+        get className() {
+          return this._className;
+        },
+        set id(v) {
+          this._id = v;
+        },
+        get id() {
+          return this._id;
+        },
+        set innerText(v) {
+          this._text = String(v);
+        },
+        get innerText() {
+          return this._text || '';
+        },
+        set innerHTML(v) {
+          if (v === '') {
+            this.children.forEach((c) => (c.parentNode = null));
+            this.children = [];
+          }
+        },
+        appendChild(c) {
+          c.parentNode = this;
+          this.children.push(c);
+          return c;
+        },
+        querySelector(sel) {
+          const idMatch = sel.match(/^#(.+)$/);
+          if (idMatch) {
+            const stack = [...this.children];
+            while (stack.length) {
+              const n = stack.shift();
+              if (n.id === idMatch[1]) return n;
+              stack.push(...n.children);
+            }
+            return null;
+          }
+          return null;
+        },
+        setAttribute() {},
+        addEventListener() {},
+      };
+      return el;
+    }
+    const body = makeEl('body');
+    const document = {
+      createElement: (t) => makeEl(t),
+      createTextNode: (t) => ({ nodeType: 3, textContent: t, parentNode: null }),
+      querySelector: () => makeEl('div'),
+      addEventListener() {},
+      body,
+    };
+    const win = {};
+    const probedJs = r.js
+      .replace(
+        /const (\w+) = __createReactive\(/g,
+        'const $1 = window.__PROBE_$1 = __createReactive('
+      )
+      .replace(
+        'var __subscribers = new WeakMap();',
+        'var __subscribers = new WeakMap(); window.__SUBS_PROBE = __subscribers;'
+      );
+    new Function('document', 'window', 'console', probedJs)(document, win, {
+      error() {},
+      log() {},
+      warn() {},
+    });
+    return { r, document, body, win };
+  }
+
+  it('does not leak the inner Saat watch itself when the outer Saat re-renders', () => {
+    const { win, body } = runSourceWithSubsProbe(
+      'data luar = benar\ndata dalam = benar\n\n' +
+        'Saat luar:\n    Buat div#a:\n        Saat dalam:\n            Buat span#b:\n                teks = "x"'
+    );
+    expect(countSubscribers(win, win.__PROBE_dalam)).toBe(1);
+
+    for (let i = 0; i < 3; i++) {
+      win.__PROBE_luar.value = !win.__PROBE_luar.value;
+    }
+    // Before the fix: 4 (one leaked inner-Saat watch per outer re-render).
+    // After the fix: still exactly 1 (the previous inner Saat watch is
+    // unsubscribed via the parent's cleanup array before the new one is
+    // created).
+    expect(countSubscribers(win, win.__PROBE_dalam)).toBe(1);
+
+    // Content should still render correctly after all the toggling.
+    const marker = body.children[0];
+    const a = marker.querySelector('#a');
+    expect(a.querySelector('#b').innerText).toBe('x');
+  });
+
+  it('codegen: a nested Saat watch registration is pushed into the parent cleanup array', () => {
+    const r = compile(
+      'data luar = benar\ndata dalam = benar\n\n' +
+        'Saat luar:\n    Buat div#a:\n        Saat dalam:\n            Buat span#b:\n                teks = "x"'
+    );
+    expect(r.success).toBe(true);
+    // The inner Saat's own __watch(dalam, ...) call must be wrapped by the
+    // OUTER Saat's cleanup array push, not emitted as a bare call.
+    expect(r.js).toMatch(/__saatCleanup_\d+\.push\(__watch\(dalam,/);
+  });
+});
+
+describe('LIM-SAAT-LEAK-01 — SPA unmount tears down the last rendered child watches', () => {
+  /** Compile with `router: benar` and run the resulting SPA factory. */
+  function runSpaPage(body) {
+    const source = ['---', 'router: benar', '---', 'Halaman Beranda:', body].join('\n');
+    const r = compile(source, { pageName: 'index', pageRoute: '/' });
+    expect(r.success).toBe(true);
+    expect(r.errors).toEqual([]);
+    expect(r.js).toContain('mount: function');
+    expect(r.js).toContain('unmount: function');
+
+    function makeEl(tag) {
+      const el = {
+        tagName: tag,
+        _className: '',
+        _id: '',
+        children: [],
+        parentNode: null,
+        set className(v) {
+          this._className = String(v);
+        },
+        get className() {
+          return this._className;
+        },
+        set id(v) {
+          this._id = v;
+        },
+        get id() {
+          return this._id;
+        },
+        set innerText(v) {
+          this._text = String(v);
+        },
+        get innerText() {
+          return this._text || '';
+        },
+        set innerHTML(v) {
+          if (v === '') {
+            this.children.forEach((c) => (c.parentNode = null));
+            this.children = [];
+          }
+        },
+        appendChild(c) {
+          c.parentNode = this;
+          this.children.push(c);
+          return c;
+        },
+        remove() {
+          if (this.parentNode) {
+            this.parentNode.children = this.parentNode.children.filter((c) => c !== this);
+            this.parentNode = null;
+          }
+        },
+        querySelector(sel) {
+          const idMatch = sel.match(/^#(.+)$/);
+          if (idMatch) {
+            const stack = [...this.children];
+            while (stack.length) {
+              const n = stack.shift();
+              if (n.id === idMatch[1]) return n;
+              stack.push(...n.children);
+            }
+            return null;
+          }
+          return null;
+        },
+        setAttribute() {},
+        addEventListener() {},
+      };
+      return el;
+    }
+    const rootBody = makeEl('body');
+    const document = {
+      createElement: (t) => makeEl(t),
+      createTextNode: (t) => ({ nodeType: 3, textContent: t, parentNode: null }),
+      querySelector: () => makeEl('div'),
+      addEventListener() {},
+      body: rootBody,
+    };
+    const win = {};
+    const probedJs = r.js
+      .replace(
+        /const (\w+) = __createReactive\(/g,
+        'const $1 = window.__PROBE_$1 = __createReactive('
+      )
+      .replace(
+        'var __subscribers = new WeakMap();',
+        'var __subscribers = new WeakMap(); window.__SUBS_PROBE = __subscribers;'
+      )
+      .replace('return {', 'window.__PAGE = {');
+    new Function('document', 'window', 'console', probedJs)(document, win, {
+      error() {},
+      log() {},
+      warn() {},
+    });
+    const page = win.__PAGE;
+    page.mount(rootBody);
+    return { r, page, rootBody, win };
+  }
+
+  function countSubscribers(win, proxy) {
+    const subs = win.__SUBS_PROBE.get(proxy);
+    return subs ? subs.size : 0;
+  }
+
+  it('unmount() removes the outer Saat watch AND its last-rendered on_kelas child watch', () => {
+    const { page, rootBody, win } = runSpaPage(
+      '    data aktif = benar\n' +
+        '    Saat aktif:\n' +
+        '        Buat div#kotak:\n' +
+        '            teks = "Halo"\n' +
+        '            on_kelas = aktif'
+    );
+    expect(countSubscribers(win, win.__PROBE_aktif)).toBe(2); // outer Saat + on_kelas
+
+    const kotakBeforeUnmount = rootBody.querySelector('#kotak');
+    page.unmount();
+
+    // Before the fix: 1 (only the outer Saat's own watch was unsubscribed;
+    // the on_kelas child watch from the last render leaked forever).
+    // After the fix: 0 (both are torn down).
+    expect(countSubscribers(win, win.__PROBE_aktif)).toBe(0);
+
+    // The detached element must no longer receive updates.
+    win.__PROBE_aktif.value = false;
+    expect(kotakBeforeUnmount.className).toBe('true'); // frozen, proves unsubscribed
+  });
+});

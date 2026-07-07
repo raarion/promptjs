@@ -1025,8 +1025,35 @@ function install(PromptJSCompiler, accept) {
    * which consults `this._saatCleanupStack`), and the array is drained
    * (each fn called, then emptied) at the START of every re-render — so
    * the previous batch of child watchers is torn down before the new one
-   * is created. The stack means nested `Saat` blocks never touch a
-   * parent's cleanup array.
+   * is created. The stack means nested `Saat` blocks each get their own
+   * array.
+   *
+   * Two follow-up gaps found during #77 closure verification and fixed
+   * here as well (same root cause, different angle):
+   *
+   *   1. A NESTED `Saat`'s own outer `__watch(...)` registration was
+   *      always emitted as either a bare call (non-SPA) or
+   *      `__cleanupFns.push(...)` (SPA) — it never checked whether it was
+   *      itself running inside a PARENT `Saat`'s render. So toggling the
+   *      OUTER `Saat` recreated the inner `Saat` and its `__watch(...)`
+   *      call on every re-render, leaking one more permanent inner-Saat
+   *      subscription per outer toggle (verified: 3 outer toggles left 4
+   *      live subscribers on the inner target, only 1 of which was live).
+   *      Fixed by routing this Saat's OWN watch registration through
+   *      `openTrackedSubscription`/`closeTrackedSubscription` — when
+   *      nested, it now lands in the PARENT's cleanup array instead of
+   *      being emitted unconditionally.
+   *   2. In SPA mode, `unmount()` only unsubscribed THIS Saat's own outer
+   *      watch (via `__cleanupFns`) — it never drained this Saat's local
+   *      `cleanupVar`, so the LAST rendered batch of child watches
+   *      (`on_kelas`, `ikat`, nested lists) stayed subscribed forever
+   *      after unmount, still mutating now-detached DOM nodes (verified:
+   *      an `on_kelas` binding kept updating its detached element's
+   *      `className` after `unmount()`). Fixed by additionally
+   *      registering a small drain closure for `cleanupVar` through the
+   *      same tracked-subscription routing, so it is torn down alongside
+   *      this Saat's own watch wherever THAT is torn down (SPA unmount,
+   *      or a parent Saat's next re-render).
    *
    * @this {any}
    * @param {Object} node - AST node SaatStatement
@@ -1059,12 +1086,14 @@ function install(PromptJSCompiler, accept) {
     const cleanupVar = this.genVar('saatCleanup');
     this.emit(`const ${cleanupVar} = [];`);
 
-    // v0.6: SPA mode — wrap __watch in __cleanupFns.push() for cleanup on unmount
-    if (this.isSPA) {
-      this.emit(`__cleanupFns.push(__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
-    } else {
-      this.emit(`__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`);
-    }
+    // LIM-SAAT-LEAK-01 (nested-Saat follow-up): route THIS Saat's own
+    // watch registration through the tracked-subscription helpers — same
+    // priority as any other child subscription: parent Saat's cleanup
+    // array (if nested) > __cleanupFns (if SPA, top-level) > plain call
+    // (non-SPA, top-level — byte-for-byte unchanged from before this fix).
+    // This MUST run before `cleanupVar` is pushed onto `_saatCleanupStack`
+    // below, so it resolves against the PARENT context, not itself.
+    this.emit(this.openTrackedSubscription(`__watch(${tgtStr}, (nilaiBaru, nilaiLama) => {`));
     this.indent++;
     // LIM-SAAT-LEAK-01: unsubscribe every child watch registered by the
     // PREVIOUS render before clearing/re-rendering the marker. On the very
@@ -1092,11 +1121,22 @@ function install(PromptJSCompiler, accept) {
     this._inBuatBody = prevInBuat;
     this.currentParent = prevParent;
     this.indent--;
-    // v0.6: SPA mode — extra closing paren for __cleanupFns.push()
-    if (this.isSPA) {
-      this.emit('}));');
-    } else {
-      this.emit('});');
+    this.emit(this.closeTrackedSubscription());
+
+    // LIM-SAAT-LEAK-01 (SPA-unmount follow-up): also tear down the LAST
+    // rendered batch of child watches whenever THIS Saat itself is torn
+    // down (SPA unmount, or — since this also goes through
+    // wrapTrackedSubscription — a parent Saat's next re-render). Only
+    // emitted when there is an actual teardown mechanism to hook into
+    // (nested in a nother Saat, or SPA `__cleanupFns`); skipped entirely
+    // for the common top-level non-SPA case, which has no unmount concept
+    // and must keep its exact prior codegen shape.
+    if (this._saatCleanupStack.length > 0 || this.isSPA) {
+      this.emit(
+        this.wrapTrackedSubscription(
+          `(function() { ${cleanupVar}.forEach(function(__fn) { __fn(); }); })`
+        )
+      );
     }
   };
 
