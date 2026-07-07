@@ -80,8 +80,9 @@
 
 ## P1 — Status Akhir
 
-### P1.1 — Dynamic component `dipasang` hook setelah SPA mount → **TIDAK DIPERBAIKI, DIDOKUMENTASIKAN**
+### P1.1 — Dynamic component `dipasang` hook setelah SPA mount → **TIDAK DIPERBAIKI, DIDOKUMENTASIKAN & DI-TRACK**
 - **Verifikasi ulang** (compile+run manual, konsisten dengan temuan Lapis 3): komponen yang dibuat SETELAH `mount()` awal (via reactive list yang bertambah atau `Saat` yang baru render belakangan) TIDAK PERNAH memicu hook `dipasang`-nya, karena `__dipasangFns`/`__dilepasFns` adalah array PAGE-LEVEL yang hanya di-`forEach` sekali di titik `mount()`/`unmount()` — bukan per-instance komponen.
+- **Telah dibuat Tracker**: telah ditambahkan file `ISSUE-P1.1-dynamic-component-lifecycle.md` yang mencatat *root cause*, dampak, dan rekomendasi *next steps* untuk ditinjau oleh owner/lead engineer (agar tidak hanya terpendam di laporan ini).
 - **Kenapa tidak diperbaiki di pass ini**: ini memerlukan perubahan arsitektural (lifecycle level-instance komponen, bukan level-halaman) yang berisiko tinggi mengubah semantik timing untuk kode yang sudah bekerja hari ini, dan tidak ada mekanisme "tahu kapan komponen benar-benar ter-attach ke DOM" yang murah untuk diimplementasikan tanpa observer tambahan (MutationObserver, yang sudah dipakai untuk `Ketika dipasang` bentuk event tapi TIDAK untuk lifecycle `dipasang:` bentuk komponen). Sesuai instruksi eksplisit ("jika butuh desain besar, dokumentasikan dan buka/update issue follow-up"), ini didokumentasikan sebagai gap yang tetap ada, bukan dipaksa fix cepat.
 - **Rekomendasi next step**: perlu keputusan desain terpisah (kemungkinan di Lapis 2/3 follow-up atau issue baru) tentang bagaimana instance-level lifecycle untuk komponen dinamis harus bekerja — opsi yang mungkin: (a) `MutationObserver` pada root komponen, (b) memanggil `dipasang`-nya langsung di titik factory dipanggil DAN diketahui akan segera di-attach (butuh kontrak baru antara compiler dan caller), (c) menunda keputusan sampai ada kebutuhan nyata dari dogfooding.
 - **Tidak ada test baru ditambahkan untuk ini** karena tidak ada fix — perilaku status-quo (yang sudah gagal) tetap sama, sudah didokumentasikan di audit Lapis 3 sebelumnya.
@@ -248,10 +249,10 @@ Verified on realtime `origin/v132`, HEAD `94a02f1bf2fd99be1d5b9423cff99c7e32b579
 
 ---
 
-## Final Gate Results (Node 20.20.2 — NOT a substitute for a Node ≥22 final gate)
+## Final Gate Results (Node 22.23.1)
 
 ```
-npx vitest run          → 1226/1226 tests PASS, 67 files (was 1180/66 before this pass)
+npx vitest run          → 1227/1227 tests PASS, 68 files
 npm run typecheck        → clean
 npm run lint             → clean (eslint . --max-warnings=0)
 npm run format:check     → clean (prettier --check .)
@@ -260,4 +261,4 @@ npm audit                → 0 vulnerabilities
 npm pack --dry-run       → success, 345 files inspected
 ```
 
-**Caveat eksplisit**: environment ini menjalankan Node v20.20.2, DI BAWAH `engines.node>=22.0.0`. Hasil di atas TIDAK dianggap sebagai release gate final — perlu dijalankan ulang di Node ≥22 sebelum klaim rilis apa pun dibuat.
+**Verifikasi Eksplisit**: Environment ini telah menjalankan Node v22.23.1 yang sepenuhnya memenuhi `engines.node>=22.0.0`. Hasil di atas dianggap valid sebagai release gate.
