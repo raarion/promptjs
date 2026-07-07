@@ -72,6 +72,9 @@ const W2001 = 'W2001'; // DocString tidak menempel ke node manapun
 const W2002 = 'W2002'; // Blok kosong terdeteksi
 const W2003 = 'W2003'; // Rantai jika tanpa cabang lainnya
 const W2004 = 'W2004'; // Jumlah argumen mungkin tidak sesuai
+const W2005 = 'W2005'; // Event modifier tidak dikenal/belum didukung (mis. .capture, .passive)
+
+const E2030 = 'E2030'; // "Gunakan Nama(...):" diikuti child block yang belum didukung (slot belum ada)
 
 // ═══════════════════════════════════════════════════════════════
 // RESOLVER (E3xxx / W3xxx)
@@ -117,6 +120,7 @@ const W4001 = 'W4001'; // Type hint tidak cocok dengan nilai
 const W4002 = 'W4002'; // Lifecycle hook di dalam loop/handler
 const W4003 = 'W4003'; // Deklarasi tetap tanpa nilai awal
 const W4004 = 'W4004'; // Potensi bug: perbandingan assignment
+const W4005 = 'W4005'; // Prop tidak dikenal pada pemanggilan "gunakan"/instansiasi komponen
 const W4101 = 'W4101'; // Simbol dideklarasikan tetapi tidak pernah digunakan
 const W4102 = 'W4102'; // Simbol ditulis tetapi tidak pernah dibaca
 const E4101 = 'E4101'; // Target tidak dapat ditulis berdasarkan metadata isWritable
@@ -205,9 +209,11 @@ ERROR_MESSAGES[E2026] = 'Ekspresi kosong tidak valid';
 ERROR_MESSAGES[E2027] = 'Properti perbarui tidak dikenali';
 ERROR_MESSAGES[E2028] = 'Body komponen/fungsi kosong';
 ERROR_MESSAGES[E2029] = 'Ekspresi terlalu dalam (melebihi batas kedalaman {max})';
+ERROR_MESSAGES[E2030] = '"Gunakan Nama(...):" dengan blok anak (child block) belum didukung';
 ERROR_MESSAGES[W2001] = 'DocString tidak menempel ke node manapun';
 ERROR_MESSAGES[W2002] = 'Blok kosong terdeteksi';
 ERROR_MESSAGES[W2003] = 'Rantai "jika" tanpa cabang "lainnya"';
+ERROR_MESSAGES[W2005] = 'Event modifier tidak dikenal atau belum didukung';
 ERROR_MESSAGES[W2004] = 'Jumlah argumen mungkin tidak sesuai';
 
 // -- Resolver --
@@ -300,6 +306,10 @@ ERROR_SUGGESTIONS[E2009] = 'Periksa ekspresi kondisi';
 ERROR_SUGGESTIONS[E2010] = 'Periksa konteks penggunaan keyword';
 ERROR_SUGGESTIONS[E2011] = 'Gunakan "langsung:" untuk operasi yang tidak didukung';
 ERROR_SUGGESTIONS[E2029] = 'Sederhanakan ekspresi atau pecah menjadi beberapa langkah/variabel';
+ERROR_SUGGESTIONS[E2030] =
+  'Slot/transklusi belum didukung (backlog #82). Gunakan "Gunakan NamaKomponen(...)" tanpa blok anak, atau pindahkan konten ke dalam definisi komponen.';
+ERROR_SUGGESTIONS[W2005] =
+  'Modifier yang didukung saat ini: .cegah/.prevent, .hentikan/.stop, .sekali/.once. Modifier lain (mis. .capture/.passive) belum diimplementasikan.';
 ERROR_SUGGESTIONS[E2012] = 'Periksa sintaksis argumen';
 ERROR_SUGGESTIONS[E2013] = 'Periksa sintaksis parameter';
 ERROR_SUGGESTIONS[E2014] = 'Periksa sintaksis objek literal';
@@ -615,10 +625,12 @@ module.exports = {
   E2027: E2027,
   E2028: E2028,
   E2029: E2029,
+  E2030: E2030,
   W2001: W2001,
   W2002: W2002,
   W2003: W2003,
   W2004: W2004,
+  W2005: W2005,
 
   // Resolver errors
   E3001: E3001,
@@ -651,6 +663,7 @@ module.exports = {
   W4002: W4002,
   W4003: W4003,
   W4004: W4004,
+  W4005: W4005,
   W4101: W4101,
   W4102: W4102,
   E4101: E4101,
