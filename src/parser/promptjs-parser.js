@@ -23,12 +23,42 @@ const TT = require('../lexer/promptjs-lexer').TT;
 // Event alias: PromptJS on_x → PromptJS event name
 const EVENT_ALIASES = require('../lexer/promptjs-lexer').EVENT_ALIASES;
 
+// v132 stabilization: event modifiers that are parsed AND actually have a
+// codegen effect (src/compiler/emitters/statements.js MODIFIER_MAP / the
+// `{ once: true }` addEventListener option). Shared by both `Ketika ...:`
+// (_parseKetikaStatement) and the inline `on_x.mod = ...` form
+// (_parseOnEventStatement) so the two paths cannot drift out of sync again.
+const VALID_EVENT_MODIFIERS = {
+  cegah: true,
+  prevent: true,
+  sekali: true,
+  once: true,
+  hentikan: true,
+  stop: true,
+};
+
+// v132 stabilization (P0.1): modifier NAMES that are recognizable (borrowed
+// from common web-framework vocabulary) but have NO implementation in the
+// compiler yet. These must not be silently dropped — silently accepting them
+// as if they did something would be a repeat of the original `.sekali`/
+// `.once` no-op bug. Anything not in either list is treated as "this DOT is
+// probably part of a target expression, not a modifier" (unchanged prior
+// behavior), preserving the escape hatch for a genuine dotted target.
+const KNOWN_UNSUPPORTED_MODIFIERS = {
+  capture: true,
+  passive: true,
+  self: true,
+  exact: true,
+};
+
 /**
  * Hasil parsing.
  *
  * @typedef {Object} ParseResult
  * @property {Object} ast - Root AST node (Program)
  * @property {Object[]} errors - Daftar error yang terjadi selama parsing
+ * @property {Object[]} [warnings] - Daftar warning parser (mis. W2005 event
+ *   modifier tidak dikenal/belum didukung) — v132 stabilization pass
  * @property {boolean} [hadFatalParseError] - True jika terjadi error token
  *   yang tidak dapat dipulihkan (E2020); dipakai engine untuk menekan cascade
  *   E3001 pada subtree yang rusak (DX-1 FIX)
@@ -50,6 +80,7 @@ function PromptJSParser() {
   this.tokens = [];
   this.pos = 0;
   this.errors = [];
+  this.warnings = []; // v132 stabilization: parser-level warnings (mis. W2005 unknown event modifier)
   this.componentNames = new Set(); // Track defined components
   this._exprDepth = 0; // LOW-4: kedalaman rekursi ekspresi saat ini
 }
@@ -80,6 +111,7 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   this.tokens = tokens;
   this.pos = 0;
   this.errors = [];
+  this.warnings = []; // v132 stabilization: reset parser warnings per-parse
   this.frontMatterDecls = [];
   this._exprDepth = 0; // LOW-4: guard kedalaman rekursi ekspresi
   this._hadFatalParseError = false; // [DX-1] set true on E2020 token fallback
@@ -120,6 +152,7 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   return {
     ast: AST.buatProgramNode(fullBody, null, 'promptjs'),
     errors: this.errors,
+    warnings: this.warnings, // v132 stabilization: surface parser-level warnings (mis. W2005)
     // [DX-1 FIX] Signal that an unrecoverable token error (E2020) occurred so the
     // resolver can suppress the misleading E3001 cascade on the broken subtree.
     hadFatalParseError: !!this._hadFatalParseError,
@@ -1014,24 +1047,41 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
 
   // v0.7: Parse modifiers from the event name string.
   // Lexer produces event name as "on_dikirim.cegah" (modifier embedded in string).
+  //
+  // v132 stabilization (P0.1): this loop previously silently DROPPED any
+  // dot-suffix that wasn't in the valid-modifier list (including
+  // recognizable-but-unimplemented names like `.capture`/`.passive`) with no
+  // diagnostic at all — reuses the SAME two module-level modifier tables as
+  // `_parseKetikaStatement` so the inline (`on_x.mod = ...`) and block
+  // (`Ketika x.mod:`) forms can never drift out of sync on which modifiers
+  // are recognized/supported again.
   const modifiers = [];
-  const VALID_MODIFIERS = {
-    cegah: true,
-    prevent: true,
-    sekali: true,
-    once: true,
-    hentikan: true,
-    stop: true,
-  };
-
   if (rawEventName.includes('.')) {
     const parts = rawEventName.split('.');
     rawEventName = parts[0]; // The actual event name (e.g. "on_dikirim")
     for (let i = 1; i < parts.length; i++) {
       const mod = parts[i].toLowerCase();
-      if (VALID_MODIFIERS[mod]) {
+      if (VALID_EVENT_MODIFIERS[mod]) {
         modifiers.push(mod);
+      } else if (KNOWN_UNSUPPORTED_MODIFIERS[mod]) {
+        this.warnings.push({
+          code: 'W2005',
+          severity: 'warning',
+          message: `Event modifier ".${mod}" dikenal tapi belum diimplementasikan — tidak berpengaruh pada compile ini.`,
+          line: startTok.line,
+          column: startTok.col,
+          suggestion:
+            'Modifier yang didukung saat ini: .cegah/.prevent, .hentikan/.stop, .sekali/.once.',
+        });
       }
+      // Anything else (unrecognized dot-suffix) is silently ignored here,
+      // unchanged from prior behavior — the lexer already committed the
+      // entire "on_x.suffix" string as a single ON_EVENT token value by this
+      // point, so there is no token-level backtrack available in this path
+      // (unlike the block `Ketika` form). A completely unknown suffix most
+      // likely indicates a typo in a modifier name; W2005 only fires for
+      // names that match a KNOWN (but unimplemented) modifier vocabulary to
+      // avoid false positives on unrelated dotted identifiers.
     }
   }
 
@@ -2126,9 +2176,10 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
 
   // LIM-1 FIX: Optional props in parentheses — "Gunakan Nama(prop: val, prop2: val2)"
   // Mirrors the Buat Nama(prop: val) syntax already supported in _parseBuatStatement.
+  let props = null;
   if (this._peek().type === TT.TK_LPAREN) {
     this._advance(); // consume (
-    const props = [];
+    props = [];
     while (this._peek().type !== TT.TK_RPAREN && !this._atEnd()) {
       const keyTok = this._expect(TT.TK_IDENT, 'Expected property name in component props');
       this._expect(TT.TK_COLON, 'Expected ":" after property name');
@@ -2137,11 +2188,46 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
       if (!this._match(TT.TK_COMMA)) break;
     }
     this._expect(TT.TK_RPAREN, 'Expected ")" to close component props');
-    return AST.buatGunakanStatement(componentName, loc, null, props, null);
   }
 
-  // The simple form: `gunakan NamaKomponen` (no props)
-  return AST.buatGunakanStatement(componentName, loc, null);
+  // v132 stabilization (P0.7): `Gunakan NamaKomponen(...):` followed by an
+  // indented child block used to be silently accepted here — this function
+  // returned immediately without ever looking at the trailing `:`/INDENT,
+  // so the child block was left in the token stream and parsed by the
+  // ENCLOSING block as ordinary SIBLING statements, positioned next to (not
+  // inside) the component instance, with no error or warning at all. Since
+  // slots/transclusion (#82) are NOT implemented, a child block here can
+  // never actually be rendered as part of the component — surface E2030
+  // instead of silently miscompiling. The colon and its block ARE consumed
+  // (so parsing can continue cleanly), but the block's statements are
+  // deliberately discarded (not attached to the returned GunakanStatement
+  // and not left for the enclosing block to pick up as siblings) so nothing
+  // is silently rendered in the wrong place.
+  if (this._peek().type === TT.TK_COLON) {
+    const colonTok = this._peek();
+    const savedPos = this.pos;
+    this._advance(); // consume the colon
+    if (this._peek().type === TT.TK_INDENT) {
+      this._parseBlock(); // consume + discard the child block's tokens
+      this.errors.push({
+        code: 'E2030',
+        severity: 'error',
+        message: `"Gunakan ${componentName}(...):" dengan blok anak (child block) belum didukung — slot/transklusi belum diimplementasikan (backlog #82).`,
+        line: colonTok.line,
+        column: colonTok.col,
+        suggestion:
+          'Slot/transklusi belum didukung (backlog #82). Gunakan "Gunakan NamaKomponen(...)" tanpa blok anak, atau pindahkan konten ke dalam definisi komponen.',
+      });
+    } else {
+      // A trailing colon with NO indented block (e.g. "Gunakan Nama(...):"
+      // on its own with nothing indented under it) is harmless — same as
+      // today, restore position so the colon is simply not consumed as
+      // part of this statement (matches prior behavior for this sub-case).
+      this.pos = savedPos;
+    }
+  }
+
+  return AST.buatGunakanStatement(componentName, loc, null, props, null);
 };
 
 /**
@@ -2159,25 +2245,44 @@ PromptJSParser.prototype._parseKetikaStatement = function () {
 
   // BUG-09 FIX: Parse event modifiers (.cegah, .hentikan, .sekali, etc.)
   // "Ketika diklik .cegah:" → event="diklik", modifiers=["cegah"]
+  //
+  // v132 stabilization (P0.1): the original backtrack below referenced
+  // `this._pos` (undefined field — the real position counter is `this.pos`),
+  // so it was always a no-op; a DOT consumed while probing an invalid
+  // modifier was never actually put back. This accidentally still worked for
+  // the common case (a bare-identifier target immediately after the DOT),
+  // but the DOT itself was silently dropped from the token stream — fixed to
+  // use the correct field name so the backtrack genuinely restores position.
   const modifiers = [];
-  const VALID_MODIFIERS = {
-    cegah: true,
-    prevent: true,
-    sekali: true,
-    once: true,
-    hentikan: true,
-    stop: true,
-  };
   while (this._peek().type === TT.TK_DOT) {
+    const dotPos = this.pos; // position of THIS dot, restored on backtrack
     this._advance(); // consume DOT
     const modTok = this._peek();
-    if (modTok.type === TT.TK_IDENT && VALID_MODIFIERS[modTok.value.toLowerCase()]) {
+    const modName = modTok.type === TT.TK_IDENT ? modTok.value.toLowerCase() : null;
+    if (modName && VALID_EVENT_MODIFIERS[modName]) {
       this._advance(); // consume modifier name
-      modifiers.push(modTok.value.toLowerCase());
+      modifiers.push(modName);
+    } else if (modName && KNOWN_UNSUPPORTED_MODIFIERS[modName]) {
+      // v132 stabilization (P0.1): a recognizable-but-unimplemented
+      // modifier name (e.g. .capture/.passive) must NOT be silently
+      // swallowed as if it were a target expression — surface W2005 so
+      // the developer knows it has NO effect, instead of guessing.
+      this._advance(); // consume the modifier-looking identifier
+      this.warnings.push({
+        code: 'W2005',
+        severity: 'warning',
+        message: `Event modifier ".${modName}" dikenal tapi belum diimplementasikan — tidak berpengaruh pada compile ini.`,
+        line: modTok.line,
+        column: modTok.col,
+        suggestion:
+          'Modifier yang didukung saat ini: .cegah/.prevent, .hentikan/.stop, .sekali/.once.',
+      });
     } else {
-      // Not a valid modifier — this DOT might be part of a target expression
-      // Backtrack: put the DOT back by decrementing pos
-      this._pos--;
+      // Not a modifier at all — this DOT is part of a target expression.
+      // Backtrack to just before THIS dot (modifiers already consumed in
+      // earlier loop iterations, if any, remain consumed) so target parsing
+      // below sees the untouched `.member` token sequence.
+      this.pos = dotPos;
       break;
     }
   }
