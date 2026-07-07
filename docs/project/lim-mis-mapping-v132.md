@@ -1,0 +1,200 @@
+# LIM/MIS Numbering Mapping — v132 (resolves #78)
+
+> **Purpose.** Issue [#78](https://github.com/raarion/promptjs/issues/78) flagged
+> a release-note risk: a later `v132` commit (`21fe9e0`) used short labels
+> `LIM-1..4` / `MIS-1`, while the original stress-test tracker
+> ([#73](https://github.com/raarion/promptjs/issues/73)) uses `LIM-01..08` /
+> `MIS-01..08`. Without an explicit mapping it is easy to accidentally claim
+> "all LIM/MIS fixed" when only a differently-numbered subset was addressed.
+> This document is that mapping. It also folds in the additional
+> architecture-level issues opened during the `v132` audit (#77, #79–#82),
+> since those *are* the original LIM/MIS items in practice.
+
+**Branch:** `v132` · **Head at time of writing:** `5dec780` (built on `49664fc`)
+
+---
+
+## Original `LIM-01..08` (from the Notion Lite stress test, issue #73)
+
+| Original label | Description | Short/latest label | Related issue | Related commit/test | Status | Release-note wording |
+|---|---|---|---|---|---|---|
+| LIM-01 | No event delegation — every handler compiles to its own `addEventListener` | — (not renumbered) | — | `src/compiler/emitters/statements.js` (`visitKetikaStatement`) | **By design / Not applicable.** PromptJS intentionally compiles each `Ketika`/`on_*` to a direct `addEventListener` call — there is no virtual DOM or synthetic event system to delegate through. This is a valid, explicit architectural choice (simpler generated code, no delegation bugs), not an unfinished feature. | "PromptJS does not use event delegation by design; each handler is a direct `addEventListener` call." |
+| LIM-02 | `turunan` computed values not reactive in display | Overlaps with backlog [#80](https://github.com/raarion/promptjs/issues/80) | #80 | `docs/language/reactivity.md` (documented in `9415eb5`); `tests/v10-turunan-cycle-hoisting.test.js` (computed dependency mechanics) | **Partial — documented, not fully solved.** `turunan` recomputes correctly and works inside `Saat` (`Saat computed:` re-renders on every dependency change — verified). But a *direct* one-shot property assignment (`teks = <turunan>`, no `Saat`) is a snapshot, not a live binding — same caveat as plain `data`. Docs now say this explicitly; ergonomic direct-binding support remains backlog per #80. | "`turunan` is reactive when read inside `Saat` (or watched via `__watch`); direct property assignment without `Saat` is a one-time snapshot — this is documented, not silently broken." |
+| LIM-03 | No keyed list reconciliation (full re-render on change) | — (solved pre-`21fe9e0`) | closed via #47–#49 roadmap (K1a/K1b) | `tests/v7-keyed-list.test.js`, `tests/v7-list-integrity.test.js`, `docs/language/reactivity.md` §"Diff Berkunci" | **✅ Fixed.** `Ulangi untuk ... dari <reactive> dengan kunci <expr>:` performs real keyed diff reconciliation over actual DOM nodes (`Map<key, node>`, reused/reordered via `insertBefore`), landed in v1.3.1 well before this stress-test round. Confirmed present and tested on current `v132` HEAD. | "Keyed list reconciliation is implemented and tested (`dengan kunci`)." |
+| LIM-04 | No component lifecycle hooks (`onMount`, `onDestroy`) | — (solved pre-`21fe9e0`) | — | `docs/language/keywords.md` (`dipasang`/`dilepas`), `src/compiler/emitters/statements.js` (`visitLifecycleStatement`) | **✅ Fixed.** `dipasang`/`mounted` and `dilepas`/`unmounted` lifecycle hooks exist and compile to the SPA mount/unmount factory functions. Confirmed present on current `v132` HEAD. | "Lifecycle hooks (`dipasang`/`dilepas`) are implemented." |
+| LIM-05 | No CSS scoping — all styles global | [#79](https://github.com/raarion/promptjs/issues/79) | #79 | — (design not started) | **❌ Open — backlog, deferred.** Confirmed still a real architecture gap: `Gaya:` blocks emit global CSS with no automatic per-component scoping. See [Design Decision](#css-scoping-design-decision-79) below for the recommended direction and why it's deferred past `v132`. | "CSS is global by design in v132; automatic component-scoped styles are planned for a future release ([#79](https://github.com/raarion/promptjs/issues/79))." |
+| LIM-06 | No nested components | — (solved pre-`21fe9e0`) | — | `docs/language/components.md`, `tests/components.test.js`, `tests/v7-component-default-params.test.js` | **✅ Fixed.** Components can reference/instantiate other components (`Gunakan <Nama>(...)`) and nest arbitrarily. Confirmed present and tested. What remains open is *slots/transclusion* specifically (passing child content INTO a component) — tracked separately as [#82](https://github.com/raarion/promptjs/issues/82), not the same as "no nested components." | "Nested components work; passing arbitrary child content into a component (slots) is separate backlog ([#82](https://github.com/raarion/promptjs/issues/82))." |
+| LIM-07 | No form input two-way binding | — (solved pre-`21fe9e0`) | — | `docs/language/reactivity.md` §"Two-way Binding"; `tests/v7-two-way-binding.test.js` | **✅ Fixed.** `ikat`/`bind` inside a form element body wires `.value` both ways (`state -> input` and `input -> state`) with zero vanilla JS. Confirmed present, tested, and — as of `5dec780` — leak-free even when declared inside a re-rendering `Saat` block. | "Two-way binding (`ikat`) is implemented and tested." |
+| LIM-08 | No comment syntax that works everywhere | — (solved pre-`21fe9e0`) | #76 (BUG-04, closed) | `e24a30a`, `f46bb54`; `tests/v11-block-comments.test.js`, `tests/v13-comment-stripping-regression.test.js` | **✅ Fixed.** Block comments (`/* ... */`) now work inside `Gaya:` blocks and PromptJS code generally, including string-aware stripping so URLs/CSS `content` values aren't corrupted. | "Block comment support (`/* ... */`) works throughout PromptJS source, including inside `Gaya:` blocks." |
+
+---
+
+## Original `MIS-01..08` (missing features, from the same stress test)
+
+| Original label | Description | Short/latest label | Related issue | Related commit/test | Status | Release-note wording |
+|---|---|---|---|---|---|---|
+| MIS-01 | No array map/render (list transformation) | — (solved pre-`21fe9e0`) | — | `docs/language/expressions.md` (`pilih(arr, fn)` → `.map(fn)`); reactive `Ulangi untuk` | **✅ Fixed.** `pilih(arr, fn)` maps arrays; reactive lists (`Ulangi untuk ... dari <reactive>`) render array transformations directly. | "Array transformation (`pilih`) and reactive list rendering are implemented." |
+| MIS-02 | No async/await | — (not applicable — different mechanism) | — | `docs/language/keywords.md` (`ambil`/`fetch`); `docs/language/reactivity.md` §"Fetch Inline" | **By design / Not applicable.** PromptJS doesn't expose raw `async`/`await` syntax to the user; instead `ambil`/`fetch` (with `.memuat`/`.galat` auto-state) covers the async-HTTP use case declaratively, compiling to promise-based vanilla JS under the hood. This is an intentional DSL-level abstraction, not a missing primitive — no evidence of real apps needing raw `await` that `ambil` can't express. | "PromptJS expresses async HTTP via the declarative `ambil` (fetch) construct rather than exposing raw `async`/`await`." |
+| MIS-03 | No error boundaries | — (solved pre-`21fe9e0`) | — | `docs/language/reactivity.md` §Tree-Shaking table (`__pjs_handleError`); `src/compiler/emitters/statements.js` (catch block in `visitKetikaStatement`) | **✅ Fixed.** Every `Ketika`/event-handler body is wrapped in a try/catch that routes to `__pjs_handleError` (console.error + clears any error overlay), acting as a per-handler error boundary. | "Event handlers have built-in error-boundary behavior via `__pjs_handleError`." |
+| MIS-04 | No routing guards | [#81](https://github.com/raarion/promptjs/issues/81) | #81 | `docs/language/auth.md` (`butuhAuth`, page-level only) | **❌ Open — backlog, deferred.** Page-level `butuhAuth: benar` exists (redirects if unauthenticated) but there is no per-route conditional guard API (e.g. "redirect away from login if already authenticated", async guard checks). See [Design Decision](#routing-guards-design-decision-81) below. | "v132 has page-level auth guards (`butuhAuth`); flexible per-route guard flows are planned for a future release ([#81](https://github.com/raarion/promptjs/issues/81))." |
+| MIS-05 | No CSS variables support | — (solved — plain CSS passthrough) | — | `Gaya:` blocks emit literal CSS text | **✅ Fixed / Not actually missing.** `Gaya:` blocks pass property values through as literal CSS text, so standard CSS custom properties (`--my-color: red;` / `color: var(--my-color);`) already work — PromptJS doesn't need special syntax for a feature native CSS already provides. Verified: no special-casing in `src/engine/css.js` rejects or mangles `--*`/`var(...)` syntax. | "CSS custom properties (`--var`, `var(...)`) work as plain CSS inside `Gaya:` blocks — no special PromptJS syntax needed." |
+| MIS-06 | No conditional attributes | — (solved — plain expressions) | — | `src/compiler/emitters/statements.js` (`emitSafeAttribute` takes any lowered expression) | **✅ Fixed / Not actually missing.** Any attribute value accepts a full expression (ternary, boolean, etc.), e.g. `disabled=aktif ? "" : null`-style patterns lower like any other attribute value through `emitSafeAttribute`. There is no separate "conditional attribute" syntax needed — expressions already flow through. (Note: attributes are NOT currently auto-reactive without `Saat`/`on_*`, same caveat as LIM-02/#80.) | "Attribute values accept arbitrary expressions, including conditionals; automatic reactivity without `Saat` follows the same documented boundary as `turunan` display (#80)." |
+| MIS-07 | No dynamic tag names | — (real gap, not yet tracked pre-#78) | New: recommend folding into [#79](https://github.com/raarion/promptjs/issues/79) (CSS scoping issue already asks "how should scoping behave with dynamic tag names?") or filing as its own small backlog item | — | **❌ Open — confirmed gap.** There is no `Buat <expr>:` form where the tag name itself is a runtime variable (e.g. rendering `h1`/`h2`/`h3` based on a `nivel` variable) — tag names are parsed as static selector tokens. Real-world impact is narrow (heading-level components, generic wrapper components) so this is lower priority than #79/#81/#82. | "Dynamic tag names (`Buat <expr>:`) are not supported in v132; tag names must be static. Tracked as a small follow-up." |
+| MIS-08 | No slot/transclusion for components | [#82](https://github.com/raarion/promptjs/issues/82) | #82 | — (design not started) | **❌ Open — backlog, deferred.** Confirmed real gap: no syntax for passing child content into a component (card bodies, modal headers, layout wrappers). See [Design Decision](#slots-design-decision-82) below. | "Slots/transclusion for components are not yet supported in v132 ([#82](https://github.com/raarion/promptjs/issues/82))." |
+
+---
+
+## Summary table (for release notes)
+
+| Bucket | Count | Status |
+|---|---|---|
+| Original BUG (17 total) | 17/17 | ✅ All fixed/closed on `v132` (per #73 tracker sync) |
+| LIM-01..08 | 6 fixed/N-A, 1 partial (#80), 1 open (#79) | Mostly resolved; CSS scoping is the one real remaining architecture gap |
+| MIS-01..08 | 5 fixed/N-A, 3 open (#81, #82, dynamic tags) | Routing guards and slots are the two real remaining feature gaps; dynamic tag names is a smaller, newly-identified gap |
+
+**Recommended release-note wording (safe, per #78's acceptance criteria):**
+
+> v132 fixes 100% of the original BUG bucket (17/17) from the Notion Lite
+> stress test. Of the original LIM/MIS findings: event delegation, async/await,
+> CSS variables, and conditional attributes were re-evaluated and found to be
+> either working-as-designed or already solved by existing constructs — not
+> real gaps. Keyed lists, lifecycle hooks, nested components, two-way binding,
+> comment syntax, array mapping, and error boundaries are confirmed implemented
+> and tested. Three genuine architecture-level gaps remain, explicitly
+> deferred with tracked design issues: **CSS scoping** ([#79](https://github.com/raarion/promptjs/issues/79)),
+> **routing guards** ([#81](https://github.com/raarion/promptjs/issues/81)),
+> and **slots/transclusion** ([#82](https://github.com/raarion/promptjs/issues/82)).
+> Direct reactive display/property binding without `Saat` remains a documented,
+> honest limitation ([#80](https://github.com/raarion/promptjs/issues/80)),
+> and dynamic tag names are a newly-identified smaller gap. None of these are
+> silent — every one either works, is documented, or has a tracked issue.
+
+---
+
+## Design decisions for the three deferred architecture gaps
+
+These sections give each backlog issue (#79, #81, #82) the "minimal design
+final + issue jelas + keputusan v132 vs v1.3.3/v1.4.0" called for by the
+fast-track plan's LIM/MIS handling rule ("LIM/MIS besar yang krusial untuk
+full-stack frontend: minimal harus punya desain final, issue jelas, dan
+keputusan apakah masuk v132 malam ini atau masuk v1.3.3/v1.4.0").
+
+### CSS scoping design decision (#79)
+
+**Decision: Deferred to v1.3.3, NOT v132.**
+
+**Recommended model:** opt-in, compile-time-generated scope attribute —
+mirrors Vue's `data-v-xxxxxx` approach because it requires no runtime
+overhead (attribute matching only, no shadow DOM, no CSS-in-JS runtime) and
+composes cleanly with the existing zero-dependency-output philosophy.
+
+- **Opt-in via a per-page/per-component directive**, e.g. a front-matter flag
+  `gayaCakupan: benar` (scoped: true) or a `Gaya cakupan:` block variant —
+  default remains GLOBAL (today's behavior) so nothing breaks for existing
+  `.pjs` files.
+- **Mechanism:** compiler generates a short hash from the source file path
+  (e.g. `data-pjs-a1b2c3`), appends it as an attribute to every element
+  created within that file's `Buat` statements, and rewrites each selector
+  in the matching `Gaya:` block to include `[data-pjs-a1b2c3]`. Pure string
+  transform at compile time — no runtime cost, no new helper needed.
+- **Global styles** remain declared in a `Gaya:` block in a file that does
+  NOT opt into scoping (e.g. a shared `layout.pjs` or top-level page file),
+  or via an explicit `:global(...)` escape hatch inside a scoped block for
+  the rare case of intentionally leaking one selector.
+- **Build/prerender interaction:** none — the scope attribute is just
+  another static attribute on the element, already covered by the existing
+  `emitSafeAttribute`/CSS-inlining pipeline (BUG-11b, `10fac7b`).
+- **Dynamic tag names / nested components:** scoping attaches to the
+  compiled OUTPUT element regardless of tag, so it is compatible with any
+  future dynamic-tag-name support (MIS-07) without redesign.
+
+**Why v1.3.3, not v132:** this needs new compiler passes (selector rewriting,
+hash generation, directive parsing) plus a full test matrix (scoped vs
+global, opt-in directive parsing, build/prerender inlining with scope
+attributes, nested-component interaction) — realistically a half-day-plus of
+focused work, not a same-night fast-track addition. Shipping it rushed risks
+exactly the kind of "half-working feature" the fast-track plan explicitly
+forbids ("jangan merge fitur yang hanya setengah jalan").
+
+### Routing guards design decision (#81)
+
+**Decision: Deferred to v1.3.3, NOT v132.**
+
+**Recommended model:** declarative per-route guard directive, sync-first,
+async-capable, explicitly documented as UX-only (matching the existing
+`butuhAuth` honesty precedent in `docs/language/auth.md`).
+
+- **Syntax direction** (front-matter, page-level, extending the existing
+  `butuhAuth`/`redirect` directives already in `docs/language/directives.md`):
+
+  ```pjs
+  ---
+  router: benar
+  butuhAuth: benar          # existing: redirect if NOT authenticated
+  jikaAuth: "/dashboard"    # NEW: redirect AWAY if ALREADY authenticated
+                            #      (e.g. for a login/register page)
+  ---
+  ```
+
+- **Async guard support:** allow `butuhAuth` to optionally point at a
+  user-supplied verification hook (mirroring the existing
+  `window.__pjs_verifyPeran` pattern for role checks) — e.g.
+  `window.__pjs_verifyAuthAsync` returning a Promise<boolean>, checked
+  before the page factory runs. Sync remains the default/simple path.
+- **CSP-safety requirement (from the issue's own acceptance criteria):**
+  the guard must compile to plain `if`/`Promise.then` control flow — no
+  `eval`/`new Function`, consistent with the rest of the compiler output.
+- **Honest docs requirement:** every doc mentioning this feature must
+  repeat the existing `docs/language/auth.md` warning verbatim — these are
+  UX/routing conveniences, not a security boundary, exactly like the
+  current `butuhAuth`.
+
+**Why v1.3.3, not v132:** needs new directive parsing, resolver validation
+(e.g. reject `jikaAuth` without `router: benar`), analyzer support, compiler
+codegen for the async path, and a test suite covering allowed/blocked/
+redirect/async-failure per the issue's own acceptance criteria — a genuinely
+new feature surface, not a bugfix. Also lower urgency than CSS scoping since
+`butuhAuth` already covers the most common "protect this page" case today.
+
+### Slots design decision (#82)
+
+**Decision: Deferred to v1.3.3 or v1.4.0 (explicitly agreed by `raarion` in
+the issue itself: "Likely better for v1.3.3/v1.4.0 than a rushed v132
+release unless scope is kept very small").**
+
+**Recommended minimal model (default-slot only, no named slots initially):**
+
+- **Syntax direction:** a component body may contain a `Slot:` /
+  `transklusi:` placeholder; the CALLER's `Gunakan <Nama>(...)：` block body
+  (currently unused for non-prop content) supplies the children to render
+  there:
+
+  ```pjs
+  Komponen Kartu(judul):
+      Buat div.kartu:
+          Buat h3: judul
+          Slot:              # placeholder — replaced by caller's body
+
+  Gunakan Kartu(judul: "Halo"):
+      Buat p: "Konten body kartu di sini"   # becomes the Slot content
+  ```
+
+- **Reactive slot content:** since slot content is just AST from the
+  CALLER's scope spliced into the component's render body at compile time
+  (not a runtime portal), reactive state referenced in the slot content
+  continues to work exactly as if it were written inline — no new runtime
+  primitive needed.
+- **Named slots:** explicitly OUT of scope for the minimal version (matches
+  "keep scope very small"); revisit only if default-slot usage in dogfooded
+  apps proves insufficient.
+- **Compiles to:** pure vanilla JS append — the component factory function
+  accepts an extra `__slotFn` parameter (a closure emitted by the caller)
+  and calls it at the `Slot:` position instead of a hardcoded body — no
+  vDOM, no new helper class needed beyond what `visitKomponenDeclaration`
+  already does for props.
+
+**Why v1.3.3/v1.4.0, not v132:** this is new component-architecture surface
+area (parser grammar for `Slot:`, resolver scope-splicing semantics,
+compiler codegen for the extra closure parameter, full test matrix) that
+the issue's own author explicitly flagged as too large for a "rushed v132
+release." Agreeing with that assessment rather than second-guessing it.
