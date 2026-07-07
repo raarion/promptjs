@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * PromptJS v1.0.0 — PARSER (Tahap 2)
+ * PromptJS v1.0.0 â PARSER (Tahap 2)
  * ============================================================================
  *
  * Produces AST nodes compatible with PromptJS's ast-factory.js shapes.
@@ -11,7 +11,7 @@
  * membangun AST. Setiap error dilaporkan sebagai error node (bukan exception)
  * agar parsing bisa lanjut dan melaporkan multiple errors dalam satu pass.
  *
- * Event alias resolution (mis. `on_klik` → `click`) dilakukan di sini,
+ * Event alias resolution (mis. `on_klik` â `click`) dilakukan di sini,
  * bukan di lexer.
  */
 
@@ -20,7 +20,7 @@
 const AST = require('./ast-factory');
 const TT = require('../lexer/promptjs-lexer').TT;
 
-// Event alias: PromptJS on_x → PromptJS event name
+// Event alias: PromptJS on_x â PromptJS event name
 const EVENT_ALIASES = require('../lexer/promptjs-lexer').EVENT_ALIASES;
 
 // v132 stabilization: event modifiers that are parsed AND actually have a
@@ -39,7 +39,7 @@ const VALID_EVENT_MODIFIERS = {
 
 // v132 stabilization (P0.1): modifier NAMES that are recognizable (borrowed
 // from common web-framework vocabulary) but have NO implementation in the
-// compiler yet. These must not be silently dropped — silently accepting them
+// compiler yet. These must not be silently dropped â silently accepting them
 // as if they did something would be a repeat of the original `.sekali`/
 // `.once` no-op bug. Anything not in either list is treated as "this DOT is
 // probably part of a target expression, not a modifier" (unchanged prior
@@ -58,20 +58,20 @@ const KNOWN_UNSUPPORTED_MODIFIERS = {
  * @property {Object} ast - Root AST node (Program)
  * @property {Object[]} errors - Daftar error yang terjadi selama parsing
  * @property {Object[]} [warnings] - Daftar warning parser (mis. W2005 event
- *   modifier tidak dikenal/belum didukung) — v132 stabilization pass
+ *   modifier tidak dikenal/belum didukung) â v132 stabilization pass
  * @property {boolean} [hadFatalParseError] - True jika terjadi error token
  *   yang tidak dapat dipulihkan (E2020); dipakai engine untuk menekan cascade
  *   E3001 pada subtree yang rusak (DX-1 FIX)
  */
 
 /**
- * Constructor PromptJSParser — recursive-descent parser untuk PromptJS.
+ * Constructor PromptJSParser â recursive-descent parser untuk PromptJS.
  *
  * State parser:
- * - `tokens` — token stream dari lexer
- * - `pos` — posisi current token (index ke `tokens`)
- * - `errors` — daftar error yang terkumpul
- * - `componentNames` — Set nama komponen yang telah dideklarasikan (untuk validasi `Gunakan`)
+ * - `tokens` â token stream dari lexer
+ * - `pos` â posisi current token (index ke `tokens`)
+ * - `errors` â daftar error yang terkumpul
+ * - `componentNames` â Set nama komponen yang telah dideklarasikan (untuk validasi `Gunakan`)
  *
  * @constructor
  * @this {PromptJSParser}
@@ -293,7 +293,7 @@ PromptJSParser.prototype._parseStatement = function () {
       return this._parseTextNode();
     case TT.TK_ON_EVENT:
       return this._parseOnEventStatement();
-    // ─── Wave G: Action statement dispatch ────────────────────────────
+    // âââ Wave G: Action statement dispatch ââââââââââââââââââââââââââââ
     case TT.TK_BERHENTI:
       return this._parseSimpleStatement('BerhentiStatement');
     case TT.TK_SELAMA:
@@ -343,13 +343,13 @@ PromptJSParser.prototype._parseStatement = function () {
 
 // --- Buat Statement ---
 /**
- * Parse `Buat`/`Create` statement — pembuatan elemen DOM atau instansiasi komponen.
+ * Parse `Buat`/`Create` statement â pembuatan elemen DOM atau instansiasi komponen.
  *
  * Bentuk yang didukung:
- * - `Buat tag.class#id:` — elemen dengan selector
- * - `Buat h1: "text"` — elemen dengan inline text
- * - `Buat NamaKomponen(prop: val)` — instansiasi komponen (jika nama ada di `componentNames`)
- * - `Buat tag: -> aksi` — elemen dengan aksi tunggal
+ * - `Buat tag.class#id:` â elemen dengan selector
+ * - `Buat h1: "text"` â elemen dengan inline text
+ * - `Buat NamaKomponen(prop: val)` â instansiasi komponen (jika nama ada di `componentNames`)
+ * - `Buat tag: -> aksi` â elemen dengan aksi tunggal
  *
  * Setelah header, parse body block (INDENT ... DEDENT) jika ada.
  *
@@ -361,7 +361,7 @@ PromptJSParser.prototype._parseBuatStatement = function () {
   // Parse selector: tag[.class]*[#id]
   const selector = this._parseSelector();
 
-  // Component invocation: "Buat Kartu(judul: "Hai", isi: ...)" — named args, no block.
+  // Component invocation: "Buat Kartu(judul: "Hai", isi: ...)" â named args, no block.
   if (this._peek().type === TT.TK_LPAREN) {
     this._advance(); // consume (
     const props = [];
@@ -388,13 +388,13 @@ PromptJSParser.prototype._parseBuatStatement = function () {
   let inlineChildren = null;
 
   if (this._peek().type !== TT.TK_INDENT && this._peek().type !== TT.TK_DEDENT && !this._atEnd()) {
-    // Inline content — parse as expression and create a TextNode or property
+    // Inline content â parse as expression and create a TextNode or property
     const inlineExpr = this._parseExpression();
 
     if (inlineExpr) {
       // Wrap inline expression in a TextNode-like body
       if (inlineExpr.type === 'Literal' && typeof inlineExpr.value === 'string') {
-        // String literal → TextNode
+        // String literal â TextNode
         const textNode = {
           type: 'TextNode',
           loc: inlineExpr.loc || loc,
@@ -402,7 +402,7 @@ PromptJSParser.prototype._parseBuatStatement = function () {
         };
         inlineChildren = [textNode];
       } else {
-        // Expression → set as 'teks' property (compatible with PromptJS's BuatStatement.properties.teks)
+        // Expression â set as 'teks' property (compatible with PromptJS's BuatStatement.properties.teks)
         properties = { teks: inlineExpr };
       }
     }
@@ -484,13 +484,13 @@ PromptJSParser.prototype._parseSelector = function () {
             // Quoted string literal: [href="https://example.com"]
             valNode = AST.buatLiteral(String(a.value.__raw), 'string', null);
           } else {
-            // Unquoted identifier: [href=url] → variable reference
+            // Unquoted identifier: [href=url] â variable reference
             const raw = a.value.__raw;
             // Only treat as identifier if it's a valid JS identifier pattern
             if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(raw)) {
               valNode = AST.buatIdentifier(raw, null);
             } else {
-              // Complex expression like a URL path — treat as string literal
+              // Complex expression like a URL path â treat as string literal
               valNode = AST.buatLiteral(String(raw), 'string', null);
             }
           }
@@ -510,7 +510,7 @@ PromptJSParser.prototype._parseSelector = function () {
     tag = this._advance().value;
 
     // Collect class tokens (DOT) and id token (HASH)
-    // But stop if we hit COLON — we don't consume it here
+    // But stop if we hit COLON â we don't consume it here
     while (this._peek().type === TT.TK_DOT) {
       this._advance(); // consume DOT token itself
       // The DOT token's value IS the class name (from lexer)
@@ -528,11 +528,11 @@ PromptJSParser.prototype._parseSelector = function () {
 
 // --- Block parsing ---
 /**
- * Parse body block — urutan statement di antara TK_INDENT dan TK_DEDENT.
+ * Parse body block â urutan statement di antara TK_INDENT dan TK_DEDENT.
  *
  * Setelah TK_INDENT, parse statement beruntun via `_parseStatement` hingga
  * TK_DEDENT (atau TK_EOF). Jika tidak ada TK_INDENT, kembalikan null
- * (body kosong — mis. `Buat h1: "text"` tanpa child block).
+ * (body kosong â mis. `Buat h1: "text"` tanpa child block).
  *
  * @returns {Object | null} AST node BlockStatement, atau `null` jika tidak ada block
  */
@@ -582,7 +582,7 @@ PromptJSParser.prototype._parseBlock = function () {
     } else if (nonEventStmts.length === 1) {
       result.push(nonEventStmts[0]);
     }
-    // Event handlers are left as siblings — resolver will emit E3005 if
+    // Event handlers are left as siblings â resolver will emit E3005 if
     // they lack an explicit target and have no Buat parent.
     for (let _i = 0; _i < eventStmts.length; _i++) {
       result.push(eventStmts[_i]);
@@ -598,7 +598,7 @@ PromptJSParser.prototype._parseBlock = function () {
 
 // --- Jika Statement ---
 /**
- * Parse `Jika`/`If` statement — kondisional dengan opsional cabang `Lainnya`/`Else`.
+ * Parse `Jika`/`If` statement â kondisional dengan opsional cabang `Lainnya`/`Else`.
  *
  * Sintaks: `Jika <kondisi>: <body>` (opsional `Lainnya: <body>`).
  *
@@ -625,13 +625,13 @@ PromptJSParser.prototype._parseJikaStatement = function () {
     if (this._peek().type === TT.TK_COLON) this._advance(); // optional colon
     alternate = this._parseBlock();
   } else if (this._isMultiWordElse()) {
-    // "selain itu" → plain else (no condition)
+    // "selain itu" â plain else (no condition)
     this._advance(); // consume "selain"
     this._advance(); // consume "itu"
     if (this._peek().type === TT.TK_COLON) this._advance(); // optional colon
     alternate = this._parseBlock();
   } else if (this._isMultiWordElseIf()) {
-    // "namun jika" / "tapi kalau" → else-if (with new condition)
+    // "namun jika" / "tapi kalau" â else-if (with new condition)
     this._advance(); // consume "namun"/"tapi"
     this._advance(); // consume "jika"/"kalau"
     const elifCond = this._parseExpression();
@@ -709,7 +709,7 @@ PromptJSParser.prototype._parseElseChain = function () {
 
 // --- Selama Statement ---
 /**
- * Parse `Selama`/`while` statement — while loop.
+ * Parse `Selama`/`while` statement â while loop.
  *
  * Sintaks: `Selama <kondisi>: <body>`
  *         `while <condition>: <body>`
@@ -735,7 +735,7 @@ PromptJSParser.prototype._parseSelamaStatement = function () {
 
 // --- Setelah Statement ---
 /**
- * Parse `Setelah`/`after` statement — post-completion hook.
+ * Parse `Setelah`/`after` statement â post-completion hook.
  *
  * Sintaks: `Setelah <target> selesai: <body>`
  *          `Setelah <target>: -> <aksi>`
@@ -774,12 +774,12 @@ PromptJSParser.prototype._parseSetelahStatement = function () {
 
 // --- Ulangi Statement ---
 /**
- * Parse `Ulangi`/`Loop` statement — tiga varian loop.
+ * Parse `Ulangi`/`Loop` statement â tiga varian loop.
  *
  * Varian yang didukung (deteksi dari token setelah `Ulangi`):
- * - Counted: `Ulangi <N> kali:` — `kind: 'kali'`
- * - Iterasi: `Ulangi untuk <x> <sep> <source>:` — `kind: 'dari'`/`'in'` (sep = `dari`/`in`/`from`)
- * - Range: `Ulangi <x> dari <A> sampai <B>:` — `kind: 'rentang'`
+ * - Counted: `Ulangi <N> kali:` â `kind: 'kali'`
+ * - Iterasi: `Ulangi untuk <x> <sep> <source>:` â `kind: 'dari'`/`'in'` (sep = `dari`/`in`/`from`)
+ * - Range: `Ulangi <x> dari <A> sampai <B>:` â `kind: 'rentang'`
  *
  * @returns {Object} AST node UlangiStatement
  */
@@ -787,7 +787,7 @@ PromptJSParser.prototype._parseSetelahStatement = function () {
  * K1b keyed diff: optionally parse a `dengan kunci <expr>` suffix on an
  * iteration loop, right before the trailing `:`.
  *
- * `dengan` / `kunci` are not reserved keywords — they lex as plain IDENT — so
+ * `dengan` / `kunci` are not reserved keywords â they lex as plain IDENT â so
  * we peek for the exact two-identifier sequence and only then consume + parse
  * the key expression. Anything else is left untouched (no false positives).
  * This is the "honest keyword": its presence genuinely switches the emitter to
@@ -815,15 +815,15 @@ PromptJSParser.prototype._tryParseDenganKunci = function () {
  * K2a list transitions: optionally parse a `dengan transisi <name>` suffix on a
  * keyed iteration loop, right before the trailing `:`.
  *
- * Like `dengan kunci`, the words `dengan` / `transisi` are NOT reserved — they
- * lex as plain IDENT — so we peek for the exact two-identifier sequence and only
+ * Like `dengan kunci`, the words `dengan` / `transisi` are NOT reserved â they
+ * lex as plain IDENT â so we peek for the exact two-identifier sequence and only
  * then consume + read the transition name. Anything else is left untouched (no
  * false positives). This is another "honest keyword": its presence genuinely
  * switches the emitter to FLIP-wrapped reconciliation; its absence keeps the
  * K1b keyed behavior byte-for-byte.
  *
  * The `<name>` is a simple identifier or string literal (a CSS class prefix),
- * NOT a full expression — transition names are static styling hooks, so keeping
+ * NOT a full expression â transition names are static styling hooks, so keeping
  * them literal avoids ambiguity and keeps the emit CSP-safe (no dynamic eval).
  *
  * @returns {string | null} the transition name, or null if absent
@@ -844,7 +844,7 @@ PromptJSParser.prototype._tryParseDenganTransisi = function () {
       this._advance();
       return String(nameTok.value);
     }
-    // `dengan transisi` with no readable name → default hook name.
+    // `dengan transisi` with no readable name â default hook name.
     return 'pjs';
   }
   return null;
@@ -893,7 +893,7 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
       }
 
       // Regular iteration: "Ulangi i in items:" (optional `dengan kunci <expr>`
-      // then optional `dengan transisi <name>` — transitions require a key).
+      // then optional `dengan transisi <name>` â transitions require a key).
       const iterKeyExpr = this._tryParseDenganKunci();
       const iterTransition = this._tryParseDenganTransisi();
       this._expect(TT.TK_COLON, 'Expected ":" after loop source');
@@ -980,7 +980,7 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
   }
 
   // Optional keyed diff suffix: "... dengan kunci <expr>:" (K1b), then optional
-  // transition suffix "... dengan transisi <name>:" (K2a — requires a key).
+  // transition suffix "... dengan transisi <name>:" (K2a â requires a key).
   const keyExpr = this._tryParseDenganKunci();
   const transitionName = this._tryParseDenganTransisi();
 
@@ -1007,7 +1007,7 @@ PromptJSParser.prototype._parseUlangiStatement = function () {
 
 // --- Pass Statement ---
 /**
- * Parse `lewati`/`pass` statement — empty body / skip.
+ * Parse `lewati`/`pass` statement â empty body / skip.
  *
  * @returns {Object} AST node LewatiStatement
  */
@@ -1016,15 +1016,15 @@ PromptJSParser.prototype._parsePassStatement = function () {
   return AST.buatLewatiStatement(this._makeLoc(tok));
 };
 
-// --- Text Node (NEW — string literal as child) ---
+// --- Text Node (NEW â string literal as child) ---
 /**
- * Parse text node — baris string literal sebagai child element.
+ * Parse text node â baris string literal sebagai child element.
  *
  * @returns {Object} AST node TextNode
  */
 PromptJSParser.prototype._parseTextNode = function () {
   const tok = this._advance(); // consume STRING
-  // TextNode is a special node type — we create it as a PropertyNode with key 'teks'
+  // TextNode is a special node type â we create it as a PropertyNode with key 'teks'
   // This is compatible with PromptJS's BuatStatement.properties.teks handling
   return {
     type: 'TextNode',
@@ -1037,7 +1037,7 @@ PromptJSParser.prototype._parseTextNode = function () {
 /**
  * Parse `on_event = expr` line sebagai KetikaStatement.
  *
- * Resolusi alias event (`on_klik` → `click`) dilakukan di sini via `EVENT_ALIASES`.
+ * Resolusi alias event (`on_klik` â `click`) dilakukan di sini via `EVENT_ALIASES`.
  *
  * @returns {Object} AST node KetikaStatement
  */
@@ -1051,7 +1051,7 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
   // v132 stabilization (P0.1): this loop previously silently DROPPED any
   // dot-suffix that wasn't in the valid-modifier list (including
   // recognizable-but-unimplemented names like `.capture`/`.passive`) with no
-  // diagnostic at all — reuses the SAME two module-level modifier tables as
+  // diagnostic at all â reuses the SAME two module-level modifier tables as
   // `_parseKetikaStatement` so the inline (`on_x.mod = ...`) and block
   // (`Ketika x.mod:`) forms can never drift out of sync on which modifiers
   // are recognized/supported again.
@@ -1067,7 +1067,7 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
         this.warnings.push({
           code: 'W2005',
           severity: 'warning',
-          message: `Event modifier ".${mod}" dikenal tapi belum diimplementasikan — tidak berpengaruh pada compile ini.`,
+          message: `Event modifier ".${mod}" dikenal tapi belum diimplementasikan â tidak berpengaruh pada compile ini.`,
           line: startTok.line,
           column: startTok.col,
           suggestion:
@@ -1075,7 +1075,7 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
         });
       }
       // Anything else (unrecognized dot-suffix) is silently ignored here,
-      // unchanged from prior behavior — the lexer already committed the
+      // unchanged from prior behavior â the lexer already committed the
       // entire "on_x.suffix" string as a single ON_EVENT token value by this
       // point, so there is no token-level backtrack available in this path
       // (unlike the block `Ketika` form). A completely unknown suffix most
@@ -1092,21 +1092,21 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
   this._expect(TT.TK_ASSIGN, 'Expected "=" after event name');
 
   // v1.1: Inline fetch as event action.
-  // `on_klik = ambil dari "url"` (± `: <branches>`) parses the RHS as a full
+  // `on_klik = ambil dari "url"` (Â± `: <branches>`) parses the RHS as a full
   // AmbilLuarStatement (external fetch), NOT an expression. The block-form
-  // (`Ketika diklik:` newline `Ambil dari …:`) already worked; this closes the
+  // (`Ketika diklik:` newline `Ambil dari â¦:`) already worked; this closes the
   // inline-form gap so a developer can wire a fetch straight onto an event
   // without dropping to a nested block or vanilla JS.
   //
   // We detect `ambil`/`fetch` followed by `dari`/`from`/`in` (TK_IN). The
   // legacy DOM form (`ambil nilai dari elemen`) is intentionally NOT accepted
-  // here — as an event action it is meaningless, so it falls through to the
+  // here â as an event action it is meaningless, so it falls through to the
   // expression path and errors as before (no silent behaviour change).
   let action;
   if (this._peek().type === TT.TK_AMBIL && this._peekAt(1).type === TT.TK_IN) {
     action = this._parseAmbilStatement();
   } else {
-    // Parse action expression (default path — unchanged).
+    // Parse action expression (default path â unchanged).
     action = this._parseExpression();
   }
 
@@ -1144,7 +1144,7 @@ PromptJSParser.prototype._parsePropertyOrExpr = function () {
 
 // --- Data declarations ---
 /**
- * Parse deklarasi variabel — `Data`/`State`, `Tetap`/`Const`, `Ubah`/`Let`, `Turunan`/`Derived`.
+ * Parse deklarasi variabel â `Data`/`State`, `Tetap`/`Const`, `Ubah`/`Let`, `Turunan`/`Derived`.
  *
  * Sintaks: `<keyword> <nama> [: <typeHint>] [= <init>]`.
  *
@@ -1242,7 +1242,7 @@ PromptJSParser.prototype._parseDataDeclaration = function () {
         this._advance(); // consume =
         init = this._parseExpression();
       } else {
-        // No type hint — the entire expression after : is the init value
+        // No type hint â the entire expression after : is the init value
         init = this._parseExpression();
       }
     } // end of BUG-14 else block
@@ -1353,7 +1353,7 @@ PromptJSParser.prototype._parseDefineComponent = function () {
 
 // --- Saat Statement ---
 /**
- * Parse `Saat`/`When` statement — reactive watcher terhadap data reaktif.
+ * Parse `Saat`/`When` statement â reactive watcher terhadap data reaktif.
  *
  * Sintaks: `Saat <target>: <body>`.
  *
@@ -1389,7 +1389,7 @@ PromptJSParser.prototype._parseSaatStatement = function () {
 
 // --- Return Statement ---
 /**
- * Parse `Kembalikan`/`Return` statement — return dengan opsional ekspresi nilai.
+ * Parse `Kembalikan`/`Return` statement â return dengan opsional ekspresi nilai.
  *
  * @returns {Object} AST node KembalikanStatement
  */
@@ -1408,13 +1408,13 @@ PromptJSParser.prototype._parseReturnStatement = function () {
 
 // --- Expression parsing (Pratt-style, simplified) ---
 /**
- * Entry point parsing ekspresi — delegate ke `_parseBinaryExpression(0)`.
+ * Entry point parsing ekspresi â delegate ke `_parseBinaryExpression(0)`.
  *
  * @returns {Object} AST node expression
  */
 PromptJSParser.prototype._parseExpression = function () {
   // LOW-4: lindungi dari rekursi ekspresi yang terlalu dalam (stack overflow).
-  // Entry terluar (depth 0 → 1) menangkap sentinel agar parser memancarkan
+  // Entry terluar (depth 0 â 1) menangkap sentinel agar parser memancarkan
   // E2029 dan tetap mengembalikan node, bukan melempar RangeError mentah.
   const isOutermost = this._exprDepth === 0;
   this._exprDepth++;
@@ -1482,7 +1482,7 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
     [TT.TK_GTE]: 4,
     [TT.TK_LT]: 4,
     [TT.TK_LTE]: 4,
-    // String/collection membership operators — comparison precedence
+    // String/collection membership operators â comparison precedence
     [TT.TK_BERISI]: 4,
     [TT.TK_DIAWALI]: 4,
     [TT.TK_DIAKHIRI]: 4,
@@ -1520,7 +1520,7 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
       [TT.TK_NEQ]: '!==',
       [TT.TK_AND]: '&&',
       [TT.TK_OR]: '||',
-      // String/collection membership — kept as named operators; lowered to
+      // String/collection membership â kept as named operators; lowered to
       // method calls (.includes/.startsWith/.endsWith) in expression lowering.
       [TT.TK_BERISI]: 'berisi',
       [TT.TK_DIAWALI]: 'diawali',
@@ -1535,7 +1535,7 @@ PromptJSParser.prototype._parseBinaryExpression = function (minPrec) {
 };
 
 /**
- * Parse ekspresi uner — operator prefix (`-`, `!`, `tidak`/`not`) diikuti operan.
+ * Parse ekspresi uner â operator prefix (`-`, `!`, `tidak`/`not`) diikuti operan.
  *
  * @returns {Object} AST node UnaryExpression atau expression dari `_parsePostfixExpression`
  */
@@ -1554,7 +1554,7 @@ PromptJSParser.prototype._parseUnaryExpression = function () {
 };
 
 /**
- * Parse ekspresi postfix — operan diikuti optional `.prop`, `[index]`, atau `(args)`.
+ * Parse ekspresi postfix â operan diikuti optional `.prop`, `[index]`, atau `(args)`.
  *
  * Bangun MemberExpression / CallExpression berantai (mis. `a.b.c[0](x, y)`).
  *
@@ -1589,7 +1589,7 @@ PromptJSParser.prototype._parsePostfixExpression = function () {
 };
 
 /**
- * Parse primary expression — atom ekspresi (literal, identifier, grup, object/array literal).
+ * Parse primary expression â atom ekspresi (literal, identifier, grup, object/array literal).
  *
  * Mendukung:
  * - Literal: TK_NUMBER, TK_STRING, TK_TRUE, TK_FALSE, TK_NULL
@@ -1618,7 +1618,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return AST.buatLiteral(tok.value, 'number', this._makeLoc(tok));
   }
 
-  // Boolean literals: benar/true → true, salah/false → false
+  // Boolean literals: benar/true â true, salah/false â false
   if (tok.type === TT.TK_BENAR) {
     this._advance();
     return AST.buatLiteral(true, 'boolean', this._makeLoc(tok));
@@ -1628,7 +1628,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return AST.buatLiteral(false, 'boolean', this._makeLoc(tok));
   }
 
-  // Null literal: kosong/null → null
+  // Null literal: kosong/null â null
   if (tok.type === TT.TK_KOSONG) {
     this._advance();
     return AST.buatLiteral(null, 'null', this._makeLoc(tok));
@@ -1660,7 +1660,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     return AST.buatIdentifier(tok.value, this._makeLoc(tok));
   }
 
-  // ─── Wave G: action keywords as expression values ─────────────────
+  // âââ Wave G: action keywords as expression values âââââââââââââââââ
   // These keywords can appear after `on_klik = <keyword>` and need to
   // be lowered to JS by the expression lowerer.
   if (tok.type === TT.TK_MUAT_ULANG) {
@@ -1684,13 +1684,13 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     tok.type === TT.TK_ARAHKAN
   ) {
     const kwTok = this._advance();
-    // LIM-2 FIX: "arahkan ke <url>" — optional "ke" after arahkan (inline expression path)
+    // LIM-2 FIX: "arahkan ke <url>" â optional "ke" after arahkan (inline expression path)
     if (kwTok.type === TT.TK_ARAHKAN && this._peek().type === TT.TK_KE) {
       this._advance(); // consume optional "ke"
     }
     const target = this._parseExpression();
     const loc = this._makeLoc(kwTok);
-    // v1.0: "hapus <item> dari <array>" → HapusDariStatement (inline expression path)
+    // v1.0: "hapus <item> dari <array>" â HapusDariStatement (inline expression path)
     if (kwTok.type === TT.TK_HAPUS && this._peek() && this._peek().type === TT.TK_IN) {
       this._advance(); // consume dari/from
       const fromArray = this._parseExpression();
@@ -1717,13 +1717,13 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     if (kind === 'kurangi' || kind === 'remove') {
       // Two forms: "kurangi target" (decrement by 1) or "kurangi value dari target" (subtract value)
       const firstArg = this._parseExpression();
-      // Check if "dari/from/in" follows → "kurangi <value> dari <target>"
+      // Check if "dari/from/in" follows â "kurangi <value> dari <target>"
       if (this._peek() && this._peek().type === TT.TK_IN) {
         this._advance(); // consume dari/from/in
         const target = this._parseExpression();
         return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target, value: firstArg };
       }
-      // LIM-4 FIX: detect "kurangi <literal> ke <target>" — invalid form (inline path)
+      // LIM-4 FIX: detect "kurangi <literal> ke <target>" â invalid form (inline path)
       if (this._peek() && this._peek().type === TT.TK_KE && firstArg.type === 'Literal') {
         this._advance(); // consume ke
         this._parseExpression(); // consume the mistaken target
@@ -1742,7 +1742,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
         });
         return { type: 'ErrorNode', loc: errorLoc };
       }
-      // "kurangi target" → decrement by 1
+      // "kurangi target" â decrement by 1
       return { type: 'KurangiStatement', loc: this._makeLoc(kwTok), target: firstArg };
     }
     let value = this._parseExpression();
@@ -1818,8 +1818,7 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
     this._advance();
     // BUG-05 FIX: Check if this is an arrow function by looking for pattern: (id, id, ...) =>
     // Save position for backtracking
-    const savedPos = this._pos;
-    const savedTokens = this.tokens.slice();
+    const savedPos = this.pos;
     const possibleParams = [];
     let isArrow = false;
     try {
@@ -1858,9 +1857,8 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
       const body = this._parseExpression();
       return AST.buatArrowFunctionExpression(possibleParams, body, this._makeLoc(tok), true);
     }
-    // Not an arrow function — backtrack and parse as parenthesized expression
-    this._pos = savedPos;
-    this.tokens = savedTokens;
+    // Not an arrow function â backtrack and parse as parenthesized expression
+    this.pos = savedPos;
     const expr = this._parseExpression();
     this._expect(TT.TK_RPAREN, 'Expected ")"');
     return expr;
@@ -1935,11 +1933,11 @@ PromptJSParser.prototype._parsePrimaryExpression = function () {
   return AST.buatLiteral(null, 'null', null);
 };
 
-// ─── Wave G: Action statement parsers ───────────────────────────────────
+// âââ Wave G: Action statement parsers âââââââââââââââââââââââââââââââââââ
 
 /**
  * Parse standalone keyword statement (berhenti, muat ulang, kembali).
- * No arguments — just consume the keyword and return the AST node.
+ * No arguments â just consume the keyword and return the AST node.
  */
 PromptJSParser.prototype._parseSimpleStatement = function (nodeType) {
   const tok = this._advance();
@@ -1958,7 +1956,7 @@ PromptJSParser.prototype._parseSimpleStatement = function (nodeType) {
 
 /**
  * Parse lifecycle hook (dipasang:, dilepas:).
- * `dipasang:` / `dilepas:` → block body.
+ * `dipasang:` / `dilepas:` â block body.
  */
 PromptJSParser.prototype._parseLifecycleStatement = function (kind) {
   const tok = this._advance();
@@ -1970,8 +1968,8 @@ PromptJSParser.prototype._parseLifecycleStatement = function (kind) {
 
 /**
  * Parse `hapus` statement with two forms:
- * 1. `hapus <storage>.<key>` → HapusStatement (localStorage/sessionStorage removal)
- * 2. `hapus <item> dari <array>` → HapusDariStatement (array item removal)
+ * 1. `hapus <storage>.<key>` â HapusStatement (localStorage/sessionStorage removal)
+ * 2. `hapus <item> dari <array>` â HapusDariStatement (array item removal)
  */
 PromptJSParser.prototype._parseHapusStatement = function () {
   const tok = this._advance();
@@ -1979,14 +1977,14 @@ PromptJSParser.prototype._parseHapusStatement = function () {
   const loc = this._makeLoc(tok);
 
   // Check if next token is `dari` / `from` (TK_IN)
-  // "hapus item dari daftar" → HapusDariStatement
+  // "hapus item dari daftar" â HapusDariStatement
   if (this._peek() && this._peek().type === TT.TK_IN) {
     this._advance(); // consume dari/from
     const fromArray = this._parseExpression();
     return AST.buatHapusDariStatement(item, fromArray, loc, null);
   }
 
-  // Otherwise: "hapus localStorage.token" → HapusStatement
+  // Otherwise: "hapus localStorage.token" â HapusStatement
   return AST.buatHapusStatement(item, loc, null);
 };
 
@@ -1996,7 +1994,7 @@ PromptJSParser.prototype._parseHapusStatement = function () {
  */
 PromptJSParser.prototype._parseTargetStatement = function (nodeType) {
   const tok = this._advance();
-  // LIM-2 FIX: "arahkan ke <url>" — optional "ke" after arahkan
+  // LIM-2 FIX: "arahkan ke <url>" â optional "ke" after arahkan
   if (nodeType === 'ArahkanStatement' && this._peek().type === TT.TK_KE) {
     this._advance(); // consume optional "ke"
   }
@@ -2029,19 +2027,19 @@ PromptJSParser.prototype._parseTampilkanStatement = function () {
   const mode = null;
   const messageKind = null;
 
-  // Optional `di <mountTarget>` — but `di` is not a keyword, so we check
+  // Optional `di <mountTarget>` â but `di` is not a keyword, so we check
   // if next token is TK_IDENT with value 'di'. For now, keep it simple.
-  // Mode is also optional — skip complex parsing for now.
+  // Mode is also optional â skip complex parsing for now.
 
   return AST.buatTampilkanStatement(target, loc, null, mountTarget, mode, messageKind);
 };
 
 /**
  * Parse `simpan` / `tambahkan` / `kurangi` / `sisipkan` statement.
- * `simpan <value> ke <target>` — SimpanStatement
- * `tambahkan <value> ke <target>` — TambahkanStatement
- * `kurangi <target>` or `kurangi <target> ke <value>` — KurangiStatement
- * `sisipkan <value> ke <target>` — SisipkanStatement
+ * `simpan <value> ke <target>` â SimpanStatement
+ * `tambahkan <value> ke <target>` â TambahkanStatement
+ * `kurangi <target>` or `kurangi <target> ke <value>` â KurangiStatement
+ * `sisipkan <value> ke <target>` â SisipkanStatement
  */
 PromptJSParser.prototype._parseSimpanStatement = function () {
   const tok = this._advance();
@@ -2050,13 +2048,13 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
 
   if (kind === 'kurangi' || kind === 'remove') {
     // Three forms (statement position):
-    //   1. `kurangi <target>`              → decrement by 1
-    //   2. `kurangi <target> ke <value>`   → subtract <value> from <target>
-    //   3. `kurangi <value> dari <target>` → subtract <value> from <target>
+    //   1. `kurangi <target>`              â decrement by 1
+    //   2. `kurangi <target> ke <value>`   â subtract <value> from <target>
+    //   3. `kurangi <value> dari <target>` â subtract <value> from <target>
     // Form 3 (S2-BUG-1): the FIRST expression is the VALUE and the target
     // follows `dari`/`from`/`in` (TK_IN). Without this branch the parser
     // mis-mapped `kurangi 1 dari hitung` as target=`1`, silently dropping
-    // `dari hitung` → emitter produced `__setState(document, 1 - 1)`.
+    // `dari hitung` â emitter produced `__setState(document, 1 - 1)`.
     //
     // LIM-4 FIX: `kurangi <value> ke <target>` is NOT a valid form.
     // If firstArg is a literal (number/string) and next is `ke`, the user
@@ -2068,7 +2066,7 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
       // firstArg is the value being subtracted; target is what we mutate.
       return AST.buatKurangiStatement(target, loc, null, firstArg);
     }
-    // LIM-4: detect `kurangi <literal> ke <target>` — invalid form
+    // LIM-4: detect `kurangi <literal> ke <target>` â invalid form
     if (this._peek().type === TT.TK_KE && firstArg.type === 'Literal') {
       this._advance(); // consume ke
       this._parseExpression(); // consume the mistaken target (advance past it)
@@ -2097,7 +2095,7 @@ PromptJSParser.prototype._parseSimpanStatement = function () {
 
   // simpan/tambahkan/sisipkan <value> ke <target>
   // BUG-16 FIX: Support space-separated method arguments.
-  // "simpan teks.apakahAda "World" ke hasil" — after parsing the MemberExpression
+  // "simpan teks.apakahAda "World" ke hasil" â after parsing the MemberExpression
   // for the value, if the next token is not TK_KE and looks like an argument,
   // wrap the value into a CallExpression.
   let value = this._parseExpression();
@@ -2174,7 +2172,7 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
   const nameTok = this._expect(TT.TK_IDENT, 'Expected component name after "gunakan"');
   const componentName = nameTok ? nameTok.value : '_';
 
-  // LIM-1 FIX: Optional props in parentheses — "Gunakan Nama(prop: val, prop2: val2)"
+  // LIM-1 FIX: Optional props in parentheses â "Gunakan Nama(prop: val, prop2: val2)"
   // Mirrors the Buat Nama(prop: val) syntax already supported in _parseBuatStatement.
   let props = null;
   if (this._peek().type === TT.TK_LPAREN) {
@@ -2191,13 +2189,13 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
   }
 
   // v132 stabilization (P0.7): `Gunakan NamaKomponen(...):` followed by an
-  // indented child block used to be silently accepted here — this function
+  // indented child block used to be silently accepted here â this function
   // returned immediately without ever looking at the trailing `:`/INDENT,
   // so the child block was left in the token stream and parsed by the
   // ENCLOSING block as ordinary SIBLING statements, positioned next to (not
   // inside) the component instance, with no error or warning at all. Since
   // slots/transclusion (#82) are NOT implemented, a child block here can
-  // never actually be rendered as part of the component — surface E2030
+  // never actually be rendered as part of the component â surface E2030
   // instead of silently miscompiling. The colon and its block ARE consumed
   // (so parsing can continue cleanly), but the block's statements are
   // deliberately discarded (not attached to the returned GunakanStatement
@@ -2212,7 +2210,7 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
       this.errors.push({
         code: 'E2030',
         severity: 'error',
-        message: `"Gunakan ${componentName}(...):" dengan blok anak (child block) belum didukung — slot/transklusi belum diimplementasikan (backlog #82).`,
+        message: `"Gunakan ${componentName}(...):" dengan blok anak (child block) belum didukung â slot/transklusi belum diimplementasikan (backlog #82).`,
         line: colonTok.line,
         column: colonTok.col,
         suggestion:
@@ -2220,7 +2218,7 @@ PromptJSParser.prototype._parseGunakanStatement = function () {
       });
     } else {
       // A trailing colon with NO indented block (e.g. "Gunakan Nama(...):"
-      // on its own with nothing indented under it) is harmless — same as
+      // on its own with nothing indented under it) is harmless â same as
       // today, restore position so the colon is simply not consumed as
       // part of this statement (matches prior behavior for this sub-case).
       this.pos = savedPos;
@@ -2244,14 +2242,14 @@ PromptJSParser.prototype._parseKetikaStatement = function () {
   const event = eventTok ? eventTok.value : 'diklik';
 
   // BUG-09 FIX: Parse event modifiers (.cegah, .hentikan, .sekali, etc.)
-  // "Ketika diklik .cegah:" → event="diklik", modifiers=["cegah"]
+  // "Ketika diklik .cegah:" â event="diklik", modifiers=["cegah"]
   //
   // v132 stabilization (P0.1): the original backtrack below referenced
-  // `this._pos` (undefined field — the real position counter is `this.pos`),
+  // `this._pos` (undefined field â the real position counter is `this.pos`),
   // so it was always a no-op; a DOT consumed while probing an invalid
   // modifier was never actually put back. This accidentally still worked for
   // the common case (a bare-identifier target immediately after the DOT),
-  // but the DOT itself was silently dropped from the token stream — fixed to
+  // but the DOT itself was silently dropped from the token stream â fixed to
   // use the correct field name so the backtrack genuinely restores position.
   const modifiers = [];
   while (this._peek().type === TT.TK_DOT) {
@@ -2265,20 +2263,20 @@ PromptJSParser.prototype._parseKetikaStatement = function () {
     } else if (modName && KNOWN_UNSUPPORTED_MODIFIERS[modName]) {
       // v132 stabilization (P0.1): a recognizable-but-unimplemented
       // modifier name (e.g. .capture/.passive) must NOT be silently
-      // swallowed as if it were a target expression — surface W2005 so
+      // swallowed as if it were a target expression â surface W2005 so
       // the developer knows it has NO effect, instead of guessing.
       this._advance(); // consume the modifier-looking identifier
       this.warnings.push({
         code: 'W2005',
         severity: 'warning',
-        message: `Event modifier ".${modName}" dikenal tapi belum diimplementasikan — tidak berpengaruh pada compile ini.`,
+        message: `Event modifier ".${modName}" dikenal tapi belum diimplementasikan â tidak berpengaruh pada compile ini.`,
         line: modTok.line,
         column: modTok.col,
         suggestion:
           'Modifier yang didukung saat ini: .cegah/.prevent, .hentikan/.stop, .sekali/.once.',
       });
     } else {
-      // Not a modifier at all — this DOT is part of a target expression.
+      // Not a modifier at all â this DOT is part of a target expression.
       // Backtrack to just before THIS dot (modifiers already consumed in
       // earlier loop iterations, if any, remain consumed) so target parsing
       // below sees the untouched `.member` token sequence.
@@ -2314,12 +2312,12 @@ PromptJSParser.prototype._parseAmbilStatement = function () {
   const loc = this._makeLoc(tok);
 
   // v0.7: Detect "Ambil dari URL:" (AmbilLuar) vs "ambil nilai dari elemen" (AmbilDom)
-  // "Ambil dari" = next word is TK_IN (dari/from/in) → AmbilLuarStatement
-  // "ambil nilai dari ..." = next word is TK_IDENT (nilai/teks/atribut) → AmbilDomStatement
+  // "Ambil dari" = next word is TK_IN (dari/from/in) â AmbilLuarStatement
+  // "ambil nilai dari ..." = next word is TK_IDENT (nilai/teks/atribut) â AmbilDomStatement
 
   const nextTok = this._peek();
 
-  // Case 1: "Ambil dari URL:" → AmbilLuarStatement
+  // Case 1: "Ambil dari URL:" â AmbilLuarStatement
   if (nextTok.type === TT.TK_IN) {
     this._advance(); // consume "dari"/"from"
     const url = this._parseExpression();
@@ -2333,8 +2331,8 @@ PromptJSParser.prototype._parseAmbilStatement = function () {
       // Optional `ke <target>` state binding for the bare inline form:
       //   `ambil dari "url" ke items`
       // Emits `__setState(items, __data)` on success and drives auto loading/
-      // error state (`items_memuat` / `items_galat`) — see the emitter. No
-      // binding ⇒ pure fetch-and-forget.
+      // error state (`items_memuat` / `items_galat`) â see the emitter. No
+      // binding â pure fetch-and-forget.
       let bindTarget = null;
       if (this._peek().type === TT.TK_KE) {
         this._advance(); // consume "ke"
@@ -2415,7 +2413,7 @@ PromptJSParser.prototype._parseAmbilStatement = function () {
     return AST.buatAmbilLuarStatement(url, branches, loc, null, options);
   }
 
-  // Case 2: "ambil nilai/teks/atribut dari ..." → AmbilDomStatement (legacy)
+  // Case 2: "ambil nilai/teks/atribut dari ..." â AmbilDomStatement (legacy)
   const kindTok = this._expect(TT.TK_IDENT, 'Expected kind after "ambil"');
   const kind = kindTok ? kindTok.value : 'nilai';
   const source = this._parseExpression();
