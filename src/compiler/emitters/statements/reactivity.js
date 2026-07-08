@@ -99,9 +99,19 @@ function install(PromptJSCompiler, accept) {
 
   PromptJSCompiler.prototype.visitLifecycleStatement = function (node) {
     // Lifecycle hooks: dipasang, dilepas, diperbarui.
-    // v0.6: SPA mode — collect hooks for mount/unmount instead of DOM events.
+    // #88: Inside a Komponen, lifecycle hooks fire immediately as IIFEs
+    // (the factory is called at mount time, so the IIFE runs at mount).
+    const insideComponent = this._componentScopeStack && this._componentScopeStack.length > 0;
+
     if (this.isSPA) {
-      if (node.kind === 'dipasang') {
+      if (insideComponent) {
+        // #88 fix: component dipasang/dilepas → IIFE, NOT deferred push
+        this.emit(`(function() {`);
+        this.indent++;
+        if (node.body) accept(node.body, this);
+        this.indent--;
+        this.emit(`})();`);
+      } else if (node.kind === 'dipasang') {
         this.emit(`__dipasangFns.push(function() {`);
         this.indent++;
         if (node.body) accept(node.body, this);
@@ -120,7 +130,7 @@ function install(PromptJSCompiler, accept) {
       return;
     }
 
-    // Non-SPA: original behavior (DOMContentLoaded / beforeunload)
+    // Non-SPA: original behavior (DOMContentLoaded / beforeunload) — unchanged
     this.emit(`// Lifecycle: saat komponen ${node.kind}`);
     if (node.kind === 'dipasang') {
       // mounted — schedule to run after DOM is ready

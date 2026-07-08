@@ -181,7 +181,7 @@ describe('v5 boundary — property/method alias translation', () => {
     // after declarations are dropped). Use inside a data init instead.
     const { ast } = resolve('data arr = [1]\ndata pushed = arr.sisip(2)');
     // Find the MemberExpression inside the data init expression
-    const dataDecl = ast.body.find(n => n.type === 'DataDeclaration' && n.name === 'pushed');
+    const dataDecl = ast.body.find((n) => n.type === 'DataDeclaration' && n.name === 'pushed');
     expect(dataDecl).toBeDefined();
     expect(dataDecl.init).toBeDefined();
     // The init is a CallExpression whose callee is the translated MemberExpression

@@ -29,7 +29,12 @@ function extractFactoryBody(js, componentName) {
   let depth = 0;
   for (let i = start; i < js.length; i++) {
     if (js[i] === '{') depth++;
-    if (js[i] === '}') { depth--; if (depth === 0) { return js.substring(start, i + 1); } }
+    if (js[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        return js.substring(start, i + 1);
+      }
+    }
   }
   return null;
 }
@@ -39,9 +44,13 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 1. Component dipasang: after fix, no page-level push ───────
   it('FIXED: component dipasang does NOT push to __dipasangFns', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Box():',
-      '    dipasang:', '        console.log("box mounted")',
+      '    dipasang:',
+      '        console.log("box mounted")',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -59,9 +68,13 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 2. Multiple instances: factory body has no push ──────────────
   it('FIXED: multiple instances — factory body has no push', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Box(nama):',
-      '    dipasang:', '        console.log("box mounted")',
+      '    dipasang:',
+      '        console.log("box mounted")',
       '    Buat div: nama',
       '',
       'Buat Box(nama: "satu")',
@@ -78,9 +91,13 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 3. Component dilepas: after fix, no page-level push ─────────────
   it('FIXED: component dilepas does NOT push to __dilepasFns', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Box():',
-      '    dilepas:', '        console.log("box unmounted")',
+      '    dilepas:',
+      '        console.log("box unmounted")',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -97,10 +114,15 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 4. Component in Ulangi loop: no page-level push ──────────
   it('FIXED: component in Ulangi loop — no page-level push', () => {
     const src = [
-      '---', 'router: benar', '---', '',
-      'data items = ["a", "b"]', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
+      'data items = ["a", "b"]',
+      '',
       'Komponen Item(name):',
-      '    dipasang:', '        console.log("item mounted")',
+      '    dipasang:',
+      '        console.log("item mounted")',
       '    Buat div: name',
       '',
       'Buat div#list:',
@@ -118,12 +140,20 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 5. Component in Saat block: no page-level push ────────────
   it('FIXED: component in Saat block — no page-level push', () => {
     const src = [
-      '---', 'router: benar', '---', '',
-      'data showCard = false', '',
-      'Komponen Card():', '    dipasang:', '        console.log("card mounted")',
+      '---',
+      'router: benar',
+      '---',
+      '',
+      'data showCard = false',
+      '',
+      'Komponen Card():',
+      '    dipasang:',
+      '        console.log("card mounted")',
       '    Buat div: "card"',
       '',
-      'Buat div:', '    Saat showCard:', '        Buat Card()',
+      'Buat div:',
+      '    Saat showCard:',
+      '        Buat Card()',
     ].join('\n');
 
     const r = compileSPA(src);
@@ -137,7 +167,8 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   it('non-SPA: component dipasang uses DOMContentLoaded (unchanged)', () => {
     const src = [
       'Komponen Box():',
-      '    dipasang:', '        console.log("box mounted")',
+      '    dipasang:',
+      '        console.log("box mounted")',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -152,8 +183,14 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 7. CSP-safe: no eval or new Function ───────────────────────
   it('output is CSP-safe', () => {
     const src = [
-      '---', 'router: benar', '---', '',
-      'Komponen Box():', '    dipasang:', '        console.log("m")',    '    Buat div: "b"',
+      '---',
+      'router: benar',
+      '---',
+      '',
+      'Komponen Box():',
+      '    dipasang:',
+      '        console.log("m")',
+      '    Buat div: "b"',
       'Buat Box()',
     ].join('\n');
 
@@ -166,9 +203,13 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 8. E2E jsdom: dipasang fires when factory is called ──────────────
   it('E2E: dipasang fires when component factory is called', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Box():',
-      '    dipasang:', '        window.__boxMounted = true',
+      '    dipasang:',
+      '        window.__boxMounted = true',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -181,10 +222,10 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
     const returnIdx = r.js.lastIndexOf('return {');
     const beforePage = r.js.substring(0, returnIdx > 0 ? returnIdx : r.js.length);
 
-    const dom = new JSDOM(
-      '<!DOCTYPE html><html><head></head><body></body></html>',
-      { runScripts: 'dangerously', url: 'http://localhost' },
-    );
+    const dom = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', {
+      runScripts: 'dangerously',
+      url: 'http://localhost',
+    });
 
     // Eval factory definitions + instance creation
     dom.window.eval(beforePage);
@@ -196,9 +237,13 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 9. Component dipasang WITHOUT Buat (no auto-fragment) ─────────
   it('FIXED: component dipasang without Buat — still IIFE, no push', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Box():',
-      '    dipasang:', '        console.log("no buat")',
+      '    dipasang:',
+      '        console.log("no buat")',
       '',
       'Buat Box()',
     ].join('\n');
@@ -215,9 +260,13 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 10. dilepas known limitation: fires at factory call, not DOM remove ─
   it('KNOWN LIMITATION: dilepas fires immediately (IIFE) inside component', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Box():',
-      '    dilepas:', '        window.__boxCleaned = true',
+      '    dilepas:',
+      '        window.__boxCleaned = true',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -236,13 +285,18 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
   // ── 11. Nested component: inner dipasang also uses IIFE ───────────
   it('FIXED: nested component dipasang — inner also IIFE', () => {
     const src = [
-      '---', 'router: benar', '---', '',
+      '---',
+      'router: benar',
+      '---',
+      '',
       'Komponen Inner():',
-      '    dipasang:', '        console.log("inner mounted")',
+      '    dipasang:',
+      '        console.log("inner mounted")',
       '    Buat span: "inner"',
       '',
       'Komponen Outer():',
-      '    dipasang:', '        console.log("outer mounted")',
+      '    dipasang:',
+      '        console.log("outer mounted")',
       '    Buat Inner()',
       '',
       'Buat Outer()',

@@ -138,8 +138,7 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   while (!this._atEnd()) {
     const tok = this._peek();
     if (tok.type === TT.TK_EOF) break;
-    if (tok.type === TT.TK_IDENT ||
-        tok.type === TT.TK_DEDENT) {
+    if (tok.type === TT.TK_IDENT || tok.type === TT.TK_DEDENT) {
       this._advance(); // skip standalone indent/dedent
       continue;
     }
