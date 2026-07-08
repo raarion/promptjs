@@ -94,9 +94,9 @@ describe('v0.6 — 1.1 SPA Factory Function', () => {
     expect(result.js).toMatch(/\}\)\);/);
   });
 
-  it('SPA mode: dipasang hook collected for mount() (inside component)', () => {
-    // dipasang is valid inside Komponen declarations (parser restriction)
-    // Component must be declared before use
+  it('SPA mode: dipasang fires immediately inside component (#88 fix)', () => {
+    // #88: Component-level dipasang uses IIFE (fires at factory call),
+    // NOT deferred __dipasangFns.push (which only runs once at mount).
     const source = [
       '---',
       'router: benar',
@@ -112,13 +112,17 @@ describe('v0.6 — 1.1 SPA Factory Function', () => {
     ].join('\n');
     const result = compile(source, { pageName: 'index', pageRoute: '/' });
     expect(result.success).toBe(true);
-    // dipasang pushes to __dipasangFns (SPA mode)
-    expect(result.js).toContain('__dipasangFns.push(function()');
-    // NOT DOMContentLoaded
+    // #88 fix: component dipasang is IIFE, NOT deferred push
+    expect(result.js).not.toContain('__dipasangFns.push');
+    expect(result.js).toContain('(function() {');
+    // NOT DOMContentLoaded (SPA mode)
     expect(result.js).not.toContain('DOMContentLoaded');
   });
 
-  it('SPA mode: dilepas hook collected for unmount() (inside component)', () => {
+  it('SPA mode: dilepas fires immediately inside component (#88 fix)', () => {
+    // #88: Component-level dilepas also uses IIFE (known limitation:
+    // fires at factory call, not at DOM removal). See #88 for future
+    // per-instance cleanup mechanism.
     const source = [
       '---',
       'router: benar',
@@ -134,9 +138,10 @@ describe('v0.6 — 1.1 SPA Factory Function', () => {
     ].join('\n');
     const result = compile(source, { pageName: 'index', pageRoute: '/' });
     expect(result.success).toBe(true);
-    // dilepas pushes to __dilepasFns
-    expect(result.js).toContain('__dilepasFns.push(function()');
-    // NOT beforeunload
+    // #88 fix: component dilepas is IIFE, NOT deferred push
+    expect(result.js).not.toContain('__dilepasFns.push');
+    expect(result.js).toContain('(function() {');
+    // NOT beforeunload (SPA mode)
     expect(result.js).not.toContain('beforeunload');
   });
 
