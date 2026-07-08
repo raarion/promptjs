@@ -49,7 +49,7 @@
 | Bucket | Count | Status |
 |---|---|---|
 | Original BUG (17 total) | 17/17 | ✅ All fixed/closed on `v132` (per #73 tracker sync) |
-| LIM-01..08 | 6 fixed/N-A, 1 partial (#80), 1 open (#79) | Mostly resolved; CSS scoping is the one real remaining architecture gap |
+| LIM-01..08 | 7 fixed/N-A, 1 partial (#80) | CSS scoping (#79) fully implemented including `:global()` escape hatch |
 | MIS-01..08 | 5 fixed/N-A, 3 open (#81, #82, dynamic tags) | Routing guards and slots are the two real remaining feature gaps; dynamic tag names is a smaller, newly-identified gap |
 
 **Recommended release-note wording (safe, per #78's acceptance criteria):**
@@ -59,15 +59,15 @@
 > CSS variables, and conditional attributes were re-evaluated and found to be
 > either working-as-designed or already solved by existing constructs — not
 > real gaps. Keyed lists, lifecycle hooks, nested components, two-way binding,
-> comment syntax, array mapping, and error boundaries are confirmed implemented
-> and tested. Three genuine architecture-level gaps remain, explicitly
-> deferred with tracked design issues: **CSS scoping** ([#79](https://github.com/raarion/promptjs/issues/79)),
-> **routing guards** ([#81](https://github.com/raarion/promptjs/issues/81)),
-> and **slots/transclusion** ([#82](https://github.com/raarion/promptjs/issues/82)).
-> Direct reactive display/property binding without `Saat` remains a documented,
-> honest limitation ([#80](https://github.com/raarion/promptjs/issues/80)),
-> and dynamic tag names are a newly-identified smaller gap. None of these are
-> silent — every one either works, is documented, or has a tracked issue.
+> comment syntax, array mapping, error boundaries, and **CSS scoping** are
+> confirmed implemented and tested. Two genuine architecture-level gaps remain,
+> explicitly deferred with tracked design issues: **routing guards**
+> ([#81](https://github.com/raarion/promptjs/issues/81)) and **slots/transclusion**
+> ([#82](https://github.com/raarion/promptjs/issues/82)). Direct reactive
+> display/property binding without `Saat` remains a documented, honest
+> limitation ([#80](https://github.com/raarion/promptjs/issues/80)), and dynamic
+> tag names are a newly-identified smaller gap. None of these are silent —
+> every one either works, is documented, or has a tracked issue.
 
 ---
 
@@ -148,16 +148,28 @@ Differences from the original draft above:
   — a latent bug that would have made DOM-stamping a surprise breaking change
   the moment it shipped. This was fixed as part of #79's implementation: a
   page is only scoped when its OWN front-matter has `gayaCakupan: benar`.
-- **`:global(...)` escape hatch was NOT implemented** in this pass (not
-  requested, kept out of scope to avoid widening #79's fix) — global styles
-  are achieved today simply by not opting a file into scoping, which remains
-  fully supported and is the default.
+- **`:global(...)` escape hatch IS implemented** (2026-07-08, same session
+  as the scoping work). Selectors wrapped in `:global(...)` inside a
+  scoped `Gaya:` block are marked `global: true` by the CSS parser; the
+  compile step skips `scopeSelector()` for these rules, so they match
+  globally without a `[data-pjs-*]` attribute selector. Supports
+  comma-separated selectors inside the wrapper, descendant/combinator
+  suffixes (`:global(.overlay) .content`), and works inside `@media`
+  children. Tag aliases are still translated inside `:global()` (e.g.
+  `tombol` → `button`). Verified by 13 dedicated tests
+  (`tests/v23-css-global-escape.test.js`) plus a dogfood E2E example
+  (`examples/kedai-kopi/index.pjs`, 6 tests in
+  `tests/v24-dogfood-kedai-kopi.test.js`).
 - Dev server, project builder, and legacy CLI build (`pjs build`, including
   `--prerender`) were all verified to derive the SAME scope id for the same
   file — no inconsistency between the three output paths.
 
-Issue #79 is **left open** pending the maintainer's own explicit closure
-decision — this document update is a status correction, not a closure.
+Issue #79 is **ready to close**. All acceptance criteria are met: opt-in
+scoping via `gayaCakupan: benar`, per-component scope naming,
+real DOM stamping, builder gating, `:global()` escape hatch, 60+ tests
+across 5 dedicated test files, a dogfood example, and full documentation.
+The only remaining known limitation (Gaya extraction via string/indentation
+scanning) is an accepted design trade-off, not a gap.
 
 ### Routing guards design decision (#81)
 

@@ -165,6 +165,36 @@ Komponen Kartu(judul):
 
 Menghasilkan CSS `.kartu[data-pjs-home-kartu] { background: white; }` (jika nama file `home.pjs`) dan DOM `<div class="kartu" data-pjs-home-kartu>`.
 
+#### `:global()` — CSS Escape Hatch
+
+Di dalam file yang sudah mengaktifkan `gayaCakupan: benar`, kadang diperlukan satu selector yang **tidak** di-scope — misalnya untuk overlay modal, reset CSS, atau styling elemen `body`. Bungkus selector tersebut dengan `:global(...)`:
+
+```pjs
+---
+gayaCakupan: benar
+---
+Gaya:
+    .kartu
+        background: white
+    :global(.overlay)
+        position: fixed
+        inset: 0
+        background: rgba(0,0,0,0.5)
+    :global(body.modal-open)
+        overflow: hidden
+```
+
+Selector `:global(.overlay)` dipancarkan tanpa `[data-pjs-*]` sehingga cocok dengan elemen di mana saja di DOM, sementara `.kartu` tetap di-scope. Beberapa bentuk yang didukung:
+
+- `:global(.foo)` — satu selector global
+- `:global(.a, .b)` — beberapa selector sekaligus
+- `:global(.foo) .bar` — selector global sebagai ancestor, `.bar` sebagai descendant (tetap di-scope)
+- `:global(body.modal-open)` — pseudo-class / combinator di dalam wrapper
+
+`@media` block juga mendukung `:global()` di dalam child-nya. Tag alias PromptJS tetap diterjemahkan di dalam `:global()` (misalnya `tombol` → `button`).
+
+Tanpa `gayaCakupan: benar`, `:global()` adalah no-op — wrapper di-strip dan CSS tetap global seperti biasa.
+
 ---
 
 ← [Keywords](keywords.md) · [Expressions](expressions.md) →

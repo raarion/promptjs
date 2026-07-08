@@ -325,6 +325,10 @@ Komponen Kartu(judul):
 
 The `Gaya` (or `Style`) block is extracted BEFORE lexing. By default, CSS is **global** (unchanged behavior for existing projects). Add the front-matter directive `gayaCakupan: benar` to opt into **CSS scoping**: every element inside a `Komponen` is stamped with a `data-pjs-<fileName>-<componentName>` attribute, and page-level `Gaya:` (outside any `Komponen`) is stamped with `data-pjs-<fileName>`. CSS selectors are automatically rewritten to the matching `[data-pjs-<scope>]` attribute selector. Supports standard CSS selectors including pseudo-classes like `:hover`.
 
+Gunakan `:global(...)` di dalam blok `Gaya:` yang di-scope untuk menandai satu selector sebagai global (tanpa `[data-pjs-*]`). Lihat [Direktif — `:global()`](directives.md#gayacakupan-benar) untuk detail dan contoh.
+
+Use `:global(...)` inside a scoped `Gaya:` block to mark a single selector as global (no `[data-pjs-*]`). See [Directives — `:global()`](directives.md#gayacakupan-benar) for details and examples.
+
 ---
 
 ## 12. Komentar / Comments

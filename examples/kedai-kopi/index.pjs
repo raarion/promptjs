@@ -1,0 +1,124 @@
+---
+gayaCakupan: benar
+judul: Kedai Kopi Nusantara
+---
+
+// ============================================================================
+// Kedai Kopi Nusantara — CSS Scoping Dogfood App (#79)
+// ============================================================================
+// Membuktikan: scoped per-component, :global() escape, nested component
+// scoping, tag alias dalam scoped CSS, dan @media responsive scoping.
+// ============================================================================
+
+// ── Page-level styles (scoped to data-pjs-index) ──────────────────────────
+Gaya:
+    :global(body)
+        font-family: system-ui, sans-serif
+        margin: 0
+        background: #faf7f2
+        color: #3d2c1e
+    :global(.page-wrapper)
+        max-width: 720px
+        margin: 0 auto
+        padding: 24px
+    .hero
+        text-align: center
+        padding: 48px 0 32px
+    .hero h1
+        font-size: 32px
+        color: #6f4e37
+        margin-bottom: 8px
+    .hero p
+        color: #8b7355
+        font-size: 16px
+
+// ── StarRating component (nested inside TestimonialCard) ──────────────────
+Komponen StarRating(rating):
+    Gaya:
+        .stars
+            display: inline-flex
+            gap: 2px
+        .star
+            font-size: 18px
+            color: #d4a574
+        .star.filled
+            color: #e8a838
+    Buat span.stars:
+        Buat span.star: "★"
+        Buat span.star: "★"
+        Buat span.star: "★"
+        Buat span.star: "★"
+        Buat span.star: "☆"
+
+// ── MenuCard component ───────────────────────────────────────────────────
+// Uses .card class — MUST NOT collide with TestimonialCard's .card
+Komponen MenuCard(nama, harga, deskripsi):
+    Gaya:
+        .card
+            background: white
+            border-radius: 12px
+            padding: 20px
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08)
+            border: 1px solid #e8ddd0
+        .card h3
+            color: #6f4e37
+            font-size: 18px
+            margin: 0 0 4px
+        .card .price
+            color: #2d8a4e
+            font-weight: bold
+            font-size: 16px
+        .card .desc
+            color: #8b7355
+            font-size: 14px
+            margin-top: 8px
+        @media (max-width: 480px)
+            .card
+                padding: 14px
+            .card h3
+                font-size: 16px
+    Buat div.card:
+        Buat h3: nama
+        Buat span.price: harga
+        Buat paragraf.desc: deskripsi
+
+// ── TestimonialCard component ────────────────────────────────────────────
+// Also uses .card class — scoped differently from MenuCard
+// Contains nested StarRating component
+Komponen TestimonialCard(nama, teks):
+    Gaya:
+        .card
+            background: #6f4e37
+            border-radius: 12px
+            padding: 20px
+            color: white
+        .card .quote
+            font-style: italic
+            font-size: 14px
+            line-height: 1.6
+            margin-bottom: 12px
+        .card .author
+            font-weight: bold
+            font-size: 13px
+            opacity: 0.85
+        :global(body.modal-open)
+            overflow: hidden
+    Buat div.card:
+        Buat paragraf.quote: teks
+        Buat span.author: nama
+    Buat StarRating(rating: 4)
+
+// ── Page content ─────────────────────────────────────────────────────────
+Buat div.page-wrapper:
+    Buat div.hero:
+        Buat h1: "Kedai Kopi Nusantara"
+        Buat p: "Kopi pilihan dari petani lokal"
+
+    // Menu section — 3 cards
+    Buat MenuCard(nama: "Kopi Susu Gula Aren", harga: "Rp 28.000", deskripsi: "Espresso shot dengan susu segar dan gula aren asli Jawa")
+    Buat MenuCard(nama: "Kopi Hitam Toraja", harga: "Rp 22.000", deskripsi: "Single origin Toraja, medium roast, rasa cokelat dan rempah")
+    Buat MenuCard(nama: "Matcha Latte", harga: "Rp 32.000", deskripsi: "Matcha premium Uji digabung dengan susu oat creamy")
+
+    // Testimonial section — 2 cards
+    Buat TestimonialCard(nama: "Rina Sari", teks: "Kopi terenak yang pernah saya coba! Gula arennya beneran terasa asli, bukan sirup.")
+    Buat TestimonialCard(nama: "Budi Pratama", teks: "Suasana kedai nyaman, barista ramah. Kopi hitam Toraja-nya juara!")
