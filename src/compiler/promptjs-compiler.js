@@ -18,6 +18,12 @@
 const { BaseVisitor, accept } = require('../utils/visitor');
 const RuntimeEmitter = require('./emitters/runtime');
 const Codegen = require('./utils/codegen');
+// v132 #79: reuse the SAME scope-id naming helpers as `src/engine/css.js`'s
+// CSS-string-side scoping, so the compiler's `data-pjs-*` DOM attribute and
+// the CSS selector's `[data-pjs-*]` attribute selector are byte-identical
+// for the same (fileScope, componentName) pair — single source of truth for
+// the naming scheme, not a duplicated/divergent copy.
+const CSSScope = require('../engine/css');
 const ExpressionLowering = require('./lower/expression');
 const StatementEmitters = require('./emitters/statements');
 
@@ -50,6 +56,10 @@ function PromptJSCompiler() {
   // LIM-SAAT-LEAK-01: stack of local cleanup-array variable names, one per
   // currently-open `Saat` block. See visitSaatStatement / emitTrackedWatch*.
   this._saatCleanupStack = [];
+  // v132 #79: CSS scoping — stack of currently-open component scope ids
+  // (one per nested `KomponenDeclaration`), mirroring `_saatCleanupStack`'s
+  // push/pop-on-exit pattern. See visitKomponenDeclaration / visitBuatStatement.
+  this._componentScopeStack = [];
 }
 
 PromptJSCompiler.prototype = Object.create(BaseVisitor.prototype);
@@ -88,6 +98,10 @@ PromptJSCompiler.prototype.compile = function (ast) {
   this.currentSource = ast.source || 'program.pjs';
   // LIM-SAAT-LEAK-01: reset per-compile; see constructor comment.
   this._saatCleanupStack = [];
+  // v132 #79: CSS scoping — reset per-compile; see constructor comment.
+  this._componentScopeStack = [];
+  this.cssScopingEnabled = !!ast.cssScopingEnabled;
+  this.cssFileScope = ast.cssFileScope || 'promptjs';
 
   // v0.6: SPA mode flags from engine (set via ast properties)
   this.isSPA = !!ast.isSPA;
@@ -410,6 +424,39 @@ PromptJSCompiler.prototype.registerCleanup = function (cleanupFnExpr) {
     return `__cleanupFns.push(${cleanupFnExpr});`;
   }
   return null;
+};
+
+/**
+ * v132 #79 (CSS scoping): compute the `data-pjs-<scope>` attribute NAME to
+ * stamp onto an element created at the current point of compilation, or
+ * `null` if no stamping should happen here.
+ *
+ * Returns `null` when:
+ *   - CSS scoping is not opted into for this file (`this.cssScopingEnabled`
+ *     is false) — the overwhelming majority of existing/compiling projects,
+ *     for whom this function must be a complete no-op (byte-identical
+ *     output to before #79).
+ *
+ * Otherwise returns `data-pjs-<fileScope>` (page/file-level styles, when no
+ * `Komponen` is currently open) or `data-pjs-<fileScope>-<componentName>`
+ * (when stamping an element inside the body of the innermost currently-open
+ * `Komponen`) — using the exact same `buildScopeId`/`sanitizeScopeName`
+ * helpers `src/engine/css.js` already used to build the matching CSS
+ * selector's attribute-selector, so the two can never drift apart.
+ *
+ * @this {any}
+ * @returns {string | null} Attribute name to stamp (no value — presence-only
+ *   attribute selector, same convention `scopeSelector()` already uses), or
+ *   `null` if scoping is disabled for this compile.
+ */
+PromptJSCompiler.prototype.currentCssScopeAttr = function () {
+  if (!this.cssScopingEnabled) return null;
+  const activeComponent =
+    this._componentScopeStack.length > 0
+      ? this._componentScopeStack[this._componentScopeStack.length - 1]
+      : null;
+  const scopeId = CSSScope.buildScopeId(this.cssFileScope, activeComponent);
+  return `data-pjs-${scopeId}`;
 };
 
 /**

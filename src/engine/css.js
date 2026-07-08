@@ -115,29 +115,123 @@ function translateCSSSelector(selector) {
  */
 
 /**
+ * Sanitize a raw name (file basename, component name, etc.) into a value
+ * safe to embed in a `data-pjs-<scope>` attribute / CSS attribute-selector.
+ *
+ * Lowercases and collapses any run of non `[a-z0-9]` characters into a
+ * single `-` (so `[slug]`, `My File`, `Kartu_2` all become valid, stable,
+ * deterministic scope segments). Falls back to `"x"` for an empty/invalid
+ * input so a scope value is never emitted as an empty string.
+ *
+ * @param {string} name - Raw name to sanitize
+ * @returns {string} Sanitized scope segment
+ */
+function sanitizeScopeName(name) {
+  const cleaned = String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned || 'x';
+}
+
+/**
+ * Build the full scope id for a `Gaya:` block, given the (already
+ * sanitized) file-level scope and an optional active component name.
+ *
+ * File + component naming, per the #79 maintainer decision
+ * (2026-07-07): `data-pjs-<file-scope>-<component-scope>` for
+ * component-level styles, `data-pjs-<file-scope>` for page/file-level
+ * styles (no active component). Using file+component (rather than
+ * component-only) prevents two different files that happen to declare a
+ * same-named `Komponen` from colliding on the same scope id.
+ *
+ * @param {string} fileScope - Already-sanitized file/page scope segment
+ * @param {string} [componentName] - Raw component name (sanitized here)
+ * @returns {string} Full scope id (without the `data-pjs-` prefix)
+ */
+function buildScopeId(fileScope, componentName) {
+  const filePart = sanitizeScopeName(fileScope);
+  if (!componentName) return filePart;
+  return `${filePart}-${sanitizeScopeName(componentName)}`;
+}
+
+// Matches a `Komponen <Name>(...)`/`Definisikan <Name>(...)` (or English
+// `Component`/`Define`) block-opener line, case-insensitively — mirrors the
+// keyword aliases recognized by the lexer's KEYWORDS map for component
+// declarations. Used ONLY to track "which component am I textually inside"
+// while extracting `Gaya:` blocks — CSS extraction runs BEFORE lexing/
+// parsing (see module header), so it has no AST to consult and must infer
+// component boundaries from raw indentation, same spirit as the lexer's own
+// line-based block-opener detection.
+const COMPONENT_OPENER_RE = /^(Komponen|Definisikan|Component|Define)\s+([A-Za-z_]\w*)/i;
+
+/**
  * Extract `Gaya:`/`Style:` blocks from source lines.
  *
  * Looks for lines starting with `Gaya:` or `Style:` and collects
  * all indented lines until dedent to original level.
  *
+ * When `opts.scoped` is true, also tracks `Komponen`/`Definisikan` block
+ * openers (by indentation, dedent-based — the same technique already used
+ * to find the end of a `Gaya:` block) so a `Gaya:` block declared INSIDE a
+ * component's body is scoped to `<fileScope>-<componentName>` instead of
+ * just `<fileScope>`. A `Gaya:` block outside any component (page/file
+ * top-level) is scoped to `<fileScope>` alone. Nested components use the
+ * INNERMOST currently-open component (a stack, popped on dedent).
+ *
  * @param {string} source - Full .pjs source
- * @param {string} [scope] - Component scope name (for scoped CSS)
+ * @param {string} [scope] - File/page scope name (for scoped CSS)
+ * @param {{ scoped?: boolean }} [opts] - `scoped`: whether to actually apply
+ *   scope ids to extracted blocks (opt-in gate). Defaults to `!!scope` for
+ *   backward compatibility with the pre-#79 2-arg call shape.
  * @returns {{ blocks: { source: string, scope: string }[], cleanSource: string }}
  */
-function extractGayaBlocks(source, scope) {
+function extractGayaBlocks(source, scope, opts) {
+  const scoped =
+    opts && Object.prototype.hasOwnProperty.call(opts, 'scoped') ? !!opts.scoped : !!scope;
   const lines = source.split('\n');
   const blocks = [];
   const cleanLines = [];
   let i = 0;
 
+  // Stack of currently-open component contexts: { indent, name }.
+  // `indent` is the indentation of the "Komponen X(...):" opener line
+  // itself — the component's BODY is whatever is indented MORE than that.
+  const componentStack = [];
+
   while (i < lines.length) {
     const line = lines[i];
     const trimmed = line.trim();
 
+    if (trimmed === '') {
+      cleanLines.push(line);
+      i++;
+      continue;
+    }
+
+    const lineIndent = line.length - line.trimStart().length;
+
+    if (scoped) {
+      // Pop any component contexts we've dedented out of.
+      while (
+        componentStack.length > 0 &&
+        lineIndent <= componentStack[componentStack.length - 1].indent
+      ) {
+        componentStack.pop();
+      }
+      const compMatch = trimmed.match(COMPONENT_OPENER_RE);
+      if (compMatch) {
+        componentStack.push({ indent: lineIndent, name: compMatch[2] });
+      }
+    }
+
     // Check for Gaya: or Style: at start of line (not indented = top-level or component-level)
     if (/^(Gaya|Style):\s*$/.test(trimmed)) {
-      const blockIndent = line.length - line.trimStart().length;
+      const blockIndent = lineIndent;
       const blockLines = [];
+      const activeComponent =
+        scoped && componentStack.length > 0 ? componentStack[componentStack.length - 1].name : null;
+      const blockScope = scoped ? buildScopeId(scope, activeComponent) : '';
 
       // Collect all indented lines
       i++;
@@ -158,7 +252,7 @@ function extractGayaBlocks(source, scope) {
 
       blocks.push({
         source: blockLines.join('\n'),
-        scope: scope || '',
+        scope: blockScope,
       });
     } else {
       cleanLines.push(line);
@@ -433,11 +527,15 @@ function scopeSelector(selector, scope) {
  * Full pipeline: extract + parse + compile CSS from .pjs source.
  *
  * @param {string} source - Full .pjs source
- * @param {string} [scope] - Component scope name
+ * @param {string} [scope] - File/page scope name
+ * @param {{ scoped?: boolean }} [opts] - `scoped`: opt-in gate — see
+ *   `extractGayaBlocks`. Defaults to `!!scope` (backward-compatible 2-arg
+ *   call shape, unchanged behavior for any existing caller that already
+ *   passed a truthy `scope`).
  * @returns {{ css: string, cleanSource: string }}
  */
-function processGayaBlocks(source, scope) {
-  const { blocks, cleanSource } = extractGayaBlocks(source, scope);
+function processGayaBlocks(source, scope, opts) {
+  const { blocks, cleanSource } = extractGayaBlocks(source, scope, opts);
   let css = '';
 
   for (const block of blocks) {
@@ -455,4 +553,6 @@ module.exports = {
   scopeSelector,
   translateCSSSelector,
   processGayaBlocks,
+  sanitizeScopeName,
+  buildScopeId,
 };
