@@ -8,19 +8,23 @@
  * and the parenthesized-expression path resumed from the wrong token.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { compile } from '../src/engine/promptjs.js';
 
 describe('v132 micro-audit: parenthesized expression backtrack (this._pos → this.pos)', () => {
   it('(a + b) parses as parenthesized expression, not parser error', () => {
-    const r = compile('tetap a = 1\ntetap b = 2\ntetap x = (a + b)\nBuat ruang:\n    teks = x');
+    const r = compile(
+      'tetap a = 1\ntetap b = 2\ntetap x = (a + b)\nBuat ruang:\n    teks = x'
+    );
     expect(r.success).toBe(true);
     expect(r.errors).toHaveLength(0);
     expect(r.js).toContain('const x = (a + b)');
   });
 
   it('(x) + 1 parses correctly (identifier in parens followed by operator)', () => {
-    const r = compile('tetap x = 5\ntetap y = (x) + 1\nBuat ruang:\n    teks = y');
+    const r = compile(
+      'tetap x = 5\ntetap y = (x) + 1\nBuat ruang:\n    teks = y'
+    );
     expect(r.success).toBe(true);
     expect(r.errors).toHaveLength(0);
     expect(r.js).toContain('const y = (x + 1)');
@@ -33,7 +37,9 @@ describe('v132 micro-audit: parenthesized expression backtrack (this._pos → th
   });
 
   it('arrow function (x, y) => x + y still works after fix', () => {
-    const r = compile('tetap fn = (x, y) => x + y\nBuat ruang:\n    teks = fn(1, 2)');
+    const r = compile(
+      'tetap fn = (x, y) => x + y\nBuat ruang:\n    teks = fn(1, 2)'
+    );
     expect(r.success).toBe(true);
     expect(r.js).toContain('(x, y) => (x + y)');
   });
@@ -45,19 +51,25 @@ describe('v132 micro-audit: parenthesized expression backtrack (this._pos → th
   });
 
   it('single-param arrow (x) => x * 2 still works', () => {
-    const r = compile('tetap fn = (x) => x * 2\nBuat ruang:\n    teks = fn(5)');
+    const r = compile(
+      'tetap fn = (x) => x * 2\nBuat ruang:\n    teks = fn(5)'
+    );
     expect(r.success).toBe(true);
     expect(r.js).toContain('(x) => (x * 2)');
   });
 
   it('nested parentheses ((a + b)) work', () => {
-    const r = compile('tetap a = 1\ntetap b = 2\ntetap x = ((a + b))\nBuat ruang:\n    teks = x');
+    const r = compile(
+      'tetap a = 1\ntetap b = 2\ntetap x = ((a + b))\nBuat ruang:\n    teks = x'
+    );
     expect(r.success).toBe(true);
     expect(r.js).toContain('const x = (a + b)');
   });
 
   it('(a + b) * c works (parens change precedence)', () => {
-    const r = compile('tetap a = 1\ntetap b = 2\ntetap c = 3\ntetap x = (a + b) * c\nBuat ruang:\n    teks = x');
+    const r = compile(
+      'tetap a = 1\ntetap b = 2\ntetap c = 3\ntetap x = (a + b) * c\nBuat ruang:\n    teks = x'
+    );
     expect(r.success).toBe(true);
     expect(r.js).toContain('const x = ((a + b) * c)');
   });
