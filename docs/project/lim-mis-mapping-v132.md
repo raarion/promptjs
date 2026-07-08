@@ -22,7 +22,7 @@
 | LIM-02 | `turunan` computed values not reactive in display | Overlaps with backlog [#80](https://github.com/raarion/promptjs/issues/80) | #80 | `docs/language/reactivity.md` (documented in `9415eb5`); `tests/v10-turunan-cycle-hoisting.test.js` (computed dependency mechanics) | **Partial — documented, not fully solved.** `turunan` recomputes correctly and works inside `Saat` (`Saat computed:` re-renders on every dependency change — verified). But a *direct* one-shot property assignment (`teks = <turunan>`, no `Saat`) is a snapshot, not a live binding — same caveat as plain `data`. Docs now say this explicitly; ergonomic direct-binding support remains backlog per #80. | "`turunan` is reactive when read inside `Saat` (or watched via `__watch`); direct property assignment without `Saat` is a one-time snapshot — this is documented, not silently broken." |
 | LIM-03 | No keyed list reconciliation (full re-render on change) | — (solved pre-`21fe9e0`) | closed via #47–#49 roadmap (K1a/K1b) | `tests/v7-keyed-list.test.js`, `tests/v7-list-integrity.test.js`, `docs/language/reactivity.md` §"Diff Berkunci" | **✅ Fixed.** `Ulangi untuk ... dari <reactive> dengan kunci <expr>:` performs real keyed diff reconciliation over actual DOM nodes (`Map<key, node>`, reused/reordered via `insertBefore`), landed in v1.3.1 well before this stress-test round. Confirmed present and tested on current `v132` HEAD. | "Keyed list reconciliation is implemented and tested (`dengan kunci`)." |
 | LIM-04 | No component lifecycle hooks (`onMount`, `onDestroy`) | — (solved pre-`21fe9e0`) | — | `docs/language/keywords.md` (`dipasang`/`dilepas`), `src/compiler/emitters/statements.js` (`visitLifecycleStatement`) | **✅ Fixed.** `dipasang`/`mounted` and `dilepas`/`unmounted` lifecycle hooks exist and compile to the SPA mount/unmount factory functions. Confirmed present on current `v132` HEAD. | "Lifecycle hooks (`dipasang`/`dilepas`) are implemented." |
-| LIM-05 | No CSS scoping — all styles global | [#79](https://github.com/raarion/promptjs/issues/79) | #79 | `src/engine/css.js` (`scopeSelector`, `processGayaBlocks`), `src/engine/builder.js` (passes `scope` per page) | **❌ Open — backlog, deferred. STATUS CORRECTED (v132 Lapis 1–3 Stabilization Pass, 2026-07-07): this is NOT "not started."** Direct compile+build verification shows the CSS-string side is fully implemented and wired into the multi-page builder (`scopeSelector` produces real `[data-pjs-<scope>]` attribute selectors, and `buildProject` passes a `scope` per page) — but the compiler NEVER stamps the matching `data-pjs-*` attribute onto any actual DOM element (confirmed via `grep -rln "data-pjs" src/` — the string only appears in `css.js`, never in the compiler/statement emitters). The correct status is **"partially wired, non-functional end-to-end"**: a scoped selector is generated but can never match a real element, so scoped styling silently does nothing (no error, no warning, build succeeds normally). The legacy single-file build mode (`src/cli/commands/build.js`, no `pages/` directory) doesn't even attempt scoping — it never passes a `scope` option at all, so CSS there is always global by simple omission, not by the same half-implemented mechanism. Existing tests (`tests/css-scoped-alias.test.js`, `tests/builder-integration.test.js`) only assert on the generated CSS string, never on the corresponding DOM/JS output, which is why this gap was not caught earlier. Full implementation (stamping the attribute in `visitBuatStatement`/`visitKomponenDeclaration`) requires a Lapis 4 (CSS Architecture) design decision before proceeding — NOT fixed in this stabilization pass, per its explicit "don't implement #79 fixes here" scope. | "CSS scoping infrastructure in v132 is partially wired (CSS-string generation + builder plumbing exist) but does not function end-to-end (no DOM attribute is ever stamped) — automatic component-scoped styles remain a real gap, tracked in [#79](https://github.com/raarion/promptjs/issues/79), pending a Lapis 4 design decision." |
+| LIM-05 | No CSS scoping — all styles global | [#79](https://github.com/raarion/promptjs/issues/79) | #79 | `src/engine/css.js` (`scopeSelector`, `processGayaBlocks`, `buildScopeId`, `sanitizeScopeName`), `src/engine/promptjs.js` (opt-in detection + AST scope flags), `src/compiler/promptjs-compiler.js` (`currentCssScopeAttr`, `_componentScopeStack`), `src/compiler/emitters/statements.js` (`visitKomponenDeclaration`, `visitBuatStatement` — DOM stamping), `src/engine/builder.js` (per-page scope, now opt-in-gated), `tests/v21-css-scoping.test.js` (21 tests) | **✅ Implemented (2026-07-08), STATUS UPDATED from "partially wired, non-functional end-to-end."** CSS scoping is now opt-in via `gayaCakupan: benar` front-matter (never on by default — existing projects are byte-identical without it). Scope naming follows the maintainer's decision recorded on issue #79 (2026-07-07): `data-pjs-<fileScope>` for page/file-level `Gaya:` blocks, `data-pjs-<fileScope>-<componentName>` for component-level ones — so two different files declaring a same-named `Komponen` never collide. The compiler now actually stamps the matching `data-pjs-*` attribute on every element created inside the relevant scope (`visitKomponenDeclaration` for the component root, `visitBuatStatement` for every element, tracked via a `_componentScopeStack` push/pop mirroring the existing `_saatCleanupStack` pattern), so the CSS selector's `[data-pjs-*]` attribute selector genuinely matches real DOM nodes — verified end-to-end via jsdom (computed style assertions, not just string containment). Dev server, project builder, and legacy CLI build (including `--prerender`) all derive the SAME scope id for the same file, verified by dedicated tests. The previously-silent bug where `buildProject` passed a `scope` to every page UNCONDITIONALLY (which would have made DOM-stamping a surprise breaking change) was fixed as part of this work — scoping is now applied only when a page explicitly opts in. Remaining known limitation: because `Gaya:` extraction still happens via string/indentation scanning BEFORE lexing (not a full AST pass — see Lapis 4 audit's design section F, option (b), accepted for this implementation), component-boundary detection can theoretically mis-track boundaries inside deeply unusual comment/string constructs; ordinary code is unaffected (verified with block comments, string literals, and `--`/`//` line comments containing component-like text). Issue kept **open** pending maintainer's explicit closure decision — closure is not implied by this status update. | "CSS scoping is implemented as an explicit opt-in (`gayaCakupan: benar`); without it, projects remain unchanged (100% global, byte-identical). When enabled, styles are scoped per file and per component (`data-pjs-<file>[-<component>]`), matching real DOM attributes stamped by the compiler — verified end-to-end, not just at the CSS-string level ([#79](https://github.com/raarion/promptjs/issues/79))." |
 | LIM-06 | No nested components | — (solved pre-`21fe9e0`) | — | `docs/language/components.md`, `tests/components.test.js`, `tests/v7-component-default-params.test.js` | **✅ Fixed.** Components can reference/instantiate other components (`Gunakan <Nama>(...)`) and nest arbitrarily. Confirmed present and tested. What remains open is *slots/transclusion* specifically (passing child content INTO a component) — tracked separately as [#82](https://github.com/raarion/promptjs/issues/82), not the same as "no nested components." | "Nested components work; passing arbitrary child content into a component (slots) is separate backlog ([#82](https://github.com/raarion/promptjs/issues/82))." |
 | LIM-07 | No form input two-way binding | — (solved pre-`21fe9e0`) | — | `docs/language/reactivity.md` §"Two-way Binding"; `tests/v7-two-way-binding.test.js` | **✅ Fixed.** `ikat`/`bind` inside a form element body wires `.value` both ways (`state -> input` and `input -> state`) with zero vanilla JS. Confirmed present, tested, and — as of `5dec780` — leak-free even when declared inside a re-rendering `Saat` block. | "Two-way binding (`ikat`) is implemented and tested." |
 | LIM-08 | No comment syntax that works everywhere | — (solved pre-`21fe9e0`) | #76 (BUG-04, closed) | `e24a30a`, `f46bb54`; `tests/v11-block-comments.test.js`, `tests/v13-comment-stripping-regression.test.js` | **✅ Fixed.** Block comments (`/* ... */`) now work inside `Gaya:` blocks and PromptJS code generally, including string-aware stripping so URLs/CSS `content` values aren't corrupted. | "Block comment support (`/* ... */`) works throughout PromptJS source, including inside `Gaya:` blocks." |
@@ -81,7 +81,10 @@ keputusan apakah masuk v132 malam ini atau masuk v1.3.3/v1.4.0").
 
 ### CSS scoping design decision (#79)
 
-**Decision: Deferred to v1.3.3, NOT v132.**
+**Decision: Implemented on `v132` (2026-07-08), opt-in — see "Implementation
+status" below.** The design below is kept for historical record; the
+"Implementation status" note reflects what actually shipped, including the
+maintainer's follow-up naming decision (issue #79 comment, 2026-07-07).
 
 **Recommended model:** opt-in, compile-time-generated scope attribute —
 mirrors Vue's `data-v-xxxxxx` approach because it requires no runtime
@@ -108,13 +111,53 @@ composes cleanly with the existing zero-dependency-output philosophy.
   compiled OUTPUT element regardless of tag, so it is compatible with any
   future dynamic-tag-name support (MIS-07) without redesign.
 
-**Why v1.3.3, not v132:** this needs new compiler passes (selector rewriting,
-hash generation, directive parsing) plus a full test matrix (scoped vs
-global, opt-in directive parsing, build/prerender inlining with scope
-attributes, nested-component interaction) — realistically a half-day-plus of
-focused work, not a same-night fast-track addition. Shipping it rushed risks
-exactly the kind of "half-working feature" the fast-track plan explicitly
-forbids ("jangan merge fitur yang hanya setengah jalan").
+**Why v1.3.3, not v132 (original plan):** this needed new compiler passes
+(selector rewriting, scope-id generation, directive parsing) plus a full test
+matrix (scoped vs global, opt-in directive parsing, build/prerender inlining
+with scope attributes, nested-component interaction) — realistically more
+than a same-night fast-track addition, hence the original deferral.
+
+**Implementation status (2026-07-08):** implemented on `v132` following the
+Lapis 4 CSS Architecture Audit (`docs/project/lapis-4-css-architecture-audit-v132.md`)
+and a subsequent maintainer decision on issue #79 recorded 2026-07-07T17:19:29Z.
+Differences from the original draft above:
+
+- **Scope naming uses file + component, not a hash.** Maintainer decision:
+  `data-pjs-<fileScope>` for page/file-level `Gaya:`, `data-pjs-<fileScope>-
+  <componentScope>` for component-level `Gaya:` — chosen over a
+  component-only or content-hash scheme specifically to prevent collisions
+  when two different files declare a same-named `Komponen` (e.g. two
+  `Komponen Kartu` in `home.pjs` and `dashboard.pjs`). Both segments are
+  sanitized/lowercased deterministically (`sanitizeScopeName` in
+  `src/engine/css.js`), so the same inputs always produce the same output
+  across dev/build/prerender.
+- **Granularity is per-component, not per-file**, correcting the pre-existing
+  builder behavior the Lapis 4 audit found (`buildProject` used to pass one
+  scope for an entire page, so two components in the same file would have
+  collided under the ORIGINAL half-implemented mechanism). Implemented via a
+  compiler-side `_componentScopeStack` (mirrors the existing
+  `_saatCleanupStack` push/pop pattern) that tracks the innermost currently-
+  open `Komponen` while emitting `visitBuatStatement`/`visitKomponenDeclaration`.
+- **DOM stamping is real**, not just a CSS-string transform: every element
+  the compiler emits gets `setAttribute("data-pjs-<scope>", "")` when
+  scoping is active, so the CSS selector's `[data-pjs-*]` attribute selector
+  genuinely matches — verified via jsdom (`tests/v21-css-scoping.test.js`),
+  including a computed-style assertion, not just string containment.
+- **Builder no longer scopes silently.** The Lapis 4 audit found that
+  `Builder.buildProject` ALREADY passed a `scope` to every page unconditionally
+  — a latent bug that would have made DOM-stamping a surprise breaking change
+  the moment it shipped. This was fixed as part of #79's implementation: a
+  page is only scoped when its OWN front-matter has `gayaCakupan: benar`.
+- **`:global(...)` escape hatch was NOT implemented** in this pass (not
+  requested, kept out of scope to avoid widening #79's fix) — global styles
+  are achieved today simply by not opting a file into scoping, which remains
+  fully supported and is the default.
+- Dev server, project builder, and legacy CLI build (`pjs build`, including
+  `--prerender`) were all verified to derive the SAME scope id for the same
+  file — no inconsistency between the three output paths.
+
+Issue #79 is **left open** pending the maintainer's own explicit closure
+decision — this document update is a status correction, not a closure.
 
 ### Routing guards design decision (#81)
 

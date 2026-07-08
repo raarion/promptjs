@@ -147,7 +147,16 @@ describe('v0.4.0 — Builder Integration', () => {
   });
 
   describe('buildProject — CSS support', () => {
-    it('extracts CSS and writes prompt.css', () => {
+    it('extracts CSS and writes prompt.css (no opt-in -> global, no scope attribute)', () => {
+      // v132 #79 fix: `buildProject` used to pass a `scope` to EVERY page
+      // unconditionally (page-file-basename), which silently produced
+      // scoped-looking `[data-pjs-*]` selectors even for projects that
+      // never opted in — a byte-level compatibility break waiting to
+      // happen the moment DOM-stamping was implemented. Scoping is now
+      // gated exclusively behind the `gayaCakupan: benar` front-matter
+      // opt-in (see engine/promptjs.js), so a page WITHOUT that directive
+      // must produce plain, unscoped selectors — identical to pre-#79
+      // output shape.
       writeTempFile(
         tmp.dir,
         'pages/index.pjs',
@@ -173,7 +182,42 @@ describe('v0.4.0 — Builder Integration', () => {
       expect(existsTempFile(tmp.dir, 'dist/prompt.css')).toBe(true);
 
       const css = readTempFile(tmp.dir, 'dist/prompt.css');
+      // No opt-in -> no scope attribute selector anywhere.
+      expect(css).not.toContain('data-pjs');
+      expect(css).toContain('h1 {');
+
+      const js = readTempFile(tmp.dir, 'dist/prompt.js');
+      expect(js).not.toContain('data-pjs');
+    });
+
+    it('opt-in via gayaCakupan: benar scopes CSS AND stamps matching DOM attributes', () => {
+      writeTempFile(
+        tmp.dir,
+        'pages/index.pjs',
+        [
+          '---',
+          'gayaCakupan: benar',
+          '---',
+          'Gaya:',
+          '    h1',
+          '        color: #333',
+          '',
+          'Buat h1: "Hello"',
+        ].join('\n')
+      );
+
+      const result = Builder.buildProject({
+        rootDir: tmp.dir,
+        outDir: path.join(tmp.dir, 'dist'),
+        pagesDir: 'pages',
+      });
+
+      expect(result.errors).toEqual([]);
+      const css = readTempFile(tmp.dir, 'dist/prompt.css');
       expect(css).toContain('h1[data-pjs-index]');
+
+      const js = readTempFile(tmp.dir, 'dist/prompt.js');
+      expect(js).toContain('setAttribute("data-pjs-index"');
     });
 
     it('includes CSS link in HTML', () => {

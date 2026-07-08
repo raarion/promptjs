@@ -166,6 +166,19 @@ function install(PromptJSCompiler, accept) {
     }
     this.emit(`const __root = document.createElement("div");`);
 
+    // v132 #79: CSS scoping -- push this component's name so any element
+    // created while visiting its body (visitBuatStatement, nested list/Saat
+    // markers, etc.) is stamped with `data-pjs-<fileScope>-<componentName>`
+    // instead of the page/file-level scope. A NESTED `Komponen` declared
+    // inside this one's body pushes its OWN name on top (see below), so its
+    // elements correctly get their own component's scope, not the parent's
+    // -- popped back off when that nested component's body finishes.
+    this._componentScopeStack.push(node.name);
+    const scopeAttr = this.currentCssScopeAttr();
+    if (scopeAttr) {
+      this.emit(`__root.setAttribute(${JSON.stringify(scopeAttr)}, "");`);
+    }
+
     // Set currentParent so child elements append to __root
     const prevParent = this.currentParent;
     this.currentParent = '__root';
@@ -174,6 +187,7 @@ function install(PromptJSCompiler, accept) {
     if (node.body) accept(node.body, this);
 
     this.currentParent = prevParent;
+    this._componentScopeStack.pop();
 
     this.emit(`return __root;`);
     this.indent--;
@@ -325,6 +339,23 @@ function install(PromptJSCompiler, accept) {
     this._inBuatBody = true;
 
     this.emit(`const ${varName} = document.createElement("${tag}");`);
+
+    // v132 #79: CSS scoping -- stamp EVERY element created here (not just
+    // the component's root) with the currently-active scope attribute, so
+    // a `Gaya:` selector's compound-selector-1 (the only part `scopeSelector`
+    // actually attaches `[data-pjs-*]` to -- descendant parts of a selector
+    // like `.card h3` are left as plain `h3` and rely on the DOM's real
+    // descendant relationship to match) matches regardless of which element
+    // inside the component/page it targets. This mirrors how Vue's scoped
+    // CSS stamps every template element with the same `data-v-xxxx`, rather
+    // than trying to infer (at compile time, with no cross-reference between
+    // CSS selectors and markup) exactly which element each selector's first
+    // compound targets. A no-op (emits nothing) when scoping is not opted
+    // into for this file (`currentCssScopeAttr()` returns null).
+    const __cssScopeAttr = this.currentCssScopeAttr();
+    if (__cssScopeAttr) {
+      this.emit(`${varName}.setAttribute(${JSON.stringify(__cssScopeAttr)}, "");`);
+    }
 
     if (node.selector.id) {
       this.emit(`${varName}.id = "${node.selector.id}";`);

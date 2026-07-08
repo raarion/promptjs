@@ -13,9 +13,9 @@ Directives are configurations placed at the top of a `.pjs` file. They control c
 
 ## Daftar Direktif Perilaku / Behavioral Directive List
 
-Direktif berikut mengubah perilaku kompilasi. Enam di antaranya dikenali dalam bentuk implisit (tanpa `---`):
+Direktif berikut mengubah perilaku kompilasi. Tujuh di antaranya dikenali dalam bentuk implisit (tanpa `---`):
 
-The following directives change compilation behavior. Six of these are recognized in implicit form (without `---`):
+The following directives change compilation behavior. Seven of these are recognized in implicit form (without `---`):
 
 | Direktif | Tipe Nilai | Default | Deskripsi / Description |
 |----------|-----------|---------|-------------------------|
@@ -25,6 +25,7 @@ The following directives change compilation behavior. Six of these are recognize
 | `redirect` | string (path) | `/login` | Redirect jika tidak terautentikasi / Redirect if unauthenticated |
 | `tokenKey` | string | `token` | Kunci penyimpanan token / Storage key for auth token |
 | `peran` | string | — | Peran yang diizinkan / Required role for access |
+| `gayaCakupan` | `benar` / `true` | `salah` | Aktifkan CSS scoping opt-in / Enable opt-in CSS scoping |
 
 ## Daftar Direktif Data / Data Directive List
 
@@ -66,12 +67,12 @@ Halaman:
 
 ### Bentuk Implisit / Implicit Form
 
-Hanya 6 direktif perilaku yang dikenali tanpa pembatas. Pemindaian berhenti pada baris kosong, baris bukan-direktif, atau `---`.
+Hanya 7 direktif perilaku yang dikenali tanpa pembatas. Pemindaian berhenti pada baris kosong, baris bukan-direktif, atau `---`.
 
-Only 6 behavioral directives are recognized without delimiters. Scanning stops at a blank line, non-directive line, or `---`.
+Only 7 behavioral directives are recognized without delimiters. Scanning stops at a blank line, non-directive line, or `---`.
 
 **Direktif yang dikenali secara implisit / Implicitly recognized directives:**
-`router`, `adapter`, `butuhAuth`, `redirect`, `tokenKey`, `peran`
+`router`, `adapter`, `butuhAuth`, `redirect`, `tokenKey`, `peran`, `gayaCakupan`
 
 ```pjs
 butuhAuth: benar
@@ -131,6 +132,38 @@ Storage key for the auth token. Default: `token`. Overrides the key extracted fr
 Peran yang diizinkan mengakses halaman. Setelah pengecekan token, kompilator menambahkan pengecekan peran tambahan. Jika `localStorage.getItem('__peran')` tidak cocok, akses ditolak. Saat ini hanya mendukung satu peran per halaman.
 
 Role allowed to access the page. After token check, the compiler adds an additional role check. If `localStorage.getItem('__peran')` doesn't match, access is denied. Currently supports only a single role per page.
+
+### `gayaCakupan: benar`
+
+Mengaktifkan **CSS scoping opt-in** (lihat [issue #79](https://github.com/raarion/promptjs/issues/79)). Secara default (tanpa direktif ini), `Gaya:`/`Style:` bersifat GLOBAL — perilaku tidak berubah untuk proyek lama. Saat diaktifkan:
+
+- Setiap elemen di dalam sebuah `Komponen` mendapat atribut `data-pjs-<namafile>-<namakomponen>`.
+- Setiap elemen top-level halaman (di luar `Komponen` mana pun) mendapat atribut `data-pjs-<namafile>`.
+- Selector CSS di blok `Gaya:`/`Style:` yang sesuai otomatis ditulis ulang menjadi `[data-pjs-<scope>]` agar cocok dengan atribut tersebut.
+- Nama file dan nama komponen di-sanitasi (huruf kecil, karakter non-alfanumerik diganti `-`) sehingga deterministik di semua jalur (`pjs serve`, `pjs build`, `pjs build --prerender`, multi-page project builder).
+
+Enables **opt-in CSS scoping** (see [issue #79](https://github.com/raarion/promptjs/issues/79)). By default (without this directive), `Gaya:`/`Style:` remains GLOBAL — no behavior change for existing projects. When enabled:
+
+- Every element inside a `Komponen` gets a `data-pjs-<fileName>-<componentName>` attribute.
+- Every page-level top-level element (outside any `Komponen`) gets a `data-pjs-<fileName>` attribute.
+- CSS selectors in the corresponding `Gaya:`/`Style:` block are automatically rewritten to the matching `[data-pjs-<scope>]` attribute selector.
+- File and component names are sanitized (lowercased, non-alphanumeric characters replaced with `-`) so the scope id is deterministic across every path (`pjs serve`, `pjs build`, `pjs build --prerender`, the multi-page project builder).
+
+Contoh / Example:
+
+```pjs
+---
+gayaCakupan: benar
+---
+Komponen Kartu(judul):
+    Gaya:
+        .kartu
+            background: white
+    Buat div.kartu:
+        Buat h3: judul
+```
+
+Menghasilkan CSS `.kartu[data-pjs-home-kartu] { background: white; }` (jika nama file `home.pjs`) dan DOM `<div class="kartu" data-pjs-home-kartu>`.
 
 ---
 

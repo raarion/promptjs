@@ -80,9 +80,58 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
   const filename = this.options.source || 'unknown.pjs';
   const source = Plugins.transformSource(plugins, sourceInput, filename);
 
+  // ── v132 #79: CSS scoping opt-in detection ──────────────────────────────
+  // `gayaCakupan: benar` (front-matter) opts a file into scoped `Gaya:`
+  // output (both the CSS selector string AND a matching DOM attribute
+  // stamped by the compiler — see below). Front-matter is normally only
+  // available AFTER the real Lexer.tokenize() call, which itself only runs
+  // on `cleanSource` (i.e. AFTER CSS extraction). To break this chicken-
+  // and-egg dependency, peek-tokenize the RAW `source` here just to read
+  // `.frontMatter` — front-matter lines are always the very first lines of
+  // a file (either `---`-delimited or implicit known-directives), entirely
+  // independent of any `Gaya:`/`Style:` block appearing later, so this is
+  // safe even if the peek encounters CSS-derived tokens the lexer doesn't
+  // understand (e.g. `@media`) elsewhere in the file — those diagnostics
+  // are intentionally discarded; only `.frontMatter` is used here.
+  //
+  // IMPORTANT (fixes a real bug found during the #79 Lapis 4 audit):
+  // `this.options.scope`, if a caller (e.g. Builder.buildPage) passes one,
+  // must NEVER cause scoping on its own — before this fix, `buildProject`
+  // silently passed a per-page `scope` unconditionally, which would have
+  // made EVERY existing project's CSS "scoped" (and, once DOM-stamping is
+  // added, actually visibly different) the moment stamping was implemented,
+  // with zero consent. Scoping is now gated ONLY by the explicit front-
+  // matter opt-in, never by the mere presence of a `scope` option.
+  let cssScopingEnabled = false;
+  try {
+    const fmPeek = Lexer.tokenize(source);
+    if (fmPeek.frontMatter && fmPeek.frontMatter.length > 0) {
+      const peekFrontMatter = Lexer.parseFrontMatter(fmPeek.frontMatter);
+      if (peekFrontMatter && peekFrontMatter.gayaCakupan) {
+        const gcRaw = peekFrontMatter.gayaCakupan;
+        const gcVal = gcRaw && gcRaw.value !== undefined ? gcRaw.value : gcRaw;
+        cssScopingEnabled = gcVal === true || gcVal === 'benar' || gcVal === 'true';
+      }
+    }
+  } catch {
+    // A peek failure must never break the real compile pipeline below —
+    // fall back to scoping disabled (safest / most backward-compatible).
+    cssScopingEnabled = false;
+  }
+
+  // File-level scope id: prefer an explicit `options.scope` (e.g. Builder
+  // passes the page's file basename) so existing callers keep the same
+  // naming; otherwise derive it from `options.source` (also a filename in
+  // `compileFile()`, defaults to `"promptjs"`/`"unknown.pjs"` for direct
+  // `compile()` calls). Computed unconditionally — it's inert unless
+  // `cssScopingEnabled` is true.
+  const cssFileScope = this.options.scope || String(filename).replace(/\.pjs$/i, '') || 'promptjs';
+
   // ── Wave I: CSS extraction (before lexing) ─────────────────────────────
-  // Extract Gaya:/Style: blocks from source, produce CSS + clean source
-  const cssResult = CSS.processGayaBlocks(source, this.options.scope);
+  // Extract Gaya:/Style: blocks from source, produce CSS + clean source.
+  // Scoping (selector-string side) only actually applies when the opt-in
+  // above is active — see `extractGayaBlocks`'s `opts.scoped` gate.
+  const cssResult = CSS.processGayaBlocks(source, cssFileScope, { scoped: cssScopingEnabled });
   let css = cssResult.css;
   const cleanSource = cssResult.cleanSource;
 
@@ -149,6 +198,11 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
     'share',
     'terima',
     'get',
+    // v132 #79: opt-in CSS scoping directive — handled above (CSS
+    // extraction stage) and by the compiler, not the parser. Without this
+    // entry, `gayaCakupan: benar` would leak into the AST as a spurious
+    // `const gayaCakupan = "benar";` TetapDeclaration in the compiled JS.
+    'gayaCakupan',
   ]);
   let parserFrontMatter = frontMatterData;
   if (frontMatterData) {
@@ -341,6 +395,12 @@ PromptJSEngine.prototype.compile = function (sourceInput, options) {
     analyzeResult.ast.authToken = authToken;
     analyzeResult.ast.authTokenKey = authTokenKey;
     analyzeResult.ast.authPeran = authPeran;
+    // v132 #79: CSS scoping opt-in — compiler needs both the flag (whether
+    // to stamp `data-pjs-*` attributes at all) and the file-level scope
+    // segment (to build `<fileScope>` / `<fileScope>-<componentName>` ids
+    // identical to the ones `CSS.processGayaBlocks` already used above).
+    analyzeResult.ast.cssScopingEnabled = cssScopingEnabled;
+    analyzeResult.ast.cssFileScope = cssFileScope;
   }
 
   const compiler = new Compiler();

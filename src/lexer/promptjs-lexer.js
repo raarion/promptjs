@@ -600,6 +600,8 @@
       'share',
       'terima',
       'get',
+      // v132 #79: opt-in CSS scoping directive
+      'gayaCakupan',
     ]);
     // Skip leading blank lines, then scan for consecutive known directives
     let fmScanStarted = false;

@@ -309,9 +309,21 @@ Gaya:
         font-weight: bold
 ```
 
-Blok `Gaya` (atau `Style`) diekstrak SEBELUM lexing. CSS di-scope via `[data-pjs-<scope>]`. Mendukung selector CSS standar termasuk pseudo-class seperti `:hover`.
+Blok `Gaya` (atau `Style`) diekstrak SEBELUM lexing. Secara default, CSS bersifat **global** (perilaku sama seperti sebelumnya, tidak berubah untuk proyek lama). Tambahkan front-matter `gayaCakupan: benar` untuk mengaktifkan **CSS scoping opt-in**: setiap elemen di dalam sebuah `Komponen` di-stamp dengan atribut `data-pjs-<namafile>-<namakomponen>`, dan `Gaya:` top-level halaman (di luar `Komponen` mana pun) di-stamp dengan `data-pjs-<namafile>`. Selector CSS otomatis ditulis ulang menjadi `[data-pjs-<scope>]` yang cocok. Mendukung selector CSS standar termasuk pseudo-class seperti `:hover`.
 
-The `Gaya` (or `Style`) block is extracted BEFORE lexing. CSS is scoped via `[data-pjs-<scope>]`. Supports standard CSS selectors including pseudo-classes like `:hover`.
+```pjs
+---
+gayaCakupan: benar
+---
+Komponen Kartu(judul):
+    Gaya:
+        .kartu
+            background: white
+    Buat div.kartu:
+        Buat h3: judul
+```
+
+The `Gaya` (or `Style`) block is extracted BEFORE lexing. By default, CSS is **global** (unchanged behavior for existing projects). Add the front-matter directive `gayaCakupan: benar` to opt into **CSS scoping**: every element inside a `Komponen` is stamped with a `data-pjs-<fileName>-<componentName>` attribute, and page-level `Gaya:` (outside any `Komponen`) is stamped with `data-pjs-<fileName>`. CSS selectors are automatically rewritten to the matching `[data-pjs-<scope>]` attribute selector. Supports standard CSS selectors including pseudo-classes like `:hover`.
 
 ---
 
