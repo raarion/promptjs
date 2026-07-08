@@ -322,6 +322,7 @@ const nodeTypes = [
   'Literal',
   'Identifier',
   'BinaryExpression',
+  'AssignmentExpression',
   'UnaryExpression',
   'ConditionalExpression',
   'MemberExpression',

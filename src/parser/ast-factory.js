@@ -1068,6 +1068,26 @@ function buatBinaryExpression(operator, left, right, loc) {
 }
 
 /**
+ * Membuat node `AssignmentExpression` — assignment statement
+ * `obj.prop = value`, `window.foo = true`, dsb.
+ *
+ * #92: Parser gap fix — dot-notation assignment was silently dropped.
+ *
+ * @param {ASTNode} left - LHS (MemberExpression or Identifier)
+ * @param {ASTNode} right - RHS (any expression)
+ * @param {SourceLocation} [loc] - Lokasi
+ * @returns {Object} { type: 'AssignmentExpression', left, right, loc }
+ */
+function buatAssignmentExpression(left, right, loc) {
+  return {
+    type: 'AssignmentExpression',
+    loc: ensureLoc(loc),
+    left: left,
+    right: right,
+  };
+}
+
+/**
  * Membuat node `UnaryExpression` — operasi uner (mis. `-x`, `tidak aktif`).
  *
  * @param {string} operator - Operator ('-', '!', 'tidak'/'not')
@@ -1362,6 +1382,7 @@ module.exports = {
   buatIdentifier: buatIdentifier,
   buatArrowFunctionExpression: buatArrowFunctionExpression,
   buatBinaryExpression: buatBinaryExpression,
+  buatAssignmentExpression: buatAssignmentExpression,
   buatUnaryExpression: buatUnaryExpression,
   buatConditionalExpression: buatConditionalExpression,
   buatMemberExpression: buatMemberExpression,

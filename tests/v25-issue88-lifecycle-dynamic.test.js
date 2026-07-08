@@ -1,6 +1,7 @@
 'use strict';
 
 import { describe, it, expect } from 'vitest';
+const { JSDOM } = require('jsdom');
 
 /**
  * #88 — Regression tests: dipasang/dilepas hooks in dynamic components
@@ -167,7 +168,7 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
     const src = [
       '---', 'router: benar', '---', '',
       'Komponen Box():',
-      '    dipasang:', '        console.log("__boxMounted")',
+      '    dipasang:', '        window.__boxMounted = true',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -176,17 +177,20 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
     const r = compileSPA(src);
     expect(r.success).toBe(true);
 
-    // The compiled factory must contain an immediately-invoked IIFE
-    // with the console.log call — NOT a __dipasangFns.push.
-    // Verify codegen shape: IIFE wrapping the lifecycle body.
-    const factoryBody = extractFactoryBody(r.js, 'Box');
-    expect(factoryBody).not.toBeNull();
-    // IIFE is present (not deferred push)
-    expect(factoryBody).toContain('(function() {');
-    expect(factoryBody).toContain('console.log("__boxMounted")');
-    expect(factoryBody).toContain('})();');
-    // No deferred push
-    expect(factoryBody).not.toContain('__dipasangFns.push');
+    // Extract ALL definitions and the Gunakan/instance calls
+    const returnIdx = r.js.lastIndexOf('return {');
+    const beforePage = r.js.substring(0, returnIdx > 0 ? returnIdx : r.js.length);
+
+    const dom = new JSDOM(
+      '<!DOCTYPE html><html><head></head><body></body></html>',
+      { runScripts: 'dangerously', url: 'http://localhost' },
+    );
+
+    // Eval factory definitions + instance creation
+    dom.window.eval(beforePage);
+
+    // After fix + #92 parser fix: assignment executed inside IIFE
+    expect(dom.window.__boxMounted).toBe(true);
   });
 
   // ── 9. Component dipasang WITHOUT Buat (no auto-fragment) ─────────
@@ -213,7 +217,7 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
     const src = [
       '---', 'router: benar', '---', '',
       'Komponen Box():',
-      '    dilepas:', '        console.log("cleanup")',
+      '    dilepas:', '        window.__boxCleaned = true',
       '    Buat div: "box"',
       '',
       'Buat Box()',
@@ -226,7 +230,7 @@ describe('#88 — dipasang/dilepas lifecycle in dynamic components', () => {
     // dilepas is IIFE (same as dipasang) — fires at factory call, not DOM remove
     expect(fb).not.toContain('__dilepasFns.push');
     expect(fb).toContain('(function() {');
-    expect(fb).toContain('console.log("cleanup")');
+    expect(fb).toContain('window.__boxCleaned = true');
   });
 
   // ── 11. Nested component: inner dipasang also uses IIFE ───────────

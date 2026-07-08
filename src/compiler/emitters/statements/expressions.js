@@ -58,6 +58,13 @@ function install(PromptJSCompiler, _accept) {
     return this.lowerExpression(node);
   };
 
+  // #92: Assignment expression — emit as statement (e.g. window.foo = true)
+  PromptJSCompiler.prototype.visitAssignmentExpression = function (node) {
+    const code = this.lowerExpression(node);
+    this.emit(code + ';');
+    return code;
+  };
+
   PromptJSCompiler.prototype.visitMemberExpression = function (node) {
     const code = this.lowerExpression(node);
     if (this.currentParent && this._inBuatBody) {

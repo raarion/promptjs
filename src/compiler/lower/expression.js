@@ -132,6 +132,12 @@ function lowerExpression(compiler, node) {
       const objCode = lowerExpression(compiler, node.object);
       return `${objCode}.${prop}`;
     }
+    // #92: Assignment expression (obj.prop = value, window.foo = true)
+    case 'AssignmentExpression': {
+      const leftCode = lowerExpression(compiler, node.left);
+      const rightCode = lowerExpression(compiler, node.right);
+      return `${leftCode} = ${rightCode}`;
+    }
     case 'CallExpression':
       return lowerCallExpression(compiler, node);
     case 'ObjectLiteral':

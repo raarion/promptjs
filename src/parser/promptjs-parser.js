@@ -138,7 +138,8 @@ PromptJSParser.prototype.parse = function (tokens, frontMatterData) {
   while (!this._atEnd()) {
     const tok = this._peek();
     if (tok.type === TT.TK_EOF) break;
-    if (tok.type === TT.TK_INDENT || tok.type === TT.TK_DEDENT) {
+    if (tok.type === TT.TK_IDENT ||
+        tok.type === TT.TK_DEDENT) {
       this._advance(); // skip standalone indent/dedent
       continue;
     }
@@ -1130,7 +1131,9 @@ PromptJSParser.prototype._parseOnEventStatement = function () {
  * @returns {Object | null} AST node AttributeNode atau expression node, atau `null` jika tidak ada
  */
 PromptJSParser.prototype._parsePropertyOrExpr = function () {
-  // Check if this is key = value
+  // Check if this is key = value (simple property: "foo = bar")
+  // This MUST check peekAt(1) before consuming any tokens so it only
+  // matches bare identifiers followed immediately by "=".
   if (this._peekAt(1).type === TT.TK_ASSIGN) {
     const keyTok = this._advance(); // consume key IDENT
     this._advance(); // consume =
@@ -1138,8 +1141,18 @@ PromptJSParser.prototype._parsePropertyOrExpr = function () {
     return AST.buatPropertyNode(keyTok.value, value, this._makeLoc(keyTok), false);
   }
 
-  // Otherwise it's an expression statement
-  return this._parseExpression();
+  // #92: Parse as expression first, then check if followed by "=".
+  // This handles dot-notation assignment (window.foo = true, obj.prop = 1)
+  // which was previously silently dropped because the expression parser
+  // consumed "window.foo" but left "= true" unconsumed.
+  const left = this._parseExpression();
+  if (this._peek().type === TT.TK_ASSIGN) {
+    this._advance(); // consume =
+    const right = this._parseExpression();
+    return AST.buatAssignmentExpression(left, right, left.loc);
+  }
+
+  return left;
 };
 
 // --- Data declarations ---

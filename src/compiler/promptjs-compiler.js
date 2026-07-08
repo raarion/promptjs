@@ -607,6 +607,7 @@ PromptJSCompiler.prototype._validateNodeTypes = function (node) {
     'JalankanExpression',
     'RantaiAksi',
     'BinaryExpression',
+    'AssignmentExpression',
     'UnaryExpression',
     'ConditionalExpression',
     'MemberExpression',
