@@ -1,3 +1,0 @@
-- [CSS scoping — gayaCakupan](css-scoping-gaya-cakupan.md) — opt-in per-component CSS scoping; direct-owner-only scope assignment rule is critical.
-- [parseGayaRules trailing colon](css-trailing-colon.md) — PromptJS block-open syntax adds trailing colon to selectors; must be stripped in parseGayaRules.
-- [CheckJs cross-module prototype augmentation](checkjs-prototype-augmentation.md) — facade pattern that attaches methods to a prototype across files requires stubs in the class file for tsc checkJs to see the members.
