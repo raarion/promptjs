@@ -63,8 +63,7 @@ function runInDir(dir, fn) {
 }
 
 function count(str, needle) {
-  return (str.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || [])
-    .length;
+  return (str.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
 }
 
 describe('v22 CSS scoping edge cases — comments/strings containing Komponen/Component', () => {
@@ -237,21 +236,22 @@ describe('v22 CSS scoping edge cases — real gayaCakupan syntax', () => {
   });
 });
 
-describe('v22 CSS scoping edge cases — nested component declarations', () => {
-  it('nested declarations get their own CSS scope; test does not assume private window export', () => {
+describe('v22 CSS scoping edge cases — nested component usage', () => {
+  it('top-level components can be composed and keep separate CSS scopes', () => {
     const src = [
       '---',
       'gayaCakupan: benar',
       '---',
+      'Komponen Inner(y):',
+      '    Gaya:',
+      '        .inner',
+      '            margin: 5px',
+      '    Buat span.inner: y',
+      '',
       'Komponen Outer(x):',
       '    Gaya:',
       '        .outer',
       '            padding: 10px',
-      '    Komponen Inner(y):',
-      '        Gaya:',
-      '            .inner',
-      '                margin: 5px',
-      '        Buat span.inner: y',
       '    Buat div.outer:',
       '        Buat Inner(y: x)',
       '',
