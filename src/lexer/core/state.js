@@ -8,6 +8,8 @@
 
 'use strict';
 
+/** @typedef {import('./types.js').TokenizeResult} TokenizeResult */
+
 const tokenMod = require('./token');
 const TT = tokenMod.TT;
 const Token = tokenMod.Token;
@@ -280,6 +282,56 @@ PromptJSLexer.prototype.tokenize = function (source) {
 
   this.tokens.push(new Token(TT.TK_EOF, '', this.line, 0));
   return { tokens: this.tokens, errors: this.errors, frontMatter: this.frontMatter };
+};
+
+// ─── Prototype method stubs (implementations set by facade promptjs-lexer.js) ─
+// Declared here so TypeScript checkJs can see them on the type.
+
+/** @param {string} _l @returns {number} */
+PromptJSLexer.prototype._measureIndent = function (_l) {
+  return 0;
+};
+
+/** @param {number} _indent @param {number} _lineNum @returns {void} */
+PromptJSLexer.prototype._emitIndentDedent = function (_indent, _lineNum) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizeLine = function (_content, _lineNum, _baseCol) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizeStringLine = function (_content, _lineNum, _baseCol) {};
+
+/** @param {string} _expr @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizeExpression = function (_expr, _lineNum, _baseCol) {};
+
+/** @param {string} _selector @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizeSelector = function (_selector, _lineNum, _baseCol) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @param {string} _keyword @returns {void} */
+PromptJSLexer.prototype._tokenizeBlockOpener = function (_content, _lineNum, _baseCol, _keyword) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @param {string} _keyword @returns {void} */
+PromptJSLexer.prototype._tokenizeDeclaration = function (_content, _lineNum, _baseCol, _keyword) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizeEventLine = function (_content, _lineNum, _baseCol) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizeExternalRefLine = function (_content, _lineNum, _baseCol) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @param {string} _keyword @returns {void} */
+PromptJSLexer.prototype._tokenizeControlFlow = function (_content, _lineNum, _baseCol, _keyword) {};
+
+/** @param {string} _content @param {number} _lineNum @param {number} _baseCol @returns {void} */
+PromptJSLexer.prototype._tokenizePropertyLine = function (_content, _lineNum, _baseCol) {};
+
+/**
+ * Static method stub — real implementation assigned by facade.
+ *
+ * @type {(fmLines: string[]) => Object}
+ */
+PromptJSLexer.parseFrontMatter = function (_fmLines) {
+  return {};
 };
 
 module.exports = { PromptJSLexer: PromptJSLexer };

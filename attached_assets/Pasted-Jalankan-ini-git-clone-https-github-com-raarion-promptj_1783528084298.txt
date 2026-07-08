@@ -1,0 +1,40 @@
+Jalankan ini:  
+git clone [https://github.com/raarion/promptjs.git](https://github.com/raarion/promptjs.git)  
+git fetch origin  
+git checkout v132  
+git reset --hard origin/v132  
+git rev-parse HEAD  
+  
+Pastikan di commit terbaru branch v132.   
+  
+Lalu pastikan kamu punya Node 22 atau lebih atas, jika masih Node 20 maka install dulu  
+  
+Kondisi Saat ini full gate hijau kecuali typecheck.  
+npm run typecheck gagal  
+19 error, semua dari file lexer baru, tiga pola akar masalah:  
+@param {PromptJSLexer} tidak ketemu (di indentation.js, line-dispatch.js, tokenizers/*.js) — nama type PromptJSLexer cuma didefinisikan lewat class/constructor di core/state.js, tapi JSDoc di file lain mereferensikannya sebagai global type tanpa import(...). Di file terpisah, TypeScript checkJs tidak otomatis mengenali type lintas modul kecuali diimpor eksplisit lewat @param {import('./state').PromptJSLexer}.  
+@typedef tidak ketemu (TokenizeResult, LexerToken, LexerError) — typedef ini didefinisikan di promptjs-lexer.js (facade) tapi dipakai di core/state.js dan core/token.js. Typedef bersifat file-scoped di TS/JSDoc, jadi harus diimpor via import(...) juga, atau dipindah ke file terpisah lalu diimpor di semua tempat yang butuh.  
+parseFrontMatter dan _tokenizeLine "tidak ada di type" — method-method ini ditempel secara dinamis ke PromptJSLexer.prototype/PromptJSLexer (assignment runtime di facade, baris 96-139), bukan didefinisikan langsung di dalam class/constructor state.js. TypeScript checkJs tidak bisa infer prototype augmentation lintas file seperti itu — dari sudut pandang compiler, method itu memang tidak pernah ada di class.  
+  
+Rekomendasi perbaikan (pilih salah satu, tidak perlu semuanya):  
+Tambah @param {import('./state').PromptJSLexer} lexer di tiap file tokenizer (paling minim perubahan struktur).  
+Atau declare semua method sebagai bagian dari class PromptJSLexer di state.js langsung (signature saja, badan method tetap delegasi ke submodule) — lebih type-safe tapi lebih invasif.  
+Pindahkan @typedef ke file types.js terpisah dan import(...) di semua yang butuh.  
+  
+Akhirnya harus gate lengkap hijau semua tanpa problem  
+  
+npm ci
+
+npm run format:check
+
+npm test
+
+npm run typecheck
+
+npm run lint
+
+npm run pages:build
+
+npm audit
+
+npm pack --dry-run

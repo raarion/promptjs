@@ -8,6 +8,9 @@
 
 'use strict';
 
+/** @typedef {import('./types.js').LexerToken} LexerToken */
+/** @typedef {import('./types.js').LexerError} LexerError */
+
 /* ==========================================================================
  * 1. KONSTANTA TIPE TOKEN
  * ========================================================================== */

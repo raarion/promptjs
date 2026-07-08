@@ -8,6 +8,8 @@
 
 'use strict';
 
+/** @typedef {import('../core/state.js').PromptJSLexer} PromptJSLexer */
+
 const tokenMod = require('../core/token');
 const TT = tokenMod.TT;
 const Token = tokenMod.Token;
