@@ -7,6 +7,10 @@ const { scopeSelector } = require('./scope');
  *
  * Behavior-preserving extraction from the former monolithic
  * `src/engine/css.js`. Logic is unchanged; only the file layout moved.
+ *
+ * v132 #79: rules marked `global: true` (via `:global()` in source)
+ * skip `scopeSelector` even when `scoped` is true — the selector is
+ * emitted as-is (after alias translation), so it matches globally.
  */
 
 function compileCSS(rules, scoped) {
@@ -17,8 +21,9 @@ function compileCSS(rules, scoped) {
     if (rule.selector.startsWith('@')) {
       lines.push(`${rule.selector} {`);
       for (const child of rule.children) {
+        const isChildGlobal = !!child.global;
         const sel =
-          scoped && child.scope
+          scoped && child.scope && !isChildGlobal
             ? scopeSelector(translateCSSSelector(child.selector), child.scope)
             : translateCSSSelector(child.selector);
         lines.push(`  ${sel} {`);
@@ -31,9 +36,10 @@ function compileCSS(rules, scoped) {
       continue;
     }
 
-    // Regular rule
+    // Regular rule — skip scoping when rule.global is true (:global escape)
+    const isGlobal = !!rule.global;
     const sel =
-      scoped && rule.scope
+      scoped && rule.scope && !isGlobal
         ? scopeSelector(translateCSSSelector(rule.selector), rule.scope)
         : translateCSSSelector(rule.selector);
     lines.push(`${sel} {`);

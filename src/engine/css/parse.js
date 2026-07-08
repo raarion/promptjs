@@ -6,7 +6,31 @@ const { stripCSSComments } = require('./comments');
  *
  * Behavior-preserving extraction from the former monolithic
  * `src/engine/css.js`. Logic is unchanged; only the file layout moved.
+ *
+ * v132 #79: `:global(...)` escape hatch — selectors wrapped in
+ * `:global(...)` are marked `global: true` so `compileCSS` skips
+ * scoping for them. Supports comma-separated selectors inside the
+ * wrapper and bare `:global` as a prefix for single selectors.
  */
+
+/**
+ * Strip `:global(...)` wrapper from a selector string.
+ *
+ * Three supported forms:
+ *   `:global(.foo)`           → `.foo`          (wrapped single selector)
+ *   `:global(.foo, .bar)`    → `.foo, .bar`     (wrapped comma-separated)
+ *   `:global(.foo) .bar`     → `.foo .bar`      (prefix — remainder kept)
+ *   `:global(.foo) > .bar`   → `.foo > .bar`    (prefix with combinator)
+ *
+ * @param {string} selector - Raw selector text from Gaya block.
+ * @returns {{ selector: string, isGlobal: boolean }}
+ */
+function stripGlobalWrapper(selector) {
+  const m = selector.match(/^:global\(([^)]+)\)(.*)/s);
+  if (!m) return { selector, isGlobal: false };
+  // m[1] = content inside :global(...), m[2] = any trailing combinator/descendant
+  return { selector: (m[1] + m[2]).trim(), isGlobal: true };
+}
 
 function parseGayaRules(gayaSource, scope) {
   // BUG-04: Strip CSS comments before parsing so /* ... */ and // don't
@@ -60,8 +84,15 @@ function parseGayaRules(gayaSource, scope) {
       currentAtRule = null;
     }
 
-    // New selector
-    currentRule = { selector: trimmed, properties: [], children: [], scope: scope || '' };
+    // New selector — check for :global() escape hatch
+    const { selector: cleanSelector, isGlobal } = stripGlobalWrapper(trimmed);
+    currentRule = {
+      selector: cleanSelector,
+      properties: [],
+      children: [],
+      scope: scope || '',
+      global: isGlobal,
+    };
     selectorIndent = indent;
   }
 
