@@ -31,9 +31,7 @@ describe('v26 CSS scope-name sanitizer security regression', () => {
 
     expect(sanitizeScopeName(repeatedDashes)).toBe('x');
     expect(sanitizeScopeName(repeatedMixed)).toBe('home-kartu-utama');
-    expect(buildScopeId(repeatedMixed, repeatedMixed)).toBe(
-      'home-kartu-utama-home-kartu-utama'
-    );
+    expect(buildScopeId(repeatedMixed, repeatedMixed)).toBe('home-kartu-utama-home-kartu-utama');
   });
 
   it('keeps only lowercase ASCII letters and digits, using dash as separator', () => {
