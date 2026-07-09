@@ -8,10 +8,29 @@
  */
 
 function sanitizeScopeName(name) {
-  const cleaned = String(name || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  const input = String(name || '').toLowerCase();
+  let cleaned = '';
+  let lastWasDash = false;
+
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i];
+    const code = ch.charCodeAt(0);
+    const isLowerAscii = code >= 97 && code <= 122;
+    const isDigit = code >= 48 && code <= 57;
+
+    if (isLowerAscii || isDigit) {
+      cleaned += ch;
+      lastWasDash = false;
+    } else if (!lastWasDash && cleaned.length > 0) {
+      cleaned += '-';
+      lastWasDash = true;
+    }
+  }
+
+  if (cleaned.endsWith('-')) {
+    cleaned = cleaned.slice(0, -1);
+  }
+
   return cleaned || 'x';
 }
 
